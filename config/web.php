@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
+require_once __DIR__ . '/env.php';
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
 $config = [
     'id' => 'basic',
+    'name' => 'Yii 2 Book Catalog',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'aliases' => [
@@ -14,7 +19,7 @@ $config = [
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'P1eaW_oU1bw_feMsThgXUK1suJRYtjKh',
+            'cookieValidationKey' => env('COOKIE_VALIDATION_KEY', ''),
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -39,18 +44,33 @@ $config = [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
                 ],
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'categories' => ['sms'],
+                    'levels' => ['info', 'error'],
+                    'logFile' => '@runtime/logs/sms.log',
+                    'logVars' => [],
+                ],
             ],
         ],
         'db' => $db,
-        /*
+        'mutex' => [
+            'class' => \yii\mutex\MysqlMutex::class,
+            'db' => $db,
+        ],
+        'queue' => [
+            'class' => \yii\queue\db\Queue::class,
+            'db' => $db,
+            'tableName' => '{{%queue}}',
+            'channel' => 'default',
+        ],
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
-            'rules' => [
-            ],
+            'rules' => [],
         ],
-        */
     ],
+    'container' => require __DIR__ . '/container.php',
     'params' => $params,
 ];
 
