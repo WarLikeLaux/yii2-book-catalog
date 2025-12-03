@@ -9,18 +9,23 @@ use app\services\BookService;
 use app\services\SubscriptionService;
 use app\services\sms\SmsPilotSender;
 use app\services\storage\LocalFileStorage;
-use Yii;
+use app\services\YiiPsrLogger;
+use Psr\Log\LoggerInterface;
 
 return [
     'definitions' => [
-        SmsSenderInterface::class => static fn (): SmsSenderInterface => new SmsPilotSender((string)env('SMS_API_KEY', 'MOCK_KEY')),
-        FileStorageInterface::class => static fn ($container, $params, $config): FileStorageInterface => new LocalFileStorage(
+        SmsSenderInterface::class => static fn($container): SmsSenderInterface => new SmsPilotSender(
+            (string)env('SMS_API_KEY', 'MOCK_KEY'),
+            $container->get(LoggerInterface::class)
+        ),
+        LoggerInterface::class => static fn(): LoggerInterface => new YiiPsrLogger('sms'),
+        FileStorageInterface::class => static fn($container, $params, $config): FileStorageInterface => new LocalFileStorage(
             '@app/web/uploads',
             '/uploads'
         ),
     ],
     'singletons' => [
-        BookService::class => static fn ($container, $params, $config): BookService => new BookService(
+        BookService::class => static fn($container, $params, $config): BookService => new BookService(
             Yii::$app->get('db'),
             Yii::$app->get('queue'),
             $container->get(FileStorageInterface::class)

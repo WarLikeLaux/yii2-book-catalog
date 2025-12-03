@@ -18,6 +18,9 @@ restart: down up
 composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer install
 
+lint:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs
+
 migrate:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./yii migrate --interactive=0
 

@@ -5,18 +5,23 @@ declare(strict_types=1);
 namespace app\services\sms;
 
 use app\interfaces\SmsSenderInterface;
-use Yii;
+use Psr\Log\LoggerInterface;
 
 final class SmsPilotSender implements SmsSenderInterface
 {
     public function __construct(
-        private readonly string $apiKey
+        private readonly string $apiKey,
+        private readonly LoggerInterface $logger
     ) {}
 
     public function send(string $phone, string $message): bool
     {
         if ($this->apiKey === 'MOCK_KEY') {
-            Yii::info("SMS emulated: {$phone} - {$message}", 'sms');
+            $this->logger->info('SMS emulated', [
+                'phone' => $phone,
+                'message' => $message,
+                'mode' => 'mock',
+            ]);
             return true;
         }
 
@@ -38,18 +43,29 @@ final class SmsPilotSender implements SmsSenderInterface
         curl_close($ch);
 
         if ($httpCode !== 200 || !$response) {
-            Yii::error("SMS API error: HTTP {$httpCode}", 'sms');
+            $this->logger->error('SMS API error', [
+                'phone' => $phone,
+                'http_code' => $httpCode,
+                'response' => $response,
+            ]);
             return false;
         }
 
         $data = json_decode($response, true);
         $status = $data['send'][0]['status'] ?? null;
         if ($status === 'OK' || $status === '0') {
-            Yii::info("SMS sent: {$phone}", 'sms');
+            $this->logger->info('SMS sent successfully', [
+                'phone' => $phone,
+                'status' => $status,
+            ]);
             return true;
         }
 
-        Yii::error("SMS API failed: {$response}", 'sms');
+        $this->logger->error('SMS API failed', [
+            'phone' => $phone,
+            'status' => $status,
+            'response' => $response,
+        ]);
         return false;
     }
 }
