@@ -7,6 +7,7 @@ namespace app\models\forms;
 use app\models\Book;
 use app\validators\IsbnValidator;
 use yii\base\Model;
+use yii\web\Request;
 use yii\web\UploadedFile;
 
 final class BookForm extends Model
@@ -18,6 +19,18 @@ final class BookForm extends Model
     public string $isbn = '';
     public array $authorIds = [];
     public UploadedFile|string|null $cover = null;
+
+    /**
+     * Loads form data and uploaded file from HTTP request.
+     * Encapsulates request handling to avoid duplication in controller actions.
+     */
+    public function loadFromRequest(Request $request): bool
+    {
+        $isLoaded = $this->load($request->post());
+        $this->cover = UploadedFile::getInstance($this, 'cover');
+
+        return $isLoaded || $this->cover !== null;
+    }
 
     public function rules(): array
     {

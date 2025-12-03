@@ -13,7 +13,6 @@ use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\web\UploadedFile;
 
 final class BookController extends Controller
 {
@@ -71,8 +70,7 @@ final class BookController extends Controller
         $form = new BookForm();
 
         if ($this->request->isPost) {
-            $form->load($this->request->post());
-            $form->cover = UploadedFile::getInstance($form, 'cover');
+            $form->loadFromRequest($this->request);
 
             if ($this->request->isAjax) {
                 Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
@@ -112,8 +110,7 @@ final class BookController extends Controller
         $form->authorIds = $book->getAuthors()->select('id')->column();
 
         if ($this->request->isPost) {
-            $form->load($this->request->post());
-            $form->cover = UploadedFile::getInstance($form, 'cover');
+            $form->loadFromRequest($this->request);
 
             if ($this->request->isAjax) {
                 Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
