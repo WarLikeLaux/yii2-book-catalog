@@ -16,4 +16,3 @@ final class m251202_000006_add_fulltext_index_to_books extends Migration
         $this->dropIndex('ft_books_title_description', 'books');
     }
 }
-
