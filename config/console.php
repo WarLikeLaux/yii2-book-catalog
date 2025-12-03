@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+require_once __DIR__ . '/env.php';
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
 $config = [
     'id' => 'basic-console',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log'],
+    'bootstrap' => ['log', 'queue'],
     'controllerNamespace' => 'app\commands',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
@@ -23,10 +27,31 @@ $config = [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
                 ],
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'categories' => ['sms'],
+                    'levels' => ['info', 'error'],
+                    'logFile' => '@runtime/logs/sms.log',
+                    'logVars' => [],
+                ],
             ],
         ],
         'db' => $db,
+        'mutex' => [
+            'class' => \yii\mutex\MysqlMutex::class,
+            'db' => $db,
+        ],
+        'queue' => [
+            'class' => \yii\queue\db\Queue::class,
+            'db' => $db,
+            'tableName' => '{{%queue}}',
+            'channel' => 'queue',
+        ],
     ],
+    'controllerMap' => [
+        'queue' => \yii\queue\db\Command::class,
+    ],
+    'container' => require __DIR__ . '/container.php',
     'params' => $params,
     /*
     'controllerMap' => [

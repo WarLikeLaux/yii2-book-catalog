@@ -15,7 +15,6 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?php if (Yii::$app->session->hasFlash('contactFormSubmitted')): ?>
-
         <div class="alert alert-success">
             Thank you for contacting us. We will respond to you as soon as possible.
         </div>
@@ -32,7 +31,6 @@ $this->params['breadcrumbs'][] = $this->title;
         </p>
 
     <?php else: ?>
-
         <p>
             If you have business inquiries or other questions, please fill out the following form to contact us.
             Thank you.

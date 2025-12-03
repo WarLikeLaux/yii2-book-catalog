@@ -1,53 +1,129 @@
 <?php
 
-/** @var yii\web\View $this */
+declare(strict_types=1);
 
-$this->title = 'My Yii Application';
+use app\models\search\BookSearch;
+use yii\bootstrap5\ActiveForm;
+use yii\bootstrap5\LinkPager;
+use yii\bootstrap5\Modal;
+use yii\helpers\Html;
+use yii\widgets\Pjax;
+
+$this->title = 'Каталог книг';
 ?>
+
 <div class="site-index">
-
-    <div class="jumbotron text-center bg-transparent mt-5 mb-5">
-        <h1 class="display-4">Congratulations!</h1>
-
-        <p class="lead">You have successfully created your Yii-powered application.</p>
-
-        <p><a class="btn btn-lg btn-success" href="https://www.yiiframework.com">Get started with Yii</a></p>
+    <div class="jumbotron text-center bg-transparent py-4">
+        <h1 class="display-5">Библиотека</h1>
+        <?php if (!Yii::$app->user->isGuest): ?>
+            <p><?= Html::a('Управление книгами', ['book/index'], ['class' => 'btn btn-success']) ?></p>
+        <?php endif; ?>
     </div>
 
-    <div class="body-content">
+    <?php Pjax::begin(['id' => 'book-list-pjax']); ?>
+    <?php $form = ActiveForm::begin([
+        'method' => 'get',
+        'action' => ['site/index'],
+        'options' => ['data-pjax' => true],
+    ]); ?>
 
-        <div class="row">
-            <div class="col-lg-4 mb-3">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
-            </div>
-            <div class="col-lg-4 mb-3">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <?= $form->field($searchModel, 'globalSearch')
+                ->textInput([
+                    'placeholder' => 'Название, ISBN, Автор или Год...',
+                    'id' => 'book-search-input',
+                ])
+                ->label(false) ?>
         </div>
-
     </div>
+
+    <?php ActiveForm::end(); ?>
+
+    <div class="row">
+        <?php foreach ($dataProvider->getModels() as $book): ?>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <?php if ($book->cover_url): ?>
+                        <div style="height: 200px; overflow: hidden;">
+                            <?= Html::img($book->cover_url, ['class' => 'card-img-top', 'alt' => $book->title, 'style' => 'width: 100%; height: 100%; object-fit: cover;']) ?>
+                        </div>
+                    <?php endif; ?>
+                    <div class="card-body">
+                        <h5 class="card-title"><?= Html::encode($book->title) ?></h5>
+                        <p class="text-muted mb-1"><?= Html::encode($book->year) ?></p>
+
+                        <div class="mb-3">
+                            <?php foreach ($book->authors as $author): ?>
+                                <span class="badge bg-secondary me-1">
+                                    <?= Html::encode($author->fio) ?>
+                                    <a href="#" class="text-white sub-link" data-id="<?= $author->id ?>" title="Подписаться">
+                                        <i class="bi bi-bell"></i> +
+                                    </a>
+                                </span>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <?php if ($book->description): ?>
+                            <p class="small"><?= Html::encode(mb_substr($book->description, 0, 100)) ?>...</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="d-flex justify-content-center mt-4">
+        <?= LinkPager::widget([
+            'pagination' => $dataProvider->pagination,
+            'options' => ['class' => 'pagination'],
+            'linkOptions' => ['class' => 'page-link'],
+            'pageCssClass' => 'page-item',
+            'disabledPageCssClass' => 'page-item disabled',
+            'prevPageCssClass' => 'page-item',
+            'nextPageCssClass' => 'page-item',
+        ]) ?>
+    </div>
+    <?php Pjax::end(); ?>
 </div>
+
+<?php
+Modal::begin([
+    'title' => 'Подписка на автора',
+    'id' => 'sub-modal',
+    'size' => Modal::SIZE_DEFAULT,
+]);
+echo '<div id="modal-content">Загрузка...</div>';
+Modal::end();
+
+$js = <<<JS
+let searchTimeout;
+let cursorPosition = 0;
+
+$(document).on('input', '#book-search-input', function() {
+    cursorPosition = this.selectionStart;
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(function() {
+        $('#book-list-pjax form').submit();
+    }, 300);
+});
+
+$(document).on('pjax:complete', '#book-list-pjax', function() {
+    let input = $('#book-search-input');
+    if (input.length) {
+        input.focus();
+        if (cursorPosition > 0 && cursorPosition <= input.val().length) {
+            input[0].setSelectionRange(cursorPosition, cursorPosition);
+        }
+    }
+});
+
+$(document).on('click', '.sub-link', function(e) {
+    e.preventDefault();
+    let id = $(this).data('id');
+    $('#sub-modal').modal('show');
+    $('#modal-content').load('/subscription/form?authorId=' + id);
+});
+JS;
+$this->registerJs($js);
+?>

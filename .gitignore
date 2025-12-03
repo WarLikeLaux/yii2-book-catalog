@@ -31,3 +31,21 @@ tests/_support/_generated
 
 #vagrant folder
 /.vagrant
+
+# database data
+/db-data
+
+# runtime files
+/runtime/*
+!/runtime/.gitkeep
+
+# web assets
+/web/assets/*
+!/web/assets/.gitkeep
+
+# uploads
+/web/uploads/*
+!/web/uploads/.gitkeep
+
+# environment variables
+.env
