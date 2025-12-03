@@ -13,6 +13,7 @@
     <exclude-pattern>web/assets/*</exclude-pattern>
     <exclude-pattern>web/uploads/*</exclude-pattern>
     <exclude-pattern>_output/*</exclude-pattern>
+    <exclude-pattern>tests/*</exclude-pattern>
 
     <rule ref="vendor/yiisoft/yii2-coding-standards/Yii2"/>
 </ruleset>

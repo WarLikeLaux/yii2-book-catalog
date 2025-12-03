@@ -21,6 +21,9 @@ composer:
 lint:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs
 
+lint-fix:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf
+
 migrate:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./yii migrate --interactive=0
 
