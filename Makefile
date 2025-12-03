@@ -31,8 +31,8 @@ shell:
 	$(COMPOSE) exec $(PHP_CONTAINER) sh
 
 perms:
-	mkdir -p web/uploads
-	chmod 777 web/uploads
+	mkdir -p web/uploads runtime/debug runtime/logs runtime/cache
+	$(COMPOSE) exec -T -u root $(PHP_CONTAINER) chmod -R 777 /app/runtime /app/web/uploads
 
 copy-env:
 	@if [ ! -f .env ]; then cp .env.example .env; echo "✅ .env created"; fi
