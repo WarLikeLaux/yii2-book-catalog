@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace app\jobs;
 
+use app\models\Subscription;
 use Psr\Log\LoggerInterface;
 use Yii;
 use yii\base\BaseObject;
-use yii\db\Query;
 use yii\queue\db\Queue;
 use yii\queue\Job;
 use yii\queue\RetryableJobInterface;
@@ -25,12 +25,12 @@ final class NotifySubscribersJob extends BaseObject implements Job, RetryableJob
         $logger = Yii::$container->get(LoggerInterface::class);
         $jobQueue = Yii::$container->get(Queue::class);
 
-        $query = (new Query())
+        $query = Subscription::find()
+            ->alias('s')
             ->select('s.phone')
             ->distinct()
-            ->from(['s' => 'subscriptions'])
-            ->innerJoin(['ba' => 'book_authors'], 'ba.author_id = s.author_id')
-            ->where(['ba.book_id' => $this->bookId]);
+            ->innerJoin('book_authors ba', 'ba.author_id = s.author_id')
+            ->andWhere(['ba.book_id' => $this->bookId]);
 
         $message = "Вышла новая книга: {$this->title}";
         $totalDispatched = 0;
