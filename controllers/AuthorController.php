@@ -30,7 +30,15 @@ final class AuthorController extends Controller
             'access' => [
                 'class' => AccessControl::class,
                 'rules' => [
-                    ['allow' => true, 'roles' => ['@']],
+                    [
+                        'allow' => true,
+                        'actions' => ['search'],
+                        'roles' => ['@'],
+                    ],
+                    [
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
                 ],
             ],
         ];
@@ -101,5 +109,39 @@ final class AuthorController extends Controller
         }
 
         return $this->redirect(['index']);
+    }
+
+    /**
+     * AJAX endpoint for Select2 search
+     */
+    public function actionSearch(): array
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        $search = $this->request->get('q', '');
+        $page = (int)$this->request->get('page', 1);
+        $pageSize = 20;
+
+        $query = Author::find()
+            ->select(['id', 'fio as text'])
+            ->orderBy(['fio' => SORT_ASC]);
+
+        if ($search !== '') {
+            $query->andWhere(['like', 'fio', $search]);
+        }
+
+        $total = $query->count();
+        $authors = $query
+            ->offset(($page - 1) * $pageSize)
+            ->limit($pageSize)
+            ->asArray()
+            ->all();
+
+        return [
+            'results' => $authors,
+            'pagination' => [
+                'more' => ($page * $pageSize) < $total,
+            ],
+        ];
     }
 }

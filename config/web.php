@@ -24,6 +24,12 @@ $config = [
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
+        'assetManager' => [
+            'bundles' => [
+                'kartik\base\WidgetAsset' => ['bsVersion' => '5'],
+                'kartik\select2\Select2Asset' => ['bsVersion' => '5'],
+            ],
+        ],
         'user' => [
             'identityClass' => 'app\models\User',
             'enableAutoLogin' => true,
