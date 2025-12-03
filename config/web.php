@@ -68,7 +68,7 @@ $config = [
             'class' => \yii\queue\db\Queue::class,
             'db' => $db,
             'tableName' => '{{%queue}}',
-            'channel' => 'default',
+            'channel' => 'queue',
         ],
         'urlManager' => [
             'enablePrettyUrl' => true,

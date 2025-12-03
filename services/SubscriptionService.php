@@ -12,16 +12,18 @@ final class SubscriptionService
 {
     public function subscribe(SubscriptionForm $form): Subscription
     {
+        $normalizedPhone = $form->phone;
+
         $existing = Subscription::find()
-            ->where(['phone' => $form->phone, 'author_id' => $form->authorId])
+            ->where(['phone' => $normalizedPhone, 'author_id' => $form->authorId])
             ->one();
 
         if ($existing) {
-            return $existing;
+            throw new DomainException('Вы уже подписаны на этого автора');
         }
 
         $subscription = new Subscription();
-        $subscription->phone = $form->phone;
+        $subscription->phone = $normalizedPhone;
         $subscription->author_id = $form->authorId;
 
         if (!$subscription->save()) {

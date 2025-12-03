@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\models\forms;
 
 use libphonenumber\NumberParseException;
+use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 use yii\base\Model;
 
@@ -18,6 +19,7 @@ final class SubscriptionForm extends Model
         return [
             [['phone', 'authorId'], 'required'],
             [['authorId'], 'integer'],
+            [['phone'], 'trim'],
             [['phone'], 'string', 'max' => 20],
             [['phone'], 'validatePhone'],
         ];
@@ -42,11 +44,14 @@ final class SubscriptionForm extends Model
         $phoneUtil = PhoneNumberUtil::getInstance();
 
         try {
-            $phoneNumber = $phoneUtil->parse($this->$attribute, null);
+            $phoneNumber = $phoneUtil->parse($this->$attribute, PhoneNumberUtil::UNKNOWN_REGION);
 
             if (!$phoneUtil->isValidNumber($phoneNumber)) {
                 $this->addError($attribute, 'Неверный формат телефона');
+                return;
             }
+
+            $this->$attribute = $phoneUtil->format($phoneNumber, PhoneNumberFormat::E164);
         } catch (NumberParseException) {
             $this->addError($attribute, 'Неверный формат телефона. Используйте международный формат с кодом страны (например, +79991234567)');
         }
