@@ -7,6 +7,7 @@ namespace app\controllers;
 use app\models\Book;
 use app\models\ContactForm;
 use app\models\LoginForm;
+use app\models\search\BookSearch;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
@@ -54,14 +55,11 @@ final class SiteController extends Controller
 
     public function actionIndex(): string
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Book::find()->with('authors')->orderBy(['created_at' => SORT_DESC]),
-            'pagination' => [
-                'pageSize' => 9,
-            ],
-        ]);
+        $searchModel = new BookSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
+            'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }

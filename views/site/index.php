@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use app\models\search\BookSearch;
+use yii\bootstrap5\ActiveForm;
 use yii\bootstrap5\LinkPager;
 use yii\bootstrap5\Modal;
 use yii\helpers\Html;
+use yii\widgets\Pjax;
 
 $this->title = 'Каталог книг';
 ?>
@@ -16,6 +19,26 @@ $this->title = 'Каталог книг';
             <p><?= Html::a('Управление книгами', ['book/index'], ['class' => 'btn btn-success']) ?></p>
         <?php endif; ?>
     </div>
+
+    <?php Pjax::begin(['id' => 'book-list-pjax']); ?>
+    <?php $form = ActiveForm::begin([
+        'method' => 'get',
+        'action' => ['site/index'],
+        'options' => ['data-pjax' => true],
+    ]); ?>
+
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <?= $form->field($searchModel, 'globalSearch')
+                ->textInput([
+                    'placeholder' => 'Название, ISBN, Автор или Год...',
+                    'id' => 'book-search-input',
+                ])
+                ->label(false) ?>
+        </div>
+    </div>
+
+    <?php ActiveForm::end(); ?>
 
     <div class="row">
         <?php foreach ($dataProvider->getModels() as $book): ?>
@@ -61,6 +84,7 @@ $this->title = 'Каталог книг';
             'nextPageCssClass' => 'page-item',
         ]) ?>
     </div>
+    <?php Pjax::end(); ?>
 </div>
 
 <?php
@@ -73,6 +97,27 @@ echo '<div id="modal-content">Загрузка...</div>';
 Modal::end();
 
 $js = <<<JS
+let searchTimeout;
+let cursorPosition = 0;
+
+$(document).on('input', '#book-search-input', function() {
+    cursorPosition = this.selectionStart;
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(function() {
+        $('#book-list-pjax form').submit();
+    }, 300);
+});
+
+$(document).on('pjax:complete', '#book-list-pjax', function() {
+    let input = $('#book-search-input');
+    if (input.length) {
+        input.focus();
+        if (cursorPosition > 0 && cursorPosition <= input.val().length) {
+            input[0].setSelectionRange(cursorPosition, cursorPosition);
+        }
+    }
+});
+
 $(document).on('click', '.sub-link', function(e) {
     e.preventDefault();
     let id = $(this).data('id');
