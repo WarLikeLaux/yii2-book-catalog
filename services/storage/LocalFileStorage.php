@@ -14,7 +14,8 @@ final class LocalFileStorage implements FileStorageInterface
     public function __construct(
         private readonly string $basePath,
         private readonly string $baseUrl
-    ) {}
+    ) {
+    }
 
     public function save(UploadedFile $file): string
     {

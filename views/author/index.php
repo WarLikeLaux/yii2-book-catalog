@@ -1,8 +1,8 @@
 <?php
 
 use app\models\Author;
-use yii\helpers\Html;
 use yii\grid\GridView;
+use yii\helpers\Html;
 
 $this->title = 'Авторы';
 $this->params['breadcrumbs'][] = $this->title;

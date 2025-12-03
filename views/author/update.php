@@ -1,8 +1,8 @@
 <?php
 
 use app\models\Author;
-use yii\helpers\Html;
 use yii\bootstrap5\ActiveForm;
+use yii\helpers\Html;
 
 $this->title = 'Обновить автора';
 $this->params['breadcrumbs'][] = ['label' => 'Авторы', 'url' => ['index']];

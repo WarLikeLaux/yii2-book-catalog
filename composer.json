@@ -38,11 +38,13 @@
         "codeception/module-filesystem": "^3.0 || ^2.0 || ^1.1",
         "codeception/verify": "^3.0 || ^2.2",
         "squizlabs/php_codesniffer": "^4.0",
-        "yiisoft/yii2-coding-standards": "^3.0"
+        "yiisoft/yii2-coding-standards": "^3.0",
+        "slevomat/coding-standard": "^8.25"
     },
     "config": {
         "allow-plugins": {
-            "yiisoft/yii2-composer": true
+            "yiisoft/yii2-composer": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
         },
         "process-timeout": 1800,
         "fxp-asset": {

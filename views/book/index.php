@@ -1,8 +1,8 @@
 <?php
 
 use app\models\Book;
-use yii\helpers\Html;
 use yii\grid\GridView;
+use yii\helpers\Html;
 
 $this->title = 'Книги';
 $this->params['breadcrumbs'][] = $this->title;

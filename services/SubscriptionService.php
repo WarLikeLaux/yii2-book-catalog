@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\services;
 
-use app\models\Subscription;
 use app\models\forms\SubscriptionForm;
+use app\models\Subscription;
 use DomainException;
 
 final class SubscriptionService

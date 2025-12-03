@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace app\services;
 
 use app\interfaces\FileStorageInterface;
+use app\jobs\NotifySubscribersJob;
 use app\models\Book;
 use app\models\forms\BookForm;
-use app\jobs\NotifySubscribersJob;
 use DomainException;
 use Yii;
-use yii\db\Connection;
 use yii\db\ActiveRecord;
+use yii\db\Connection;
 use yii\queue\db\Queue;
 
 final class BookService
