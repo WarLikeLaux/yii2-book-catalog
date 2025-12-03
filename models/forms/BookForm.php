@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\models\forms;
 
+use app\models\Author;
 use app\models\Book;
 use app\validators\IsbnValidator;
 use yii\base\Model;
@@ -48,6 +49,11 @@ final class BookForm extends Model
                 'filter' => fn($query) => $this->id ? $query->andWhere(['<>', 'id', $this->id]) : $query,
             ],
             [['authorIds'], 'each', 'rule' => ['integer']],
+            [
+                ['authorIds'],
+                'each',
+                'rule' => ['exist', 'targetClass' => Author::class, 'targetAttribute' => 'id'],
+            ],
             [
                 ['cover'],
                 'file',

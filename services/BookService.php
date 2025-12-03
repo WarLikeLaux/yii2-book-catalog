@@ -39,15 +39,18 @@ final class BookService
             }
 
             if (!$book->save()) {
-                throw new DomainException($this->getFirstErrorMessage($book, 'Failed to save book'));
+                throw new DomainException($this->getFirstErrorMessage($book, 'Не удалось сохранить книгу'));
             }
 
-            foreach ($form->authorIds as $authorId) {
-                $this->db->createCommand()->insert('book_authors', [
-                    'book_id' => $book->id,
-                    'author_id' => $authorId,
-                ])->execute();
-            }
+            $rows = array_map(
+                fn($authorId) => [$book->id, $authorId],
+                $form->authorIds
+            );
+            $this->db->createCommand()->batchInsert(
+                'book_authors',
+                ['book_id', 'author_id'],
+                $rows
+            )->execute();
 
             $transaction->commit();
 
@@ -67,7 +70,7 @@ final class BookService
     {
         $book = Book::findOne($id);
         if (!$book) {
-            throw new DomainException('Book not found');
+            throw new DomainException('Книга не найдена');
         }
 
         $transaction = $this->db->beginTransaction();
@@ -83,19 +86,22 @@ final class BookService
             }
 
             if (!$book->save()) {
-                throw new DomainException($this->getFirstErrorMessage($book, 'Failed to update book'));
+                throw new DomainException($this->getFirstErrorMessage($book, 'Не удалось обновить книгу'));
             }
 
             $this->db->createCommand()
                 ->delete('book_authors', ['book_id' => $book->id])
                 ->execute();
 
-            foreach ($form->authorIds as $authorId) {
-                $this->db->createCommand()->insert('book_authors', [
-                    'book_id' => $book->id,
-                    'author_id' => $authorId,
-                ])->execute();
-            }
+            $rows = array_map(
+                fn($authorId) => [$book->id, $authorId],
+                $form->authorIds
+            );
+            $this->db->createCommand()->batchInsert(
+                'book_authors',
+                ['book_id', 'author_id'],
+                $rows
+            )->execute();
 
             $transaction->commit();
 
@@ -110,11 +116,11 @@ final class BookService
     {
         $book = Book::findOne($id);
         if (!$book) {
-            throw new DomainException('Book not found');
+            throw new DomainException('Книга не найдена');
         }
 
         if (!$book->delete()) {
-            throw new DomainException('Failed to delete book');
+            throw new DomainException('Не удалось удалить книгу');
         }
     }
 

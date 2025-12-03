@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\controllers;
 
 use app\models\Author;
+use app\models\forms\AuthorForm;
 use app\services\AuthorService;
 use Yii;
 use yii\data\ActiveDataProvider;
@@ -51,11 +52,11 @@ final class AuthorController extends Controller
 
     public function actionCreate()
     {
-        $model = new Author();
+        $form = new AuthorForm();
 
-        if ($this->request->isPost && $model->load($this->request->post())) {
+        if ($this->request->isPost && $form->load($this->request->post()) && $form->validate()) {
             try {
-                $this->authorService->create($model->fio);
+                $this->authorService->create($form->fio);
                 Yii::$app->session->setFlash('success', 'Автор создан');
                 return $this->redirect(['index']);
             } catch (\Throwable $e) {
@@ -63,19 +64,23 @@ final class AuthorController extends Controller
             }
         }
 
-        return $this->render('create', ['model' => $model]);
+        return $this->render('create', ['model' => $form]);
     }
 
     public function actionUpdate(int $id)
     {
-        $model = Author::findOne($id);
-        if (!$model) {
+        $author = Author::findOne($id);
+        if (!$author) {
             throw new NotFoundHttpException('Автор не найден');
         }
 
-        if ($this->request->isPost && $model->load($this->request->post())) {
+        $form = new AuthorForm();
+        $form->id = $author->id;
+        $form->fio = $author->fio;
+
+        if ($this->request->isPost && $form->load($this->request->post()) && $form->validate()) {
             try {
-                $this->authorService->update($id, $model->fio);
+                $this->authorService->update($id, $form->fio);
                 Yii::$app->session->setFlash('success', 'Автор обновлен');
                 return $this->redirect(['index']);
             } catch (\Throwable $e) {
@@ -83,7 +88,7 @@ final class AuthorController extends Controller
             }
         }
 
-        return $this->render('update', ['model' => $model]);
+        return $this->render('update', ['model' => $form]);
     }
 
     public function actionDelete(int $id)

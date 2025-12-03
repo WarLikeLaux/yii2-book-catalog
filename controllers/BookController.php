@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use app\models\Author;
 use app\models\Book;
 use app\models\forms\BookForm;
+use app\services\AuthorService;
 use app\services\BookService;
 use Yii;
 use yii\data\ActiveDataProvider;
@@ -20,6 +20,7 @@ final class BookController extends Controller
         $id,
         $module,
         private readonly BookService $bookService,
+        private readonly AuthorService $authorService,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -90,7 +91,7 @@ final class BookController extends Controller
 
         return $this->render('create', [
             'model' => $form,
-            'authors' => Author::find()->select(['fio', 'id'])->indexBy('id')->column(),
+            'authors' => $this->authorService->getAuthorsMap(),
         ]);
     }
 
@@ -131,7 +132,7 @@ final class BookController extends Controller
         return $this->render('update', [
             'model' => $form,
             'book' => $book,
-            'authors' => Author::find()->select(['fio', 'id'])->indexBy('id')->column(),
+            'authors' => $this->authorService->getAuthorsMap(),
         ]);
     }
 

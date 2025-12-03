@@ -15,7 +15,7 @@ final class AuthorService
         $author->fio = $fio;
 
         if (!$author->save()) {
-            throw new DomainException('Failed to create author');
+            throw new DomainException('Не удалось создать автора');
         }
 
         return $author;
@@ -25,13 +25,13 @@ final class AuthorService
     {
         $author = Author::findOne($id);
         if (!$author) {
-            throw new DomainException('Author not found');
+            throw new DomainException('Автор не найден');
         }
 
         $author->fio = $fio;
 
         if (!$author->save()) {
-            throw new DomainException('Failed to update author');
+            throw new DomainException('Не удалось обновить автора');
         }
 
         return $author;
@@ -41,11 +41,23 @@ final class AuthorService
     {
         $author = Author::findOne($id);
         if (!$author) {
-            throw new DomainException('Author not found');
+            throw new DomainException('Автор не найден');
         }
 
         if (!$author->delete()) {
-            throw new DomainException('Failed to delete author');
+            throw new DomainException('Не удалось удалить автора');
         }
+    }
+
+    /**
+     * @return array<int, string> Map of author IDs to names
+     */
+    public function getAuthorsMap(): array
+    {
+        return Author::find()
+            ->select(['fio', 'id'])
+            ->indexBy('id')
+            ->orderBy(['fio' => SORT_ASC])
+            ->column();
     }
 }
