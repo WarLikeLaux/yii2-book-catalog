@@ -35,4 +35,3 @@ final class ReportController extends Controller
         ]);
     }
 }
-

@@ -31,4 +31,3 @@ final class LocalFileStorage implements FileStorageInterface
         return $this->baseUrl . '/' . $filename;
     }
 }
-

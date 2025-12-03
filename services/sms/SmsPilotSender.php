@@ -12,7 +12,8 @@ final class SmsPilotSender implements SmsSenderInterface
     public function __construct(
         private readonly string $apiKey,
         private readonly LoggerInterface $logger
-    ) {}
+    ) {
+    }
 
     public function send(string $phone, string $message): bool
     {

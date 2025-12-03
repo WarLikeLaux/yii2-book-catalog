@@ -33,4 +33,3 @@ final class m251202_000004_create_subscriptions_table extends Migration
         $this->dropTable('subscriptions');
     }
 }
-

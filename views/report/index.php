@@ -5,7 +5,7 @@ declare(strict_types=1);
 use yii\helpers\Html;
 use yii\helpers\Url;
 
-$this->title = "ТОП-10 авторов за " . (string)$year . " год";
+$this->title = 'ТОП-10 авторов за ' . (string)$year . ' год';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 

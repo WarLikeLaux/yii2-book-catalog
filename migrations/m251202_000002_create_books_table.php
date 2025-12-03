@@ -28,4 +28,3 @@ final class m251202_000002_create_books_table extends Migration
         $this->dropTable('books');
     }
 }
-

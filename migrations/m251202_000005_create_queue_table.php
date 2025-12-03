@@ -31,4 +31,3 @@ final class m251202_000005_create_queue_table extends Migration
         $this->dropTable('{{%queue}}');
     }
 }
-

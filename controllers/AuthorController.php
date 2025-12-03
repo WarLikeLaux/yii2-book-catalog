@@ -98,4 +98,3 @@ final class AuthorController extends Controller
         return $this->redirect(['index']);
     }
 }
-

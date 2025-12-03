@@ -39,4 +39,3 @@ final class m251202_000003_create_book_authors_table extends Migration
         $this->dropTable('book_authors');
     }
 }
-

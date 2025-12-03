@@ -23,11 +23,11 @@ final class SeedController extends Controller
             $this->seedBooks($authors);
 
             $transaction->commit();
-            $this->stdout("Done! Data generated for current year (" . date('Y') . ") too.\n", Console::FG_GREEN);
+            $this->stdout('Done! Data generated for current year (' . date('Y') . ") too.\n", Console::FG_GREEN);
             return ExitCode::OK;
         } catch (\Throwable $e) {
             $transaction->rollBack();
-            $this->stdout("Error: " . $e->getMessage() . "\n", Console::FG_RED);
+            $this->stdout('Error: ' . $e->getMessage() . "\n", Console::FG_RED);
             return ExitCode::UNSPECIFIED_ERROR;
         }
     }

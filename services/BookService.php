@@ -20,7 +20,8 @@ final class BookService
         private readonly Connection $db,
         private readonly Queue $queue,
         private readonly FileStorageInterface $fileStorage
-    ) {}
+    ) {
+    }
 
     public function create(BookForm $form): Book
     {

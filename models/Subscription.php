@@ -50,4 +50,3 @@ final class Subscription extends ActiveRecord
         return $this->hasOne(Author::class, ['id' => 'author_id']);
     }
 }
-

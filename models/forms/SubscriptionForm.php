@@ -29,4 +29,3 @@ final class SubscriptionForm extends Model
         ];
     }
 }
-

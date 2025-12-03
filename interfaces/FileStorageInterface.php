@@ -10,4 +10,3 @@ interface FileStorageInterface
 {
     public function save(UploadedFile $file): string;
 }
-

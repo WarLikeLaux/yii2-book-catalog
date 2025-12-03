@@ -36,4 +36,3 @@ final class Author extends ActiveRecord
             ->viaTable('book_authors', ['author_id' => 'id']);
     }
 }
-

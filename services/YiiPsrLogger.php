@@ -29,7 +29,8 @@ final class YiiPsrLogger implements LoggerInterface
 
     public function __construct(
         private readonly string $category = 'application'
-    ) {}
+    ) {
+    }
 
     public function emergency(string|\Stringable $message, array $context = []): void
     {

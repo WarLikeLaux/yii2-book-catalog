@@ -40,12 +40,12 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         ['label' => 'Каталог', 'url' => ['/site/index']],
         ['label' => 'Отчет', 'url' => ['/report/index']],
     ];
-    
+
     if (!Yii::$app->user->isGuest) {
         $menuItems[] = ['label' => 'Книги', 'url' => ['/book/index']];
         $menuItems[] = ['label' => 'Авторы', 'url' => ['/author/index']];
     }
-    
+
     $menuItems[] = Yii::$app->user->isGuest
         ? ['label' => 'Вход', 'url' => ['/site/login']]
         : '<li class="nav-item">'
@@ -56,7 +56,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             )
             . Html::endForm()
             . '</li>';
-    
+
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav'],
         'items' => $menuItems
