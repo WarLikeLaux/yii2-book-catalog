@@ -26,32 +26,37 @@ final class NotifySubscribersJob extends BaseObject implements Job, RetryableJob
         $sender = Yii::$container->get(SmsSenderInterface::class);
         $logger = Yii::$container->get(LoggerInterface::class);
 
-        $phones = (new Query())
+        $query = (new Query())
             ->select('s.phone')
             ->distinct()
             ->from(['s' => 'subscriptions'])
             ->innerJoin(['ba' => 'book_authors'], 'ba.author_id = s.author_id')
-            ->where(['ba.book_id' => $this->bookId])
-            ->column();
+            ->where(['ba.book_id' => $this->bookId]);
 
         $failures = 0;
-        foreach ($phones as $phone) {
-            try {
-                $sender->send($phone, "Вышла новая книга: {$this->title}");
-                continue;
-            } catch (Throwable $exception) {
-                $logger->error('SMS notification failed', [
-                    'phone' => $phone,
-                    'book_id' => $this->bookId,
-                    'book_title' => $this->title,
-                    'error' => $exception->getMessage(),
-                    'exception_class' => $exception::class,
-                ]);
-                $failures++;
-            }
+        $lastException = null;
 
-            if ($failures >= self::MAX_FAILURES) {
-                throw $exception;
+        foreach ($query->batch(100) as $batch) {
+            foreach ($batch as $row) {
+                $phone = $row['phone'];
+
+                try {
+                    $sender->send($phone, "Вышла новая книга: {$this->title}");
+                } catch (Throwable $exception) {
+                    $logger->error('SMS notification failed', [
+                        'phone' => $phone,
+                        'book_id' => $this->bookId,
+                        'book_title' => $this->title,
+                        'error' => $exception->getMessage(),
+                        'exception_class' => $exception::class,
+                    ]);
+                    $failures++;
+                    $lastException = $exception;
+
+                    if ($failures >= self::MAX_FAILURES) {
+                        throw $lastException;
+                    }
+                }
             }
         }
     }
