@@ -77,7 +77,7 @@ final class SeedController extends Controller
 
         for ($i = 0; $i < 50; $i++) {
             $title = $adjectives[array_rand($adjectives)] . ' ' . $nouns[array_rand($nouns)] . ' #' . ($i + 1);
-            $isbn = '978-' . rand(1, 9) . '-' . rand(100, 999) . '-' . rand(10000, 99999) . '-' . rand(0, 9);
+            $isbn = $this->generateValidIsbn13();
 
             $year = (rand(1, 100) <= 40) ? $currentYear : rand($currentYear - 5, $currentYear);
 
@@ -108,5 +108,24 @@ final class SeedController extends Controller
 
             $this->stdout("  Created book: {$title} ({$year})\n");
         }
+    }
+
+    private function generateValidIsbn13(): string
+    {
+        $prefix = '978';
+        $group = (string)rand(0, 9);
+        $publisher = str_pad((string)rand(0, 999), 3, '0', STR_PAD_LEFT);
+        $title = str_pad((string)rand(0, 99999), 5, '0', STR_PAD_LEFT);
+
+        $isbn12 = $prefix . $group . $publisher . $title;
+
+        $checksum = 0;
+        for ($i = 0; $i < 12; $i++) {
+            $weight = ($i % 2 === 0) ? 1 : 3;
+            $checksum += (int)$isbn12[$i] * $weight;
+        }
+        $checksumDigit = (10 - ($checksum % 10)) % 10;
+
+        return "{$prefix}-{$group}-{$publisher}-{$title}-{$checksumDigit}";
     }
 }

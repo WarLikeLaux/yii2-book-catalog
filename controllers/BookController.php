@@ -74,6 +74,11 @@ final class BookController extends Controller
             $form->load($this->request->post());
             $form->cover = UploadedFile::getInstance($form, 'cover');
 
+            if ($this->request->isAjax) {
+                Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+                return \yii\widgets\ActiveForm::validate($form);
+            }
+
             if ($form->validate()) {
                 try {
                     $this->bookService->create($form);
@@ -109,6 +114,11 @@ final class BookController extends Controller
         if ($this->request->isPost) {
             $form->load($this->request->post());
             $form->cover = UploadedFile::getInstance($form, 'cover');
+
+            if ($this->request->isAjax) {
+                Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+                return \yii\widgets\ActiveForm::validate($form);
+            }
 
             if ($form->validate()) {
                 try {

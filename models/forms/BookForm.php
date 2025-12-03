@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\models\forms;
 
 use app\models\Book;
+use app\validators\IsbnValidator;
 use yii\base\Model;
 use yii\web\UploadedFile;
 
@@ -23,14 +24,15 @@ final class BookForm extends Model
         return [
             [['title', 'year', 'isbn', 'authorIds'], 'required'],
             [['year'], 'integer', 'min' => 1000, 'max' => (int)date('Y') + 1],
-            [['description', 'isbn'], 'string'],
+            [['description'], 'string'],
             [['title'], 'string', 'max' => 255],
             [['isbn'], 'string', 'max' => 20],
+            [['isbn'], IsbnValidator::class],
             [
                 ['isbn'],
                 'unique',
                 'targetClass' => Book::class,
-                'filter' => fn ($query) => $this->id ? $query->andWhere(['<>', 'id', $this->id]) : $query,
+                'filter' => fn($query) => $this->id ? $query->andWhere(['<>', 'id', $this->id]) : $query,
             ],
             [['authorIds'], 'each', 'rule' => ['integer']],
             [
