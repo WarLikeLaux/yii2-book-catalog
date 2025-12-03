@@ -6,6 +6,7 @@ use app\interfaces\FileStorageInterface;
 use app\interfaces\SmsSenderInterface;
 use app\services\AuthorService;
 use app\services\BookService;
+use app\services\ReportService;
 use app\services\sms\SmsPilotSender;
 use app\services\storage\LocalFileStorage;
 use app\services\SubscriptionService;
@@ -29,6 +30,9 @@ return [
             Yii::$app->get('db'),
             Yii::$app->get('queue'),
             $container->get(FileStorageInterface::class)
+        ),
+        ReportService::class => static fn($container, $params, $config): ReportService => new ReportService(
+            Yii::$app->get('db')
         ),
         AuthorService::class => AuthorService::class,
         SubscriptionService::class => SubscriptionService::class,
