@@ -9,7 +9,6 @@ use app\jobs\NotifySubscribersJob;
 use app\models\Book;
 use app\models\forms\BookForm;
 use DomainException;
-use Yii;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
 use yii\queue\db\Queue;
@@ -89,19 +88,7 @@ final class BookService
                 throw new DomainException($this->getFirstErrorMessage($book, 'Не удалось обновить книгу'));
             }
 
-            $this->db->createCommand()
-                ->delete('book_authors', ['book_id' => $book->id])
-                ->execute();
-
-            $rows = array_map(
-                fn($authorId) => [$book->id, $authorId],
-                $form->authorIds
-            );
-            $this->db->createCommand()->batchInsert(
-                'book_authors',
-                ['book_id', 'author_id'],
-                $rows
-            )->execute();
+            $this->syncBookAuthors($book->id, $form->authorIds);
 
             $transaction->commit();
 
@@ -121,6 +108,43 @@ final class BookService
 
         if (!$book->delete()) {
             throw new DomainException('Не удалось удалить книгу');
+        }
+    }
+
+    /**
+     * @param int[] $newAuthorIds
+     */
+    private function syncBookAuthors(int $bookId, array $newAuthorIds): void
+    {
+        $existingAuthorIds = Book::findOne($bookId)
+            ->getAuthors()
+            ->select('id')
+            ->column();
+
+        $existingAuthorIds = array_map('intval', $existingAuthorIds);
+        $newAuthorIds = array_map('intval', $newAuthorIds);
+
+        $toDelete = array_diff($existingAuthorIds, $newAuthorIds);
+        $toAdd = array_diff($newAuthorIds, $existingAuthorIds);
+
+        if ($toDelete) {
+            $this->db->createCommand()->delete('book_authors', [
+                'and',
+                ['book_id' => $bookId],
+                ['in', 'author_id', $toDelete],
+            ])->execute();
+        }
+
+        if ($toAdd) {
+            $rows = array_map(
+                fn($authorId) => [$bookId, $authorId],
+                $toAdd
+            );
+            $this->db->createCommand()->batchInsert(
+                'book_authors',
+                ['book_id', 'author_id'],
+                $rows
+            )->execute();
         }
     }
 

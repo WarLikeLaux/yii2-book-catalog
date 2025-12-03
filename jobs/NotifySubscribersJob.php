@@ -4,27 +4,26 @@ declare(strict_types=1);
 
 namespace app\jobs;
 
-use app\interfaces\SmsSenderInterface;
 use Psr\Log\LoggerInterface;
-use Throwable;
 use Yii;
 use yii\base\BaseObject;
 use yii\db\Query;
+use yii\queue\db\Queue;
 use yii\queue\Job;
 use yii\queue\RetryableJobInterface;
 
 final class NotifySubscribersJob extends BaseObject implements Job, RetryableJobInterface
 {
-    private const int MAX_FAILURES = 3;
-    private const int TTR_SECONDS = 60;
+    private const int TTR_SECONDS = 300;
+    private const int BATCH_SIZE = 100;
 
     public int $bookId;
     public string $title;
 
     public function execute($queue): void
     {
-        $sender = Yii::$container->get(SmsSenderInterface::class);
         $logger = Yii::$container->get(LoggerInterface::class);
+        $jobQueue = Yii::$container->get(Queue::class);
 
         $query = (new Query())
             ->select('s.phone')
@@ -33,32 +32,28 @@ final class NotifySubscribersJob extends BaseObject implements Job, RetryableJob
             ->innerJoin(['ba' => 'book_authors'], 'ba.author_id = s.author_id')
             ->where(['ba.book_id' => $this->bookId]);
 
-        $failures = 0;
-        $lastException = null;
+        $message = "Вышла новая книга: {$this->title}";
+        $totalDispatched = 0;
 
-        foreach ($query->batch(100) as $batch) {
+        foreach ($query->batch(self::BATCH_SIZE) as $batch) {
             foreach ($batch as $row) {
                 $phone = $row['phone'];
 
-                try {
-                    $sender->send($phone, "Вышла новая книга: {$this->title}");
-                } catch (Throwable $exception) {
-                    $logger->error('SMS notification failed', [
-                        'phone' => $phone,
-                        'book_id' => $this->bookId,
-                        'book_title' => $this->title,
-                        'error' => $exception->getMessage(),
-                        'exception_class' => $exception::class,
-                    ]);
-                    $failures++;
-                    $lastException = $exception;
+                $jobQueue->push(new NotifySingleSubscriberJob([
+                    'phone' => $phone,
+                    'message' => $message,
+                    'bookId' => $this->bookId,
+                ]));
 
-                    if ($failures >= self::MAX_FAILURES) {
-                        throw $lastException;
-                    }
-                }
+                $totalDispatched++;
             }
         }
+
+        $logger->info('SMS notification jobs dispatched', [
+            'book_id' => $this->bookId,
+            'book_title' => $this->title,
+            'total_jobs' => $totalDispatched,
+        ]);
     }
 
     public function getTtr(): int
