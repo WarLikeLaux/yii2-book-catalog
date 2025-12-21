@@ -14,8 +14,8 @@ use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\UseCaseExecutor;
 use app\models\forms\BookForm;
 use app\presentation\adapters\PagedResultDataProviderFactory;
-use app\presentation\dto\CreateFormResult;
-use app\presentation\dto\UpdateFormResult;
+use app\presentation\dto\BookCreateFormResult;
+use app\presentation\dto\BookUpdateFormResult;
 use app\presentation\mappers\BookFormMapper;
 use Yii;
 use yii\web\Request;
@@ -92,23 +92,23 @@ final class BookFormPreparationService
         ];
     }
 
-    public function processCreateRequest(Request $request, Response $response): CreateFormResult
+    public function processCreateRequest(Request $request, Response $response): BookCreateFormResult
     {
         $viewData = $this->prepareCreateViewData();
         $form = $viewData['model'];
 
         if (!$form->loadFromRequest($request)) {
-            return new CreateFormResult($form, $viewData, false);
+            return new BookCreateFormResult($form, $viewData, false);
         }
 
         if ($request->isAjax) {
             $response->format = Response::FORMAT_JSON;
             $ajaxValidation = ActiveForm::validate($form);
-            return new CreateFormResult($form, $viewData, false, null, $ajaxValidation);
+            return new BookCreateFormResult($form, $viewData, false, null, $ajaxValidation);
         }
 
         if (!$form->validate()) {
-            return new CreateFormResult($form, $viewData, false);
+            return new BookCreateFormResult($form, $viewData, false);
         }
 
         $command = $this->bookFormMapper->toCreateCommand($form);
@@ -118,29 +118,29 @@ final class BookFormPreparationService
         );
 
         if ($success) {
-            return new CreateFormResult($form, $viewData, true, ['index']);
+            return new BookCreateFormResult($form, $viewData, true, ['index']);
         }
 
-        return new CreateFormResult($form, $viewData, false);
+        return new BookCreateFormResult($form, $viewData, false);
     }
 
-    public function processUpdateRequest(int $id, Request $request, Response $response): UpdateFormResult
+    public function processUpdateRequest(int $id, Request $request, Response $response): BookUpdateFormResult
     {
         $viewData = $this->prepareUpdateViewData($id);
         $form = $viewData['model'];
 
         if (!$form->loadFromRequest($request)) {
-            return new UpdateFormResult($form, $viewData, false);
+            return new BookUpdateFormResult($form, $viewData, false);
         }
 
         if ($request->isAjax) {
             $response->format = Response::FORMAT_JSON;
             $ajaxValidation = ActiveForm::validate($form);
-            return new UpdateFormResult($form, $viewData, false, null, $ajaxValidation);
+            return new BookUpdateFormResult($form, $viewData, false, null, $ajaxValidation);
         }
 
         if (!$form->validate()) {
-            return new UpdateFormResult($form, $viewData, false);
+            return new BookUpdateFormResult($form, $viewData, false);
         }
 
         $command = $this->bookFormMapper->toUpdateCommand($id, $form);
@@ -151,10 +151,10 @@ final class BookFormPreparationService
         );
 
         if ($success) {
-            return new UpdateFormResult($form, $viewData, true, ['view', 'id' => $id]);
+            return new BookUpdateFormResult($form, $viewData, true, ['view', 'id' => $id]);
         }
 
-        return new UpdateFormResult($form, $viewData, false);
+        return new BookUpdateFormResult($form, $viewData, false);
     }
 
     public function processDeleteRequest(int $id): void
