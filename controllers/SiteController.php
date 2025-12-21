@@ -59,10 +59,13 @@ final class SiteController extends Controller
     public function actionIndex(): string
     {
         $pageData = $this->bookQueryService->search($this->request->get());
+        $dataProvider = $pageData->dataProvider instanceof \app\application\common\adapters\YiiDataProviderAdapter
+            ? $pageData->dataProvider->toDataProvider()
+            : throw new \RuntimeException('Unsupported QueryResultInterface implementation');
 
         return $this->render('index', [
             'searchModel' => $pageData->searchForm,
-            'dataProvider' => $pageData->dataProvider,
+            'dataProvider' => $dataProvider,
         ]);
     }
 

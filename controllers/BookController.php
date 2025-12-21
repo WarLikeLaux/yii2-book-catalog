@@ -6,13 +6,13 @@ namespace app\controllers;
 
 use app\application\authors\queries\AuthorQueryService;
 use app\application\books\commands\DeleteBookCommand;
-use app\application\books\mappers\BookFormMapper;
 use app\application\books\queries\BookQueryService;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\UseCaseExecutor;
 use app\models\forms\BookForm;
+use app\presentation\mappers\BookFormMapper;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -57,7 +57,10 @@ final class BookController extends Controller
 
     public function actionIndex(): string
     {
-        $dataProvider = $this->bookQueryService->getIndexProvider();
+        $queryResult = $this->bookQueryService->getIndexProvider();
+        $dataProvider = $queryResult instanceof \app\application\common\adapters\YiiDataProviderAdapter
+            ? $queryResult->toDataProvider()
+            : throw new \RuntimeException('Unsupported QueryResultInterface implementation');
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\application\books\mappers;
+namespace app\presentation\mappers;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\UpdateBookCommand;

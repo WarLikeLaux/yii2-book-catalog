@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace app\application\books\queries;
 
+use app\application\common\adapters\YiiDataProviderAdapter;
+use app\interfaces\QueryResultInterface;
 use app\models\Book;
 use app\models\forms\BookSearchForm;
 use app\repositories\BookReadRepository;
 use Yii;
-use yii\data\DataProviderInterface;
 use yii\web\NotFoundHttpException;
 
 final class BookQueryService
@@ -18,7 +19,7 @@ final class BookQueryService
     ) {
     }
 
-    public function getIndexProvider(): DataProviderInterface
+    public function getIndexProvider(): QueryResultInterface
     {
         $dataProvider = $this->repository->getIndexDataProvider();
         $dataProvider->setModels(array_map(
@@ -26,7 +27,7 @@ final class BookQueryService
             $dataProvider->getModels()
         ));
 
-        return $dataProvider;
+        return new YiiDataProviderAdapter($dataProvider);
     }
 
     public function getById(int $id): BookReadDto
@@ -73,6 +74,6 @@ final class BookQueryService
             $dataProvider->getModels()
         ));
 
-        return new BookSearchPageData($form, $dataProvider);
+        return new BookSearchPageData($form, new YiiDataProviderAdapter($dataProvider));
     }
 }

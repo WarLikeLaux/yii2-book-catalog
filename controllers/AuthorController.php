@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace app\controllers;
 
 use app\application\authors\commands\DeleteAuthorCommand;
-use app\application\authors\mappers\AuthorFormMapper;
 use app\application\authors\queries\AuthorQueryService;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\application\UseCaseExecutor;
 use app\models\forms\AuthorForm;
+use app\presentation\mappers\AuthorFormMapper;
+use app\presentation\mappers\AuthorSelect2Mapper;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -28,6 +29,7 @@ final class AuthorController extends Controller
         private readonly DeleteAuthorUseCase $deleteAuthorUseCase,
         private readonly AuthorFormMapper $authorFormMapper,
         private readonly AuthorQueryService $authorQueryService,
+        private readonly AuthorSelect2Mapper $authorSelect2Mapper,
         private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
     ) {
@@ -62,7 +64,10 @@ final class AuthorController extends Controller
 
     public function actionIndex(): string
     {
-        $dataProvider = $this->authorQueryService->getIndexProvider();
+        $queryResult = $this->authorQueryService->getIndexProvider();
+        $dataProvider = $queryResult instanceof \app\application\common\adapters\YiiDataProviderAdapter
+            ? $queryResult->toDataProvider()
+            : throw new \RuntimeException('Unsupported QueryResultInterface implementation');
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -137,6 +142,6 @@ final class AuthorController extends Controller
 
         $result = $this->authorQueryService->search($this->request->get());
 
-        return $this->authorFormMapper->mapToSelect2($result);
+        return $this->authorSelect2Mapper->mapToSelect2($result);
     }
 }

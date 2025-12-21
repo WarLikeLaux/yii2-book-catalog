@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace app\application\authors\queries;
 
+use app\application\common\adapters\YiiDataProviderAdapter;
+use app\interfaces\QueryResultInterface;
 use app\models\Author;
 use app\models\forms\AuthorSearchForm;
 use app\repositories\AuthorReadRepository;
 use Yii;
-use yii\data\DataProviderInterface;
 use yii\helpers\ArrayHelper;
 use yii\web\NotFoundHttpException;
 
@@ -19,7 +20,7 @@ final class AuthorQueryService
     ) {
     }
 
-    public function getIndexProvider(): DataProviderInterface
+    public function getIndexProvider(): QueryResultInterface
     {
         $dataProvider = $this->repository->getIndexDataProvider();
         $dataProvider->setModels(array_map(
@@ -27,7 +28,7 @@ final class AuthorQueryService
             $dataProvider->getModels()
         ));
 
-        return $dataProvider;
+        return new YiiDataProviderAdapter($dataProvider);
     }
 
     public function getAuthorsMap(): array
