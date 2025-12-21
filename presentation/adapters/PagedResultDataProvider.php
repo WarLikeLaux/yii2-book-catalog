@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\adapters;
 
+use app\application\common\dto\PaginationDto;
 use app\application\ports\PagedResultInterface;
 use yii\data\BaseDataProvider;
 use yii\data\Pagination;
@@ -15,12 +16,18 @@ final class PagedResultDataProvider extends BaseDataProvider
         array $config = []
     ) {
         if (!array_key_exists('pagination', $config)) {
-            $pagination = $result->getPagination();
-            if ($pagination instanceof Pagination) {
-                $pagination->totalCount = $result->getTotalCount();
+            $paginationDto = $result->getPagination();
+            if ($paginationDto instanceof PaginationDto) {
+                $pagination = new Pagination([
+                    'page' => $paginationDto->page - 1,
+                    'pageSize' => $paginationDto->pageSize,
+                    'totalCount' => $paginationDto->totalCount,
+                ]);
+            } else {
+                $pagination = false;
             }
 
-            $config['pagination'] = $pagination ?? false;
+            $config['pagination'] = $pagination;
         }
 
         parent::__construct($config);

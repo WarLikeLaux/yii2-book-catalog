@@ -6,6 +6,7 @@ namespace app\infrastructure\repositories;
 
 use app\application\authors\queries\AuthorReadDto;
 use app\application\common\adapters\QueryResult;
+use app\application\common\dto\PaginationDto;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\PagedResultInterface;
 use app\models\Author;
@@ -103,10 +104,20 @@ final class AuthorRepository implements AuthorRepositoryInterface
             $dataProvider->getModels()
         );
 
+        $totalCount = $dataProvider->getTotalCount();
+        $totalPages = (int)ceil($totalCount / $pageSize);
+
+        $pagination = new PaginationDto(
+            page: $page,
+            pageSize: $pageSize,
+            totalCount: $totalCount,
+            totalPages: $totalPages
+        );
+
         return new QueryResult(
             models: $models,
-            totalCount: $dataProvider->getTotalCount(),
-            pagination: $dataProvider->getPagination()
+            totalCount: $totalCount,
+            pagination: $pagination
         );
     }
 

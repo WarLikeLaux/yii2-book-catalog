@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\application\common\adapters;
 
+use app\application\common\dto\PaginationDto;
 use app\interfaces\QueryResultInterface;
 
 final class QueryResult implements QueryResultInterface
@@ -11,7 +12,7 @@ final class QueryResult implements QueryResultInterface
     public function __construct(
         private readonly array $models,
         private readonly int $totalCount,
-        private readonly ?object $pagination = null
+        private readonly ?PaginationDto $pagination = null
     ) {
     }
 
@@ -25,7 +26,7 @@ final class QueryResult implements QueryResultInterface
         return $this->totalCount;
     }
 
-    public function getPagination(): ?object
+    public function getPagination(): ?PaginationDto
     {
         return $this->pagination;
     }

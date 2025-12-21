@@ -9,10 +9,12 @@ use app\models\forms\BookSearchForm;
 
 final class BookSearchCriteriaMapper
 {
-    public function toCriteria(BookSearchForm $form): BookSearchCriteria
+    public function toCriteria(BookSearchForm $form, int $page = 1, int $pageSize = 20): BookSearchCriteria
     {
         return new BookSearchCriteria(
-            globalSearch: $form->globalSearch
+            globalSearch: $form->globalSearch,
+            page: $page,
+            pageSize: $pageSize
         );
     }
 

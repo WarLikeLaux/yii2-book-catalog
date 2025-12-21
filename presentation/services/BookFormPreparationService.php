@@ -10,6 +10,7 @@ use app\application\books\queries\BookReadDto;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\models\forms\BookForm;
+use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\dto\CreateFormResult;
 use app\presentation\dto\UpdateFormResult;
 use app\presentation\mappers\BookFormMapper;
@@ -27,7 +28,8 @@ final class BookFormPreparationService
         private readonly AuthorQueryService $authorQueryService,
         private readonly CreateBookUseCase $createBookUseCase,
         private readonly UpdateBookUseCase $updateBookUseCase,
-        private readonly UseCaseExecutor $useCaseExecutor
+        private readonly UseCaseExecutor $useCaseExecutor,
+        private readonly PagedResultDataProviderFactory $dataProviderFactory
     ) {
     }
 
@@ -63,6 +65,27 @@ final class BookFormPreparationService
         return [
             'model' => $form,
             'authors' => $authors,
+        ];
+    }
+
+    public function prepareIndexViewData(Request $request): array
+    {
+        $page = max(1, (int)$request->get('page', 1));
+        $pageSize = max(1, (int)$request->get('pageSize', 20));
+        $queryResult = $this->bookQueryService->getIndexProvider($page, $pageSize);
+        $dataProvider = $this->dataProviderFactory->create($queryResult);
+
+        return [
+            'dataProvider' => $dataProvider,
+        ];
+    }
+
+    public function prepareViewViewData(int $id): array
+    {
+        $book = $this->bookQueryService->getById($id);
+
+        return [
+            'book' => $book,
         ];
     }
 

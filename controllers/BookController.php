@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace app\controllers;
 
 use app\application\books\commands\DeleteBookCommand;
-use app\application\books\queries\BookQueryService;
 use app\application\books\usecases\DeleteBookUseCase;
-use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\BookFormPreparationService;
 use app\presentation\UseCaseExecutor;
 use Yii;
@@ -23,8 +21,6 @@ final class BookController extends Controller
         $module,
         private readonly DeleteBookUseCase $deleteBookUseCase,
         private readonly BookFormPreparationService $bookFormPreparationService,
-        private readonly BookQueryService $bookQueryService,
-        private readonly PagedResultDataProviderFactory $dataProviderFactory,
         private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
     ) {
@@ -51,19 +47,14 @@ final class BookController extends Controller
 
     public function actionIndex(): string
     {
-        $queryResult = $this->bookQueryService->getIndexProvider();
-        $dataProvider = $this->dataProviderFactory->create($queryResult);
-
-        return $this->render('index', [
-            'dataProvider' => $dataProvider,
-        ]);
+        $viewData = $this->bookFormPreparationService->prepareIndexViewData($this->request);
+        return $this->render('index', $viewData);
     }
 
     public function actionView(int $id): string
     {
-        $book = $this->bookQueryService->getById($id);
-
-        return $this->render('view', ['book' => $book]);
+        $viewData = $this->bookFormPreparationService->prepareViewViewData($id);
+        return $this->render('view', $viewData);
     }
 
     public function actionCreate(): string|Response|array

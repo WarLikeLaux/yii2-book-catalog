@@ -12,6 +12,7 @@ use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\BookRepositoryInterface;
+use app\application\ports\EventPublisherInterface;
 use app\application\ports\QueueInterface;
 use app\application\ports\ReportRepositoryInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
@@ -19,6 +20,7 @@ use app\application\ports\TransactionInterface;
 use app\application\reports\queries\ReportQueryService;
 use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\application\subscriptions\usecases\SubscribeUseCase;
+use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\adapters\YiiQueueAdapter;
 use app\infrastructure\adapters\YiiTransactionAdapter;
 use app\infrastructure\repositories\AuthorRepository;
@@ -28,6 +30,7 @@ use app\infrastructure\repositories\SubscriptionRepository;
 use app\interfaces\FileStorageInterface;
 use app\interfaces\NotificationInterface;
 use app\interfaces\SmsSenderInterface;
+use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\services\notifications\FlashNotificationService;
 use app\services\sms\SmsPilotSender;
 use app\services\storage\LocalFileStorage;
@@ -61,6 +64,9 @@ return [
         QueueInterface::class => static fn($container) => new YiiQueueAdapter(
             Yii::$app->get('queue')
         ),
+        EventPublisherInterface::class => static fn($container) => new YiiEventPublisherAdapter(
+            $container->get(QueueInterface::class)
+        ),
         UniqueFioValidator::class => static fn($container, $params, $config) => new UniqueFioValidator(
             $container->get(AuthorRepositoryInterface::class),
             $config
@@ -73,13 +79,13 @@ return [
             $container->get(AuthorRepositoryInterface::class),
             $config
         ),
+        PagedResultDataProviderFactory::class => static fn() => new PagedResultDataProviderFactory(),
     ],
     'singletons' => [
         CreateBookUseCase::class => static fn($container) => new CreateBookUseCase(
             $container->get(BookRepositoryInterface::class),
             $container->get(TransactionInterface::class),
-            $container->get(QueueInterface::class),
-            $container->get(FileStorageInterface::class)
+            $container->get(EventPublisherInterface::class)
         ),
         UpdateBookUseCase::class => static fn($container) => new UpdateBookUseCase(
             $container->get(BookRepositoryInterface::class),

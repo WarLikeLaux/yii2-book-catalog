@@ -52,11 +52,21 @@ final class AuthorFormPreparationService
     public function prepareIndexViewData(Request $request): array
     {
         $page = max(1, (int)$request->get('page', 1));
-        $queryResult = $this->authorQueryService->getIndexProvider($page);
+        $pageSize = max(1, (int)$request->get('pageSize', 20));
+        $queryResult = $this->authorQueryService->getIndexProvider($page, $pageSize);
         $dataProvider = $this->dataProviderFactory->create($queryResult);
 
         return [
             'dataProvider' => $dataProvider,
+        ];
+    }
+
+    public function prepareViewViewData(int $id): array
+    {
+        $author = $this->authorQueryService->getById($id);
+
+        return [
+            'author' => $author,
         ];
     }
 

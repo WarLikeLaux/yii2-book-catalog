@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\controllers;
 
 use app\application\authors\commands\DeleteAuthorCommand;
-use app\application\authors\queries\AuthorQueryService;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\presentation\services\AuthorFormPreparationService;
 use app\presentation\services\AuthorSearchPresentationService;
@@ -23,7 +22,6 @@ final class AuthorController extends Controller
         $module,
         private readonly DeleteAuthorUseCase $deleteAuthorUseCase,
         private readonly AuthorFormPreparationService $authorFormPreparationService,
-        private readonly AuthorQueryService $authorQueryService,
         private readonly AuthorSearchPresentationService $authorSearchPresentationService,
         private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
@@ -65,9 +63,8 @@ final class AuthorController extends Controller
 
     public function actionView(int $id): string
     {
-        $author = $this->authorQueryService->getById($id);
-
-        return $this->render('view', ['author' => $author]);
+        $viewData = $this->authorFormPreparationService->prepareViewViewData($id);
+        return $this->render('view', $viewData);
     }
 
     public function actionCreate(): string|Response

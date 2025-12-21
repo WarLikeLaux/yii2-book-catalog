@@ -8,7 +8,6 @@ use app\presentation\services\SubscriptionPresentationService;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
-use yii\web\Response;
 
 final class SubscriptionController extends Controller
 {
@@ -43,10 +42,9 @@ final class SubscriptionController extends Controller
         ];
     }
 
-    public function actionSubscribe(): Response
+    public function actionSubscribe(): array
     {
-        $result = $this->subscriptionPresentationService->processSubscribeRequest($this->request, $this->response);
-        return $this->asJson($result);
+        return $this->subscriptionPresentationService->processSubscribeRequest($this->request, $this->response);
     }
 
     public function actionForm(int $authorId): string

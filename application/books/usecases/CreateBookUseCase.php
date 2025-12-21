@@ -6,16 +6,16 @@ namespace app\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\QueueInterface;
+use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
-use app\jobs\NotifySubscribersJob;
+use app\domain\events\BookCreatedEvent;
 
 final class CreateBookUseCase
 {
     public function __construct(
         private readonly BookRepositoryInterface $bookRepository,
         private readonly TransactionInterface $transaction,
-        private readonly QueueInterface $queue,
+        private readonly EventPublisherInterface $eventPublisher,
     ) {
     }
 
@@ -36,10 +36,15 @@ final class CreateBookUseCase
 
             $this->transaction->commit();
 
-            $this->queue->push(new NotifySubscribersJob([
-                'bookId' => $bookId,
-                'title' => $command->title,
-            ]));
+            $event = new BookCreatedEvent(
+                bookId: $bookId,
+                title: $command->title
+            );
+
+            $this->eventPublisher->publish('book.created', [
+                'bookId' => $event->bookId,
+                'title' => $event->title,
+            ]);
 
             return $bookId;
         } catch (\Throwable $e) {

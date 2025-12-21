@@ -6,6 +6,7 @@ namespace app\infrastructure\repositories;
 
 use app\application\books\queries\BookReadDto;
 use app\application\common\adapters\QueryResult;
+use app\application\common\dto\PaginationDto;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
 use app\models\Author;
@@ -137,7 +138,7 @@ final class BookRepository implements BookRepositoryInterface
         return $this->mapToDto($book);
     }
 
-    public function search(string $term, int $pageSize): PagedResultInterface
+    public function search(string $term, int $page, int $pageSize): PagedResultInterface
     {
         $query = Book::find()->withAuthors()->orderedByCreatedAt();
 
@@ -147,7 +148,10 @@ final class BookRepository implements BookRepositoryInterface
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => ['pageSize' => $pageSize],
+            'pagination' => [
+                'page' => $page - 1,
+                'pageSize' => $pageSize,
+            ],
         ]);
 
         $models = array_map(
@@ -155,10 +159,20 @@ final class BookRepository implements BookRepositoryInterface
             $dataProvider->getModels()
         );
 
+        $totalCount = $dataProvider->getTotalCount();
+        $totalPages = (int)ceil($totalCount / $pageSize);
+
+        $pagination = new PaginationDto(
+            page: $page,
+            pageSize: $pageSize,
+            totalCount: $totalCount,
+            totalPages: $totalPages
+        );
+
         return new QueryResult(
             models: $models,
-            totalCount: $dataProvider->getTotalCount(),
-            pagination: $dataProvider->getPagination()
+            totalCount: $totalCount,
+            pagination: $pagination
         );
     }
 
