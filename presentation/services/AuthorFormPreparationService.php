@@ -70,13 +70,22 @@ final class AuthorFormPreparationService
         ];
     }
 
+    public function prepareUpdateViewData(int $id): array
+    {
+        $form = $this->prepareUpdateForm($id);
+
+        return [
+            'model' => $form,
+        ];
+    }
+
     public function processCreateRequest(Request $request): AuthorCreateFormResult
     {
         $viewData = $this->prepareCreateViewData();
         $form = $viewData['model'];
 
         if (!$form->load($request->post()) || !$form->validate()) {
-            return new AuthorCreateFormResult($form, false);
+            return new AuthorCreateFormResult($form, $viewData, false);
         }
 
         $command = $this->authorFormMapper->toCreateCommand($form);
@@ -86,18 +95,19 @@ final class AuthorFormPreparationService
         );
 
         if ($success) {
-            return new AuthorCreateFormResult($form, true, ['index']);
+            return new AuthorCreateFormResult($form, $viewData, true, ['index']);
         }
 
-        return new AuthorCreateFormResult($form, false);
+        return new AuthorCreateFormResult($form, $viewData, false);
     }
 
     public function processUpdateRequest(int $id, Request $request): AuthorUpdateFormResult
     {
-        $form = $this->prepareUpdateForm($id);
+        $viewData = $this->prepareUpdateViewData($id);
+        $form = $viewData['model'];
 
         if (!$form->load($request->post()) || !$form->validate()) {
-            return new AuthorUpdateFormResult($form, false);
+            return new AuthorUpdateFormResult($form, $viewData, false);
         }
 
         $command = $this->authorFormMapper->toUpdateCommand($id, $form);
@@ -108,9 +118,9 @@ final class AuthorFormPreparationService
         );
 
         if ($success) {
-            return new AuthorUpdateFormResult($form, true, ['index']);
+            return new AuthorUpdateFormResult($form, $viewData, true, ['index']);
         }
 
-        return new AuthorUpdateFormResult($form, false);
+        return new AuthorUpdateFormResult($form, $viewData, false);
     }
 }

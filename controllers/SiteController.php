@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use app\models\forms\LoginForm;
 use app\presentation\services\BookSearchPresentationService;
+use app\presentation\services\LoginPresentationService;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -19,6 +19,7 @@ final class SiteController extends Controller
         $id,
         $module,
         private readonly BookSearchPresentationService $bookSearchPresentationService,
+        private readonly LoginPresentationService $loginPresentationService,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -68,15 +69,18 @@ final class SiteController extends Controller
             return $this->goHome();
         }
 
-        $form = new LoginForm();
-        if ($form->load($this->request->post()) && $form->login()) {
+        if (!$this->request->isPost) {
+            $viewData = $this->loginPresentationService->prepareLoginViewData();
+            return $this->render('login', $viewData);
+        }
+
+        $result = $this->loginPresentationService->processLoginRequest($this->request, $this->response);
+
+        if ($result['success']) {
             return $this->goBack();
         }
 
-        $form->password = '';
-        return $this->render('login', [
-            'model' => $form,
-        ]);
+        return $this->render('login', $result['viewData']);
     }
 
     public function actionLogout(): Response

@@ -80,14 +80,14 @@ final class AuthorController extends Controller
             return $this->redirect($result->redirectRoute);
         }
 
-        return $this->render('create', ['model' => $result->form]);
+        return $this->render('create', $result->viewData);
     }
 
     public function actionUpdate(int $id): string|Response
     {
         if (!$this->request->isPost) {
-            $form = $this->authorFormPreparationService->prepareUpdateForm($id);
-            return $this->render('update', ['model' => $form]);
+            $viewData = $this->authorFormPreparationService->prepareUpdateViewData($id);
+            return $this->render('update', $viewData);
         }
 
         $result = $this->authorFormPreparationService->processUpdateRequest($id, $this->request);
@@ -96,7 +96,7 @@ final class AuthorController extends Controller
             return $this->redirect($result->redirectRoute);
         }
 
-        return $this->render('update', ['model' => $result->form]);
+        return $this->render('update', $result->viewData);
     }
 
     public function actionDelete(int $id): Response

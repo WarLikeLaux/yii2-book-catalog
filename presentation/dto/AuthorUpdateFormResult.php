@@ -10,6 +10,7 @@ final class AuthorUpdateFormResult
 {
     public function __construct(
         public readonly AuthorForm $form,
+        public readonly array $viewData,
         public readonly bool $success,
         public readonly array|null $redirectRoute = null
     ) {
