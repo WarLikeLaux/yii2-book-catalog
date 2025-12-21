@@ -15,7 +15,8 @@ final class AuthorSearchPresentationService
         private readonly AuthorSearchCriteriaMapper $authorSearchCriteriaMapper,
         private readonly AuthorSelect2Mapper $authorSelect2Mapper,
         private readonly AuthorQueryService $authorQueryService
-    ) {}
+    ) {
+    }
 
     public function search(Request $request): array
     {

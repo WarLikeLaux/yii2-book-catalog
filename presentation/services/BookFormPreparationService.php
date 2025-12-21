@@ -14,7 +14,8 @@ final class BookFormPreparationService
     public function __construct(
         private readonly BookFormMapper $bookFormMapper,
         private readonly BookQueryService $bookQueryService
-    ) {}
+    ) {
+    }
 
     public function prepareForUpdate(BookReadDto $dto): BookForm
     {

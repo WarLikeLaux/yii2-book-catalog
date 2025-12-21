@@ -14,7 +14,8 @@ final class AuthorFormPreparationService
     public function __construct(
         private readonly AuthorFormMapper $authorFormMapper,
         private readonly AuthorQueryService $authorQueryService
-    ) {}
+    ) {
+    }
 
     public function prepareForUpdate(AuthorReadDto $dto): AuthorForm
     {
