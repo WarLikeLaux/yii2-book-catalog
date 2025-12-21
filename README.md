@@ -22,7 +22,7 @@
 *   **Read Side (Запросы):** Чтение данных отделено от бизнес-логики. **QueryServices** возвращают DTO (`BookReadDto`) и `PagedResult` с чистым `PaginationDto` вместо ActiveRecord моделей и framework-объектов.
 *   **Ports:** Интерфейсы репозиториев и внешних сервисов находятся в `application/ports` (namespace: `app\application\ports`). Use Cases зависят только от портов, не от конкретных реализаций фреймворка.
 *   **Event Publisher:** Use Cases публикуют доменные события через `EventPublisherInterface`, а не создают job напрямую. Это изолирует application layer от инфраструктуры.
-*   **UseCaseExecutor:** Cross-cutting concern для выполнения use cases с обработкой ошибок, логированием и уведомлениями. Находится в `application/common` (namespace: `app\application\common`) как общий компонент application layer.
+*   **UseCaseExecutor:** Cross-cutting concern для выполнения use cases с обработкой ошибок, логированием и уведомлениями. Находится в `application/common` (namespace: `app\application\common`) как общий компонент application layer. Использует порт `NotificationInterface` из `application/ports` для уведомлений, сохраняя независимость от конкретных реализаций (Flash messages, логи). Использует `Yii::t()` для переводов как компромисс для Yii2.
 *   **Контроллеры:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Вся логика представления (загрузка форм, валидация, маппинг, выполнение use cases, форматирование ответов, извлечение параметров запроса) вынесена в Presentation Services.
 
 ### 2. Domain vs ActiveRecord (Clean-ish компромисс)
@@ -149,11 +149,18 @@ class BookFormPreparationService {
 *   **UX:** Обернуто в **PJAX** для фильтрации без перезагрузки страницы.
 
 ### 11. Dependency Injection
-Внешние зависимости закрыты интерфейсами и портами (`interfaces`, `application/ports`; namespaces: `app\interfaces`, `app\application\ports`):
+Внешние зависимости закрыты портами в `application/ports` и интерфейсами внешних сервисов в `interfaces/`:
+
+**Порты application layer (`application/ports`):**
+*   `EventPublisherInterface`: Абстракция для публикации доменных событий. Предоставляет типобезопасный метод `publishEvent(DomainEvent $event)` для публикации доменных событий, реализующих интерфейс `DomainEvent`. Use Cases не знают о конкретных реализациях очереди.
+*   `NotificationInterface`: Абстракция для уведомлений пользователя (Flash messages, логи). Используется в `UseCaseExecutor` для показа сообщений об успехе/ошибках. Реализации находятся в `services/notifications/` (FlashNotificationService, LogNotificationService).
+*   `PagedResultInterface`: Возвращает чистый `PaginationDto` вместо framework-объектов, сохраняя независимость application layer от Yii2.
+
+**Интерфейсы внешних сервисов (`interfaces/`):**
 *   `SmsSenderInterface`: Позволяет прозрачно менять провайдеров (Smspilot / Mock).
 *   `FileStorageInterface`: Абстракция для сохранения файлов (Local / S3).
-*   `EventPublisherInterface`: Абстракция для публикации доменных событий. Предоставляет типобезопасный метод `publishEvent(DomainEvent $event)` для публикации доменных событий, реализующих интерфейс `DomainEvent`. Use Cases не знают о конкретных реализациях очереди.
-*   `PagedResultInterface`: Возвращает чистый `PaginationDto` вместо framework-объектов, сохраняя независимость application layer от Yii2.
+
+**Направление зависимостей:** Application layer зависит только от портов в `application/ports`. Infrastructure и Presentation реализуют эти порты, сохраняя правильное направление зависимостей Clean Architecture.
 
 ### 12. Структура проекта
 
@@ -168,7 +175,7 @@ class BookFormPreparationService {
 │   ├── common/
 │   │   ├── dto/            # Общие DTO (PaginationDto)
 │   │   └── UseCaseExecutor.php  # Cross-cutting concern для выполнения use cases с обработкой ошибок
-│   └── ports/               # Интерфейсы репозиториев и сервисов (EventPublisherInterface)
+│   └── ports/               # Порты application layer (EventPublisherInterface, NotificationInterface, PagedResultInterface)
 ├── domain/                  # Domain Layer (Entities, Value Objects, Domain Exceptions)
 │   ├── events/             # Domain Events (BookCreatedEvent, DomainEvent interface)
 │   └── exceptions/         # Domain Exceptions (DomainException)
@@ -183,6 +190,9 @@ class BookFormPreparationService {
 ├── controllers/             # Тонкие HTTP-контроллеры
 ├── models/                  # ActiveRecord модели и Forms
 └── interfaces/              # Интерфейсы внешних сервисов (SMS, File Storage)
+```
+
+**Примечание:** Порты для application layer находятся в `application/ports` (например, `NotificationInterface`, `EventPublisherInterface`). Интерфейсы внешних сервисов (SMS, File Storage) остаются в `interfaces/` как внешние зависимости.
 ```
 
 **Примечание:** В коде используется namespace `app\`, что соответствует стандартному Yii2 алиасу `@app`. Структура директорий в корне проекта соответствует namespace-ам (например, `application/` → `app\application\*`).
