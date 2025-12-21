@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace app\models\forms;
 
 use app\models\Author;
+use Yii;
 use yii\base\Model;
 
 final class AuthorForm extends Model
 {
-    public ?int $id = null;
-    public string $fio = '';
+    /** @var int|string|null */
+    public $id = null;
+
+    /** @var string */
+    public $fio = '';
 
     public function rules(): array
     {
@@ -23,7 +27,7 @@ final class AuthorForm extends Model
                 'unique',
                 'targetClass' => Author::class,
                 'filter' => fn($query) => $this->id ? $query->andWhere(['<>', 'id', $this->id]) : $query,
-                'message' => 'Автор с таким ФИО уже существует',
+                'message' => Yii::t('app', 'Author with this FIO already exists'),
             ],
         ];
     }
@@ -31,7 +35,7 @@ final class AuthorForm extends Model
     public function attributeLabels(): array
     {
         return [
-            'fio' => 'ФИО',
+            'fio' => Yii::t('app', 'FIO'),
         ];
     }
 }

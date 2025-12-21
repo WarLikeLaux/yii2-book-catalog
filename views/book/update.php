@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use kartik\select2\Select2;
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
@@ -33,16 +35,16 @@ $this->params['breadcrumbs'][] = $this->title;
                 'dataType' => 'json',
                 'delay' => 250,
                 'data' => new \yii\web\JsExpression('function(params) { return {q:params.term, page:params.page}; }'),
-                'cache' => true
+                'cache' => true,
             ],
         ],
     ]) ?>
     <?= $form->field($model, 'cover')->fileInput() ?>
 
-    <?php if ($book->cover_url): ?>
+    <?php if ($book->coverUrl): ?>
         <div class="form-group">
             <label>Текущая обложка</label><br>
-            <?= Html::img($book->cover_url, ['alt' => $book->title, 'style' => 'max-width: 200px;']) ?>
+            <?= Html::img($book->coverUrl, ['alt' => $book->title, 'style' => 'max-width: 200px;']) ?>
         </div>
     <?php endif; ?>
 

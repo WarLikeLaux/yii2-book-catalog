@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\validators;
 
+use Yii;
 use yii\validators\Validator;
 
 /**
@@ -12,7 +13,17 @@ use yii\validators\Validator;
  */
 final class IsbnValidator extends Validator
 {
-    public $message = 'Некорректный ISBN. Используйте ISBN-10 или ISBN-13 формат.';
+    public $message;
+
+    public function init(): void
+    {
+        parent::init();
+        if ($this->message !== null) {
+            return;
+        }
+
+        $this->message = Yii::t('app', 'Invalid ISBN. Use ISBN-10 or ISBN-13 format.');
+    }
 
     public function validateAttribute($model, $attribute): void
     {
@@ -25,9 +36,11 @@ final class IsbnValidator extends Validator
 
         $isbn = $this->normalizeIsbn($value);
 
-        if (!$this->isValidIsbn($isbn)) {
-            $this->addError($model, $attribute, $this->message);
+        if ($this->isValidIsbn($isbn)) {
+            return;
         }
+
+        $this->addError($model, $attribute, $this->message);
     }
 
     private function normalizeIsbn(string $isbn): string
@@ -58,7 +71,7 @@ final class IsbnValidator extends Validator
         $checksum = 0;
         for ($i = 0; $i < 10; $i++) {
             $digit = $isbn[$i];
-            $value = ($digit === 'X' || $digit === 'x') ? 10 : (int)$digit;
+            $value = $digit === 'X' || $digit === 'x' ? 10 : (int)$digit;
             $checksum += $value * (10 - $i);
         }
 
@@ -80,7 +93,7 @@ final class IsbnValidator extends Validator
 
         $checksum = 0;
         for ($i = 0; $i < 13; $i++) {
-            $weight = ($i % 2 === 0) ? 1 : 3;
+            $weight = $i % 2 === 0 ? 1 : 3;
             $checksum += (int)$isbn[$i] * $weight;
         }
 

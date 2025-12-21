@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use app\models\search\BookSearch;
 use yii\bootstrap5\ActiveForm;
 use yii\bootstrap5\LinkPager;
 use yii\bootstrap5\Modal;
@@ -44,9 +43,9 @@ $this->title = 'Каталог книг';
         <?php foreach ($dataProvider->getModels() as $book): ?>
             <div class="col-md-4 mb-4">
                 <div class="card h-100 shadow-sm">
-                    <?php if ($book->cover_url): ?>
+                    <?php if ($book->coverUrl): ?>
                         <div style="height: 200px; overflow: hidden;">
-                            <?= Html::img($book->cover_url, ['class' => 'card-img-top', 'alt' => $book->title, 'style' => 'width: 100%; height: 100%; object-fit: cover;']) ?>
+                            <?= Html::img($book->coverUrl, ['class' => 'card-img-top', 'alt' => $book->title, 'style' => 'width: 100%; height: 100%; object-fit: cover;']) ?>
                         </div>
                     <?php endif; ?>
                     <div class="card-body">
@@ -54,10 +53,10 @@ $this->title = 'Каталог книг';
                         <p class="text-muted mb-1"><?= Html::encode($book->year) ?></p>
 
                         <div class="mb-3">
-                            <?php foreach ($book->authors as $author): ?>
+                            <?php foreach ($book->authorNames as $authorId => $fio): ?>
                                 <span class="badge bg-secondary me-1">
-                                    <?= Html::encode($author->fio) ?>
-                                    <a href="#" class="text-white sub-link" data-id="<?= $author->id ?>" title="Подписаться">
+                                    <?= Html::encode($fio) ?>
+                                    <a href="#" class="text-white sub-link" data-id="<?= $authorId ?>" title="Подписаться">
                                         <i class="bi bi-bell"></i> +
                                     </a>
                                 </span>

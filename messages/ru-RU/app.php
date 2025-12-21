@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'Author has been created' => 'Автор создан',
+    'Author has been updated' => 'Автор обновлен',
+    'Author has been deleted' => 'Автор удален',
+    'Book has been created' => 'Книга создана',
+    'Book has been updated' => 'Книга обновлена',
+    'Book has been deleted' => 'Книга удалена',
+    'Unexpected error occurred. Please contact administrator.' => 'Непредвиденная ошибка. Обратитесь к администратору.',
+    'You are subscribed!' => 'Вы подписаны!',
+    'Author not found' => 'Автор не найден',
+    'Book not found' => 'Книга не найдена',
+    'Error while generating report. Please contact administrator.' => 'Ошибка при получении отчета. Обратитесь к администратору.',
+    'Author with this FIO already exists' => 'Автор с таким ФИО уже существует',
+    'Phone' => 'Телефон',
+    'Author' => 'Автор',
+    'Invalid phone format' => 'Неверный формат телефона',
+    'Invalid phone format. Use international format (e.g., +79991234567)' => 'Неверный формат телефона. Используйте международный формат с кодом страны (например, +79991234567)',
+    'FIO' => 'ФИО',
+    'Title' => 'Название',
+    'Year' => 'Год',
+    'Description' => 'Описание',
+    'ISBN' => 'ISBN',
+    'Cover' => 'Обложка',
+    'Authors' => 'Авторы',
+    'Invalid ISBN. Use ISBN-10 or ISBN-13 format.' => 'Некорректный ISBN. Используйте ISBN-10 или ISBN-13 формат.',
+    'Incorrect username or password.' => 'Неверный логин или пароль.',
+    'Username' => 'Имя пользователя',
+    'Password' => 'Пароль',
+    'Remember Me' => 'Запомнить меня',
+    'You are already subscribed to this author' => 'Вы уже подписаны на этого автора',
+    'Failed to create subscription' => 'Не удалось создать подписку',
+    'New book released: {title}' => 'Вышла новая книга: {title}',
+];

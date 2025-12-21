@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace app\jobs;
 
 use app\interfaces\SmsSenderInterface;
-use Psr\Log\LoggerInterface;
+use app\services\YiiPsrLogger;
 use Throwable;
 use Yii;
 use yii\base\BaseObject;
@@ -17,13 +17,15 @@ final class NotifySingleSubscriberJob extends BaseObject implements Job, Retryab
     private const int TTR_SECONDS = 30;
 
     public string $phone;
+
     public string $message;
+
     public int $bookId;
 
     public function execute($queue): void
     {
         $sender = Yii::$container->get(SmsSenderInterface::class);
-        $logger = Yii::$container->get(LoggerInterface::class);
+        $logger = new YiiPsrLogger('sms');
 
         try {
             $sender->send($this->phone, $this->message);

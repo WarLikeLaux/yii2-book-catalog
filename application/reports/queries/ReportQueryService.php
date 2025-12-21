@@ -2,21 +2,32 @@
 
 declare(strict_types=1);
 
-namespace app\services;
+namespace app\application\reports\queries;
 
+use app\models\forms\ReportFilterForm;
 use yii\db\Connection;
 
-final class ReportService
+final class ReportQueryService
 {
     public function __construct(
         private readonly Connection $db
     ) {
     }
 
-    /**
-     * @return array<int, array{id: int, fio: string, books_count: int}>
-     */
-    public function getTopAuthorsByYear(int $year, int $limit = 10): array
+    public function getTopAuthorsReport(ReportFilterForm $form): ReportDto
+    {
+        $year = $form->year ? (int)$form->year : (int)date('Y');
+        $topAuthors = $this->getTopAuthorsByYear($year);
+
+        return new ReportDto($topAuthors, $year);
+    }
+
+    public function getEmptyTopAuthorsReport(int|string|null $year = null): ReportDto
+    {
+        return new ReportDto([], $year ? (int)$year : (int)date('Y'));
+    }
+
+    private function getTopAuthorsByYear(int $year, int $limit = 10): array
     {
         return $this->db->createCommand('
             SELECT

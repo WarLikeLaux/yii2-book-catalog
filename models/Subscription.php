@@ -10,6 +10,14 @@ use yii\db\ActiveRecord;
 
 final class Subscription extends ActiveRecord
 {
+    public static function create(string $phone, int $authorId): self
+    {
+        $subscription = new self();
+        $subscription->phone = $phone;
+        $subscription->author_id = $authorId;
+        return $subscription;
+    }
+
     public static function tableName(): string
     {
         return 'subscriptions';

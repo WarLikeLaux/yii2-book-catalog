@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use app\models\forms\SubscriptionForm;
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -14,7 +13,7 @@ $form = ActiveForm::begin([
 ]);
 ?>
 
-<?= Html::hiddenInput('SubscriptionForm[authorId]', $model->authorId) ?>
+<?= Html::hiddenInput('SubscriptionForm[authorId]', $authorId) ?>
 
 <div class="form-group">
     <label>Подписка на автора: <strong><?= Html::encode($author->fio) ?></strong></label>

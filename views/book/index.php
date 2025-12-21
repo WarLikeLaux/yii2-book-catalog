@@ -1,6 +1,7 @@
 <?php
 
-use app\models\Book;
+declare(strict_types=1);
+
 use yii\grid\GridView;
 use yii\helpers\Html;
 
@@ -29,12 +30,8 @@ $this->params['breadcrumbs'][] = $this->title;
             'isbn',
             [
                 'attribute' => 'authors',
-                'value' => function (Book $model) {
-                    $authors = [];
-                    foreach ($model->authors as $author) {
-                        $authors[] = $author->fio;
-                    }
-                    return implode(', ', $authors);
+                'value' => function (app\application\books\queries\BookReadDto $model) {
+                    return implode(', ', $model->authorNames);
                 },
             ],
             [

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Application requirement checker script.
  *
@@ -44,7 +46,7 @@ if (!isset($frameworkPath) || !is_dir($frameworkPath)) {
     exit(1);
 }
 
-require_once($frameworkPath . '/requirements/YiiRequirementChecker.php');
+require_once $frameworkPath . '/requirements/YiiRequirementChecker.php';
 $requirementsChecker = new YiiRequirementChecker();
 
 $gdMemo = $imagickMemo = 'Either GD PHP extension with FreeType support or ImageMagick PHP extension with PNG support is required for image CAPTCHA.';
@@ -107,7 +109,7 @@ $requirements = [
         'mandatory' => false,
         'condition' => extension_loaded('memcache') || extension_loaded('memcached'),
         'by' => '<a href="https://www.yiiframework.com/doc-2.0/yii-caching-memcache.html">MemCache</a>',
-        'memo' => extension_loaded('memcached') ? 'To use memcached set <a href="https://www.yiiframework.com/doc-2.0/yii-caching-memcache.html#$useMemcached-detail">MemCache::useMemcached</a> to <code>true</code>.' : ''
+        'memo' => extension_loaded('memcached') ? 'To use memcached set <a href="https://www.yiiframework.com/doc-2.0/yii-caching-memcache.html#$useMemcached-detail">MemCache::useMemcached</a> to <code>true</code>.' : '',
     ],
     // CAPTCHA:
     [

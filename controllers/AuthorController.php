@@ -4,21 +4,31 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use app\models\Author;
+use app\application\authors\commands\DeleteAuthorCommand;
+use app\application\authors\mappers\AuthorFormMapper;
+use app\application\authors\queries\AuthorQueryService;
+use app\application\authors\usecases\CreateAuthorUseCase;
+use app\application\authors\usecases\DeleteAuthorUseCase;
+use app\application\authors\usecases\UpdateAuthorUseCase;
+use app\application\UseCaseExecutor;
 use app\models\forms\AuthorForm;
-use app\services\AuthorService;
 use Yii;
-use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 use yii\web\Controller;
-use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 final class AuthorController extends Controller
 {
     public function __construct(
         $id,
         $module,
-        private readonly AuthorService $authorService,
+        private readonly CreateAuthorUseCase $createAuthorUseCase,
+        private readonly UpdateAuthorUseCase $updateAuthorUseCase,
+        private readonly DeleteAuthorUseCase $deleteAuthorUseCase,
+        private readonly AuthorFormMapper $authorFormMapper,
+        private readonly AuthorQueryService $authorQueryService,
+        private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -41,107 +51,92 @@ final class AuthorController extends Controller
                     ],
                 ],
             ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'delete' => ['post'],
+                ],
+            ],
         ];
     }
 
     public function actionIndex(): string
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Author::find()->orderBy(['fio' => SORT_ASC]),
-            'pagination' => [
-                'pageSize' => 20,
-            ],
-        ]);
+        $dataProvider = $this->authorQueryService->getIndexProvider();
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
         ]);
     }
 
-    public function actionCreate()
+    public function actionCreate(): string|Response
     {
         $form = new AuthorForm();
 
-        if ($this->request->isPost && $form->load($this->request->post()) && $form->validate()) {
-            try {
-                $this->authorService->create($form->fio);
-                Yii::$app->session->setFlash('success', 'Автор создан');
-                return $this->redirect(['index']);
-            } catch (\Throwable $e) {
-                Yii::$app->session->setFlash('error', $e->getMessage());
-            }
+        if (!$this->request->isPost) {
+            return $this->render('create', ['model' => $form]);
+        }
+
+        if (!$form->load($this->request->post()) || !$form->validate()) {
+            return $this->render('create', ['model' => $form]);
+        }
+
+        $command = $this->authorFormMapper->toCreateCommand($form);
+        $success = $this->useCaseExecutor->execute(
+            fn() => $this->createAuthorUseCase->execute($command),
+            Yii::t('app', 'Author has been created')
+        );
+        if ($success) {
+            return $this->redirect(['index']);
         }
 
         return $this->render('create', ['model' => $form]);
     }
 
-    public function actionUpdate(int $id)
+    public function actionUpdate(int $id): string|Response
     {
-        $author = Author::findOne($id);
-        if (!$author) {
-            throw new NotFoundHttpException('Автор не найден');
+        $dto = $this->authorQueryService->getById($id);
+        $form = $this->authorFormMapper->toForm($dto);
+
+        if (!$this->request->isPost) {
+            return $this->render('update', ['model' => $form]);
         }
 
-        $form = new AuthorForm();
-        $form->id = $author->id;
-        $form->fio = $author->fio;
+        if (!$form->load($this->request->post()) || !$form->validate()) {
+            return $this->render('update', ['model' => $form]);
+        }
 
-        if ($this->request->isPost && $form->load($this->request->post()) && $form->validate()) {
-            try {
-                $this->authorService->update($id, $form->fio);
-                Yii::$app->session->setFlash('success', 'Автор обновлен');
-                return $this->redirect(['index']);
-            } catch (\Throwable $e) {
-                Yii::$app->session->setFlash('error', $e->getMessage());
-            }
+        $command = $this->authorFormMapper->toUpdateCommand($id, $form);
+        $success = $this->useCaseExecutor->execute(
+            fn() => $this->updateAuthorUseCase->execute($command),
+            Yii::t('app', 'Author has been updated'),
+            ['author_id' => $id]
+        );
+        if ($success) {
+            return $this->redirect(['index']);
         }
 
         return $this->render('update', ['model' => $form]);
     }
 
-    public function actionDelete(int $id)
+    public function actionDelete(int $id): Response
     {
-        try {
-            $this->authorService->delete($id);
-            Yii::$app->session->setFlash('success', 'Автор удален');
-        } catch (\Throwable $e) {
-            Yii::$app->session->setFlash('error', $e->getMessage());
-        }
+        $command = new DeleteAuthorCommand($id);
+        $this->useCaseExecutor->execute(
+            fn() => $this->deleteAuthorUseCase->execute($command),
+            Yii::t('app', 'Author has been deleted'),
+            ['author_id' => $id]
+        );
 
         return $this->redirect(['index']);
     }
 
-    /**
-     * AJAX endpoint for Select2 search
-     */
     public function actionSearch(): array
     {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $this->response->format = Response::FORMAT_JSON;
 
-        $search = $this->request->get('q', '');
-        $page = (int)$this->request->get('page', 1);
-        $pageSize = 20;
+        $result = $this->authorQueryService->search($this->request->get());
 
-        $query = Author::find()
-            ->select(['id', 'fio as text'])
-            ->orderBy(['fio' => SORT_ASC]);
-
-        if ($search !== '') {
-            $query->andWhere(['like', 'fio', $search]);
-        }
-
-        $total = $query->count();
-        $authors = $query
-            ->offset(($page - 1) * $pageSize)
-            ->limit($pageSize)
-            ->asArray()
-            ->all();
-
-        return [
-            'results' => $authors,
-            'pagination' => [
-                'more' => ($page * $pageSize) < $total,
-            ],
-        ];
+        return $this->authorFormMapper->mapToSelect2($result);
     }
 }

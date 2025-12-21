@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use app\models\Book;
-use app\models\ContactForm;
-use app\models\LoginForm;
-use app\models\search\BookSearch;
+use app\application\books\queries\BookQueryService;
+use app\models\forms\LoginForm;
 use Yii;
-use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
+use yii\web\ErrorAction;
 use yii\web\Response;
 
 final class SiteController extends Controller
 {
+    public function __construct(
+        $id,
+        $module,
+        private readonly BookQueryService $bookQueryService,
+        $config = []
+    ) {
+        parent::__construct($id, $module, $config);
+    }
+
     public function behaviors(): array
     {
         return [
@@ -44,23 +51,18 @@ final class SiteController extends Controller
     {
         return [
             'error' => [
-                'class' => 'yii\web\ErrorAction',
-            ],
-            'captcha' => [
-                'class' => 'yii\captcha\CaptchaAction',
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
+                'class' => ErrorAction::class,
             ],
         ];
     }
 
     public function actionIndex(): string
     {
-        $searchModel = new BookSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $pageData = $this->bookQueryService->search($this->request->get());
 
         return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
+            'searchModel' => $pageData->searchForm,
+            'dataProvider' => $pageData->dataProvider,
         ]);
     }
 
@@ -70,14 +72,14 @@ final class SiteController extends Controller
             return $this->goHome();
         }
 
-        $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
+        $form = new LoginForm();
+        if ($form->load($this->request->post()) && $form->login()) {
             return $this->goBack();
         }
 
-        $model->password = '';
+        $form->password = '';
         return $this->render('login', [
-            'model' => $model,
+            'model' => $form,
         ]);
     }
 
@@ -86,23 +88,5 @@ final class SiteController extends Controller
         Yii::$app->user->logout();
 
         return $this->goHome();
-    }
-
-    public function actionContact(): Response|string
-    {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
-            Yii::$app->session->setFlash('contactFormSubmitted');
-
-            return $this->refresh();
-        }
-        return $this->render('contact', [
-            'model' => $model,
-        ]);
-    }
-
-    public function actionAbout(): string
-    {
-        return $this->render('about');
     }
 }
