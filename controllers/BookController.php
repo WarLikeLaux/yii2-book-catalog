@@ -4,34 +4,18 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use app\application\authors\queries\AuthorQueryService;
-use app\application\books\commands\DeleteBookCommand;
-use app\application\books\mappers\BookFormMapper;
-use app\application\books\queries\BookQueryService;
-use app\application\books\usecases\CreateBookUseCase;
-use app\application\books\usecases\DeleteBookUseCase;
-use app\application\books\usecases\UpdateBookUseCase;
-use app\application\UseCaseExecutor;
-use app\models\forms\BookForm;
-use Yii;
+use app\presentation\services\BookFormPreparationService;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\Response;
-use yii\widgets\ActiveForm;
 
 final class BookController extends Controller
 {
     public function __construct(
         $id,
         $module,
-        private readonly CreateBookUseCase $createBookUseCase,
-        private readonly UpdateBookUseCase $updateBookUseCase,
-        private readonly DeleteBookUseCase $deleteBookUseCase,
-        private readonly BookFormMapper $bookFormMapper,
-        private readonly AuthorQueryService $authorQueryService,
-        private readonly BookQueryService $bookQueryService,
-        private readonly UseCaseExecutor $useCaseExecutor,
+        private readonly BookFormPreparationService $bookFormPreparationService,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -57,114 +41,59 @@ final class BookController extends Controller
 
     public function actionIndex(): string
     {
-        $dataProvider = $this->bookQueryService->getIndexProvider();
-
-        return $this->render('index', [
-            'dataProvider' => $dataProvider,
-        ]);
+        $viewData = $this->bookFormPreparationService->prepareIndexViewData($this->request);
+        return $this->render('index', $viewData);
     }
 
     public function actionView(int $id): string
     {
-        $book = $this->bookQueryService->getById($id);
-
-        return $this->render('view', ['book' => $book]);
+        $viewData = $this->bookFormPreparationService->prepareViewViewData($id);
+        return $this->render('view', $viewData);
     }
 
     public function actionCreate(): string|Response|array
     {
-        $form = new BookForm();
-
         if (!$this->request->isPost) {
-            return $this->render('create', [
-                'model' => $form,
-                'authors' => $this->authorQueryService->getAuthorsMap(),
-            ]);
+            $viewData = $this->bookFormPreparationService->prepareCreateViewData();
+            return $this->render('create', $viewData);
         }
 
-        $form->loadFromRequest($this->request);
+        $result = $this->bookFormPreparationService->processCreateRequest($this->request, $this->response);
 
-        if ($this->request->isAjax) {
-            $this->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($form);
+        if ($result->ajaxValidation !== null) {
+            return $result->ajaxValidation;
         }
 
-        if (!$form->validate()) {
-            return $this->render('create', [
-                'model' => $form,
-                'authors' => $this->authorQueryService->getAuthorsMap(),
-            ]);
+        if ($result->success && $result->redirectRoute !== null) {
+            return $this->redirect($result->redirectRoute);
         }
 
-        $command = $this->bookFormMapper->toCreateCommand($form);
-        $success = $this->useCaseExecutor->execute(
-            fn() => $this->createBookUseCase->execute($command),
-            Yii::t('app', 'Book has been created')
-        );
-        if ($success) {
-            return $this->redirect(['index']);
-        }
-
-        return $this->render('create', [
-            'model' => $form,
-            'authors' => $this->authorQueryService->getAuthorsMap(),
-        ]);
+        return $this->render('create', $result->viewData);
     }
 
     public function actionUpdate(int $id): string|Response|array
     {
-        $dto = $this->bookQueryService->getById($id);
-        $form = $this->bookFormMapper->toForm($dto);
-
         if (!$this->request->isPost) {
-            return $this->render('update', [
-                'model' => $form,
-                'book' => $dto,
-                'authors' => $this->authorQueryService->getAuthorsMap(),
-            ]);
+            $viewData = $this->bookFormPreparationService->prepareUpdateViewData($id);
+            return $this->render('update', $viewData);
         }
 
-        $form->loadFromRequest($this->request);
+        $result = $this->bookFormPreparationService->processUpdateRequest($id, $this->request, $this->response);
 
-        if ($this->request->isAjax) {
-            $this->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($form);
+        if ($result->ajaxValidation !== null) {
+            return $result->ajaxValidation;
         }
 
-        if (!$form->validate()) {
-            return $this->render('update', [
-                'model' => $form,
-                'book' => $dto,
-                'authors' => $this->authorQueryService->getAuthorsMap(),
-            ]);
+        if ($result->success && $result->redirectRoute !== null) {
+            return $this->redirect($result->redirectRoute);
         }
 
-        $command = $this->bookFormMapper->toUpdateCommand($id, $form);
-        $success = $this->useCaseExecutor->execute(
-            fn() => $this->updateBookUseCase->execute($command),
-            Yii::t('app', 'Book has been updated'),
-            ['book_id' => $id]
-        );
-        if ($success) {
-            return $this->redirect(['view', 'id' => $id]);
-        }
-
-        return $this->render('update', [
-            'model' => $form,
-            'book' => $dto,
-            'authors' => $this->authorQueryService->getAuthorsMap(),
-        ]);
+        return $this->render('update', $result->viewData);
     }
 
     public function actionDelete(int $id): Response
     {
-        $command = new DeleteBookCommand($id);
-        $this->useCaseExecutor->execute(
-            fn() => $this->deleteBookUseCase->execute($command),
-            Yii::t('app', 'Book has been deleted'),
-            ['book_id' => $id]
-        );
-
+        $this->bookFormPreparationService->processDeleteRequest($id);
         return $this->redirect(['index']);
     }
 }

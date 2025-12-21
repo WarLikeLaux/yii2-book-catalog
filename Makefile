@@ -65,7 +65,17 @@ test-init: test-db-create test-db-migrate
 	@echo "✅ Test database initialized"
 
 test:
+	@echo "Running integration tests (use cases)..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional usecases --no-colors
+	@echo ""
+	@echo "Running functional tests (HTTP)..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional --no-colors
+
+test-unit:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit
 
-test-service:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit services/BookServiceTest
+test-integration:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional usecases
+
+test-functional:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional --grep "BookCest|SubscriptionCest"

@@ -51,14 +51,6 @@ final class LoginForm extends Model
         $this->addError($attribute, Yii::t('app', 'Incorrect username or password.'));
     }
 
-    public function login(): bool
-    {
-        if ($this->validate()) {
-            return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600 * 24 * 30 : 0);
-        }
-        return false;
-    }
-
     public function getUser(): ?User
     {
         if ($this->_user === false) {

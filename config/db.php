@@ -17,8 +17,7 @@ return [
     'password' => $password,
     'charset' => 'utf8',
 
-    // Schema cache options (for production environment)
-    //'enableSchemaCache' => true,
-    //'schemaCacheDuration' => 60,
-    //'schemaCache' => 'cache',
+    'enableSchemaCache' => true,
+    'schemaCacheDuration' => defined('YII_ENV_DEV') && YII_ENV_DEV ? 60 : 3600,
+    'schemaCache' => 'cache',
 ];

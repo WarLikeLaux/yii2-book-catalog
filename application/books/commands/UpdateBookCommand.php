@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace app\application\books\commands;
 
-use yii\web\UploadedFile;
-
 final readonly class UpdateBookCommand
 {
     public function __construct(
@@ -15,7 +13,7 @@ final readonly class UpdateBookCommand
         public string $description,
         public string $isbn,
         public array $authorIds,
-        public UploadedFile|string|null $cover = null,
+        public string|null $cover = null,
     ) {
     }
 }

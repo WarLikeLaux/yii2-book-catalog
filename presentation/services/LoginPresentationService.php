@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+namespace app\presentation\services;
+
+use app\models\forms\LoginForm;
+use Yii;
+use yii\web\Request;
+use yii\web\Response;
+
+final class LoginPresentationService
+{
+    public function prepareLoginViewData(): array
+    {
+        $form = new LoginForm();
+
+        return [
+            'model' => $form,
+        ];
+    }
+
+    public function processLoginRequest(Request $request, Response $response): array
+    {
+        $viewData = $this->prepareLoginViewData();
+        $form = $viewData['model'];
+
+        if (!$form->load($request->post())) {
+            return [
+                'success' => false,
+                'viewData' => $viewData,
+            ];
+        }
+
+        if (!$form->validate()) {
+            $form->password = '';
+            return [
+                'success' => false,
+                'viewData' => ['model' => $form],
+            ];
+        }
+
+        $user = $form->getUser();
+        if (!$user || !$user->validatePassword($form->password)) {
+            $form->addError('password', Yii::t('app', 'Incorrect username or password.'));
+            $form->password = '';
+            return [
+                'success' => false,
+                'viewData' => ['model' => $form],
+            ];
+        }
+
+        $duration = $form->rememberMe ? 3600 * 24 * 30 : 0;
+        Yii::$app->user->login($user, $duration);
+
+        return [
+            'success' => true,
+            'viewData' => $viewData,
+        ];
+    }
+}

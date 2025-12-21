@@ -5,25 +5,27 @@ declare(strict_types=1);
 namespace app\application\authors\usecases;
 
 use app\application\authors\commands\UpdateAuthorCommand;
+use app\application\ports\AuthorRepositoryInterface;
 use app\domain\exceptions\DomainException;
-use app\models\Author;
-use Yii;
 
 final class UpdateAuthorUseCase
 {
-    public function execute(UpdateAuthorCommand $command): Author
+    public function __construct(
+        private readonly AuthorRepositoryInterface $authorRepository
+    ) {
+    }
+
+    public function execute(UpdateAuthorCommand $command): void
     {
-        $author = Author::findOne($command->id);
+        $author = $this->authorRepository->findById($command->id);
         if (!$author) {
-            throw new DomainException(Yii::t('app', 'Author not found'));
+            throw new DomainException('Author not found');
         }
 
-        $author->edit($command->fio);
-
-        if (!$author->save()) {
-            throw new DomainException(Yii::t('app', 'Failed to update author'));
+        try {
+            $this->authorRepository->update($command->id, $command->fio);
+        } catch (\RuntimeException $e) {
+            throw new DomainException('Failed to update author');
         }
-
-        return $author;
     }
 }

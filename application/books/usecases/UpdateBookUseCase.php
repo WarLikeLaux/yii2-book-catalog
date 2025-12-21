@@ -5,99 +5,43 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
+use app\application\ports\BookRepositoryInterface;
+use app\application\ports\TransactionInterface;
 use app\domain\exceptions\DomainException;
-use app\interfaces\FileStorageInterface;
-use app\models\Book;
-use Yii;
-use yii\db\ActiveRecord;
-use yii\db\Connection;
 
 final class UpdateBookUseCase
 {
     public function __construct(
-        private readonly Connection $db,
-        private readonly FileStorageInterface $fileStorage,
+        private readonly BookRepositoryInterface $bookRepository,
+        private readonly TransactionInterface $transaction,
     ) {
     }
 
-    public function execute(UpdateBookCommand $command): Book
+    public function execute(UpdateBookCommand $command): void
     {
-        $book = Book::findOne($command->id);
+        $book = $this->bookRepository->findById($command->id);
         if (!$book) {
-            throw new DomainException(Yii::t('app', 'Book not found'));
+            throw new DomainException('Book not found');
         }
 
-        $transaction = $this->db->beginTransaction();
+        $this->transaction->begin();
 
         try {
-            $coverUrl = $command->cover ? $this->fileStorage->save($command->cover) : null;
-            $book->edit(
+            $this->bookRepository->update(
+                id: $command->id,
                 title: $command->title,
                 year: $command->year,
                 isbn: $command->isbn,
                 description: $command->description,
-                coverUrl: $coverUrl
+                coverUrl: $command->cover
             );
 
-            if (!$book->save()) {
-                throw new DomainException($this->getFirstErrorMessage($book, Yii::t('app', 'Failed to update book')));
-            }
+            $this->bookRepository->syncAuthors($command->id, $command->authorIds);
 
-            $this->syncBookAuthors($book->id, $command->authorIds);
-
-            $transaction->commit();
-
-            return $book;
+            $this->transaction->commit();
         } catch (\Throwable $e) {
-            $transaction->rollBack();
+            $this->transaction->rollBack();
             throw $e;
         }
-    }
-
-    private function syncBookAuthors(int $bookId, array $newAuthorIds): void
-    {
-        $book = Book::findOne($bookId);
-        if (!$book) {
-            return;
-        }
-
-        $existingAuthorIds = $book->getAuthors()->select('id')->column();
-
-        $existingAuthorIds = array_map('intval', $existingAuthorIds);
-        $newAuthorIds = array_map('intval', $newAuthorIds);
-
-        $toDelete = array_diff($existingAuthorIds, $newAuthorIds);
-        $toAdd = array_diff($newAuthorIds, $existingAuthorIds);
-
-        if ($toDelete) {
-            $this->db->createCommand()->delete('book_authors', [
-                'and',
-                ['book_id' => $bookId],
-                ['in', 'author_id', $toDelete],
-            ])->execute();
-        }
-
-        if (!$toAdd) {
-            return;
-        }
-
-        $rows = array_map(
-            fn($authorId) => [$bookId, $authorId],
-            $toAdd
-        );
-        $this->db->createCommand()->batchInsert(
-            'book_authors',
-            ['book_id', 'author_id'],
-            $rows
-        )->execute();
-    }
-
-    private function getFirstErrorMessage(ActiveRecord $model, string $fallback): string
-    {
-        $errors = $model->getFirstErrors();
-        if (!$errors) {
-            return $fallback;
-        }
-        return array_shift($errors);
     }
 }

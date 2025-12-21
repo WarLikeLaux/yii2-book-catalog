@@ -5,20 +5,22 @@ declare(strict_types=1);
 namespace app\application\authors\usecases;
 
 use app\application\authors\commands\CreateAuthorCommand;
+use app\application\ports\AuthorRepositoryInterface;
 use app\domain\exceptions\DomainException;
-use app\models\Author;
-use Yii;
 
 final class CreateAuthorUseCase
 {
-    public function execute(CreateAuthorCommand $command): Author
+    public function __construct(
+        private readonly AuthorRepositoryInterface $authorRepository
+    ) {
+    }
+
+    public function execute(CreateAuthorCommand $command): int
     {
-        $author = Author::create($command->fio);
-
-        if (!$author->save()) {
-            throw new DomainException(Yii::t('app', 'Failed to create author'));
+        try {
+            return $this->authorRepository->create($command->fio);
+        } catch (\RuntimeException $e) {
+            throw new DomainException('Failed to create author');
         }
-
-        return $author;
     }
 }

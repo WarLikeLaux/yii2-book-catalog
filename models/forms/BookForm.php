@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\models\forms;
 
-use app\models\Author;
-use app\models\Book;
+use app\validators\AuthorExistsValidator;
 use app\validators\IsbnValidator;
+use app\validators\UniqueIsbnValidator;
 use Yii;
 use yii\base\Model;
 use yii\web\Request;
@@ -52,18 +52,9 @@ final class BookForm extends Model
             [['title'], 'string', 'max' => 255],
             [['isbn'], 'string', 'max' => 20],
             [['isbn'], IsbnValidator::class],
-            [
-                ['isbn'],
-                'unique',
-                'targetClass' => Book::class,
-                'filter' => fn($query) => $this->id ? $query->andWhere(['<>', 'id', $this->id]) : $query,
-            ],
+            [['isbn'], UniqueIsbnValidator::class],
             [['authorIds'], 'each', 'rule' => ['integer']],
-            [
-                ['authorIds'],
-                'each',
-                'rule' => ['exist', 'targetClass' => Author::class, 'targetAttribute' => 'id'],
-            ],
+            [['authorIds'], AuthorExistsValidator::class],
             [
                 ['cover'],
                 'file',

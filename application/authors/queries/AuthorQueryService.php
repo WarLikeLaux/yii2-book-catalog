@@ -4,75 +4,55 @@ declare(strict_types=1);
 
 namespace app\application\authors\queries;
 
-use app\models\Author;
-use app\models\forms\AuthorSearchForm;
-use app\repositories\AuthorReadRepository;
-use Yii;
-use yii\data\DataProviderInterface;
-use yii\helpers\ArrayHelper;
-use yii\web\NotFoundHttpException;
+use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\PagedResultInterface;
+use app\domain\exceptions\DomainException;
 
 final class AuthorQueryService
 {
     public function __construct(
-        private readonly AuthorReadRepository $repository
+        private readonly AuthorRepositoryInterface $authorRepository
     ) {
     }
 
-    public function getIndexProvider(): DataProviderInterface
+    public function getIndexProvider(int $page = 1, int $pageSize = 20): PagedResultInterface
     {
-        $dataProvider = $this->repository->getIndexDataProvider();
-        $dataProvider->setModels(array_map(
-            fn(Author $model) => $this->mapToDto($model),
-            $dataProvider->getModels()
-        ));
-
-        return $dataProvider;
+        return $this->authorRepository->search('', $page, $pageSize);
     }
 
     public function getAuthorsMap(): array
     {
-        return ArrayHelper::map($this->repository->findAllOrderedByFio()->all(), 'id', 'fio');
+        $authors = $this->authorRepository->findAllOrderedByFio();
+        $map = [];
+        foreach ($authors as $author) {
+            $map[$author->id] = $author->fio;
+        }
+        return $map;
     }
 
     public function getById(int $id): AuthorReadDto
     {
-        $author = $this->repository->findById($id);
+        $author = $this->authorRepository->findById($id);
         if (!$author) {
-            throw new NotFoundHttpException(Yii::t('app', 'Author not found'));
+            throw new DomainException('Author not found');
         }
 
-        return $this->mapToDto($author);
+        return $author;
     }
 
-    private function mapToDto(Author $author): AuthorReadDto
+    public function search(AuthorSearchCriteria $criteria): AuthorSearchResponse
     {
-        return new AuthorReadDto(
-            id: $author->id,
-            fio: $author->fio
-        );
-    }
-
-    public function search(array $params): AuthorSearchResponse
-    {
-        $searchForm = new AuthorSearchForm();
-        $searchForm->load($params);
-
-        if (!$searchForm->validate()) {
-            return new AuthorSearchResponse([], 0, 1, 20);
-        }
-
-        $result = $this->repository->search(
-            $searchForm->q,
-            $searchForm->page,
-            $searchForm->pageSize
+        $result = $this->authorRepository->search(
+            $criteria->search,
+            $criteria->page,
+            $criteria->pageSize
         );
 
         return new AuthorSearchResponse(
-            items: array_map(fn(Author $author) => $this->mapToDto($author), $result['items']),
-            total: $result['total'],
-            page: $searchForm->page,
-            pageSize: $searchForm->pageSize
+            items: $result->getModels(),
+            total: $result->getTotalCount(),
+            page: $criteria->page,
+            pageSize: $criteria->pageSize
         );
     }
 }

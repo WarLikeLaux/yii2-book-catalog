@@ -4,15 +4,8 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use app\application\authors\commands\DeleteAuthorCommand;
-use app\application\authors\mappers\AuthorFormMapper;
-use app\application\authors\queries\AuthorQueryService;
-use app\application\authors\usecases\CreateAuthorUseCase;
-use app\application\authors\usecases\DeleteAuthorUseCase;
-use app\application\authors\usecases\UpdateAuthorUseCase;
-use app\application\UseCaseExecutor;
-use app\models\forms\AuthorForm;
-use Yii;
+use app\presentation\services\AuthorFormPreparationService;
+use app\presentation\services\AuthorSearchPresentationService;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -23,12 +16,8 @@ final class AuthorController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly CreateAuthorUseCase $createAuthorUseCase,
-        private readonly UpdateAuthorUseCase $updateAuthorUseCase,
-        private readonly DeleteAuthorUseCase $deleteAuthorUseCase,
-        private readonly AuthorFormMapper $authorFormMapper,
-        private readonly AuthorQueryService $authorQueryService,
-        private readonly UseCaseExecutor $useCaseExecutor,
+        private readonly AuthorFormPreparationService $authorFormPreparationService,
+        private readonly AuthorSearchPresentationService $authorSearchPresentationService,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -62,81 +51,56 @@ final class AuthorController extends Controller
 
     public function actionIndex(): string
     {
-        $dataProvider = $this->authorQueryService->getIndexProvider();
+        $viewData = $this->authorFormPreparationService->prepareIndexViewData($this->request);
+        return $this->render('index', $viewData);
+    }
 
-        return $this->render('index', [
-            'dataProvider' => $dataProvider,
-        ]);
+    public function actionView(int $id): string
+    {
+        $viewData = $this->authorFormPreparationService->prepareViewViewData($id);
+        return $this->render('view', $viewData);
     }
 
     public function actionCreate(): string|Response
     {
-        $form = new AuthorForm();
-
         if (!$this->request->isPost) {
-            return $this->render('create', ['model' => $form]);
+            $viewData = $this->authorFormPreparationService->prepareCreateViewData();
+            return $this->render('create', $viewData);
         }
 
-        if (!$form->load($this->request->post()) || !$form->validate()) {
-            return $this->render('create', ['model' => $form]);
+        $result = $this->authorFormPreparationService->processCreateRequest($this->request);
+
+        if ($result->success && $result->redirectRoute !== null) {
+            return $this->redirect($result->redirectRoute);
         }
 
-        $command = $this->authorFormMapper->toCreateCommand($form);
-        $success = $this->useCaseExecutor->execute(
-            fn() => $this->createAuthorUseCase->execute($command),
-            Yii::t('app', 'Author has been created')
-        );
-        if ($success) {
-            return $this->redirect(['index']);
-        }
-
-        return $this->render('create', ['model' => $form]);
+        return $this->render('create', $result->viewData);
     }
 
     public function actionUpdate(int $id): string|Response
     {
-        $dto = $this->authorQueryService->getById($id);
-        $form = $this->authorFormMapper->toForm($dto);
-
         if (!$this->request->isPost) {
-            return $this->render('update', ['model' => $form]);
+            $viewData = $this->authorFormPreparationService->prepareUpdateViewData($id);
+            return $this->render('update', $viewData);
         }
 
-        if (!$form->load($this->request->post()) || !$form->validate()) {
-            return $this->render('update', ['model' => $form]);
+        $result = $this->authorFormPreparationService->processUpdateRequest($id, $this->request);
+
+        if ($result->success && $result->redirectRoute !== null) {
+            return $this->redirect($result->redirectRoute);
         }
 
-        $command = $this->authorFormMapper->toUpdateCommand($id, $form);
-        $success = $this->useCaseExecutor->execute(
-            fn() => $this->updateAuthorUseCase->execute($command),
-            Yii::t('app', 'Author has been updated'),
-            ['author_id' => $id]
-        );
-        if ($success) {
-            return $this->redirect(['index']);
-        }
-
-        return $this->render('update', ['model' => $form]);
+        return $this->render('update', $result->viewData);
     }
 
     public function actionDelete(int $id): Response
     {
-        $command = new DeleteAuthorCommand($id);
-        $this->useCaseExecutor->execute(
-            fn() => $this->deleteAuthorUseCase->execute($command),
-            Yii::t('app', 'Author has been deleted'),
-            ['author_id' => $id]
-        );
-
+        $this->authorFormPreparationService->processDeleteRequest($id);
         return $this->redirect(['index']);
     }
 
     public function actionSearch(): array
     {
-        $this->response->format = Response::FORMAT_JSON;
-
-        $result = $this->authorQueryService->search($this->request->get());
-
-        return $this->authorFormMapper->mapToSelect2($result);
+        return $this->authorSearchPresentationService->search($this->request, $this->response);
     }
 }

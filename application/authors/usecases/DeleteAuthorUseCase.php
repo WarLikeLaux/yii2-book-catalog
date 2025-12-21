@@ -5,21 +5,23 @@ declare(strict_types=1);
 namespace app\application\authors\usecases;
 
 use app\application\authors\commands\DeleteAuthorCommand;
+use app\application\ports\AuthorRepositoryInterface;
 use app\domain\exceptions\DomainException;
-use app\models\Author;
-use Yii;
 
 final class DeleteAuthorUseCase
 {
+    public function __construct(
+        private readonly AuthorRepositoryInterface $authorRepository
+    ) {
+    }
+
     public function execute(DeleteAuthorCommand $command): void
     {
-        $author = Author::findOne($command->id);
+        $author = $this->authorRepository->findById($command->id);
         if (!$author) {
-            throw new DomainException(Yii::t('app', 'Author not found'));
+            throw new DomainException('Author not found');
         }
 
-        if (!$author->delete()) {
-            throw new DomainException(Yii::t('app', 'Failed to delete author'));
-        }
+        $this->authorRepository->delete($command->id);
     }
 }

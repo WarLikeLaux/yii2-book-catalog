@@ -5,72 +5,48 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
-use app\domain\exceptions\DomainException;
-use app\interfaces\FileStorageInterface;
-use app\jobs\NotifySubscribersJob;
-use app\models\Book;
-use Yii;
-use yii\db\ActiveRecord;
-use yii\db\Connection;
-use yii\queue\db\Queue;
+use app\application\ports\BookRepositoryInterface;
+use app\application\ports\EventPublisherInterface;
+use app\application\ports\TransactionInterface;
+use app\domain\events\BookCreatedEvent;
 
 final class CreateBookUseCase
 {
     public function __construct(
-        private readonly Connection $db,
-        private readonly Queue $queue,
-        private readonly FileStorageInterface $fileStorage,
+        private readonly BookRepositoryInterface $bookRepository,
+        private readonly TransactionInterface $transaction,
+        private readonly EventPublisherInterface $eventPublisher,
     ) {
     }
 
-    public function execute(CreateBookCommand $command): Book
+    public function execute(CreateBookCommand $command): int
     {
-        $transaction = $this->db->beginTransaction();
+        $this->transaction->begin();
 
         try {
-            $coverUrl = $command->cover ? $this->fileStorage->save($command->cover) : null;
-            $book = Book::create(
+            $bookId = $this->bookRepository->create(
                 title: $command->title,
                 year: $command->year,
                 isbn: $command->isbn,
                 description: $command->description,
-                coverUrl: $coverUrl
+                coverUrl: $command->cover
             );
 
-            if (!$book->save()) {
-                throw new DomainException($this->getFirstErrorMessage($book, Yii::t('app', 'Failed to save book')));
-            }
+            $this->bookRepository->syncAuthors($bookId, $command->authorIds);
 
-            $rows = array_map(
-                fn($authorId) => [$book->id, $authorId],
-                $command->authorIds
+            $this->transaction->commit();
+
+            $event = new BookCreatedEvent(
+                bookId: $bookId,
+                title: $command->title
             );
-            $this->db->createCommand()->batchInsert(
-                'book_authors',
-                ['book_id', 'author_id'],
-                $rows
-            )->execute();
 
-            $transaction->commit();
+            $this->eventPublisher->publishEvent($event);
 
-            $this->queue->push(new NotifySubscribersJob([
-                'bookId' => $book->id,
-                'title' => $book->title,
-            ]));
-
-            return $book;
+            return $bookId;
         } catch (\Throwable $e) {
-            $transaction->rollBack();
+            $this->transaction->rollBack();
             throw $e;
         }
-    }
-
-    private function getFirstErrorMessage(ActiveRecord $model, string $fallback): string
-    {
-        $errors = $model->getFirstErrors();
-        if (!$errors) {
-            return $fallback;
-        }
-        return array_shift($errors);
     }
 }
