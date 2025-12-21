@@ -118,13 +118,13 @@ final class BookController extends Controller
 
     public function actionUpdate(int $id): string|Response|array
     {
-        $dto = $this->bookQueryService->getById($id);
-        $form = $this->bookFormPreparationService->prepareForUpdate($dto);
+        $form = $this->bookFormPreparationService->prepareUpdateForm($id);
 
         if (!$this->request->isPost) {
+            $book = $this->bookQueryService->getById($id);
             return $this->render('update', [
                 'model' => $form,
-                'book' => $dto,
+                'book' => $book,
                 'authors' => $this->authorQueryService->getAuthorsMap(),
             ]);
         }
@@ -137,9 +137,10 @@ final class BookController extends Controller
         }
 
         if (!$form->validate()) {
+            $book = $this->bookQueryService->getById($id);
             return $this->render('update', [
                 'model' => $form,
-                'book' => $dto,
+                'book' => $book,
                 'authors' => $this->authorQueryService->getAuthorsMap(),
             ]);
         }
@@ -154,9 +155,10 @@ final class BookController extends Controller
             return $this->redirect(['view', 'id' => $id]);
         }
 
+        $book = $this->bookQueryService->getById($id);
         return $this->render('update', [
             'model' => $form,
-            'book' => $dto,
+            'book' => $book,
             'authors' => $this->authorQueryService->getAuthorsMap(),
         ]);
     }

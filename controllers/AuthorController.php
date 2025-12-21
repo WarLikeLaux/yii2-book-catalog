@@ -110,8 +110,7 @@ final class AuthorController extends Controller
 
     public function actionUpdate(int $id): string|Response
     {
-        $dto = $this->authorQueryService->getById($id);
-        $form = $this->authorFormPreparationService->prepareForUpdate($dto);
+        $form = $this->authorFormPreparationService->prepareUpdateForm($id);
 
         if (!$this->request->isPost) {
             return $this->render('update', ['model' => $form]);
@@ -150,6 +149,6 @@ final class AuthorController extends Controller
     {
         $this->response->format = Response::FORMAT_JSON;
 
-        return $this->authorSearchPresentationService->search($this->request->get());
+        return $this->authorSearchPresentationService->search($this->request);
     }
 }
