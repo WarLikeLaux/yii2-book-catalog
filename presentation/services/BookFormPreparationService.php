@@ -49,13 +49,13 @@ final class BookFormPreparationService
 
     public function prepareUpdateViewData(int $id): array
     {
-        $form = $this->prepareUpdateForm($id);
-        $book = $this->bookQueryService->getById($id);
+        $bookDto = $this->bookQueryService->getById($id);
+        $form = $this->bookFormMapper->toForm($bookDto);
         $authors = $this->authorQueryService->getAuthorsMap();
 
         return [
             'model' => $form,
-            'book' => $book,
+            'book' => $bookDto,
             'authors' => $authors,
         ];
     }
