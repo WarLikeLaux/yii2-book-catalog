@@ -22,6 +22,7 @@
 *   **Read Side (Запросы):** Чтение данных отделено от бизнес-логики. **QueryServices** возвращают DTO (`BookReadDto`) и `PagedResult` с чистым `PaginationDto` вместо ActiveRecord моделей и framework-объектов.
 *   **Ports:** Интерфейсы репозиториев и внешних сервисов находятся в `app/application/ports`. Use Cases зависят только от портов, не от конкретных реализаций фреймворка.
 *   **Event Publisher:** Use Cases публикуют доменные события через `EventPublisherInterface`, а не создают job напрямую. Это изолирует application layer от инфраструктуры.
+*   **UseCaseExecutor:** Cross-cutting concern для выполнения use cases с обработкой ошибок, логированием и уведомлениями. Находится в `app/application/common` как общий компонент application layer.
 *   **Контроллеры:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Вся логика представления (загрузка форм, валидация, маппинг, выполнение use cases, форматирование ответов, извлечение параметров запроса) вынесена в Presentation Services.
 
 ### 2. Domain vs ActiveRecord (Clean-ish компромисс)
@@ -38,7 +39,7 @@
     *   **Form Preparation Services:**
         *   `BookFormPreparationService` — полная обработка форм книг: загрузка из запроса, валидация (включая AJAX), маппинг в команды, выполнение use cases (включая удаление через `processDeleteRequest()`), подготовка данных для представления, извлечение параметров запроса (например, пагинация).
         *   `AuthorFormPreparationService` — аналогично для авторов: обработка форм, извлечение параметров запроса (пагинация в `prepareIndexViewData()`), маппинг, выполнение use cases (включая удаление через `processDeleteRequest()`).
-        *   `LoginPresentationService` — обработка формы логина: загрузка из запроса, валидация, выполнение аутентификации через Yii2 User компонент, подготовка данных для представления.
+        *   `LoginPresentationService` — обработка формы логина: загрузка из запроса, валидация, выполнение аутентификации через Yii2 User компонент (логика `login()` вынесена из формы в сервис), подготовка данных для представления.
     *   **Search Services:**
         *   `BookSearchPresentationService` — обработка поиска книг: извлечение параметров, маппинг criteria, вызов query service, создание data provider.
         *   `AuthorSearchPresentationService` — обработка поиска авторов (AJAX): извлечение параметров, валидация, маппинг, форматирование JSON-ответа.
@@ -165,7 +166,8 @@ app/
 │   │   └── usecases/        # Use Cases (CreateBookUseCase, UpdateBookUseCase)
 │   ├── authors/
 │   ├── common/
-│   │   └── dto/            # Общие DTO (PaginationDto)
+│   │   ├── dto/            # Общие DTO (PaginationDto)
+│   │   └── UseCaseExecutor.php  # Cross-cutting concern для выполнения use cases с обработкой ошибок
 │   └── ports/               # Интерфейсы репозиториев и сервисов (EventPublisherInterface)
 ├── domain/                  # Domain Layer (Entities, Value Objects, Domain Exceptions)
 │   ├── events/             # Domain Events (BookCreatedEvent, DomainEvent interface)
@@ -278,6 +280,7 @@ public function actionUpdate(int $id): string|Response
 }
 
 // Пример: LoginPresentationService - даже стандартная Yii2 форма логина следует паттерну
+// Логика login() вынесена из формы в сервис для соответствия Clean Architecture
 public function actionLogin(): Response|string
 {
     if (!Yii::$app->user->isGuest) {
@@ -296,6 +299,38 @@ public function actionLogin(): Response|string
     }
 
     return $this->render('login', $result['viewData']);
+}
+
+// LoginPresentationService - логика аутентификации вынесена из формы
+class LoginPresentationService
+{
+    public function processLoginRequest(Request $request, Response $response): array
+    {
+        $viewData = $this->prepareLoginViewData();
+        $form = $viewData['model'];
+
+        if (!$form->load($request->post())) {
+            return ['success' => false, 'viewData' => $viewData];
+        }
+
+        if (!$form->validate()) {
+            $form->password = '';
+            return ['success' => false, 'viewData' => ['model' => $form]];
+        }
+
+        // Логика login() теперь в сервисе, а не в форме
+        $user = $form->getUser();
+        if (!$user || !$user->validatePassword($form->password)) {
+            $form->addError('password', Yii::t('app', 'Incorrect username or password.'));
+            $form->password = '';
+            return ['success' => false, 'viewData' => ['model' => $form]];
+        }
+
+        $duration = $form->rememberMe ? 3600 * 24 * 30 : 0;
+        Yii::$app->user->login($user, $duration);
+
+        return ['success' => true, 'viewData' => $viewData];
+    }
 }
 
 // Presentation Service извлекает и валидирует параметры
@@ -340,20 +375,13 @@ class YiiEventPublisherAdapter implements EventPublisherInterface
     public function publishEvent(DomainEvent $event): void
     {
         // Используем типобезопасный метод для публикации доменных событий
-        $this->publish($event->getEventType(), $event->getPayload());
-    }
-    
-    public function publish(string $eventType, array $payload): void
-    {
-        if ($eventType !== 'book.created') {
-            return;
+        // Проверяем тип события через instanceof для типобезопасности
+        if ($event instanceof BookCreatedEvent) {
+            $this->queue->push(new NotifySubscribersJob([
+                'bookId' => $event->bookId,
+                'title' => $event->title,
+            ]));
         }
-        
-        // Создание конкретного job происходит только в infrastructure layer
-        $this->queue->push(new NotifySubscribersJob([
-            'bookId' => $payload['bookId'],
-            'title' => $payload['title'],
-        ]));
     }
 }
 
