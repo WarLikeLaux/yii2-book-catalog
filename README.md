@@ -31,13 +31,14 @@
 
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
-*   **Controllers:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Не содержат бизнес-логику, маппинг, валидацию, загрузку форм или извлечение параметров запроса. Все контроллеры (`BookController`, `AuthorController`) следуют единому паттерну: делегируют всю логику представления в Presentation Services.
+*   **Controllers:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Не содержат бизнес-логику, маппинг, валидацию, загрузку форм или извлечение параметров запроса. Все контроллеры (`BookController`, `AuthorController`, `SiteController`) следуют единому паттерну: делегируют всю логику представления в Presentation Services.
 *   **Forms (`app/models/forms`):** Валидация входных данных через `FormModel`.
 *   **Mappers (`app/presentation/mappers`):** Перевод форм в команды/criteria и обратно (DTO ↔ Form).
 *   **Presentation Services (`app/presentation/services`):** Инкапсулируют всю логику представления:
     *   **Form Preparation Services:**
         *   `BookFormPreparationService` — полная обработка форм книг: загрузка из запроса, валидация (включая AJAX), маппинг в команды, выполнение use cases, подготовка данных для представления, извлечение параметров запроса (например, пагинация).
         *   `AuthorFormPreparationService` — аналогично для авторов: обработка форм, извлечение параметров запроса (пагинация в `prepareIndexViewData()`), маппинг, выполнение use cases.
+        *   `LoginPresentationService` — обработка формы логина: загрузка из запроса, валидация, выполнение аутентификации через Yii2 User компонент, подготовка данных для представления.
     *   **Search Services:**
         *   `BookSearchPresentationService` — обработка поиска книг: извлечение параметров, маппинг criteria, вызов query service, создание data provider.
         *   `AuthorSearchPresentationService` — обработка поиска авторов (AJAX): извлечение параметров, валидация, маппинг, форматирование JSON-ответа.
@@ -45,7 +46,7 @@
         *   `ReportPresentationService` — генерация отчетов: валидация фильтров, маппинг criteria, выполнение запросов через UseCaseExecutor.
     *   **Subscription Services:**
         *   `SubscriptionPresentationService` — обработка подписок: загрузка формы, валидация, маппинг, выполнение use case, форматирование JSON-ответа.
-*   **DTO Results (`app/presentation/dto`):** Типизированные результаты обработки форм (`CreateFormResult`, `UpdateFormResult`) для передачи данных между Presentation Services и контроллерами.
+*   **DTO Results (`app/presentation/dto`):** Типизированные результаты обработки форм (`CreateFormResult`, `UpdateFormResult`, `AuthorCreateFormResult`, `AuthorUpdateFormResult`) для передачи данных между Presentation Services и контроллерами. Все DTO содержат `viewData` для единообразной передачи данных в представления.
 *   **Adapters (`app/presentation/adapters`):** `PagedResult` преобразуется в `DataProvider` без логики в контроллерах.
 
 ### 4. Разделение ответственности: Use Cases vs Presentation Services
@@ -257,6 +258,45 @@ public function actionIndex(): string
     $viewData = $this->authorFormPreparationService->prepareIndexViewData($this->request);
     return $this->render('index', $viewData);
     // Контроллер не знает о том, как извлекается параметр 'page' и валидируется
+}
+
+// Пример: унифицированный подход для всех контроллеров - использование viewData
+public function actionUpdate(int $id): string|Response
+{
+    if (!$this->request->isPost) {
+        $viewData = $this->authorFormPreparationService->prepareUpdateViewData($id);
+        return $this->render('update', $viewData);
+    }
+
+    $result = $this->authorFormPreparationService->processUpdateRequest($id, $this->request);
+
+    if ($result->success && $result->redirectRoute !== null) {
+        return $this->redirect($result->redirectRoute);
+    }
+
+    return $this->render('update', $result->viewData);
+    // Всегда используем viewData из результата, а не прямой доступ к form
+}
+
+// Пример: LoginPresentationService - даже стандартная Yii2 форма логина следует паттерну
+public function actionLogin(): Response|string
+{
+    if (!Yii::$app->user->isGuest) {
+        return $this->goHome();
+    }
+
+    if (!$this->request->isPost) {
+        $viewData = $this->loginPresentationService->prepareLoginViewData();
+        return $this->render('login', $viewData);
+    }
+
+    $result = $this->loginPresentationService->processLoginRequest($this->request, $this->response);
+
+    if ($result['success']) {
+        return $this->goBack();
+    }
+
+    return $this->render('login', $result['viewData']);
 }
 
 // Presentation Service извлекает и валидирует параметры
