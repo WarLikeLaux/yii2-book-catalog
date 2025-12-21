@@ -8,7 +8,6 @@ use app\application\books\commands\CreateBookCommand;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\QueueInterface;
 use app\application\ports\TransactionInterface;
-use app\interfaces\FileStorageInterface;
 use app\jobs\NotifySubscribersJob;
 
 final class CreateBookUseCase
@@ -17,7 +16,6 @@ final class CreateBookUseCase
         private readonly BookRepositoryInterface $bookRepository,
         private readonly TransactionInterface $transaction,
         private readonly QueueInterface $queue,
-        private readonly FileStorageInterface $fileStorage,
     ) {
     }
 
@@ -26,13 +24,12 @@ final class CreateBookUseCase
         $this->transaction->begin();
 
         try {
-            $coverUrl = $command->cover ? $this->fileStorage->save($command->cover) : null;
             $bookId = $this->bookRepository->create(
                 title: $command->title,
                 year: $command->year,
                 isbn: $command->isbn,
                 description: $command->description,
-                coverUrl: $coverUrl
+                coverUrl: $command->cover
             );
 
             $this->bookRepository->syncAuthors($bookId, $command->authorIds);

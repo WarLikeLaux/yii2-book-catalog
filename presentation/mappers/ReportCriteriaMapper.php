@@ -6,6 +6,7 @@ namespace app\presentation\mappers;
 
 use app\application\reports\queries\ReportCriteria;
 use app\models\forms\ReportFilterForm;
+use yii\web\Request;
 
 final class ReportCriteriaMapper
 {
@@ -16,10 +17,10 @@ final class ReportCriteriaMapper
         );
     }
 
-    public function toForm(array $params): ReportFilterForm
+    public function toForm(Request $request): ReportFilterForm
     {
         $form = new ReportFilterForm();
-        $form->loadFromRequest(\Yii::$app->request);
+        $form->loadFromRequest($request);
         return $form;
     }
 }

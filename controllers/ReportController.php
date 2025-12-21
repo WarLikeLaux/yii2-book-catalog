@@ -25,7 +25,7 @@ final class ReportController extends Controller
 
     public function actionIndex(): string
     {
-        $form = $this->reportCriteriaMapper->toForm($this->request->get());
+        $form = $this->reportCriteriaMapper->toForm($this->request);
         if (!$form->validate()) {
             $data = $this->reportQueryService->getEmptyTopAuthorsReport();
             return $this->render('index', [

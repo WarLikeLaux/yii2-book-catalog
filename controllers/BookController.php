@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use app\application\authors\queries\AuthorQueryService;
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\queries\BookQueryService;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\models\forms\BookForm;
 use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\mappers\BookFormMapper;
 use app\presentation\services\BookFormPreparationService;
@@ -32,7 +30,6 @@ final class BookController extends Controller
         private readonly DeleteBookUseCase $deleteBookUseCase,
         private readonly BookFormMapper $bookFormMapper,
         private readonly BookFormPreparationService $bookFormPreparationService,
-        private readonly AuthorQueryService $authorQueryService,
         private readonly BookQueryService $bookQueryService,
         private readonly PagedResultDataProviderFactory $dataProviderFactory,
         private readonly UseCaseExecutor $useCaseExecutor,
@@ -78,13 +75,11 @@ final class BookController extends Controller
 
     public function actionCreate(): string|Response|array
     {
-        $form = new BookForm();
+        $viewData = $this->bookFormPreparationService->prepareCreateViewData();
+        $form = $viewData['model'];
 
         if (!$this->request->isPost) {
-            return $this->render('create', [
-                'model' => $form,
-                'authors' => $this->authorQueryService->getAuthorsMap(),
-            ]);
+            return $this->render('create', $viewData);
         }
 
         $form->loadFromRequest($this->request);
@@ -95,10 +90,7 @@ final class BookController extends Controller
         }
 
         if (!$form->validate()) {
-            return $this->render('create', [
-                'model' => $form,
-                'authors' => $this->authorQueryService->getAuthorsMap(),
-            ]);
+            return $this->render('create', $viewData);
         }
 
         $command = $this->bookFormMapper->toCreateCommand($form);
@@ -110,23 +102,16 @@ final class BookController extends Controller
             return $this->redirect(['index']);
         }
 
-        return $this->render('create', [
-            'model' => $form,
-            'authors' => $this->authorQueryService->getAuthorsMap(),
-        ]);
+        return $this->render('create', $viewData);
     }
 
     public function actionUpdate(int $id): string|Response|array
     {
-        $form = $this->bookFormPreparationService->prepareUpdateForm($id);
+        $viewData = $this->bookFormPreparationService->prepareUpdateViewData($id);
+        $form = $viewData['model'];
 
         if (!$this->request->isPost) {
-            $book = $this->bookQueryService->getById($id);
-            return $this->render('update', [
-                'model' => $form,
-                'book' => $book,
-                'authors' => $this->authorQueryService->getAuthorsMap(),
-            ]);
+            return $this->render('update', $viewData);
         }
 
         $form->loadFromRequest($this->request);
@@ -137,12 +122,7 @@ final class BookController extends Controller
         }
 
         if (!$form->validate()) {
-            $book = $this->bookQueryService->getById($id);
-            return $this->render('update', [
-                'model' => $form,
-                'book' => $book,
-                'authors' => $this->authorQueryService->getAuthorsMap(),
-            ]);
+            return $this->render('update', $viewData);
         }
 
         $command = $this->bookFormMapper->toUpdateCommand($id, $form);
@@ -155,12 +135,7 @@ final class BookController extends Controller
             return $this->redirect(['view', 'id' => $id]);
         }
 
-        $book = $this->bookQueryService->getById($id);
-        return $this->render('update', [
-            'model' => $form,
-            'book' => $book,
-            'authors' => $this->authorQueryService->getAuthorsMap(),
-        ]);
+        return $this->render('update', $viewData);
     }
 
     public function actionDelete(int $id): Response

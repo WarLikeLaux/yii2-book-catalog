@@ -8,14 +8,12 @@ use app\application\books\commands\UpdateBookCommand;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\exceptions\DomainException;
-use app\interfaces\FileStorageInterface;
 
 final class UpdateBookUseCase
 {
     public function __construct(
         private readonly BookRepositoryInterface $bookRepository,
         private readonly TransactionInterface $transaction,
-        private readonly FileStorageInterface $fileStorage,
     ) {
     }
 
@@ -29,14 +27,13 @@ final class UpdateBookUseCase
         $this->transaction->begin();
 
         try {
-            $coverUrl = $command->cover ? $this->fileStorage->save($command->cover) : null;
             $this->bookRepository->update(
                 id: $command->id,
                 title: $command->title,
                 year: $command->year,
                 isbn: $command->isbn,
                 description: $command->description,
-                coverUrl: $coverUrl
+                coverUrl: $command->cover
             );
 
             $this->bookRepository->syncAuthors($command->id, $command->authorIds);
