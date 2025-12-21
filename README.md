@@ -27,7 +27,7 @@
 ### 2. Domain vs ActiveRecord (Clean-ish компромисс)
 Доменный слой намеренно минимален: бизнес-операции выполняются через use cases и порты, а ActiveRecord остается источником данных и правил валидации на уровне инфраструктуры. Это осознанный компромисс для Yii2, чтобы не тащить тяжелый маппинг.
 
-**Domain Events:** Доменные события (`BookCreatedEvent`) используются для декoupling между use cases и инфраструктурой. Use Cases публикуют события через порт, а инфраструктурный адаптер (`YiiEventPublisherAdapter`) преобразует их в конкретные job для очереди.
+**Domain Events:** Доменные события (`BookCreatedEvent`) используются для декoupling между use cases и инфраструктурой. Все доменные события реализуют интерфейс `DomainEvent` с методами `getEventType()` и `getPayload()`. Use Cases публикуют события через типобезопасный метод `publishEvent(DomainEvent $event)` порта `EventPublisherInterface`, а инфраструктурный адаптер (`YiiEventPublisherAdapter`) преобразует их в конкретные job для очереди. Это исключает опечатки в строковых константах и обеспечивает типобезопасность.
 
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
@@ -36,8 +36,8 @@
 *   **Mappers (`app/presentation/mappers`):** Перевод форм в команды/criteria и обратно (DTO ↔ Form).
 *   **Presentation Services (`app/presentation/services`):** Инкапсулируют всю логику представления:
     *   **Form Preparation Services:**
-        *   `BookFormPreparationService` — полная обработка форм книг: загрузка из запроса, валидация (включая AJAX), маппинг в команды, выполнение use cases, подготовка данных для представления, извлечение параметров запроса (например, пагинация).
-        *   `AuthorFormPreparationService` — аналогично для авторов: обработка форм, извлечение параметров запроса (пагинация в `prepareIndexViewData()`), маппинг, выполнение use cases.
+        *   `BookFormPreparationService` — полная обработка форм книг: загрузка из запроса, валидация (включая AJAX), маппинг в команды, выполнение use cases (включая удаление через `processDeleteRequest()`), подготовка данных для представления, извлечение параметров запроса (например, пагинация).
+        *   `AuthorFormPreparationService` — аналогично для авторов: обработка форм, извлечение параметров запроса (пагинация в `prepareIndexViewData()`), маппинг, выполнение use cases (включая удаление через `processDeleteRequest()`).
         *   `LoginPresentationService` — обработка формы логина: загрузка из запроса, валидация, выполнение аутентификации через Yii2 User компонент, подготовка данных для представления.
     *   **Search Services:**
         *   `BookSearchPresentationService` — обработка поиска книг: извлечение параметров, маппинг criteria, вызов query service, создание data provider.
@@ -47,7 +47,7 @@
     *   **Subscription Services:**
         *   `SubscriptionPresentationService` — обработка подписок: загрузка формы, валидация, маппинг, выполнение use case, форматирование JSON-ответа.
 *   **DTO Results (`app/presentation/dto`):** Типизированные результаты обработки форм (`CreateFormResult`, `UpdateFormResult`, `AuthorCreateFormResult`, `AuthorUpdateFormResult`) для передачи данных между Presentation Services и контроллерами. Все DTO содержат `viewData` для единообразной передачи данных в представления.
-*   **Adapters (`app/presentation/adapters`):** `PagedResult` преобразуется в `DataProvider` без логики в контроллерах.
+*   **Adapters (`app/presentation/adapters`):** `PagedResult` преобразуется в `DataProvider` через `PagedResultDataProviderFactory` без логики в контроллерах. Адаптер `PagedResultDataProvider` преобразует чистый `PaginationDto` обратно в `yii\data\Pagination` для Yii2 виджетов.
 
 ### 4. Разделение ответственности: Use Cases vs Presentation Services
 
@@ -82,11 +82,9 @@ class CreateBookUseCase {
         // Транзакции, создание книги, синхронизация авторов
         $bookId = $this->bookRepository->create(...);
         
-        // Публикация события через порт, не создание job напрямую
-        $this->eventPublisher->publish('book.created', [
-            'bookId' => $bookId,
-            'title' => $command->title,
-        ]);
+        // Публикация типобезопасного доменного события через порт
+        $event = new BookCreatedEvent($bookId, $command->title);
+        $this->eventPublisher->publishEvent($event);
         
         return $bookId;
     }
@@ -127,11 +125,11 @@ class BookFormPreparationService {
 Реализована система уведомлений подписчиков о выходе книг.
 *   **Проблема:** Отправка SMS тысячам подписчиков в одном Job-е может привести к тайм-аутам и блокировке воркера.
 *   **Решение:** Используется паттерн **Fan-out**.
-    1.  `CreateBookUseCase` публикует событие `book.created` через `EventPublisherInterface`.
-    2.  `YiiEventPublisherAdapter` преобразует событие в `NotifySubscribersJob` (Dispatcher).
+    1.  `CreateBookUseCase` публикует типобезопасное доменное событие `BookCreatedEvent` через метод `publishEvent()` порта `EventPublisherInterface`.
+    2.  `YiiEventPublisherAdapter` преобразует доменное событие в `NotifySubscribersJob` (Dispatcher).
     3.  `NotifySubscribersJob` находит целевую аудиторию и нарезает задачи батчами.
     4.  Создаются тысячи легких `NotifySingleSubscriberJob` для каждого получателя.
-*   **Результат:** Изоляция ошибок (сбой одного SMS не ломает рассылку), возможность параллельной обработки несколькими воркерами, и полная независимость use cases от конкретных реализаций очереди.
+*   **Результат:** Изоляция ошибок (сбой одного SMS не ломает рассылку), возможность параллельной обработки несколькими воркерами, полная независимость use cases от конкретных реализаций очереди, и типобезопасность через интерфейс `DomainEvent`.
 
 ### 9. Чистая пагинация (Clean Pagination DTO)
 Реализована пагинация без зависимостей от framework-объектов в application layer.
@@ -153,7 +151,7 @@ class BookFormPreparationService {
 Внешние зависимости закрыты интерфейсами и портами (`app/interfaces`, `app/application/ports`):
 *   `SmsSenderInterface`: Позволяет прозрачно менять провайдеров (Smspilot / Mock).
 *   `FileStorageInterface`: Абстракция для сохранения файлов (Local / S3).
-*   `EventPublisherInterface`: Абстракция для публикации доменных событий. Use Cases не знают о конкретных реализациях очереди.
+*   `EventPublisherInterface`: Абстракция для публикации доменных событий. Предоставляет типобезопасный метод `publishEvent(DomainEvent $event)` для публикации доменных событий, реализующих интерфейс `DomainEvent`. Use Cases не знают о конкретных реализациях очереди.
 *   `PagedResultInterface`: Возвращает чистый `PaginationDto` вместо framework-объектов, сохраняя независимость application layer от Yii2.
 
 ### 12. Структура проекта
@@ -170,7 +168,8 @@ app/
 │   │   └── dto/            # Общие DTO (PaginationDto)
 │   └── ports/               # Интерфейсы репозиториев и сервисов (EventPublisherInterface)
 ├── domain/                  # Domain Layer (Entities, Value Objects, Domain Exceptions)
-│   └── events/             # Domain Events (BookCreatedEvent)
+│   ├── events/             # Domain Events (BookCreatedEvent, DomainEvent interface)
+│   └── exceptions/         # Domain Exceptions (DomainException)
 ├── infrastructure/          # Infrastructure Layer (ActiveRecord, DB, Queue)
 │   ├── adapters/           # Адаптеры портов (YiiEventPublisherAdapter, YiiQueueAdapter)
 │   └── repositories/        # Реализации репозиториев через ActiveRecord
@@ -338,6 +337,12 @@ class AuthorController
 // Infrastructure Adapter преобразует доменное событие в конкретный job
 class YiiEventPublisherAdapter implements EventPublisherInterface
 {
+    public function publishEvent(DomainEvent $event): void
+    {
+        // Используем типобезопасный метод для публикации доменных событий
+        $this->publish($event->getEventType(), $event->getPayload());
+    }
+    
     public function publish(string $eventType, array $payload): void
     {
         if ($eventType !== 'book.created') {
@@ -350,6 +355,14 @@ class YiiEventPublisherAdapter implements EventPublisherInterface
             'title' => $payload['title'],
         ]));
     }
+}
+
+// Пример: контроллер делегирует удаление в Presentation Service
+public function actionDelete(int $id): Response
+{
+    $this->bookFormPreparationService->processDeleteRequest($id);
+    return $this->redirect(['index']);
+    // Контроллер не знает о создании команд и выполнении use cases
 }
 ```
 
