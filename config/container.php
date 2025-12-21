@@ -89,8 +89,7 @@ return [
         ),
         UpdateBookUseCase::class => static fn($container) => new UpdateBookUseCase(
             $container->get(BookRepositoryInterface::class),
-            $container->get(TransactionInterface::class),
-            $container->get(FileStorageInterface::class)
+            $container->get(TransactionInterface::class)
         ),
         DeleteBookUseCase::class => static fn($container) => new DeleteBookUseCase(
             $container->get(BookRepositoryInterface::class)

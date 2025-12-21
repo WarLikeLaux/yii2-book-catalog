@@ -7,13 +7,12 @@ use app\application\subscriptions\usecases\SubscribeUseCase;
 use app\domain\exceptions\DomainException;
 use app\models\Author;
 use app\models\Subscription;
-use Yii;
 
 final class SubscribeUseCaseCest
 {
     public function _before(\FunctionalTester $I): void
     {
-        Yii::$app->db->createCommand()->delete('subscriptions')->execute();
+        \Yii::$app->db->createCommand()->delete('subscriptions')->execute();
     }
 
     public function testCreatesSubscription(\FunctionalTester $I): void
@@ -25,7 +24,7 @@ final class SubscribeUseCaseCest
             authorId: $authorId
         );
 
-        $useCase = Yii::$container->get(SubscribeUseCase::class);
+        $useCase = \Yii::$container->get(SubscribeUseCase::class);
         $useCase->execute($command);
 
         $I->seeRecord(Subscription::class, [
@@ -47,7 +46,7 @@ final class SubscribeUseCaseCest
             authorId: $authorId
         );
 
-        $useCase = Yii::$container->get(SubscribeUseCase::class);
+        $useCase = \Yii::$container->get(SubscribeUseCase::class);
 
         $I->expectThrowable(DomainException::class, function () use ($useCase, $command): void {
             $useCase->execute($command);
@@ -75,7 +74,7 @@ final class SubscribeUseCaseCest
             authorId: $author2Id
         );
 
-        $useCase = Yii::$container->get(SubscribeUseCase::class);
+        $useCase = \Yii::$container->get(SubscribeUseCase::class);
         $useCase->execute($command);
 
         $I->seeRecord(Subscription::class, [

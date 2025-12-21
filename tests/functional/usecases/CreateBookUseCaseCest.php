@@ -8,7 +8,6 @@ use app\domain\exceptions\DomainException;
 use app\jobs\NotifySubscribersJob;
 use app\models\Author;
 use app\models\Book;
-use Yii;
 use yii\db\Query;
 use yii\queue\db\Queue;
 
@@ -16,11 +15,11 @@ final class CreateBookUseCaseCest
 {
     public function _before(\FunctionalTester $I): void
     {
-        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
-        Yii::$app->db->createCommand()->delete('book_authors')->execute();
-        Yii::$app->db->createCommand()->delete('books')->execute();
-        Yii::$app->db->createCommand()->delete('queue')->execute();
-        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
+        \Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
+        \Yii::$app->db->createCommand()->delete('book_authors')->execute();
+        \Yii::$app->db->createCommand()->delete('books')->execute();
+        \Yii::$app->db->createCommand()->delete('queue')->execute();
+        \Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
     }
 
     public function testCreatesBookWithAuthors(\FunctionalTester $I): void
@@ -37,7 +36,7 @@ final class CreateBookUseCaseCest
             cover: null
         );
 
-        $useCase = Yii::$container->get(CreateBookUseCase::class);
+        $useCase = \Yii::$container->get(CreateBookUseCase::class);
         $bookId = $useCase->execute($command);
 
         $I->seeRecord(Book::class, [
@@ -66,16 +65,16 @@ final class CreateBookUseCaseCest
             cover: null
         );
 
-        $useCase = Yii::$container->get(CreateBookUseCase::class);
+        $useCase = \Yii::$container->get(CreateBookUseCase::class);
         $bookId = $useCase->execute($command);
 
-        $queue = Yii::$app->get('queue');
+        $queue = \Yii::$app->get('queue');
         assert($queue instanceof Queue);
 
         $jobCount = (new Query())
             ->from('queue')
             ->where(['channel' => $queue->channel])
-            ->count('*', Yii::$app->db);
+            ->count('*', \Yii::$app->db);
 
         $I->assertGreaterThan(0, $jobCount, 'Job should be published to queue');
 
@@ -84,7 +83,7 @@ final class CreateBookUseCaseCest
             ->where(['channel' => $queue->channel])
             ->orderBy(['id' => SORT_DESC])
             ->limit(1)
-            ->one(Yii::$app->db);
+            ->one(\Yii::$app->db);
 
         $I->assertNotNull($job, 'Job record should exist');
         $I->assertArrayHasKey('job', $job, 'Job should have job field');
@@ -120,7 +119,7 @@ final class CreateBookUseCaseCest
             cover: null
         );
 
-        $useCase = Yii::$container->get(CreateBookUseCase::class);
+        $useCase = \Yii::$container->get(CreateBookUseCase::class);
 
         $I->expectThrowable(\RuntimeException::class, function () use ($useCase, $command): void {
             $useCase->execute($command);
@@ -142,7 +141,7 @@ final class CreateBookUseCaseCest
             cover: null
         );
 
-        $useCase = Yii::$container->get(CreateBookUseCase::class);
+        $useCase = \Yii::$container->get(CreateBookUseCase::class);
 
         try {
             $useCase->execute($command);
