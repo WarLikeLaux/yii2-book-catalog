@@ -47,7 +47,7 @@
         *   `ReportPresentationService` — генерация отчетов: валидация фильтров, маппинг criteria, выполнение запросов через UseCaseExecutor.
     *   **Subscription Services:**
         *   `SubscriptionPresentationService` — обработка подписок: загрузка формы, валидация, маппинг, выполнение use case, форматирование JSON-ответа.
-*   **DTO Results (`presentation/dto`, namespace: `app\presentation\dto`):** Типизированные результаты обработки форм (`CreateFormResult`, `UpdateFormResult`, `AuthorCreateFormResult`, `AuthorUpdateFormResult`) для передачи данных между Presentation Services и контроллерами. Все DTO содержат `viewData` для единообразной передачи данных в представления.
+*   **DTO Results (`presentation/dto`, namespace: `app\presentation\dto`):** Типизированные результаты обработки форм (`BookCreateFormResult`, `BookUpdateFormResult`, `AuthorCreateFormResult`, `AuthorUpdateFormResult`) для передачи данных между Presentation Services и контроллерами. Все DTO содержат `viewData` для единообразной передачи данных в представления.
 *   **Adapters (`presentation/adapters`, namespace: `app\presentation\adapters`):** `PagedResult` преобразуется в `DataProvider` через `PagedResultDataProviderFactory` без логики в контроллерах. Адаптер `PagedResultDataProvider` преобразует чистый `PaginationDto` обратно в `yii\data\Pagination` для Yii2 виджетов.
 
 ### 4. Разделение ответственности: Use Cases vs Presentation Services
@@ -93,12 +93,12 @@ class CreateBookUseCase {
 
 // Presentation Service - адаптация HTTP к Use Case
 class BookFormPreparationService {
-    public function processCreateRequest(Request $request, Response $response): CreateFormResult {
+    public function processCreateRequest(Request $request, Response $response): BookCreateFormResult {
         $form->loadFromRequest($request);  // HTTP детали
         $form->validate();                  // Валидация форм
         $command = $mapper->toCommand($form); // Маппинг
         $success = $useCaseExecutor->execute(...); // Вызов Use Case
-        return new CreateFormResult(...);  // Данные для представления
+        return new BookCreateFormResult(...);  // Данные для представления
     }
 }
 ```
@@ -224,23 +224,23 @@ public function actionUpdate(int $id): string|Response|array
 // Presentation Service (инкапсулирует всю логику представления)
 class BookFormPreparationService
 {
-    public function processUpdateRequest(int $id, Request $request, Response $response): UpdateFormResult
+    public function processUpdateRequest(int $id, Request $request, Response $response): BookUpdateFormResult
     {
         $viewData = $this->prepareUpdateViewData($id);
         $form = $viewData['model'];
 
         if (!$form->loadFromRequest($request)) {
-            return new UpdateFormResult($form, $viewData, false);
+            return new BookUpdateFormResult($form, $viewData, false);
         }
 
         if ($request->isAjax) {
             $response->format = Response::FORMAT_JSON;
             $ajaxValidation = ActiveForm::validate($form);
-            return new UpdateFormResult($form, $viewData, false, null, $ajaxValidation);
+            return new BookUpdateFormResult($form, $viewData, false, null, $ajaxValidation);
         }
 
         if (!$form->validate()) {
-            return new UpdateFormResult($form, $viewData, false);
+            return new BookUpdateFormResult($form, $viewData, false);
         }
 
         $command = $this->bookFormMapper->toUpdateCommand($id, $form);
@@ -251,10 +251,10 @@ class BookFormPreparationService
         );
 
         if ($success) {
-            return new UpdateFormResult($form, $viewData, true, ['view', 'id' => $id]);
+            return new BookUpdateFormResult($form, $viewData, true, ['view', 'id' => $id]);
         }
 
-        return new UpdateFormResult($form, $viewData, false);
+        return new BookUpdateFormResult($form, $viewData, false);
     }
 }
 
