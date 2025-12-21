@@ -7,6 +7,7 @@ namespace app\application\authors\usecases;
 use app\application\authors\commands\DeleteAuthorCommand;
 use app\domain\exceptions\DomainException;
 use app\models\Author;
+use Yii;
 
 final class DeleteAuthorUseCase
 {
@@ -14,11 +15,11 @@ final class DeleteAuthorUseCase
     {
         $author = Author::findOne($command->id);
         if (!$author) {
-            throw new DomainException('Автор не найден');
+            throw new DomainException(Yii::t('app', 'Author not found'));
         }
 
         if (!$author->delete()) {
-            throw new DomainException('Не удалось удалить автора');
+            throw new DomainException(Yii::t('app', 'Failed to delete author'));
         }
     }
 }

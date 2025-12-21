@@ -31,4 +31,5 @@ return [
     'Remember Me' => 'Запомнить меня',
     'You are already subscribed to this author' => 'Вы уже подписаны на этого автора',
     'Failed to create subscription' => 'Не удалось создать подписку',
+    'New book released: {title}' => 'Вышла новая книга: {title}',
 ];

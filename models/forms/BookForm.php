@@ -16,16 +16,22 @@ final class BookForm extends Model
 {
     /** @var int|string|null */
     public $id = null;
+
     /** @var string */
     public $title = '';
+
     /** @var int|string|null */
     public $year = null;
+
     /** @var string */
     public $description = '';
+
     /** @var string */
     public $isbn = '';
+
     /** @var array|string */
     public $authorIds = [];
+
     /** @var UploadedFile|string|null */
     public $cover = null;
 

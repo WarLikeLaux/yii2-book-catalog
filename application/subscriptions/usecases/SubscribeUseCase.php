@@ -21,9 +21,7 @@ final class SubscribeUseCase
             throw new DomainException(Yii::t('app', 'You are already subscribed to this author'));
         }
 
-        $subscription = new Subscription();
-        $subscription->phone = $command->phone;
-        $subscription->author_id = $command->authorId;
+        $subscription = Subscription::create($command->phone, $command->authorId);
 
         if (!$subscription->save()) {
             throw new DomainException(Yii::t('app', 'Failed to create subscription'));

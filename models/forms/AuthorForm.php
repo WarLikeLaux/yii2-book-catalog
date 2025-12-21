@@ -12,6 +12,7 @@ final class AuthorForm extends Model
 {
     /** @var int|string|null */
     public $id = null;
+
     /** @var string */
     public $fio = '';
 

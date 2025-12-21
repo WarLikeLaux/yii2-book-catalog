@@ -8,6 +8,7 @@ use app\interfaces\FileStorageInterface;
 use RuntimeException;
 use yii\helpers\FileHelper;
 use yii\web\UploadedFile;
+use Yii;
 
 final class LocalFileStorage implements FileStorageInterface
 {
@@ -19,7 +20,7 @@ final class LocalFileStorage implements FileStorageInterface
 
     public function save(UploadedFile $file): string
     {
-        $dir = \Yii::getAlias($this->basePath);
+        $dir = Yii::getAlias($this->basePath);
         FileHelper::createDirectory($dir);
 
         $filename = uniqid('', true) . '.' . $file->extension;

@@ -17,6 +17,7 @@ final class NotifySubscribersJob extends BaseObject implements Job, RetryableJob
     private const int TTR_SECONDS = 300;
 
     public int $bookId;
+
     public string $title;
 
     public function execute($queue): void
@@ -25,7 +26,7 @@ final class NotifySubscribersJob extends BaseObject implements Job, RetryableJob
         $jobQueue = Yii::$app->get('queue');
         $queryService = Yii::$container->get(SubscriptionQueryService::class);
 
-        $message = "Вышла новая книга: {$this->title}";
+        $message = Yii::t('app', 'New book released: {title}', ['title' => $this->title]);
         $totalDispatched = 0;
 
         foreach ($queryService->getSubscriberPhonesForBook($this->bookId) as $phone) {

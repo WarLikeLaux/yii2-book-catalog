@@ -15,6 +15,7 @@ final class SubscriptionForm extends Model
 {
     /** @var string */
     public $phone = '';
+
     /** @var int|string */
     public $authorId = 0;
 

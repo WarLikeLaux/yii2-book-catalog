@@ -10,6 +10,7 @@ use app\interfaces\FileStorageInterface;
 use app\models\Book;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
+use Yii;
 
 final class UpdateBookUseCase
 {
@@ -23,23 +24,23 @@ final class UpdateBookUseCase
     {
         $book = Book::findOne($command->id);
         if (!$book) {
-            throw new DomainException('Книга не найдена');
+            throw new DomainException(Yii::t('app', 'Book not found'));
         }
 
         $transaction = $this->db->beginTransaction();
 
         try {
-            $book->title = $command->title;
-            $book->year = $command->year;
-            $book->description = $command->description;
-            $book->isbn = $command->isbn;
-
-            if ($command->cover) {
-                $book->cover_url = $this->fileStorage->save($command->cover);
-            }
+            $coverUrl = $command->cover ? $this->fileStorage->save($command->cover) : null;
+            $book->edit(
+                title: $command->title,
+                year: $command->year,
+                isbn: $command->isbn,
+                description: $command->description,
+                coverUrl: $coverUrl
+            );
 
             if (!$book->save()) {
-                throw new DomainException($this->getFirstErrorMessage($book, 'Не удалось обновить книгу'));
+                throw new DomainException($this->getFirstErrorMessage($book, Yii::t('app', 'Failed to update book')));
             }
 
             $this->syncBookAuthors($book->id, $command->authorIds);

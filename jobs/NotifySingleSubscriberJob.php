@@ -18,7 +18,9 @@ final class NotifySingleSubscriberJob extends BaseObject implements Job, Retryab
     private const int TTR_SECONDS = 30;
 
     public string $phone;
+
     public string $message;
+
     public int $bookId;
 
     public function execute($queue): void

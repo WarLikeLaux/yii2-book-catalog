@@ -12,6 +12,7 @@ use app\models\Book;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
 use yii\queue\db\Queue;
+use Yii;
 
 final class CreateBookUseCase
 {
@@ -27,18 +28,17 @@ final class CreateBookUseCase
         $transaction = $this->db->beginTransaction();
 
         try {
-            $book = new Book();
-            $book->title = $command->title;
-            $book->year = $command->year;
-            $book->description = $command->description;
-            $book->isbn = $command->isbn;
-
-            if ($command->cover) {
-                $book->cover_url = $this->fileStorage->save($command->cover);
-            }
+            $coverUrl = $command->cover ? $this->fileStorage->save($command->cover) : null;
+            $book = Book::create(
+                title: $command->title,
+                year: $command->year,
+                isbn: $command->isbn,
+                description: $command->description,
+                coverUrl: $coverUrl
+            );
 
             if (!$book->save()) {
-                throw new DomainException($this->getFirstErrorMessage($book, 'Не удалось сохранить книгу'));
+                throw new DomainException($this->getFirstErrorMessage($book, Yii::t('app', 'Failed to save book')));
             }
 
             $rows = array_map(

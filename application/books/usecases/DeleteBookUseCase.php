@@ -7,6 +7,7 @@ namespace app\application\books\usecases;
 use app\application\books\commands\DeleteBookCommand;
 use app\domain\exceptions\DomainException;
 use app\models\Book;
+use Yii;
 
 final class DeleteBookUseCase
 {
@@ -14,11 +15,11 @@ final class DeleteBookUseCase
     {
         $book = Book::findOne($command->id);
         if (!$book) {
-            throw new DomainException('Книга не найдена');
+            throw new DomainException(Yii::t('app', 'Book not found'));
         }
 
         if (!$book->delete()) {
-            throw new DomainException('Не удалось удалить книгу');
+            throw new DomainException(Yii::t('app', 'Failed to delete book'));
         }
     }
 }
