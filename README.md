@@ -28,13 +28,13 @@
 
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
-*   **Controllers:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Не содержат бизнес-логику, маппинг, валидацию или загрузку форм.
+*   **Controllers:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Не содержат бизнес-логику, маппинг, валидацию, загрузку форм или извлечение параметров запроса. Все контроллеры (`BookController`, `AuthorController`) следуют единому паттерну: делегируют всю логику представления в Presentation Services.
 *   **Forms (`app/models/forms`):** Валидация входных данных через `FormModel`.
 *   **Mappers (`app/presentation/mappers`):** Перевод форм в команды/criteria и обратно (DTO ↔ Form).
 *   **Presentation Services (`app/presentation/services`):** Инкапсулируют всю логику представления:
     *   **Form Preparation Services:**
-        *   `BookFormPreparationService` — полная обработка форм книг: загрузка из запроса, валидация (включая AJAX), маппинг в команды, выполнение use cases, подготовка данных для представления.
-        *   `AuthorFormPreparationService` — аналогично для авторов.
+        *   `BookFormPreparationService` — полная обработка форм книг: загрузка из запроса, валидация (включая AJAX), маппинг в команды, выполнение use cases, подготовка данных для представления, извлечение параметров запроса (например, пагинация).
+        *   `AuthorFormPreparationService` — аналогично для авторов: обработка форм, извлечение параметров запроса (пагинация в `prepareIndexViewData()`), маппинг, выполнение use cases.
     *   **Search Services:**
         *   `BookSearchPresentationService` — обработка поиска книг: извлечение параметров, маппинг criteria, вызов query service, создание data provider.
         *   `AuthorSearchPresentationService` — обработка поиска авторов (AJAX): извлечение параметров, валидация, маппинг, форматирование JSON-ответа.
@@ -55,12 +55,13 @@
 
 **Presentation Services (Presentation Layer)** — логика представления:
 *   Загружают данные из HTTP-запросов (`Request`)
+*   Извлекают и валидируют параметры запроса (GET/POST параметры, пагинация)
 *   Валидируют формы (`Form->validate()`)
 *   Обрабатывают AJAX-валидацию (`ActiveForm::validate()`)
 *   Маппят формы ↔ команды (`FormMapper`)
 *   Устанавливают форматы ответов (`Response->format`)
 *   Вызывают Use Cases и обрабатывают результаты
-*   Подготавливают данные для представлений (`viewData`)
+*   Подготавливают данные для представлений (`viewData`, `prepareIndexViewData()`, `prepareCreateViewData()`)
 
 **Пример разделения:**
 
@@ -209,6 +210,26 @@ public function actionSearch(): array
 {
     return $this->authorSearchPresentationService->search($this->request, $this->response);
     // Presentation Service сам устанавливает формат JSON и извлекает параметры
+}
+
+// Пример: извлечение параметров пагинации вынесено в Presentation Service
+public function actionIndex(): string
+{
+    $viewData = $this->authorFormPreparationService->prepareIndexViewData($this->request);
+    return $this->render('index', $viewData);
+    // Контроллер не знает о том, как извлекается параметр 'page' и валидируется
+}
+
+// Presentation Service извлекает и валидирует параметры
+class AuthorFormPreparationService
+{
+    public function prepareIndexViewData(Request $request): array
+    {
+        $page = max(1, (int)$request->get('page', 1)); // Извлечение и валидация
+        $queryResult = $this->authorQueryService->getIndexProvider($page);
+        $dataProvider = $this->dataProviderFactory->create($queryResult);
+        return ['dataProvider' => $dataProvider];
+    }
 }
 ```
 
