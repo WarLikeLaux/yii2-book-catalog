@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/test_db.php';
+$container = require __DIR__ . '/container.php';
 
 /**
  * Application configuration shared by all test types
  */
-return [
+$config = [
     'id' => 'basic-tests',
     'basePath' => dirname(__DIR__),
     'aliases' => [
@@ -16,8 +17,19 @@ return [
         '@npm'   => '@vendor/npm-asset',
     ],
     'language' => 'en-US',
+    'container' => $container,
     'components' => [
         'db' => $db,
+        'mutex' => [
+            'class' => \yii\mutex\MysqlMutex::class,
+        ],
+        'queue' => [
+            'class' => \yii\queue\db\Queue::class,
+            'db' => $db,
+            'tableName' => '{{%queue}}',
+            'channel' => 'queue',
+            'mutex' => \yii\mutex\MysqlMutex::class,
+        ],
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
             'viewPath' => '@app/mail',
@@ -47,3 +59,5 @@ return [
     ],
     'params' => $params,
 ];
+
+return $config;

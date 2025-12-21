@@ -65,7 +65,10 @@ test-init: test-db-create test-db-migrate
 	@echo "✅ Test database initialized"
 
 test:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional usecases
+
+test-unit:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit
 
-test-service:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit services/BookServiceTest
+test-integration:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional usecases
