@@ -21,37 +21,86 @@
 *   **Write Side (Команды):** Операции изменения состояния инкапсулированы в **Use Cases** (`CreateBookUseCase`, `SubscribeUseCase`). Входные данные строго типизированы через **Command DTO** (`CreateBookCommand`).
 *   **Read Side (Запросы):** Чтение данных отделено от бизнес-логики. **QueryServices** возвращают DTO (`BookReadDto`) и `PagedResult` вместо ActiveRecord моделей.
 *   **Ports:** Интерфейсы репозиториев и внешних сервисов находятся в `app/application/ports`.
-*   **Контроллеры:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Вся логика представления (маппинг, валидация, форматирование) вынесена в Presentation Services.
+*   **Контроллеры:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Вся логика представления (загрузка форм, валидация, маппинг, выполнение use cases, форматирование ответов) вынесена в Presentation Services.
 
 ### 2. Domain vs ActiveRecord (Clean-ish компромисс)
 Доменный слой намеренно минимален: бизнес-операции выполняются через use cases и порты, а ActiveRecord остается источником данных и правил валидации на уровне инфраструктуры. Это осознанный компромисс для Yii2, чтобы не тащить тяжелый маппинг.
 
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
-*   **Controllers:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Не содержат бизнес-логику или сложный маппинг.
+*   **Controllers:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Не содержат бизнес-логику, маппинг, валидацию или загрузку форм.
 *   **Forms (`app/models/forms`):** Валидация входных данных через `FormModel`.
 *   **Mappers (`app/presentation/mappers`):** Перевод форм в команды/criteria и обратно (DTO ↔ Form).
-*   **Presentation Services (`app/presentation/services`):** Инкапсулируют логику представления:
-    *   `BookFormPreparationService` / `AuthorFormPreparationService` — подготовка форм для редактирования (получение DTO через query service, маппинг DTO → Form). Контроллеры не знают о процессе маппинга.
-    *   `AuthorSearchPresentationService` — обработка поиска авторов (извлечение параметров из запроса, валидация, маппинг, вызов query service, форматирование ответа). Контроллеры не работают с HTTP-деталями напрямую.
+*   **Presentation Services (`app/presentation/services`):** Инкапсулируют всю логику представления:
+    *   **Form Preparation Services:**
+        *   `BookFormPreparationService` — полная обработка форм книг: загрузка из запроса, валидация (включая AJAX), маппинг в команды, выполнение use cases, подготовка данных для представления.
+        *   `AuthorFormPreparationService` — аналогично для авторов.
+    *   **Search Services:**
+        *   `BookSearchPresentationService` — обработка поиска книг: извлечение параметров, маппинг criteria, вызов query service, создание data provider.
+        *   `AuthorSearchPresentationService` — обработка поиска авторов (AJAX): извлечение параметров, валидация, маппинг, форматирование JSON-ответа.
+    *   **Report Services:**
+        *   `ReportPresentationService` — генерация отчетов: валидация фильтров, маппинг criteria, выполнение запросов через UseCaseExecutor.
+    *   **Subscription Services:**
+        *   `SubscriptionPresentationService` — обработка подписок: загрузка формы, валидация, маппинг, выполнение use case, форматирование JSON-ответа.
+*   **DTO Results (`app/presentation/dto`):** Типизированные результаты обработки форм (`CreateFormResult`, `UpdateFormResult`) для передачи данных между Presentation Services и контроллерами.
 *   **Adapters (`app/presentation/adapters`):** `PagedResult` преобразуется в `DataProvider` без логики в контроллерах.
 
-### 4. DTO & Forms для валидации
+### 4. Разделение ответственности: Use Cases vs Presentation Services
+
+**Use Cases (Application Layer)** — бизнес-логика:
+*   Работают с готовыми Command/DTO объектами (уже валидные данные)
+*   Не знают о формах, HTTP, валидации форм, форматах ответов
+*   Независимы от способа представления (HTTP, CLI, API, тесты)
+*   Содержат чистую бизнес-логику: транзакции, бизнес-правила, координация репозиториев
+
+**Presentation Services (Presentation Layer)** — логика представления:
+*   Загружают данные из HTTP-запросов (`Request`)
+*   Валидируют формы (`Form->validate()`)
+*   Обрабатывают AJAX-валидацию (`ActiveForm::validate()`)
+*   Маппят формы ↔ команды (`FormMapper`)
+*   Устанавливают форматы ответов (`Response->format`)
+*   Вызывают Use Cases и обрабатывают результаты
+*   Подготавливают данные для представлений (`viewData`)
+
+**Пример разделения:**
+
+```php
+// Use Case - только бизнес-логика, не знает о HTTP
+class CreateBookUseCase {
+    public function execute(CreateBookCommand $command): int {
+        // Транзакции, создание книги, синхронизация авторов, отправка в очередь
+    }
+}
+
+// Presentation Service - адаптация HTTP к Use Case
+class BookFormPreparationService {
+    public function processCreateRequest(Request $request, Response $response): CreateFormResult {
+        $form->loadFromRequest($request);  // HTTP детали
+        $form->validate();                  // Валидация форм
+        $command = $mapper->toCommand($form); // Маппинг
+        $success = $useCaseExecutor->execute(...); // Вызов Use Case
+        return new CreateFormResult(...);  // Данные для представления
+    }
+}
+```
+
+### 5. DTO & Forms для валидации
 Слой представления отделен от домена.
 *   **Forms (`app/models/forms`):** Валидируют сырые пользовательские данные (HTTP request).
 *   **DTO (`app/application/**/commands`):** Передают уже валидные данные в ядро приложения.
+*   **Result DTO (`app/presentation/dto`):** Типизированные результаты обработки форм для передачи между Presentation Services и контроллерами.
 *   Это позволяет безопасно обрабатывать загрузку файлов и сложную логику без засорения доменных сущностей правилами валидации форм.
 
-### 5. Infrastructure Layer
+### 6. Infrastructure Layer
 *   **ActiveRecord и DB:** Реализации портов живут в `app/infrastructure`.
 *   **Queue/File Storage:** Подключаются через интерфейсы и DI.
 
-### 6. Code Quality & Standards
+### 7. Code Quality & Standards
 *   **Strict Types:** Весь проект работает в режиме `declare(strict_types=1)`.
 *   **Static Analysis:** Внедрен Advanced Coding Standard (на базе **Slevomat**).
 *   **Linter:** Код автоматически форматируется и проверяется командой `make lint-fix`.
 
-### 7. Масштабируемая очередь (Fan-out Pattern)
+### 8. Масштабируемая очередь (Fan-out Pattern)
 Реализована система уведомлений подписчиков о выходе книг.
 *   **Проблема:** Отправка SMS тысячам подписчиков в одном Job-е может привести к тайм-аутам и блокировке воркера.
 *   **Решение:** Используется паттерн **Fan-out**.
@@ -59,18 +108,18 @@
     2.  Создаются тысячи легких `NotifySingleSubscriberJob` для каждого получателя.
 *   **Результат:** Изоляция ошибок (сбой одного SMS не ломает рассылку) и возможность параллельной обработки несколькими воркерами.
 
-### 8. Гибридный поиск (Universal Search)
+### 9. Гибридный поиск (Universal Search)
 Реализован "умный" поиск по каталогу без использования внешних движков (Elasticsearch), но с оптимизацией под MySQL.
 *   **FullText Index:** Используется для поиска по `title` и `description` (O(1)).
 *   **Exact Match:** Для ISBN и Года используются точные совпадения.
 *   **UX:** Обернуто в **PJAX** для фильтрации без перезагрузки страницы.
 
-### 9. Dependency Injection
+### 10. Dependency Injection
 Внешние зависимости закрыты интерфейсами и портами (`app/interfaces`, `app/application/ports`):
 *   `SmsSenderInterface`: Позволяет прозрачно менять провайдеров (Smspilot / Mock).
 *   `FileStorageInterface`: Абстракция для сохранения файлов (Local / S3).
 
-### 10. Структура проекта
+### 11. Структура проекта
 
 ```
 app/
@@ -86,8 +135,9 @@ app/
 │   └── repositories/        # Реализации репозиториев через ActiveRecord
 ├── presentation/            # Presentation Layer (Controllers, Forms, Mappers, Services)
 │   ├── services/            # Presentation Services (инкапсулируют логику представления)
-│   ├── mappers/              # Маппинг между DTO и Forms
-│   └── adapters/            # Адаптеры для Yii2 компонентов
+│   ├── mappers/            # Маппинг между DTO и Forms
+│   ├── dto/                # DTO для результатов обработки форм
+│   └── adapters/           # Адаптеры для Yii2 компонентов
 ├── controllers/             # Тонкие HTTP-контроллеры
 ├── models/                  # ActiveRecord модели и Forms
 └── interfaces/              # Интерфейсы внешних сервисов (SMS, File Storage)
@@ -96,35 +146,69 @@ app/
 **Пример использования Presentation Service:**
 
 ```php
-// Контроллер (тонкий, только координация - не знает о маппинге)
-public function actionUpdate(int $id): string|Response
+// Контроллер (тонкий, только координация HTTP-запросов/ответов)
+public function actionUpdate(int $id): string|Response|array
 {
-    $form = $this->bookFormPreparationService->prepareUpdateForm($id);
-    // ... обработка POST запроса
+    if (!$this->request->isPost) {
+        $viewData = $this->bookFormPreparationService->prepareUpdateViewData($id);
+        return $this->render('update', $viewData);
+    }
+
+    $result = $this->bookFormPreparationService->processUpdateRequest($id, $this->request, $this->response);
+
+    if ($result->ajaxValidation !== null) {
+        return $result->ajaxValidation;
+    }
+
+    if ($result->success && $result->redirectRoute !== null) {
+        return $this->redirect($result->redirectRoute);
+    }
+
+    return $this->render('update', $result->viewData);
 }
 
-// Presentation Service (инкапсулирует получение DTO и маппинг)
+// Presentation Service (инкапсулирует всю логику представления)
 class BookFormPreparationService
 {
-    public function prepareUpdateForm(int $id): BookForm
+    public function processUpdateRequest(int $id, Request $request, Response $response): UpdateFormResult
     {
-        $dto = $this->bookQueryService->getById($id);
-        return $this->bookFormMapper->toForm($dto);
-    }
-    
-    // Старый метод для случаев, когда DTO уже получен
-    public function prepareForUpdate(BookReadDto $dto): BookForm
-    {
-        return $this->bookFormMapper->toForm($dto);
+        $viewData = $this->prepareUpdateViewData($id);
+        $form = $viewData['model'];
+
+        if (!$form->loadFromRequest($request)) {
+            return new UpdateFormResult($form, $viewData, false);
+        }
+
+        if ($request->isAjax) {
+            $response->format = Response::FORMAT_JSON;
+            $ajaxValidation = ActiveForm::validate($form);
+            return new UpdateFormResult($form, $viewData, false, null, $ajaxValidation);
+        }
+
+        if (!$form->validate()) {
+            return new UpdateFormResult($form, $viewData, false);
+        }
+
+        $command = $this->bookFormMapper->toUpdateCommand($id, $form);
+        $success = $this->useCaseExecutor->execute(
+            fn() => $this->updateBookUseCase->execute($command),
+            Yii::t('app', 'Book has been updated'),
+            ['book_id' => $id]
+        );
+
+        if ($success) {
+            return new UpdateFormResult($form, $viewData, true, ['view', 'id' => $id]);
+        }
+
+        return new UpdateFormResult($form, $viewData, false);
     }
 }
 
-// Пример: контроллер не извлекает параметры из запроса
+// Пример: контроллер не знает о формате ответа и параметрах запроса
 public function actionSearch(): array
 {
-    $this->response->format = Response::FORMAT_JSON;
-    return $this->authorSearchPresentationService->search($this->request);
-    // Presentation Service сам извлекает параметры через $request->get()
+    return $this->authorSearchPresentationService->search($this->request, $this->response);
+    // Presentation Service сам устанавливает формат JSON и извлекает параметры
 }
 ```
 
