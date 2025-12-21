@@ -12,8 +12,8 @@ use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\models\forms\AuthorForm;
 use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\mappers\AuthorFormMapper;
-use app\presentation\mappers\AuthorSearchCriteriaMapper;
-use app\presentation\mappers\AuthorSelect2Mapper;
+use app\presentation\services\AuthorFormPreparationService;
+use app\presentation\services\AuthorSearchPresentationService;
 use app\presentation\UseCaseExecutor;
 use Yii;
 use yii\filters\AccessControl;
@@ -30,9 +30,9 @@ final class AuthorController extends Controller
         private readonly UpdateAuthorUseCase $updateAuthorUseCase,
         private readonly DeleteAuthorUseCase $deleteAuthorUseCase,
         private readonly AuthorFormMapper $authorFormMapper,
+        private readonly AuthorFormPreparationService $authorFormPreparationService,
         private readonly AuthorQueryService $authorQueryService,
-        private readonly AuthorSearchCriteriaMapper $authorSearchCriteriaMapper,
-        private readonly AuthorSelect2Mapper $authorSelect2Mapper,
+        private readonly AuthorSearchPresentationService $authorSearchPresentationService,
         private readonly PagedResultDataProviderFactory $dataProviderFactory,
         private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
@@ -111,7 +111,7 @@ final class AuthorController extends Controller
     public function actionUpdate(int $id): string|Response
     {
         $dto = $this->authorQueryService->getById($id);
-        $form = $this->authorFormMapper->toForm($dto);
+        $form = $this->authorFormPreparationService->prepareForUpdate($dto);
 
         if (!$this->request->isPost) {
             return $this->render('update', ['model' => $form]);
@@ -150,14 +150,6 @@ final class AuthorController extends Controller
     {
         $this->response->format = Response::FORMAT_JSON;
 
-        $form = $this->authorSearchCriteriaMapper->toForm($this->request->get());
-        if (!$form->validate()) {
-            return $this->authorSelect2Mapper->emptyResult();
-        }
-
-        $criteria = $this->authorSearchCriteriaMapper->toCriteria($form);
-        $response = $this->authorQueryService->search($criteria);
-
-        return $this->authorSelect2Mapper->mapToSelect2($response);
+        return $this->authorSearchPresentationService->search($this->request->get());
     }
 }

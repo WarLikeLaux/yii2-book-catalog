@@ -13,6 +13,7 @@ use app\application\books\usecases\UpdateBookUseCase;
 use app\models\forms\BookForm;
 use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\mappers\BookFormMapper;
+use app\presentation\services\BookFormPreparationService;
 use app\presentation\UseCaseExecutor;
 use Yii;
 use yii\filters\AccessControl;
@@ -30,6 +31,7 @@ final class BookController extends Controller
         private readonly UpdateBookUseCase $updateBookUseCase,
         private readonly DeleteBookUseCase $deleteBookUseCase,
         private readonly BookFormMapper $bookFormMapper,
+        private readonly BookFormPreparationService $bookFormPreparationService,
         private readonly AuthorQueryService $authorQueryService,
         private readonly BookQueryService $bookQueryService,
         private readonly PagedResultDataProviderFactory $dataProviderFactory,
@@ -117,7 +119,7 @@ final class BookController extends Controller
     public function actionUpdate(int $id): string|Response|array
     {
         $dto = $this->bookQueryService->getById($id);
-        $form = $this->bookFormMapper->toForm($dto);
+        $form = $this->bookFormPreparationService->prepareForUpdate($dto);
 
         if (!$this->request->isPost) {
             return $this->render('update', [
