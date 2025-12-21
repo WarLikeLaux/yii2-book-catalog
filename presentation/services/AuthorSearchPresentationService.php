@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\presentation\services;
 
 use app\application\authors\queries\AuthorQueryService;
-use app\models\forms\AuthorSearchForm;
 use app\presentation\mappers\AuthorSearchCriteriaMapper;
 use app\presentation\mappers\AuthorSelect2Mapper;
 
@@ -31,4 +30,3 @@ final class AuthorSearchPresentationService
         return $this->authorSelect2Mapper->mapToSelect2($response);
     }
 }
-

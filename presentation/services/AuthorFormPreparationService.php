@@ -12,7 +12,8 @@ final class AuthorFormPreparationService
 {
     public function __construct(
         private readonly AuthorFormMapper $authorFormMapper
-    ) {}
+    ) {
+    }
 
     public function prepareForUpdate(AuthorReadDto $dto): AuthorForm
     {

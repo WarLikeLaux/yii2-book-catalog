@@ -20,4 +20,3 @@ final class BookFormPreparationService
         return $this->bookFormMapper->toForm($dto);
     }
 }
-
