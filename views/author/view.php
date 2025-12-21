@@ -36,4 +36,3 @@ $this->params['breadcrumbs'][] = $this->title;
         </tr>
     </table>
 </div>
-
