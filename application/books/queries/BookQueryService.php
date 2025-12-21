@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace app\application\books\queries;
 
-use app\application\books\queries\BookReadDto;
-use app\application\books\queries\BookSearchPageData;
 use app\models\Book;
 use app\models\forms\BookSearchForm;
 use app\repositories\BookReadRepository;

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace app\application\authors\queries;
 
-use app\application\authors\queries\AuthorReadDto;
-use app\application\authors\queries\AuthorSearchResponse;
 use app\models\Author;
 use app\models\forms\AuthorSearchForm;
 use app\repositories\AuthorReadRepository;

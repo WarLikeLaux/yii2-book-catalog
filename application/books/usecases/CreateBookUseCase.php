@@ -9,10 +9,10 @@ use app\domain\exceptions\DomainException;
 use app\interfaces\FileStorageInterface;
 use app\jobs\NotifySubscribersJob;
 use app\models\Book;
+use Yii;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
 use yii\queue\db\Queue;
-use Yii;
 
 final class CreateBookUseCase
 {

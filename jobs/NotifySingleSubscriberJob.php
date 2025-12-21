@@ -6,7 +6,6 @@ namespace app\jobs;
 
 use app\interfaces\SmsSenderInterface;
 use app\services\YiiPsrLogger;
-use Psr\Log\LoggerInterface;
 use Throwable;
 use Yii;
 use yii\base\BaseObject;

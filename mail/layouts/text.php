@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @var yii\web\View $this view component instance
  * @var yii\mail\BaseMessage $message the message being composed

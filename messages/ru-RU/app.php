@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'Author has been created' => 'Автор создан',
     'Author has been updated' => 'Автор обновлен',

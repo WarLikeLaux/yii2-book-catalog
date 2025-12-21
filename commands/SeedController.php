@@ -58,9 +58,11 @@ final class SeedController extends Controller
                 throw new \RuntimeException('Save author failed');
             }
             $ids[] = $author->id;
-            if ($author->isNewRecord) {
-                $this->stdout("  Created author: {$name}\n");
+            if (!$author->isNewRecord) {
+                continue;
             }
+
+            $this->stdout("  Created author: {$name}\n");
         }
 
         return $ids;
@@ -79,7 +81,7 @@ final class SeedController extends Controller
             $title = $adjectives[array_rand($adjectives)] . ' ' . $nouns[array_rand($nouns)] . ' #' . ($i + 1);
             $isbn = $this->generateValidIsbn13();
 
-            $year = (rand(1, 100) <= 40) ? $currentYear : rand($currentYear - 5, $currentYear);
+            $year = rand(1, 100) <= 40 ? $currentYear : rand($currentYear - 5, $currentYear);
 
             if (Book::find()->where(['isbn' => $isbn])->exists()) {
                 continue;
@@ -121,7 +123,7 @@ final class SeedController extends Controller
 
         $checksum = 0;
         for ($i = 0; $i < 12; $i++) {
-            $weight = ($i % 2 === 0) ? 1 : 3;
+            $weight = $i % 2 === 0 ? 1 : 3;
             $checksum += (int)$isbn12[$i] * $weight;
         }
         $checksumDigit = (10 - ($checksum % 10)) % 10;

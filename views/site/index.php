@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use app\models\forms\BookSearchForm;
 use yii\bootstrap5\ActiveForm;
 use yii\bootstrap5\LinkPager;
 use yii\bootstrap5\Modal;

@@ -8,9 +8,9 @@ use app\application\books\commands\UpdateBookCommand;
 use app\domain\exceptions\DomainException;
 use app\interfaces\FileStorageInterface;
 use app\models\Book;
+use Yii;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
-use Yii;
 
 final class UpdateBookUseCase
 {
@@ -77,17 +77,19 @@ final class UpdateBookUseCase
             ])->execute();
         }
 
-        if ($toAdd) {
-            $rows = array_map(
-                fn($authorId) => [$bookId, $authorId],
-                $toAdd
-            );
-            $this->db->createCommand()->batchInsert(
-                'book_authors',
-                ['book_id', 'author_id'],
-                $rows
-            )->execute();
+        if (!$toAdd) {
+            return;
         }
+
+        $rows = array_map(
+            fn($authorId) => [$bookId, $authorId],
+            $toAdd
+        );
+        $this->db->createCommand()->batchInsert(
+            'book_authors',
+            ['book_id', 'author_id'],
+            $rows
+        )->execute();
     }
 
     private function getFirstErrorMessage(ActiveRecord $model, string $fallback): string

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /** @var yii\web\View $this */
 /** @var string $content */
 
@@ -36,7 +38,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         NavBar::begin([
             'brandLabel' => Yii::$app->name,
             'brandUrl' => Yii::$app->homeUrl,
-            'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top']
+            'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top'],
         ]);
         $menuItems = [
             ['label' => 'Каталог', 'url' => ['/site/index']],
@@ -61,7 +63,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
 
         echo Nav::widget([
             'options' => ['class' => 'navbar-nav'],
-            'items' => $menuItems
+            'items' => $menuItems,
         ]);
         NavBar::end();
         ?>
@@ -72,7 +74,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             <?php if (!empty($this->params['breadcrumbs'])): ?>
                 <?= Breadcrumbs::widget([
                     'homeLink' => ['label' => 'Каталог', 'url' => Yii::$app->homeUrl],
-                    'links' => $this->params['breadcrumbs']
+                    'links' => $this->params['breadcrumbs'],
                 ]) ?>
             <?php endif ?>
             <?= Alert::widget() ?>

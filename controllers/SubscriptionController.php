@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\controllers;
 
 use app\application\authors\queries\AuthorQueryService;
-use app\application\subscriptions\commands\SubscribeCommand;
 use app\application\subscriptions\mappers\SubscriptionFormMapper;
 use app\application\subscriptions\usecases\SubscribeUseCase;
 use app\application\UseCaseExecutor;
@@ -14,7 +13,6 @@ use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
-use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 final class SubscriptionController extends Controller

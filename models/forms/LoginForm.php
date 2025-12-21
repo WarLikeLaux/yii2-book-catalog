@@ -38,13 +38,17 @@ final class LoginForm extends Model
 
     public function validatePassword(string $attribute): void
     {
-        if (!$this->hasErrors()) {
-            $user = $this->getUser();
-
-            if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, Yii::t('app', 'Incorrect username or password.'));
-            }
+        if ($this->hasErrors()) {
+            return;
         }
+
+        $user = $this->getUser();
+
+        if ($user && $user->validatePassword($this->password)) {
+            return;
+        }
+
+        $this->addError($attribute, Yii::t('app', 'Incorrect username or password.'));
     }
 
     public function login(): bool

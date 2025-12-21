@@ -44,7 +44,7 @@ final class AuthorFormMapper
                 'text' => $dto->fio,
             ], $response->items),
             'pagination' => [
-                'more' => ($response->page * $response->pageSize) < $response->total,
+                'more' => $response->page * $response->pageSize < $response->total,
             ],
         ];
     }

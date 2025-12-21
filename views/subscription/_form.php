@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use app\models\forms\SubscriptionForm;
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;

@@ -1,6 +1,7 @@
 <?php
 
-use app\models\Author;
+declare(strict_types=1);
+
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
 

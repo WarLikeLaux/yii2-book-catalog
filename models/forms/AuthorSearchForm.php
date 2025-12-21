@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace app\models\forms;
 
-use app\repositories\AuthorReadRepository;
 use yii\base\Model;
-use yii\web\Request;
 
 final class AuthorSearchForm extends Model
 {

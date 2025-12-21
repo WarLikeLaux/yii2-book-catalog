@@ -8,7 +8,6 @@ use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\services\YiiPsrLogger;
 use Yii;
 use yii\base\BaseObject;
-use yii\queue\db\Queue;
 use yii\queue\Job;
 use yii\queue\RetryableJobInterface;
 

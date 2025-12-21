@@ -44,9 +44,11 @@ final class Book extends ActiveRecord
         $this->year = $year;
         $this->isbn = $isbn;
         $this->description = $description;
-        if ($coverUrl !== null) {
-            $this->cover_url = $coverUrl;
+        if ($coverUrl === null) {
+            return;
         }
+
+        $this->cover_url = $coverUrl;
     }
 
     public static function tableName(): string

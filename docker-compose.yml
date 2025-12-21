@@ -7,7 +7,8 @@ services:
     ports:
       - '8000:80'
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file: .env
 
   db:
@@ -22,15 +23,21 @@ services:
     volumes:
       - ./db-data:/var/lib/mysql
     env_file: .env
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u$DB_USER", "-p$DB_PASSWORD"]
+      timeout: 5s
+      retries: 10
+      interval: 5s
 
   queue:
     image: yiisoftware/yii2-php:8.4-fpm-nginx
     volumes:
       - ./:/app:delegated
-    restart: always
+    restart: on-failure
     environment:
       - SMS_API_KEY=${SMS_API_KEY:-MOCK_KEY}
     command: ["php", "-d", "opcache.enable_cli=0", "yii", "queue/listen", "--verbose=1", "--color=0"]
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file: .env
