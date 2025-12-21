@@ -32,8 +32,8 @@
 *   **Forms (`app/models/forms`):** Валидация входных данных через `FormModel`.
 *   **Mappers (`app/presentation/mappers`):** Перевод форм в команды/criteria и обратно (DTO ↔ Form).
 *   **Presentation Services (`app/presentation/services`):** Инкапсулируют логику представления:
-    *   `BookFormPreparationService` / `AuthorFormPreparationService` — подготовка форм для редактирования (маппинг DTO → Form).
-    *   `AuthorSearchPresentationService` — обработка поиска авторов (валидация, маппинг, вызов query service, форматирование ответа).
+    *   `BookFormPreparationService` / `AuthorFormPreparationService` — подготовка форм для редактирования (получение DTO через query service, маппинг DTO → Form). Контроллеры не знают о процессе маппинга.
+    *   `AuthorSearchPresentationService` — обработка поиска авторов (извлечение параметров из запроса, валидация, маппинг, вызов query service, форматирование ответа). Контроллеры не работают с HTTP-деталями напрямую.
 *   **Adapters (`app/presentation/adapters`):** `PagedResult` преобразуется в `DataProvider` без логики в контроллерах.
 
 ### 4. DTO & Forms для валидации
@@ -96,21 +96,35 @@ app/
 **Пример использования Presentation Service:**
 
 ```php
-// Контроллер (тонкий, только координация)
+// Контроллер (тонкий, только координация - не знает о маппинге)
 public function actionUpdate(int $id): string|Response
 {
-    $dto = $this->bookQueryService->getById($id);
-    $form = $this->bookFormPreparationService->prepareForUpdate($dto);
+    $form = $this->bookFormPreparationService->prepareUpdateForm($id);
     // ... обработка POST запроса
 }
 
-// Presentation Service (инкапсулирует логику представления)
+// Presentation Service (инкапсулирует получение DTO и маппинг)
 class BookFormPreparationService
 {
+    public function prepareUpdateForm(int $id): BookForm
+    {
+        $dto = $this->bookQueryService->getById($id);
+        return $this->bookFormMapper->toForm($dto);
+    }
+    
+    // Старый метод для случаев, когда DTO уже получен
     public function prepareForUpdate(BookReadDto $dto): BookForm
     {
         return $this->bookFormMapper->toForm($dto);
     }
+}
+
+// Пример: контроллер не извлекает параметры из запроса
+public function actionSearch(): array
+{
+    $this->response->format = Response::FORMAT_JSON;
+    return $this->authorSearchPresentationService->search($this->request);
+    // Presentation Service сам извлекает параметры через $request->get()
 }
 ```
 
