@@ -20,9 +20,9 @@
 Реализован **CQS (Command Query Separation)** и зависимости через порты:
 *   **Write Side (Команды):** Операции изменения состояния инкапсулированы в **Use Cases** (`CreateBookUseCase`, `SubscribeUseCase`). Входные данные строго типизированы через **Command DTO** (`CreateBookCommand`).
 *   **Read Side (Запросы):** Чтение данных отделено от бизнес-логики. **QueryServices** возвращают DTO (`BookReadDto`) и `PagedResult` с чистым `PaginationDto` вместо ActiveRecord моделей и framework-объектов.
-*   **Ports:** Интерфейсы репозиториев и внешних сервисов находятся в `app/application/ports`. Use Cases зависят только от портов, не от конкретных реализаций фреймворка.
+*   **Ports:** Интерфейсы репозиториев и внешних сервисов находятся в `application/ports` (namespace: `app\application\ports`). Use Cases зависят только от портов, не от конкретных реализаций фреймворка.
 *   **Event Publisher:** Use Cases публикуют доменные события через `EventPublisherInterface`, а не создают job напрямую. Это изолирует application layer от инфраструктуры.
-*   **UseCaseExecutor:** Cross-cutting concern для выполнения use cases с обработкой ошибок, логированием и уведомлениями. Находится в `app/application/common` как общий компонент application layer.
+*   **UseCaseExecutor:** Cross-cutting concern для выполнения use cases с обработкой ошибок, логированием и уведомлениями. Находится в `application/common` (namespace: `app\application\common`) как общий компонент application layer.
 *   **Контроллеры:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Вся логика представления (загрузка форм, валидация, маппинг, выполнение use cases, форматирование ответов, извлечение параметров запроса) вынесена в Presentation Services.
 
 ### 2. Domain vs ActiveRecord (Clean-ish компромисс)
@@ -33,9 +33,9 @@
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
 *   **Controllers:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Не содержат бизнес-логику, маппинг, валидацию, загрузку форм или извлечение параметров запроса. Все контроллеры (`BookController`, `AuthorController`, `SiteController`) следуют единому паттерну: делегируют всю логику представления в Presentation Services.
-*   **Forms (`app/models/forms`):** Валидация входных данных через `FormModel`.
-*   **Mappers (`app/presentation/mappers`):** Перевод форм в команды/criteria и обратно (DTO ↔ Form).
-*   **Presentation Services (`app/presentation/services`):** Инкапсулируют всю логику представления:
+*   **Forms (`models/forms`, namespace: `app\models\forms`):** Валидация входных данных через `FormModel`.
+*   **Mappers (`presentation/mappers`, namespace: `app\presentation\mappers`):** Перевод форм в команды/criteria и обратно (DTO ↔ Form).
+*   **Presentation Services (`presentation/services`, namespace: `app\presentation\services`):** Инкапсулируют всю логику представления:
     *   **Form Preparation Services:**
         *   `BookFormPreparationService` — полная обработка форм книг: загрузка из запроса, валидация (включая AJAX), маппинг в команды, выполнение use cases (включая удаление через `processDeleteRequest()`), подготовка данных для представления, извлечение параметров запроса (например, пагинация).
         *   `AuthorFormPreparationService` — аналогично для авторов: обработка форм, извлечение параметров запроса (пагинация в `prepareIndexViewData()`), маппинг, выполнение use cases (включая удаление через `processDeleteRequest()`).
@@ -47,8 +47,8 @@
         *   `ReportPresentationService` — генерация отчетов: валидация фильтров, маппинг criteria, выполнение запросов через UseCaseExecutor.
     *   **Subscription Services:**
         *   `SubscriptionPresentationService` — обработка подписок: загрузка формы, валидация, маппинг, выполнение use case, форматирование JSON-ответа.
-*   **DTO Results (`app/presentation/dto`):** Типизированные результаты обработки форм (`CreateFormResult`, `UpdateFormResult`, `AuthorCreateFormResult`, `AuthorUpdateFormResult`) для передачи данных между Presentation Services и контроллерами. Все DTO содержат `viewData` для единообразной передачи данных в представления.
-*   **Adapters (`app/presentation/adapters`):** `PagedResult` преобразуется в `DataProvider` через `PagedResultDataProviderFactory` без логики в контроллерах. Адаптер `PagedResultDataProvider` преобразует чистый `PaginationDto` обратно в `yii\data\Pagination` для Yii2 виджетов.
+*   **DTO Results (`presentation/dto`, namespace: `app\presentation\dto`):** Типизированные результаты обработки форм (`CreateFormResult`, `UpdateFormResult`, `AuthorCreateFormResult`, `AuthorUpdateFormResult`) для передачи данных между Presentation Services и контроллерами. Все DTO содержат `viewData` для единообразной передачи данных в представления.
+*   **Adapters (`presentation/adapters`, namespace: `app\presentation\adapters`):** `PagedResult` преобразуется в `DataProvider` через `PagedResultDataProviderFactory` без логики в контроллерах. Адаптер `PagedResultDataProvider` преобразует чистый `PaginationDto` обратно в `yii\data\Pagination` для Yii2 виджетов.
 
 ### 4. Разделение ответственности: Use Cases vs Presentation Services
 
@@ -105,14 +105,14 @@ class BookFormPreparationService {
 
 ### 5. DTO & Forms для валидации
 Слой представления отделен от домена.
-*   **Forms (`app/models/forms`):** Валидируют сырые пользовательские данные (HTTP request).
-*   **Command DTO (`app/application/**/commands`):** Передают уже валидные данные в ядро приложения.
-*   **Result DTO (`app/presentation/dto`):** Типизированные результаты обработки форм для передачи между Presentation Services и контроллерами.
-*   **PaginationDto (`app/application/common/dto`):** Чистый DTO для пагинации без зависимостей от фреймворка. Репозитории создают его вручную из параметров, сохраняя использование `ActiveDataProvider` для выполнения запросов (eager loading).
+*   **Forms (`models/forms`, namespace: `app\models\forms`):** Валидируют сырые пользовательские данные (HTTP request).
+*   **Command DTO (`application/**/commands`, namespace: `app\application\**\commands`):** Передают уже валидные данные в ядро приложения.
+*   **Result DTO (`presentation/dto`, namespace: `app\presentation\dto`):** Типизированные результаты обработки форм для передачи между Presentation Services и контроллерами.
+*   **PaginationDto (`application/common/dto`, namespace: `app\application\common\dto`):** Чистый DTO для пагинации без зависимостей от фреймворка. Репозитории создают его вручную из параметров, сохраняя использование `ActiveDataProvider` для выполнения запросов (eager loading).
 *   Это позволяет безопасно обрабатывать загрузку файлов и сложную логику без засорения доменных сущностей правилами валидации форм.
 
 ### 6. Infrastructure Layer
-*   **ActiveRecord и DB:** Реализации портов живут в `app/infrastructure`.
+*   **ActiveRecord и DB:** Реализации портов живут в `infrastructure` (namespace: `app\infrastructure`).
 *   **Queue/File Storage:** Подключаются через интерфейсы и DI.
 *   **Event Publisher Adapter:** `YiiEventPublisherAdapter` преобразует доменные события в конкретные job для очереди. Это позволяет use cases оставаться независимыми от фреймворка.
 *   **Пагинация:** Репозитории используют `ActiveDataProvider` для выполнения запросов (сохранение eager loading через `with()`), но создают чистый `PaginationDto` вместо передачи framework-объекта в application layer.
@@ -149,7 +149,7 @@ class BookFormPreparationService {
 *   **UX:** Обернуто в **PJAX** для фильтрации без перезагрузки страницы.
 
 ### 11. Dependency Injection
-Внешние зависимости закрыты интерфейсами и портами (`app/interfaces`, `app/application/ports`):
+Внешние зависимости закрыты интерфейсами и портами (`interfaces`, `application/ports`; namespaces: `app\interfaces`, `app\application\ports`):
 *   `SmsSenderInterface`: Позволяет прозрачно менять провайдеров (Smspilot / Mock).
 *   `FileStorageInterface`: Абстракция для сохранения файлов (Local / S3).
 *   `EventPublisherInterface`: Абстракция для публикации доменных событий. Предоставляет типобезопасный метод `publishEvent(DomainEvent $event)` для публикации доменных событий, реализующих интерфейс `DomainEvent`. Use Cases не знают о конкретных реализациях очереди.
@@ -158,7 +158,7 @@ class BookFormPreparationService {
 ### 12. Структура проекта
 
 ```
-app/
+./
 ├── application/              # Application Layer (Use Cases, Queries, Ports)
 │   ├── books/
 │   │   ├── commands/        # Command DTOs (CreateBookCommand, UpdateBookCommand)
@@ -184,6 +184,8 @@ app/
 ├── models/                  # ActiveRecord модели и Forms
 └── interfaces/              # Интерфейсы внешних сервисов (SMS, File Storage)
 ```
+
+**Примечание:** В коде используется namespace `app\`, что соответствует стандартному Yii2 алиасу `@app`. Структура директорий в корне проекта соответствует namespace-ам (например, `application/` → `app\application\*`).
 
 **Пример использования Presentation Service:**
 
@@ -376,12 +378,14 @@ class YiiEventPublisherAdapter implements EventPublisherInterface
     {
         // Используем типобезопасный метод для публикации доменных событий
         // Проверяем тип события через instanceof для типобезопасности
-        if ($event instanceof BookCreatedEvent) {
-            $this->queue->push(new NotifySubscribersJob([
-                'bookId' => $event->bookId,
-                'title' => $event->title,
-            ]));
+        if (!($event instanceof BookCreatedEvent)) {
+            return;
         }
+
+        $this->queue->push(new NotifySubscribersJob([
+            'bookId' => $event->bookId,
+            'title' => $event->title,
+        ]));
     }
 }
 
