@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\presentation\services;
 
+use app\application\common\UseCaseExecutor;
 use app\application\reports\queries\ReportQueryService;
 use app\presentation\mappers\ReportCriteriaMapper;
-use app\presentation\UseCaseExecutor;
 use Yii;
 use yii\web\Request;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\application\subscriptions\mappers;
+namespace app\presentation\mappers;
 
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\models\forms\SubscriptionForm;

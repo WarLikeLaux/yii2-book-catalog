@@ -6,6 +6,7 @@ namespace app\infrastructure\adapters;
 
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\QueueInterface;
+use app\domain\events\BookCreatedEvent;
 use app\domain\events\DomainEvent;
 use app\jobs\NotifySubscribersJob;
 
@@ -16,20 +17,15 @@ final class YiiEventPublisherAdapter implements EventPublisherInterface
     ) {
     }
 
-    public function publish(string $eventType, array $payload): void
+    public function publishEvent(DomainEvent $event): void
     {
-        if ($eventType !== 'book.created') {
+        if (!($event instanceof BookCreatedEvent)) {
             return;
         }
 
         $this->queue->push(new NotifySubscribersJob([
-            'bookId' => $payload['bookId'],
-            'title' => $payload['title'],
+            'bookId' => $event->bookId,
+            'title' => $event->title,
         ]));
-    }
-
-    public function publishEvent(DomainEvent $event): void
-    {
-        $this->publish($event->getEventType(), $event->getPayload());
     }
 }

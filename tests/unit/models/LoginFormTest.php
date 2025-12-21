@@ -3,50 +3,61 @@
 namespace tests\unit\models;
 
 use app\models\forms\LoginForm;
-use Yii;
 
 class LoginFormTest extends \Codeception\Test\Unit
 {
     private $model;
 
-    protected function _after()
+    public function testValidationEmptyFields()
     {
-        Yii::$app->user->logout();
+        $this->model = new LoginForm();
+
+        verify($this->model->validate())->false();
+        verify($this->model->errors)->arrayHasKey('username');
+        verify($this->model->errors)->arrayHasKey('password');
     }
 
-    public function testLoginNoUser()
-    {
-        $this->model = new LoginForm([
-            'username' => 'not_existing_username',
-            'password' => 'not_existing_password',
-        ]);
-
-        verify($this->model->login())->false();
-        verify(Yii::$app->user->isGuest)->true();
-    }
-
-    public function testLoginWrongPassword()
+    public function testValidationWrongPassword()
     {
         $this->model = new LoginForm([
             'username' => 'demo',
             'password' => 'wrong_password',
         ]);
 
-        verify($this->model->login())->false();
-        verify(Yii::$app->user->isGuest)->true();
+        verify($this->model->validate())->false();
         verify($this->model->errors)->arrayHasKey('password');
     }
 
-    public function testLoginCorrect()
+    public function testValidationCorrectCredentials()
     {
         $this->model = new LoginForm([
             'username' => 'demo',
             'password' => 'demo',
         ]);
 
-        verify($this->model->login())->true();
-        verify(Yii::$app->user->isGuest)->false();
+        verify($this->model->validate())->true();
         verify($this->model->errors)->arrayHasNotKey('password');
+    }
+
+    public function testGetUser()
+    {
+        $this->model = new LoginForm([
+            'username' => 'demo',
+        ]);
+
+        $user = $this->model->getUser();
+        verify($user)->notNull();
+        verify($user->username)->equals('demo');
+    }
+
+    public function testGetUserNotFound()
+    {
+        $this->model = new LoginForm([
+            'username' => 'not_existing_user',
+        ]);
+
+        $user = $this->model->getUser();
+        verify($user)->null();
     }
 
 }
