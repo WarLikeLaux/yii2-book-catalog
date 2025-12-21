@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use app\application\books\commands\DeleteBookCommand;
-use app\application\books\usecases\DeleteBookUseCase;
 use app\presentation\services\BookFormPreparationService;
-use app\presentation\UseCaseExecutor;
-use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -19,9 +15,7 @@ final class BookController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly DeleteBookUseCase $deleteBookUseCase,
         private readonly BookFormPreparationService $bookFormPreparationService,
-        private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -99,13 +93,7 @@ final class BookController extends Controller
 
     public function actionDelete(int $id): Response
     {
-        $command = new DeleteBookCommand($id);
-        $this->useCaseExecutor->execute(
-            fn() => $this->deleteBookUseCase->execute($command),
-            Yii::t('app', 'Book has been deleted'),
-            ['book_id' => $id]
-        );
-
+        $this->bookFormPreparationService->processDeleteRequest($id);
         return $this->redirect(['index']);
     }
 }

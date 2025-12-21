@@ -41,10 +41,7 @@ final class CreateBookUseCase
                 title: $command->title
             );
 
-            $this->eventPublisher->publish('book.created', [
-                'bookId' => $event->bookId,
-                'title' => $event->title,
-            ]);
+            $this->eventPublisher->publishEvent($event);
 
             return $bookId;
         } catch (\Throwable $e) {

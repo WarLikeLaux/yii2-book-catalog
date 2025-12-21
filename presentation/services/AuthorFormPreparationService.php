@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace app\presentation\services;
 
+use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\authors\queries\AuthorQueryService;
 use app\application\authors\queries\AuthorReadDto;
 use app\application\authors\usecases\CreateAuthorUseCase;
+use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\models\forms\AuthorForm;
 use app\presentation\adapters\PagedResultDataProviderFactory;
@@ -24,6 +26,7 @@ final class AuthorFormPreparationService
         private readonly AuthorQueryService $authorQueryService,
         private readonly CreateAuthorUseCase $createAuthorUseCase,
         private readonly UpdateAuthorUseCase $updateAuthorUseCase,
+        private readonly DeleteAuthorUseCase $deleteAuthorUseCase,
         private readonly UseCaseExecutor $useCaseExecutor,
         private readonly PagedResultDataProviderFactory $dataProviderFactory
     ) {
@@ -122,5 +125,15 @@ final class AuthorFormPreparationService
         }
 
         return new AuthorUpdateFormResult($form, $viewData, false);
+    }
+
+    public function processDeleteRequest(int $id): void
+    {
+        $command = new DeleteAuthorCommand($id);
+        $this->useCaseExecutor->execute(
+            fn() => $this->deleteAuthorUseCase->execute($command),
+            Yii::t('app', 'Author has been deleted'),
+            ['author_id' => $id]
+        );
     }
 }

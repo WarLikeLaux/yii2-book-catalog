@@ -11,10 +11,6 @@ final class PagedResultDataProviderFactory
 {
     public function create(PagedResultInterface $result): DataProviderInterface
     {
-        if ($result instanceof YiiDataProviderAdapter) {
-            return $result->toDataProvider();
-        }
-
         return new PagedResultDataProvider($result);
     }
 }

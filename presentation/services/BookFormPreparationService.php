@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace app\presentation\services;
 
 use app\application\authors\queries\AuthorQueryService;
+use app\application\books\commands\DeleteBookCommand;
 use app\application\books\queries\BookQueryService;
 use app\application\books\queries\BookReadDto;
 use app\application\books\usecases\CreateBookUseCase;
+use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\models\forms\BookForm;
 use app\presentation\adapters\PagedResultDataProviderFactory;
@@ -28,6 +30,7 @@ final class BookFormPreparationService
         private readonly AuthorQueryService $authorQueryService,
         private readonly CreateBookUseCase $createBookUseCase,
         private readonly UpdateBookUseCase $updateBookUseCase,
+        private readonly DeleteBookUseCase $deleteBookUseCase,
         private readonly UseCaseExecutor $useCaseExecutor,
         private readonly PagedResultDataProviderFactory $dataProviderFactory
     ) {
@@ -152,5 +155,15 @@ final class BookFormPreparationService
         }
 
         return new UpdateFormResult($form, $viewData, false);
+    }
+
+    public function processDeleteRequest(int $id): void
+    {
+        $command = new DeleteBookCommand($id);
+        $this->useCaseExecutor->execute(
+            fn() => $this->deleteBookUseCase->execute($command),
+            Yii::t('app', 'Book has been deleted'),
+            ['book_id' => $id]
+        );
     }
 }

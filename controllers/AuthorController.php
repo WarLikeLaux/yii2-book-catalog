@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use app\application\authors\commands\DeleteAuthorCommand;
-use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\presentation\services\AuthorFormPreparationService;
 use app\presentation\services\AuthorSearchPresentationService;
-use app\presentation\UseCaseExecutor;
-use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -20,10 +16,8 @@ final class AuthorController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly DeleteAuthorUseCase $deleteAuthorUseCase,
         private readonly AuthorFormPreparationService $authorFormPreparationService,
         private readonly AuthorSearchPresentationService $authorSearchPresentationService,
-        private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -101,13 +95,7 @@ final class AuthorController extends Controller
 
     public function actionDelete(int $id): Response
     {
-        $command = new DeleteAuthorCommand($id);
-        $this->useCaseExecutor->execute(
-            fn() => $this->deleteAuthorUseCase->execute($command),
-            Yii::t('app', 'Author has been deleted'),
-            ['author_id' => $id]
-        );
-
+        $this->authorFormPreparationService->processDeleteRequest($id);
         return $this->redirect(['index']);
     }
 

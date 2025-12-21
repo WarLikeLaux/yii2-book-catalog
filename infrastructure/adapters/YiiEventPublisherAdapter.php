@@ -6,6 +6,7 @@ namespace app\infrastructure\adapters;
 
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\QueueInterface;
+use app\domain\events\DomainEvent;
 use app\jobs\NotifySubscribersJob;
 
 final class YiiEventPublisherAdapter implements EventPublisherInterface
@@ -25,5 +26,10 @@ final class YiiEventPublisherAdapter implements EventPublisherInterface
             'bookId' => $payload['bookId'],
             'title' => $payload['title'],
         ]));
+    }
+
+    public function publishEvent(DomainEvent $event): void
+    {
+        $this->publish($event->getEventType(), $event->getPayload());
     }
 }
