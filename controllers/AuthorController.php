@@ -9,10 +9,12 @@ use app\application\authors\queries\AuthorQueryService;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
-use app\application\UseCaseExecutor;
 use app\models\forms\AuthorForm;
+use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\mappers\AuthorFormMapper;
+use app\presentation\mappers\AuthorSearchCriteriaMapper;
 use app\presentation\mappers\AuthorSelect2Mapper;
+use app\presentation\UseCaseExecutor;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -29,7 +31,9 @@ final class AuthorController extends Controller
         private readonly DeleteAuthorUseCase $deleteAuthorUseCase,
         private readonly AuthorFormMapper $authorFormMapper,
         private readonly AuthorQueryService $authorQueryService,
+        private readonly AuthorSearchCriteriaMapper $authorSearchCriteriaMapper,
         private readonly AuthorSelect2Mapper $authorSelect2Mapper,
+        private readonly PagedResultDataProviderFactory $dataProviderFactory,
         private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
     ) {
@@ -64,10 +68,9 @@ final class AuthorController extends Controller
 
     public function actionIndex(): string
     {
-        $queryResult = $this->authorQueryService->getIndexProvider();
-        $dataProvider = $queryResult instanceof \app\application\common\adapters\YiiDataProviderAdapter
-            ? $queryResult->toDataProvider()
-            : throw new \RuntimeException('Unsupported QueryResultInterface implementation');
+        $page = max(1, (int)$this->request->get('page', 1));
+        $queryResult = $this->authorQueryService->getIndexProvider($page);
+        $dataProvider = $this->dataProviderFactory->create($queryResult);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -140,8 +143,14 @@ final class AuthorController extends Controller
     {
         $this->response->format = Response::FORMAT_JSON;
 
-        $result = $this->authorQueryService->search($this->request->get());
+        $form = $this->authorSearchCriteriaMapper->toForm($this->request->get());
+        if (!$form->validate()) {
+            return $this->authorSelect2Mapper->emptyResult();
+        }
 
-        return $this->authorSelect2Mapper->mapToSelect2($result);
+        $criteria = $this->authorSearchCriteriaMapper->toCriteria($form);
+        $response = $this->authorQueryService->search($criteria);
+
+        return $this->authorSelect2Mapper->mapToSelect2($response);
     }
 }

@@ -4,27 +4,27 @@ declare(strict_types=1);
 
 namespace app\application\subscriptions\usecases;
 
+use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\domain\exceptions\DomainException;
-use app\models\Subscription;
-use Yii;
 
 final class SubscribeUseCase
 {
+    public function __construct(
+        private readonly SubscriptionRepositoryInterface $subscriptionRepository
+    ) {
+    }
+
     public function execute(SubscribeCommand $command): void
     {
-        $existing = Subscription::find()
-            ->where(['phone' => $command->phone, 'author_id' => $command->authorId])
-            ->one();
-
-        if ($existing) {
-            throw new DomainException(Yii::t('app', 'You are already subscribed to this author'));
+        if ($this->subscriptionRepository->exists($command->phone, $command->authorId)) {
+            throw new DomainException('You are already subscribed to this author');
         }
 
-        $subscription = Subscription::create($command->phone, $command->authorId);
-
-        if (!$subscription->save()) {
-            throw new DomainException(Yii::t('app', 'Failed to create subscription'));
+        try {
+            $this->subscriptionRepository->create($command->phone, $command->authorId);
+        } catch (\RuntimeException $e) {
+            throw new DomainException('Failed to create subscription');
         }
     }
 }

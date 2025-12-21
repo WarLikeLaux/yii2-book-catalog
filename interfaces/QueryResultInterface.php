@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace app\interfaces;
 
-interface QueryResultInterface
+use app\application\ports\PagedResultInterface;
+
+interface QueryResultInterface extends PagedResultInterface
 {
-    public function getModels(): array;
-
-    public function getTotalCount(): int;
-
-    public function getPagination(): ?object;
 }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace app\controllers;
 
 use app\application\reports\queries\ReportQueryService;
-use app\application\UseCaseExecutor;
-use app\models\forms\ReportFilterForm;
+use app\presentation\mappers\ReportCriteriaMapper;
+use app\presentation\UseCaseExecutor;
 use Yii;
 use yii\web\Controller;
 
@@ -16,6 +16,7 @@ final class ReportController extends Controller
         $id,
         $module,
         private readonly ReportQueryService $reportQueryService,
+        private readonly ReportCriteriaMapper $reportCriteriaMapper,
         private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
     ) {
@@ -24,8 +25,7 @@ final class ReportController extends Controller
 
     public function actionIndex(): string
     {
-        $form = new ReportFilterForm();
-        $form->loadFromRequest($this->request);
+        $form = $this->reportCriteriaMapper->toForm($this->request->get());
         if (!$form->validate()) {
             $data = $this->reportQueryService->getEmptyTopAuthorsReport();
             return $this->render('index', [
@@ -34,8 +34,9 @@ final class ReportController extends Controller
             ]);
         }
 
+        $criteria = $this->reportCriteriaMapper->toCriteria($form);
         $data = $this->useCaseExecutor->query(
-            fn() => $this->reportQueryService->getTopAuthorsReport($form),
+            fn() => $this->reportQueryService->getTopAuthorsReport($criteria),
             $this->reportQueryService->getEmptyTopAuthorsReport($form->year),
             Yii::t('app', 'Error while generating report. Please contact administrator.')
         );

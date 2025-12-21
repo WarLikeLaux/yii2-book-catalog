@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\validators;
 
-use app\repositories\AuthorReadRepository;
+use app\application\ports\AuthorRepositoryInterface;
 use Yii;
 use yii\validators\Validator;
 
@@ -13,7 +13,7 @@ final class UniqueFioValidator extends Validator
     public string|int|null $excludeId = null;
 
     public function __construct(
-        private readonly AuthorReadRepository $repository,
+        private readonly AuthorRepositoryInterface $repository,
         $config = []
     ) {
         parent::__construct($config);
@@ -32,16 +32,7 @@ final class UniqueFioValidator extends Validator
             $excludeId = (int)$excludeId;
         }
 
-        $repository = $this->repository;
-
-        $query = $repository->findAllOrderedByFio()
-            ->andWhere(['fio' => $value]);
-
-        if ($excludeId !== null) {
-            $query->andWhere(['<>', 'id', $excludeId]);
-        }
-
-        if (!$query->exists()) {
+        if (!$this->repository->existsByFio($value, $excludeId)) {
             return;
         }
 

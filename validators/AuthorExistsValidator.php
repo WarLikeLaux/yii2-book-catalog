@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace app\validators;
 
-use app\repositories\AuthorReadRepository;
+use app\application\ports\AuthorRepositoryInterface;
 use Yii;
 use yii\validators\Validator;
 
 final class AuthorExistsValidator extends Validator
 {
     public function __construct(
-        private readonly AuthorReadRepository $repository,
+        private readonly AuthorRepositoryInterface $repository,
         $config = []
     ) {
         parent::__construct($config);
@@ -25,8 +25,6 @@ final class AuthorExistsValidator extends Validator
             return;
         }
 
-        $repository = $this->repository;
-
         foreach ($value as $authorId) {
             if (!is_int($authorId) && !is_string($authorId)) {
                 continue;
@@ -34,8 +32,7 @@ final class AuthorExistsValidator extends Validator
 
             $authorId = is_string($authorId) ? (int)$authorId : $authorId;
 
-            $author = $repository->findById($authorId);
-            if ($author !== null) {
+            if ($this->repository->findById($authorId) !== null) {
                 continue;
             }
 

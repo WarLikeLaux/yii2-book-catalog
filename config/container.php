@@ -2,14 +2,32 @@
 
 declare(strict_types=1);
 
+use app\application\authors\queries\AuthorQueryService;
+use app\application\authors\usecases\CreateAuthorUseCase;
+use app\application\authors\usecases\DeleteAuthorUseCase;
+use app\application\authors\usecases\UpdateAuthorUseCase;
+use app\application\books\queries\BookQueryService;
 use app\application\books\usecases\CreateBookUseCase;
+use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
+use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\BookRepositoryInterface;
+use app\application\ports\QueueInterface;
+use app\application\ports\ReportRepositoryInterface;
+use app\application\ports\SubscriptionRepositoryInterface;
+use app\application\ports\TransactionInterface;
 use app\application\reports\queries\ReportQueryService;
+use app\application\subscriptions\queries\SubscriptionQueryService;
+use app\application\subscriptions\usecases\SubscribeUseCase;
+use app\infrastructure\adapters\YiiQueueAdapter;
+use app\infrastructure\adapters\YiiTransactionAdapter;
+use app\infrastructure\repositories\AuthorRepository;
+use app\infrastructure\repositories\BookRepository;
+use app\infrastructure\repositories\ReportRepository;
+use app\infrastructure\repositories\SubscriptionRepository;
 use app\interfaces\FileStorageInterface;
 use app\interfaces\NotificationInterface;
 use app\interfaces\SmsSenderInterface;
-use app\repositories\AuthorReadRepository;
-use app\repositories\BookReadRepository;
 use app\services\notifications\FlashNotificationService;
 use app\services\sms\SmsPilotSender;
 use app\services\storage\LocalFileStorage;
@@ -31,31 +49,69 @@ return [
             '/uploads'
         ),
         NotificationInterface::class => FlashNotificationService::class,
+        BookRepositoryInterface::class => BookRepository::class,
+        AuthorRepositoryInterface::class => AuthorRepository::class,
+        SubscriptionRepositoryInterface::class => SubscriptionRepository::class,
+        ReportRepositoryInterface::class => static fn($container) => new ReportRepository(
+            Yii::$app->get('db')
+        ),
+        TransactionInterface::class => static fn($container) => new YiiTransactionAdapter(
+            Yii::$app->get('db')
+        ),
+        QueueInterface::class => static fn($container) => new YiiQueueAdapter(
+            Yii::$app->get('queue')
+        ),
         UniqueFioValidator::class => static fn($container, $params, $config) => new UniqueFioValidator(
-            $container->get(AuthorReadRepository::class),
+            $container->get(AuthorRepositoryInterface::class),
             $config
         ),
         UniqueIsbnValidator::class => static fn($container, $params, $config) => new UniqueIsbnValidator(
-            $container->get(BookReadRepository::class),
+            $container->get(BookRepositoryInterface::class),
             $config
         ),
         AuthorExistsValidator::class => static fn($container, $params, $config) => new AuthorExistsValidator(
-            $container->get(AuthorReadRepository::class),
+            $container->get(AuthorRepositoryInterface::class),
             $config
         ),
     ],
     'singletons' => [
         CreateBookUseCase::class => static fn($container) => new CreateBookUseCase(
-            Yii::$app->get('db'),
-            Yii::$app->get('queue'),
+            $container->get(BookRepositoryInterface::class),
+            $container->get(TransactionInterface::class),
+            $container->get(QueueInterface::class),
             $container->get(FileStorageInterface::class)
         ),
         UpdateBookUseCase::class => static fn($container) => new UpdateBookUseCase(
-            Yii::$app->get('db'),
+            $container->get(BookRepositoryInterface::class),
+            $container->get(TransactionInterface::class),
             $container->get(FileStorageInterface::class)
         ),
-        ReportQueryService::class => static fn() => new ReportQueryService(
-            Yii::$app->get('db')
+        DeleteBookUseCase::class => static fn($container) => new DeleteBookUseCase(
+            $container->get(BookRepositoryInterface::class)
+        ),
+        CreateAuthorUseCase::class => static fn($container) => new CreateAuthorUseCase(
+            $container->get(AuthorRepositoryInterface::class)
+        ),
+        UpdateAuthorUseCase::class => static fn($container) => new UpdateAuthorUseCase(
+            $container->get(AuthorRepositoryInterface::class)
+        ),
+        DeleteAuthorUseCase::class => static fn($container) => new DeleteAuthorUseCase(
+            $container->get(AuthorRepositoryInterface::class)
+        ),
+        SubscribeUseCase::class => static fn($container) => new SubscribeUseCase(
+            $container->get(SubscriptionRepositoryInterface::class)
+        ),
+        BookQueryService::class => static fn($container) => new BookQueryService(
+            $container->get(BookRepositoryInterface::class)
+        ),
+        AuthorQueryService::class => static fn($container) => new AuthorQueryService(
+            $container->get(AuthorRepositoryInterface::class)
+        ),
+        SubscriptionQueryService::class => static fn($container) => new SubscriptionQueryService(
+            $container->get(SubscriptionRepositoryInterface::class)
+        ),
+        ReportQueryService::class => static fn($container) => new ReportQueryService(
+            $container->get(ReportRepositoryInterface::class)
         ),
     ],
 ];

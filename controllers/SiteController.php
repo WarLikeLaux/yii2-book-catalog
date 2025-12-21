@@ -6,6 +6,8 @@ namespace app\controllers;
 
 use app\application\books\queries\BookQueryService;
 use app\models\forms\LoginForm;
+use app\presentation\adapters\PagedResultDataProviderFactory;
+use app\presentation\mappers\BookSearchCriteriaMapper;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -19,6 +21,8 @@ final class SiteController extends Controller
         $id,
         $module,
         private readonly BookQueryService $bookQueryService,
+        private readonly BookSearchCriteriaMapper $bookSearchCriteriaMapper,
+        private readonly PagedResultDataProviderFactory $dataProviderFactory,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -58,13 +62,13 @@ final class SiteController extends Controller
 
     public function actionIndex(): string
     {
-        $pageData = $this->bookQueryService->search($this->request->get());
-        $dataProvider = $pageData->dataProvider instanceof \app\application\common\adapters\YiiDataProviderAdapter
-            ? $pageData->dataProvider->toDataProvider()
-            : throw new \RuntimeException('Unsupported QueryResultInterface implementation');
+        $form = $this->bookSearchCriteriaMapper->toForm($this->request->get());
+        $criteria = $this->bookSearchCriteriaMapper->toCriteria($form);
+        $result = $this->bookQueryService->search($criteria);
+        $dataProvider = $this->dataProviderFactory->create($result);
 
         return $this->render('index', [
-            'searchModel' => $pageData->searchForm,
+            'searchModel' => $form,
             'dataProvider' => $dataProvider,
         ]);
     }

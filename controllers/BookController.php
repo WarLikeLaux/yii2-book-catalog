@@ -10,9 +10,10 @@ use app\application\books\queries\BookQueryService;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\application\UseCaseExecutor;
 use app\models\forms\BookForm;
+use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\mappers\BookFormMapper;
+use app\presentation\UseCaseExecutor;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -31,6 +32,7 @@ final class BookController extends Controller
         private readonly BookFormMapper $bookFormMapper,
         private readonly AuthorQueryService $authorQueryService,
         private readonly BookQueryService $bookQueryService,
+        private readonly PagedResultDataProviderFactory $dataProviderFactory,
         private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
     ) {
@@ -58,9 +60,7 @@ final class BookController extends Controller
     public function actionIndex(): string
     {
         $queryResult = $this->bookQueryService->getIndexProvider();
-        $dataProvider = $queryResult instanceof \app\application\common\adapters\YiiDataProviderAdapter
-            ? $queryResult->toDataProvider()
-            : throw new \RuntimeException('Unsupported QueryResultInterface implementation');
+        $dataProvider = $this->dataProviderFactory->create($queryResult);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,

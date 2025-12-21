@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\application;
+namespace app\presentation;
 
 use app\domain\exceptions\DomainException;
 use app\interfaces\NotificationInterface;

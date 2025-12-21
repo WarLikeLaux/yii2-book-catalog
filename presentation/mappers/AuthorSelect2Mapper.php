@@ -9,6 +9,16 @@ use app\application\authors\queries\AuthorSearchResponse;
 
 final class AuthorSelect2Mapper
 {
+    public function emptyResult(): array
+    {
+        return [
+            'results' => [],
+            'pagination' => [
+                'more' => false,
+            ],
+        ];
+    }
+
     public function mapToSelect2(AuthorSearchResponse $response): array
     {
         return [

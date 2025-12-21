@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\application\common\adapters;
+namespace app\presentation\adapters;
 
 use app\interfaces\QueryResultInterface;
 use yii\data\DataProviderInterface;
@@ -11,7 +11,8 @@ final class YiiDataProviderAdapter implements QueryResultInterface
 {
     public function __construct(
         private readonly DataProviderInterface $dataProvider
-    ) {}
+    ) {
+    }
 
     public function getModels(): array
     {

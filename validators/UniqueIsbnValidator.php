@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\validators;
 
-use app\repositories\BookReadRepository;
+use app\application\ports\BookRepositoryInterface;
 use Yii;
 use yii\validators\Validator;
 
@@ -13,7 +13,7 @@ final class UniqueIsbnValidator extends Validator
     public string|null $excludeId = null;
 
     public function __construct(
-        private readonly BookReadRepository $repository,
+        private readonly BookRepositoryInterface $repository,
         $config = []
     ) {
         parent::__construct($config);
@@ -32,16 +32,7 @@ final class UniqueIsbnValidator extends Validator
             $excludeId = (int)$excludeId;
         }
 
-        $repository = $this->repository;
-
-        $query = $repository->findAllWithAuthors()
-            ->andWhere(['isbn' => $value]);
-
-        if ($excludeId !== null) {
-            $query->andWhere(['<>', 'id', $excludeId]);
-        }
-
-        if (!$query->exists()) {
+        if (!$this->repository->existsByIsbn($value, $excludeId)) {
             return;
         }
 
