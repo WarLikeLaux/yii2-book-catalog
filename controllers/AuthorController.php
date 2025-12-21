@@ -77,6 +77,13 @@ final class AuthorController extends Controller
         ]);
     }
 
+    public function actionView(int $id): string
+    {
+        $author = $this->authorQueryService->getById($id);
+
+        return $this->render('view', ['author' => $author]);
+    }
+
     public function actionCreate(): string|Response
     {
         $form = new AuthorForm();
