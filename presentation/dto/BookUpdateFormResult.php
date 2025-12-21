@@ -6,7 +6,7 @@ namespace app\presentation\dto;
 
 use app\models\forms\BookForm;
 
-final class CreateFormResult
+final class BookUpdateFormResult
 {
     public function __construct(
         public readonly BookForm $form,
