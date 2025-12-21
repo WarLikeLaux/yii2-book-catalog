@@ -14,7 +14,7 @@ $form = ActiveForm::begin([
 ]);
 ?>
 
-<?= Html::hiddenInput('SubscriptionForm[authorId]', $model->authorId) ?>
+<?= Html::hiddenInput('SubscriptionForm[authorId]', $authorId) ?>
 
 <div class="form-group">
     <label>Подписка на автора: <strong><?= Html::encode($author->fio) ?></strong></label>

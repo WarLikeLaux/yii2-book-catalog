@@ -39,10 +39,10 @@ $this->params['breadcrumbs'][] = $this->title;
     ]) ?>
     <?= $form->field($model, 'cover')->fileInput() ?>
 
-    <?php if ($book->cover_url): ?>
+    <?php if ($book->coverUrl): ?>
         <div class="form-group">
             <label>Текущая обложка</label><br>
-            <?= Html::img($book->cover_url, ['alt' => $book->title, 'style' => 'max-width: 200px;']) ?>
+            <?= Html::img($book->coverUrl, ['alt' => $book->title, 'style' => 'max-width: 200px;']) ?>
         </div>
     <?php endif; ?>
 

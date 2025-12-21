@@ -2,49 +2,57 @@
 
 declare(strict_types=1);
 
-namespace app\models\search;
+namespace app\repositories;
 
 use app\models\Author;
 use app\models\Book;
-use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
 use yii\db\Expression;
 
-final class BookSearch extends Model
+final class BookReadRepository
 {
-    public string $globalSearch = '';
-
-    public function rules(): array
+    public function getIndexDataProvider(): ActiveDataProvider
     {
-        return [
-            [['globalSearch'], 'string', 'min' => 2],
-            [['globalSearch'], 'trim'],
-        ];
+        return new ActiveDataProvider([
+            'query' => $this->findAllWithAuthors(),
+            'pagination' => [
+                'pageSize' => 20,
+            ],
+        ]);
     }
 
-    public function search(array $params): ActiveDataProvider
+    public function findAllWithAuthors(): ActiveQuery
     {
-        $query = Book::find()->with('authors');
+        return Book::find()->withAuthors()->orderedByCreatedAt();
+    }
 
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => ['pageSize' => 9],
-            'sort' => ['defaultOrder' => ['created_at' => SORT_DESC]],
-        ]);
+    public function findById(int $id): Book|null
+    {
+        return Book::findOne($id);
+    }
 
-        if (!$this->load($params) || !$this->validate() || empty($this->globalSearch)) {
-            return $dataProvider;
+    public function findByIdWithAuthors(int $id): Book|null
+    {
+        return Book::find()->byId($id)->withAuthors()->one();
+    }
+
+    public function search(string $term, int $pageSize = 9): ActiveDataProvider
+    {
+        $query = $this->findAllWithAuthors();
+
+        if ($term !== '') {
+            $this->applySearchConditions($query, $term);
         }
 
-        $this->applySearchConditions($query);
-
-        return $dataProvider;
+        return new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => ['pageSize' => $pageSize],
+        ]);
     }
 
-    private function applySearchConditions(ActiveQuery $query): void
+    private function applySearchConditions(ActiveQuery $query, string $term): void
     {
-        $term = $this->globalSearch;
         $conditions = ['or'];
 
         if (preg_match('/^\d{4}$/', $term)) {
@@ -70,11 +78,7 @@ final class BookSearch extends Model
         $term = preg_replace('/[+\-><()~*\"@]+/', ' ', $term);
         $words = array_filter(explode(' ', trim($term)));
 
-        if (empty($words)) {
-            return '';
-        }
-
-        return '+' . implode('* +', $words) . '*';
+        return empty($words) ? '' : '+' . implode('* +', $words) . '*';
     }
 
     private function buildAuthorCondition(string $term): array

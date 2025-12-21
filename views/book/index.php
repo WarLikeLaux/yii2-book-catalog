@@ -29,12 +29,8 @@ $this->params['breadcrumbs'][] = $this->title;
             'isbn',
             [
                 'attribute' => 'authors',
-                'value' => function (Book $model) {
-                    $authors = [];
-                    foreach ($model->authors as $author) {
-                        $authors[] = $author->fio;
-                    }
-                    return implode(', ', $authors);
+                'value' => function (app\application\books\queries\BookReadDto $model) {
+                    return implode(', ', $model->authorNames);
                 },
             ],
             [

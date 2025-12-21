@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\jobs;
 
-use app\models\Subscription;
-use Psr\Log\LoggerInterface;
+use app\application\subscriptions\queries\SubscriptionQueryService;
+use app\services\YiiPsrLogger;
 use Yii;
 use yii\base\BaseObject;
 use yii\queue\db\Queue;
@@ -15,38 +15,26 @@ use yii\queue\RetryableJobInterface;
 final class NotifySubscribersJob extends BaseObject implements Job, RetryableJobInterface
 {
     private const int TTR_SECONDS = 300;
-    private const int BATCH_SIZE = 100;
 
     public int $bookId;
     public string $title;
 
     public function execute($queue): void
     {
-        $logger = Yii::$container->get(LoggerInterface::class);
-        $jobQueue = Yii::$container->get(Queue::class);
-
-        $query = Subscription::find()
-            ->alias('s')
-            ->select('s.phone')
-            ->distinct()
-            ->innerJoin('book_authors ba', 'ba.author_id = s.author_id')
-            ->andWhere(['ba.book_id' => $this->bookId]);
+        $logger = new YiiPsrLogger('sms');
+        $jobQueue = Yii::$app->get('queue');
+        $queryService = Yii::$container->get(SubscriptionQueryService::class);
 
         $message = "Вышла новая книга: {$this->title}";
         $totalDispatched = 0;
 
-        foreach ($query->batch(self::BATCH_SIZE) as $batch) {
-            foreach ($batch as $row) {
-                $phone = $row['phone'];
-
-                $jobQueue->push(new NotifySingleSubscriberJob([
-                    'phone' => $phone,
-                    'message' => $message,
-                    'bookId' => $this->bookId,
-                ]));
-
-                $totalDispatched++;
-            }
+        foreach ($queryService->getSubscriberPhonesForBook($this->bookId) as $phone) {
+            $jobQueue->push(new NotifySingleSubscriberJob([
+                'phone' => $phone,
+                'message' => $message,
+                'bookId' => $this->bookId,
+            ]));
+            $totalDispatched++;
         }
 
         $logger->info('SMS notification jobs dispatched', [

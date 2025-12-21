@@ -9,6 +9,19 @@ use Codeception\Test\Unit;
 
 final class SubscriptionFormTest extends Unit
 {
+    protected function _before(): void
+    {
+        \Yii::$app->db->createCommand()->insert('authors', [
+            'id' => 1,
+            'fio' => 'Test Author',
+        ])->execute();
+    }
+
+    protected function _after(): void
+    {
+        \Yii::$app->db->createCommand()->delete('authors', ['id' => 1])->execute();
+    }
+
     public function testPhoneNormalizedToE164(): void
     {
         $form = new SubscriptionForm();

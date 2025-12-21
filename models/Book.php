@@ -11,6 +11,11 @@ use yii\db\ActiveRecord;
 
 final class Book extends ActiveRecord
 {
+    public static function find(): BookQuery
+    {
+        return new BookQuery(static::class);
+    }
+
     public static function tableName(): string
     {
         return 'books';

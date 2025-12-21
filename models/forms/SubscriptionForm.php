@@ -4,21 +4,26 @@ declare(strict_types=1);
 
 namespace app\models\forms;
 
+use app\models\Author;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
+use Yii;
 use yii\base\Model;
 
 final class SubscriptionForm extends Model
 {
-    public string $phone = '';
-    public int $authorId = 0;
+    /** @var string */
+    public $phone = '';
+    /** @var int|string */
+    public $authorId = 0;
 
     public function rules(): array
     {
         return [
             [['phone', 'authorId'], 'required'],
             [['authorId'], 'integer'],
+            [['authorId'], 'exist', 'targetClass' => Author::class, 'targetAttribute' => 'id'],
             [['phone'], 'trim'],
             [['phone'], 'string', 'max' => 20],
             [['phone'], 'validatePhone'],
@@ -28,17 +33,11 @@ final class SubscriptionForm extends Model
     public function attributeLabels(): array
     {
         return [
-            'phone' => 'Телефон',
-            'authorId' => 'Автор',
+            'phone' => Yii::t('app', 'Phone'),
+            'authorId' => Yii::t('app', 'Author'),
         ];
     }
 
-    /**
-     * Validates phone number format using libphonenumber.
-     * Accepts international format with country code.
-     *
-     * @throws NumberParseException When phone format is invalid
-     */
     public function validatePhone(string $attribute): void
     {
         $phoneUtil = PhoneNumberUtil::getInstance();
@@ -47,13 +46,13 @@ final class SubscriptionForm extends Model
             $phoneNumber = $phoneUtil->parse($this->$attribute, PhoneNumberUtil::UNKNOWN_REGION);
 
             if (!$phoneUtil->isValidNumber($phoneNumber)) {
-                $this->addError($attribute, 'Неверный формат телефона');
+                $this->addError($attribute, Yii::t('app', 'Invalid phone format'));
                 return;
             }
 
             $this->$attribute = $phoneUtil->format($phoneNumber, PhoneNumberFormat::E164);
         } catch (NumberParseException) {
-            $this->addError($attribute, 'Неверный формат телефона. Используйте международный формат с кодом страны (например, +79991234567)');
+            $this->addError($attribute, Yii::t('app', 'Invalid phone format. Use international format (e.g., +79991234567)'));
         }
     }
 }

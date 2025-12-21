@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\validators;
 
+use Yii;
 use yii\validators\Validator;
 
 /**
@@ -12,7 +13,15 @@ use yii\validators\Validator;
  */
 final class IsbnValidator extends Validator
 {
-    public $message = 'Некорректный ISBN. Используйте ISBN-10 или ISBN-13 формат.';
+    public $message;
+
+    public function init(): void
+    {
+        parent::init();
+        if ($this->message === null) {
+            $this->message = Yii::t('app', 'Invalid ISBN. Use ISBN-10 or ISBN-13 format.');
+        }
+    }
 
     public function validateAttribute($model, $attribute): void
     {

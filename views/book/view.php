@@ -1,6 +1,9 @@
 <?php
 
-use app\models\Book;
+declare(strict_types=1);
+
+/** @var app\application\books\queries\BookReadDto $book */
+
 use yii\helpers\Html;
 
 $this->title = $book->title;
@@ -41,22 +44,13 @@ $this->params['breadcrumbs'][] = $this->title;
         </tr>
         <tr>
             <th>Авторы</th>
-            <td>
-                <?php
-                $authors = [];
-                foreach ($book->authors as $author) {
-                    $authors[] = Html::encode($author->fio);
-                }
-                echo implode(', ', $authors);
-                ?>
-            </td>
+            <td><?= Html::encode(implode(', ', $book->authorNames)) ?></td>
         </tr>
-        <?php if ($book->cover_url): ?>
+        <?php if ($book->coverUrl): ?>
         <tr>
             <th>Обложка</th>
-            <td><?= Html::img($book->cover_url, ['alt' => $book->title, 'style' => 'max-width: 300px;']) ?></td>
+            <td><?= Html::img($book->coverUrl, ['alt' => $book->title, 'style' => 'max-width: 300px;']) ?></td>
         </tr>
         <?php endif; ?>
     </table>
 </div>
-

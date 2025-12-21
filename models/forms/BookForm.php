@@ -7,24 +7,28 @@ namespace app\models\forms;
 use app\models\Author;
 use app\models\Book;
 use app\validators\IsbnValidator;
+use Yii;
 use yii\base\Model;
 use yii\web\Request;
 use yii\web\UploadedFile;
 
 final class BookForm extends Model
 {
-    public ?int $id = null;
-    public string $title = '';
-    public ?int $year = null;
-    public string $description = '';
-    public string $isbn = '';
-    public array $authorIds = [];
-    public UploadedFile|string|null $cover = null;
+    /** @var int|string|null */
+    public $id = null;
+    /** @var string */
+    public $title = '';
+    /** @var int|string|null */
+    public $year = null;
+    /** @var string */
+    public $description = '';
+    /** @var string */
+    public $isbn = '';
+    /** @var array|string */
+    public $authorIds = [];
+    /** @var UploadedFile|string|null */
+    public $cover = null;
 
-    /**
-     * Loads form data and uploaded file from HTTP request.
-     * Encapsulates request handling to avoid duplication in controller actions.
-     */
     public function loadFromRequest(Request $request): bool
     {
         $isLoaded = $this->load($request->post());
@@ -67,12 +71,12 @@ final class BookForm extends Model
     public function attributeLabels(): array
     {
         return [
-            'title' => 'Название',
-            'year' => 'Год выпуска',
-            'description' => 'Описание',
-            'isbn' => 'ISBN',
-            'cover' => 'Обложка',
-            'authorIds' => 'Авторы',
+            'title' => Yii::t('app', 'Title'),
+            'year' => Yii::t('app', 'Year'),
+            'description' => Yii::t('app', 'Description'),
+            'isbn' => Yii::t('app', 'ISBN'),
+            'cover' => Yii::t('app', 'Cover'),
+            'authorIds' => Yii::t('app', 'Authors'),
         ];
     }
 }
