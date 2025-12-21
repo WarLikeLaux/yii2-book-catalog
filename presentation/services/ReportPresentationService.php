@@ -34,7 +34,7 @@ final class ReportPresentationService
         $criteria = $this->reportCriteriaMapper->toCriteria($form);
         $data = $this->useCaseExecutor->query(
             fn() => $this->reportQueryService->getTopAuthorsReport($criteria),
-            $this->reportQueryService->getEmptyTopAuthorsReport($form->year),
+            $this->reportQueryService->getEmptyTopAuthorsReport($form->year ? (int)$form->year : null),
             Yii::t('app', 'Error while generating report. Please contact administrator.')
         );
 
