@@ -9,6 +9,7 @@ use app\application\authors\queries\AuthorReadDto;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\models\forms\AuthorForm;
+use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\dto\AuthorCreateFormResult;
 use app\presentation\dto\AuthorUpdateFormResult;
 use app\presentation\mappers\AuthorFormMapper;
@@ -23,7 +24,8 @@ final class AuthorFormPreparationService
         private readonly AuthorQueryService $authorQueryService,
         private readonly CreateAuthorUseCase $createAuthorUseCase,
         private readonly UpdateAuthorUseCase $updateAuthorUseCase,
-        private readonly UseCaseExecutor $useCaseExecutor
+        private readonly UseCaseExecutor $useCaseExecutor,
+        private readonly PagedResultDataProviderFactory $dataProviderFactory
     ) {
     }
 
@@ -38,9 +40,30 @@ final class AuthorFormPreparationService
         return $this->authorFormMapper->toForm($dto);
     }
 
-    public function processCreateRequest(Request $request): AuthorCreateFormResult
+    public function prepareCreateViewData(): array
     {
         $form = new AuthorForm();
+
+        return [
+            'model' => $form,
+        ];
+    }
+
+    public function prepareIndexViewData(Request $request): array
+    {
+        $page = max(1, (int)$request->get('page', 1));
+        $queryResult = $this->authorQueryService->getIndexProvider($page);
+        $dataProvider = $this->dataProviderFactory->create($queryResult);
+
+        return [
+            'dataProvider' => $dataProvider,
+        ];
+    }
+
+    public function processCreateRequest(Request $request): AuthorCreateFormResult
+    {
+        $viewData = $this->prepareCreateViewData();
+        $form = $viewData['model'];
 
         if (!$form->load($request->post()) || !$form->validate()) {
             return new AuthorCreateFormResult($form, false);

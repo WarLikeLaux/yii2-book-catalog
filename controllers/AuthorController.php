@@ -7,7 +7,6 @@ namespace app\controllers;
 use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\authors\queries\AuthorQueryService;
 use app\application\authors\usecases\DeleteAuthorUseCase;
-use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\AuthorFormPreparationService;
 use app\presentation\services\AuthorSearchPresentationService;
 use app\presentation\UseCaseExecutor;
@@ -26,7 +25,6 @@ final class AuthorController extends Controller
         private readonly AuthorFormPreparationService $authorFormPreparationService,
         private readonly AuthorQueryService $authorQueryService,
         private readonly AuthorSearchPresentationService $authorSearchPresentationService,
-        private readonly PagedResultDataProviderFactory $dataProviderFactory,
         private readonly UseCaseExecutor $useCaseExecutor,
         $config = []
     ) {
@@ -61,13 +59,8 @@ final class AuthorController extends Controller
 
     public function actionIndex(): string
     {
-        $page = max(1, (int)$this->request->get('page', 1));
-        $queryResult = $this->authorQueryService->getIndexProvider($page);
-        $dataProvider = $this->dataProviderFactory->create($queryResult);
-
-        return $this->render('index', [
-            'dataProvider' => $dataProvider,
-        ]);
+        $viewData = $this->authorFormPreparationService->prepareIndexViewData($this->request);
+        return $this->render('index', $viewData);
     }
 
     public function actionView(int $id): string
@@ -80,7 +73,8 @@ final class AuthorController extends Controller
     public function actionCreate(): string|Response
     {
         if (!$this->request->isPost) {
-            return $this->render('create', ['model' => new \app\models\forms\AuthorForm()]);
+            $viewData = $this->authorFormPreparationService->prepareCreateViewData();
+            return $this->render('create', $viewData);
         }
 
         $result = $this->authorFormPreparationService->processCreateRequest($this->request);
