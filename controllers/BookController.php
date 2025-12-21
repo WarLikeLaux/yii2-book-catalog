@@ -6,11 +6,8 @@ namespace app\controllers;
 
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\queries\BookQueryService;
-use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
-use app\application\books\usecases\UpdateBookUseCase;
 use app\presentation\adapters\PagedResultDataProviderFactory;
-use app\presentation\mappers\BookFormMapper;
 use app\presentation\services\BookFormPreparationService;
 use app\presentation\UseCaseExecutor;
 use Yii;
@@ -18,17 +15,13 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\Response;
-use yii\widgets\ActiveForm;
 
 final class BookController extends Controller
 {
     public function __construct(
         $id,
         $module,
-        private readonly CreateBookUseCase $createBookUseCase,
-        private readonly UpdateBookUseCase $updateBookUseCase,
         private readonly DeleteBookUseCase $deleteBookUseCase,
-        private readonly BookFormMapper $bookFormMapper,
         private readonly BookFormPreparationService $bookFormPreparationService,
         private readonly BookQueryService $bookQueryService,
         private readonly PagedResultDataProviderFactory $dataProviderFactory,
@@ -75,67 +68,42 @@ final class BookController extends Controller
 
     public function actionCreate(): string|Response|array
     {
-        $viewData = $this->bookFormPreparationService->prepareCreateViewData();
-        $form = $viewData['model'];
-
         if (!$this->request->isPost) {
+            $viewData = $this->bookFormPreparationService->prepareCreateViewData();
             return $this->render('create', $viewData);
         }
 
-        $form->loadFromRequest($this->request);
+        $result = $this->bookFormPreparationService->processCreateRequest($this->request, $this->response);
 
-        if ($this->request->isAjax) {
-            $this->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($form);
+        if ($result->ajaxValidation !== null) {
+            return $result->ajaxValidation;
         }
 
-        if (!$form->validate()) {
-            return $this->render('create', $viewData);
+        if ($result->success && $result->redirectRoute !== null) {
+            return $this->redirect($result->redirectRoute);
         }
 
-        $command = $this->bookFormMapper->toCreateCommand($form);
-        $success = $this->useCaseExecutor->execute(
-            fn() => $this->createBookUseCase->execute($command),
-            Yii::t('app', 'Book has been created')
-        );
-        if ($success) {
-            return $this->redirect(['index']);
-        }
-
-        return $this->render('create', $viewData);
+        return $this->render('create', $result->viewData);
     }
 
     public function actionUpdate(int $id): string|Response|array
     {
-        $viewData = $this->bookFormPreparationService->prepareUpdateViewData($id);
-        $form = $viewData['model'];
-
         if (!$this->request->isPost) {
+            $viewData = $this->bookFormPreparationService->prepareUpdateViewData($id);
             return $this->render('update', $viewData);
         }
 
-        $form->loadFromRequest($this->request);
+        $result = $this->bookFormPreparationService->processUpdateRequest($id, $this->request, $this->response);
 
-        if ($this->request->isAjax) {
-            $this->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($form);
+        if ($result->ajaxValidation !== null) {
+            return $result->ajaxValidation;
         }
 
-        if (!$form->validate()) {
-            return $this->render('update', $viewData);
+        if ($result->success && $result->redirectRoute !== null) {
+            return $this->redirect($result->redirectRoute);
         }
 
-        $command = $this->bookFormMapper->toUpdateCommand($id, $form);
-        $success = $this->useCaseExecutor->execute(
-            fn() => $this->updateBookUseCase->execute($command),
-            Yii::t('app', 'Book has been updated'),
-            ['book_id' => $id]
-        );
-        if ($success) {
-            return $this->redirect(['view', 'id' => $id]);
-        }
-
-        return $this->render('update', $viewData);
+        return $this->render('update', $result->viewData);
     }
 
     public function actionDelete(int $id): Response

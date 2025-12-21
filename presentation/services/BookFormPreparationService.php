@@ -7,15 +7,27 @@ namespace app\presentation\services;
 use app\application\authors\queries\AuthorQueryService;
 use app\application\books\queries\BookQueryService;
 use app\application\books\queries\BookReadDto;
+use app\application\books\usecases\CreateBookUseCase;
+use app\application\books\usecases\UpdateBookUseCase;
 use app\models\forms\BookForm;
+use app\presentation\dto\CreateFormResult;
+use app\presentation\dto\UpdateFormResult;
 use app\presentation\mappers\BookFormMapper;
+use app\presentation\UseCaseExecutor;
+use Yii;
+use yii\web\Request;
+use yii\web\Response;
+use yii\widgets\ActiveForm;
 
 final class BookFormPreparationService
 {
     public function __construct(
         private readonly BookFormMapper $bookFormMapper,
         private readonly BookQueryService $bookQueryService,
-        private readonly AuthorQueryService $authorQueryService
+        private readonly AuthorQueryService $authorQueryService,
+        private readonly CreateBookUseCase $createBookUseCase,
+        private readonly UpdateBookUseCase $updateBookUseCase,
+        private readonly UseCaseExecutor $useCaseExecutor
     ) {
     }
 
@@ -52,5 +64,70 @@ final class BookFormPreparationService
             'model' => $form,
             'authors' => $authors,
         ];
+    }
+
+    public function processCreateRequest(Request $request, Response $response): CreateFormResult
+    {
+        $viewData = $this->prepareCreateViewData();
+        $form = $viewData['model'];
+
+        if (!$form->loadFromRequest($request)) {
+            return new CreateFormResult($form, $viewData, false);
+        }
+
+        if ($request->isAjax) {
+            $response->format = Response::FORMAT_JSON;
+            $ajaxValidation = ActiveForm::validate($form);
+            return new CreateFormResult($form, $viewData, false, null, $ajaxValidation);
+        }
+
+        if (!$form->validate()) {
+            return new CreateFormResult($form, $viewData, false);
+        }
+
+        $command = $this->bookFormMapper->toCreateCommand($form);
+        $success = $this->useCaseExecutor->execute(
+            fn() => $this->createBookUseCase->execute($command),
+            Yii::t('app', 'Book has been created')
+        );
+
+        if ($success) {
+            return new CreateFormResult($form, $viewData, true, ['index']);
+        }
+
+        return new CreateFormResult($form, $viewData, false);
+    }
+
+    public function processUpdateRequest(int $id, Request $request, Response $response): UpdateFormResult
+    {
+        $viewData = $this->prepareUpdateViewData($id);
+        $form = $viewData['model'];
+
+        if (!$form->loadFromRequest($request)) {
+            return new UpdateFormResult($form, $viewData, false);
+        }
+
+        if ($request->isAjax) {
+            $response->format = Response::FORMAT_JSON;
+            $ajaxValidation = ActiveForm::validate($form);
+            return new UpdateFormResult($form, $viewData, false, null, $ajaxValidation);
+        }
+
+        if (!$form->validate()) {
+            return new UpdateFormResult($form, $viewData, false);
+        }
+
+        $command = $this->bookFormMapper->toUpdateCommand($id, $form);
+        $success = $this->useCaseExecutor->execute(
+            fn() => $this->updateBookUseCase->execute($command),
+            Yii::t('app', 'Book has been updated'),
+            ['book_id' => $id]
+        );
+
+        if ($success) {
+            return new UpdateFormResult($form, $viewData, true, ['view', 'id' => $id]);
+        }
+
+        return new UpdateFormResult($form, $viewData, false);
     }
 }

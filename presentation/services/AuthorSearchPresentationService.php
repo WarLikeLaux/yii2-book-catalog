@@ -8,6 +8,7 @@ use app\application\authors\queries\AuthorQueryService;
 use app\presentation\mappers\AuthorSearchCriteriaMapper;
 use app\presentation\mappers\AuthorSelect2Mapper;
 use yii\web\Request;
+use yii\web\Response;
 
 final class AuthorSearchPresentationService
 {
@@ -18,8 +19,10 @@ final class AuthorSearchPresentationService
     ) {
     }
 
-    public function search(Request $request): array
+    public function search(Request $request, Response $response): array
     {
+        $response->format = Response::FORMAT_JSON;
+
         $requestParams = $request->get();
         $form = $this->authorSearchCriteriaMapper->toForm($requestParams);
         if (!$form->validate()) {
@@ -27,8 +30,8 @@ final class AuthorSearchPresentationService
         }
 
         $criteria = $this->authorSearchCriteriaMapper->toCriteria($form);
-        $response = $this->authorQueryService->search($criteria);
+        $responseData = $this->authorQueryService->search($criteria);
 
-        return $this->authorSelect2Mapper->mapToSelect2($response);
+        return $this->authorSelect2Mapper->mapToSelect2($responseData);
     }
 }

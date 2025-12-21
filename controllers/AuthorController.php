@@ -6,12 +6,8 @@ namespace app\controllers;
 
 use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\authors\queries\AuthorQueryService;
-use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
-use app\application\authors\usecases\UpdateAuthorUseCase;
-use app\models\forms\AuthorForm;
 use app\presentation\adapters\PagedResultDataProviderFactory;
-use app\presentation\mappers\AuthorFormMapper;
 use app\presentation\services\AuthorFormPreparationService;
 use app\presentation\services\AuthorSearchPresentationService;
 use app\presentation\UseCaseExecutor;
@@ -26,10 +22,7 @@ final class AuthorController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly CreateAuthorUseCase $createAuthorUseCase,
-        private readonly UpdateAuthorUseCase $updateAuthorUseCase,
         private readonly DeleteAuthorUseCase $deleteAuthorUseCase,
-        private readonly AuthorFormMapper $authorFormMapper,
         private readonly AuthorFormPreparationService $authorFormPreparationService,
         private readonly AuthorQueryService $authorQueryService,
         private readonly AuthorSearchPresentationService $authorSearchPresentationService,
@@ -86,51 +79,33 @@ final class AuthorController extends Controller
 
     public function actionCreate(): string|Response
     {
-        $form = new AuthorForm();
-
         if (!$this->request->isPost) {
-            return $this->render('create', ['model' => $form]);
+            return $this->render('create', ['model' => new \app\models\forms\AuthorForm()]);
         }
 
-        if (!$form->load($this->request->post()) || !$form->validate()) {
-            return $this->render('create', ['model' => $form]);
+        $result = $this->authorFormPreparationService->processCreateRequest($this->request);
+
+        if ($result->success && $result->redirectRoute !== null) {
+            return $this->redirect($result->redirectRoute);
         }
 
-        $command = $this->authorFormMapper->toCreateCommand($form);
-        $success = $this->useCaseExecutor->execute(
-            fn() => $this->createAuthorUseCase->execute($command),
-            Yii::t('app', 'Author has been created')
-        );
-        if ($success) {
-            return $this->redirect(['index']);
-        }
-
-        return $this->render('create', ['model' => $form]);
+        return $this->render('create', ['model' => $result->form]);
     }
 
     public function actionUpdate(int $id): string|Response
     {
-        $form = $this->authorFormPreparationService->prepareUpdateForm($id);
-
         if (!$this->request->isPost) {
+            $form = $this->authorFormPreparationService->prepareUpdateForm($id);
             return $this->render('update', ['model' => $form]);
         }
 
-        if (!$form->load($this->request->post()) || !$form->validate()) {
-            return $this->render('update', ['model' => $form]);
+        $result = $this->authorFormPreparationService->processUpdateRequest($id, $this->request);
+
+        if ($result->success && $result->redirectRoute !== null) {
+            return $this->redirect($result->redirectRoute);
         }
 
-        $command = $this->authorFormMapper->toUpdateCommand($id, $form);
-        $success = $this->useCaseExecutor->execute(
-            fn() => $this->updateAuthorUseCase->execute($command),
-            Yii::t('app', 'Author has been updated'),
-            ['author_id' => $id]
-        );
-        if ($success) {
-            return $this->redirect(['index']);
-        }
-
-        return $this->render('update', ['model' => $form]);
+        return $this->render('update', ['model' => $result->form]);
     }
 
     public function actionDelete(int $id): Response
@@ -147,8 +122,6 @@ final class AuthorController extends Controller
 
     public function actionSearch(): array
     {
-        $this->response->format = Response::FORMAT_JSON;
-
-        return $this->authorSearchPresentationService->search($this->request);
+        return $this->authorSearchPresentationService->search($this->request, $this->response);
     }
 }
