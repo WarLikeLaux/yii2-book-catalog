@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace app\application\common\adapters;
 
 use app\application\common\dto\PaginationDto;
-use app\interfaces\QueryResultInterface;
+use app\application\ports\PagedResultInterface;
 
-final class QueryResult implements QueryResultInterface
+final class QueryResult implements PagedResultInterface
 {
     public function __construct(
         private readonly array $models,

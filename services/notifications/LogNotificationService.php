@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\services\notifications;
 
-use app\interfaces\NotificationInterface;
+use app\application\ports\NotificationInterface;
 use Psr\Log\LoggerInterface;
 
 final class LogNotificationService implements NotificationInterface

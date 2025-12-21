@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\application\common;
 
+use app\application\ports\NotificationInterface;
 use app\domain\exceptions\DomainException;
-use app\interfaces\NotificationInterface;
 use Psr\Log\LoggerInterface;
 use Yii;
 

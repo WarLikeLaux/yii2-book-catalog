@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\services\notifications;
 
-use app\interfaces\NotificationInterface;
+use app\application\ports\NotificationInterface;
 use Yii;
 
 final class FlashNotificationService implements NotificationInterface
