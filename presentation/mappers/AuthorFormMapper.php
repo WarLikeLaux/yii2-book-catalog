@@ -7,7 +7,7 @@ namespace app\presentation\mappers;
 use app\application\authors\commands\CreateAuthorCommand;
 use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\authors\queries\AuthorReadDto;
-use app\models\forms\AuthorForm;
+use app\presentation\forms\AuthorForm;
 
 final class AuthorFormMapper
 {

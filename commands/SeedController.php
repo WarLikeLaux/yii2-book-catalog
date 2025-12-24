@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\commands;
 
-use app\models\Author;
-use app\models\Book;
+use app\infrastructure\persistence\Author;
+use app\infrastructure\persistence\Book;
 use Yii;
 use yii\console\Controller;
 use yii\console\ExitCode;

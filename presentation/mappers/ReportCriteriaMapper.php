@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\mappers;
 
 use app\application\reports\queries\ReportCriteria;
-use app\models\forms\ReportFilterForm;
+use app\presentation\forms\ReportFilterForm;
 use yii\web\Request;
 
 final class ReportCriteriaMapper

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\dto;
 
-use app\models\forms\AuthorForm;
+use app\presentation\forms\AuthorForm;
 
 final class AuthorUpdateFormResult
 {

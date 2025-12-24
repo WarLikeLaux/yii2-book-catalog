@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\mappers;
 
 use app\application\authors\queries\AuthorSearchCriteria;
-use app\models\forms\AuthorSearchForm;
+use app\presentation\forms\AuthorSearchForm;
 
 final class AuthorSearchCriteriaMapper
 {

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use app\models\Author;
-use app\models\Book;
-use app\models\User;
+use app\infrastructure\persistence\Author;
+use app\infrastructure\persistence\Book;
+use app\infrastructure\persistence\User;
 
 final class ReportCest
 {

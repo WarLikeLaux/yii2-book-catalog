@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\dto;
 
-use app\models\forms\BookForm;
+use app\presentation\forms\BookForm;
 
 final class BookCreateFormResult
 {

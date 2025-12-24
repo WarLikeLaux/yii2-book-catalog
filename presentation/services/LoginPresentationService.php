@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\services;
 
-use app\models\forms\LoginForm;
+use app\presentation\forms\LoginForm;
 use Yii;
 use yii\web\Request;
 use yii\web\Response;

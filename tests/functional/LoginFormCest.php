@@ -1,6 +1,6 @@
 <?php
 
-use app\models\User;
+use app\infrastructure\persistence\User;
 
 class LoginFormCest
 {

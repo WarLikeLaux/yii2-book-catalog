@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace app\infrastructure\repositories;
 
 use app\application\books\queries\BookReadDto;
-use app\application\common\adapters\QueryResult;
 use app\application\common\dto\PaginationDto;
+use app\application\common\dto\QueryResult;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
-use app\models\Author;
-use app\models\Book;
+use app\infrastructure\persistence\Author;
+use app\infrastructure\persistence\Book;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
 use yii\db\Expression;

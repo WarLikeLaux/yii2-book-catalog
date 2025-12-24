@@ -7,8 +7,8 @@ namespace app\presentation\mappers;
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\UpdateBookCommand;
 use app\application\books\queries\BookReadDto;
-use app\interfaces\FileStorageInterface;
-use app\models\forms\BookForm;
+use app\application\ports\FileStorageInterface;
+use app\presentation\forms\BookForm;
 use yii\web\UploadedFile;
 
 final class BookFormMapper

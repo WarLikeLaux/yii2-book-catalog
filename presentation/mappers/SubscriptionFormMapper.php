@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\mappers;
 
 use app\application\subscriptions\commands\SubscribeCommand;
-use app\models\forms\SubscriptionForm;
+use app\presentation\forms\SubscriptionForm;
 
 final class SubscriptionFormMapper
 {
