@@ -18,7 +18,7 @@ $config = [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
-    'language' => 'en-US',
+    'language' => 'ru-RU',
     'container' => $container,
     'components' => [
         'db' => $db,

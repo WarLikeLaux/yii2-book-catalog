@@ -1,6 +1,7 @@
 COMPOSE=docker compose
 PHP_CONTAINER=php
 QUEUE_CONTAINER=queue
+DB_TEST_NAME=yii2basic_test
 
 include .env
 export
@@ -13,8 +14,6 @@ up:
 
 down:
 	$(COMPOSE) down
-
-restart: down up
 
 restart: down up
 
@@ -52,33 +51,25 @@ queue-info:
 logs:
 	$(COMPOSE) logs -f
 
-test-db-create:
-	@echo "Creating test database..."
-	@$(COMPOSE) exec -T db sh -c 'mysql -uroot -p"$${MYSQL_ROOT_PASSWORD}" -h127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS yii2basic_test; GRANT ALL PRIVILEGES ON yii2basic_test.* TO \"$${MYSQL_USER}\"@\"%\"; FLUSH PRIVILEGES;"' 2>&1 | grep -v "Using a password" || true
-	@echo "✅ Test database created"
+# Internal: Prepare test database (create if not exists & migrate)
+_test-init:
+	@echo "🔧 Preparing test database..."
+	@$(COMPOSE) exec -T db sh -c 'mysql -uroot -p"$${MYSQL_ROOT_PASSWORD}" -h127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS $(DB_TEST_NAME); GRANT ALL PRIVILEGES ON $(DB_TEST_NAME).* TO \"$${MYSQL_USER}\"@\"%\"; FLUSH PRIVILEGES;"' 2>&1 | grep -v "Using a password" || true
+	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "DB_NAME=$(DB_TEST_NAME) ./yii migrate --interactive=0 --migrationPath=@app/migrations" > /dev/null
 
-test-db-migrate:
-	@echo "Running migrations for test database..."
-	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "DB_TEST_NAME=yii2basic_test ./yii migrate --interactive=0 --migrationPath=@app/migrations"
+test: _test-init
+	@echo "🚀 Running all tests..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors
 
-test-init: test-db-create test-db-migrate
-	@echo "✅ Test database initialized"
-
-test:
-	@echo "Running integration tests (use cases)..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional usecases --no-colors
-	@echo ""
-	@echo "Running functional tests (HTTP)..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional --no-colors
+test-coverage: _test-init
+	@echo "📊 Running tests with coverage..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --coverage-html
 
 test-unit:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit
 
-test-integration:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional usecases
-
-test-functional:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional --grep "BookCest|SubscriptionCest"
+test-functional: _test-init
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional
 
 test-acceptance:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run acceptance
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run acceptance
