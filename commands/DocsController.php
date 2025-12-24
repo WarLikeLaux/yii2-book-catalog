@@ -171,9 +171,11 @@ final class DocsController extends Controller
             $action = $match[1];
             preg_match_all("/'([a-zA-Z]+)'/", $match[2], $methodMatches);
             $methods = array_map('strtoupper', $methodMatches[1] ?? []);
-            if ($methods !== []) {
-                $actions[$action] = $methods;
+            if ($methods === []) {
+                continue;
             }
+
+            $actions[$action] = $methods;
         }
 
         return $actions;
@@ -329,9 +331,11 @@ final class DocsController extends Controller
             if (array_key_exists('alias', $route)) {
                 $lines[] = '    alias: ' . $this->yamlScalar($route['alias']);
             }
-            if (array_key_exists('view', $route)) {
-                $lines[] = '    view: ' . $this->yamlScalar($route['view']);
+            if (!array_key_exists('view', $route)) {
+                continue;
             }
+
+            $lines[] = '    view: ' . $this->yamlScalar($route['view']);
         }
 
         return implode("\n", $lines) . "\n";
@@ -409,9 +413,11 @@ final class DocsController extends Controller
             $method = $match[1];
             $body = $match[2];
             $relation = $this->parseRelationBody($method, $body);
-            if ($relation !== null) {
-                $relations[] = $relation;
+            if ($relation === null) {
+                continue;
             }
+
+            $relations[] = $relation;
         }
 
         return $relations;
@@ -497,7 +503,7 @@ final class DocsController extends Controller
         if (is_int($value) || is_float($value)) {
             return (string) $value;
         }
-        $escaped = addcslashes((string) $value, "\\\"");
+        $escaped = addcslashes((string) $value, '\\"');
         return '"' . $escaped . '"';
     }
 
