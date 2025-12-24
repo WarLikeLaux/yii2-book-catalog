@@ -1,0 +1,159 @@
+meta:
+  title: "Database Schema"
+  source: "generated"
+  updated_at: "2025-12-24T21:22:29+00:00"
+
+tables:
+  authors:
+    columns:
+      - name: "id"
+        type: "int"
+        nullable: false
+        default: null
+      - name: "fio"
+        type: "varchar(255)"
+        nullable: false
+        default: null
+    primary_key:
+      - "id"
+    foreign_keys:
+      []
+  book_authors:
+    columns:
+      - name: "book_id"
+        type: "int"
+        nullable: false
+        default: null
+      - name: "author_id"
+        type: "int"
+        nullable: false
+        default: null
+    primary_key:
+      - "book_id"
+      - "author_id"
+    foreign_keys:
+      - column: "author_id"
+        references: "authors.id"
+      - column: "book_id"
+        references: "books.id"
+  books:
+    columns:
+      - name: "id"
+        type: "int"
+        nullable: false
+        default: null
+      - name: "title"
+        type: "varchar(255)"
+        nullable: false
+        default: null
+      - name: "year"
+        type: "int"
+        nullable: false
+        default: null
+      - name: "description"
+        type: "text"
+        nullable: true
+        default: null
+      - name: "isbn"
+        type: "varchar(20)"
+        nullable: false
+        default: null
+      - name: "cover_url"
+        type: "varchar(500)"
+        nullable: true
+        default: null
+      - name: "created_at"
+        type: "int"
+        nullable: false
+        default: null
+      - name: "updated_at"
+        type: "int"
+        nullable: false
+        default: null
+    primary_key:
+      - "id"
+    foreign_keys:
+      []
+  migration:
+    columns:
+      - name: "version"
+        type: "varchar(180)"
+        nullable: false
+        default: null
+      - name: "apply_time"
+        type: "int"
+        nullable: true
+        default: null
+    primary_key:
+      - "version"
+    foreign_keys:
+      []
+  queue:
+    columns:
+      - name: "id"
+        type: "int"
+        nullable: false
+        default: null
+      - name: "channel"
+        type: "varchar(255)"
+        nullable: false
+        default: null
+      - name: "job"
+        type: "blob"
+        nullable: false
+        default: null
+      - name: "pushed_at"
+        type: "int"
+        nullable: false
+        default: null
+      - name: "ttr"
+        type: "int"
+        nullable: false
+        default: null
+      - name: "delay"
+        type: "int"
+        nullable: false
+        default: 0
+      - name: "priority"
+        type: "int unsigned"
+        nullable: false
+        default: 1024
+      - name: "reserved_at"
+        type: "int"
+        nullable: true
+        default: null
+      - name: "attempt"
+        type: "int"
+        nullable: true
+        default: null
+      - name: "done_at"
+        type: "int"
+        nullable: true
+        default: null
+    primary_key:
+      - "id"
+    foreign_keys:
+      []
+  subscriptions:
+    columns:
+      - name: "id"
+        type: "int"
+        nullable: false
+        default: null
+      - name: "phone"
+        type: "varchar(20)"
+        nullable: false
+        default: null
+      - name: "author_id"
+        type: "int"
+        nullable: false
+        default: null
+      - name: "created_at"
+        type: "int"
+        nullable: false
+        default: null
+    primary_key:
+      - "id"
+    foreign_keys:
+      - column: "author_id"
+        references: "authors.id"

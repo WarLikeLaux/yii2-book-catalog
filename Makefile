@@ -1,3 +1,5 @@
+.PHONY: init up down restart composer lint lint-fix migrate seed shell perms copy-env sms-logs queue-info logs test test-coverage test-unit test-functional test-acceptance docs
+
 COMPOSE=docker compose
 PHP_CONTAINER=php
 QUEUE_CONTAINER=queue
@@ -73,3 +75,6 @@ test-functional: _test-init
 
 test-acceptance:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run acceptance
+
+docs:
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/all
