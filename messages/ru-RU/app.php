@@ -9,7 +9,7 @@ return [
     'Book has been created' => 'Книга создана',
     'Book has been updated' => 'Книга обновлена',
     'Book has been deleted' => 'Книга удалена',
-    'Unexpected error occurred. Please contact administrator.' => 'Непредвиденная ошибка. Обратитесь к администратору.',
+    'error.unexpected' => 'Непредвиденная ошибка. Обратитесь к администратору.',
     'You are subscribed!' => 'Вы подписаны!',
     'Author not found' => 'Автор не найден',
     'Book not found' => 'Книга не найдена',

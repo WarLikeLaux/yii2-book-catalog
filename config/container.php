@@ -18,12 +18,14 @@ use app\application\ports\QueueInterface;
 use app\application\ports\ReportRepositoryInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\TransactionInterface;
+use app\application\ports\TranslatorInterface;
 use app\application\reports\queries\ReportQueryService;
 use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\application\subscriptions\usecases\SubscribeUseCase;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\adapters\YiiQueueAdapter;
 use app\infrastructure\adapters\YiiTransactionAdapter;
+use app\infrastructure\adapters\YiiTranslatorAdapter;
 use app\infrastructure\repositories\AuthorRepository;
 use app\infrastructure\repositories\BookRepository;
 use app\infrastructure\repositories\ReportRepository;
@@ -52,6 +54,7 @@ return [
             '/uploads'
         ),
         NotificationInterface::class => FlashNotificationService::class,
+        TranslatorInterface::class => YiiTranslatorAdapter::class,
         BookRepositoryInterface::class => BookRepository::class,
         AuthorRepositoryInterface::class => AuthorRepository::class,
         SubscriptionRepositoryInterface::class => SubscriptionRepository::class,
