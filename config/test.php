@@ -12,11 +12,13 @@ $container = require __DIR__ . '/container.php';
 $config = [
     'id' => 'basic-tests',
     'basePath' => dirname(__DIR__),
+    'controllerNamespace' => 'app\presentation\controllers',
+    'viewPath' => '@app/presentation/views',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
-    'language' => 'en-US',
+    'language' => 'ru-RU',
     'container' => $container,
     'components' => [
         'db' => $db,
@@ -32,7 +34,7 @@ $config = [
         ],
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
-            'viewPath' => '@app/mail',
+            'viewPath' => '@app/presentation/mail',
             // send all mails to a file by default.
             'useFileTransport' => true,
             'messageClass' => 'yii\symfonymailer\Message',
@@ -44,7 +46,7 @@ $config = [
             'showScriptName' => true,
         ],
         'user' => [
-            'identityClass' => 'app\models\User',
+            'identityClass' => 'app\infrastructure\persistence\User',
         ],
         'request' => [
             'cookieValidationKey' => 'test',

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace app\infrastructure\repositories;
 
 use app\application\ports\SubscriptionRepositoryInterface;
-use app\models\Subscription;
+use app\infrastructure\persistence\Subscription;
 use yii\db\Query;
 
 final class SubscriptionRepository implements SubscriptionRepositoryInterface

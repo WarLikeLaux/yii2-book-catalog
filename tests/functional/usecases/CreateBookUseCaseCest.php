@@ -5,9 +5,9 @@ declare(strict_types=1);
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\domain\exceptions\DomainException;
-use app\jobs\NotifySubscribersJob;
-use app\models\Author;
-use app\models\Book;
+use app\infrastructure\queue\NotifySubscribersJob;
+use app\infrastructure\persistence\Author;
+use app\infrastructure\persistence\Book;
 use yii\db\Query;
 use yii\queue\db\Queue;
 

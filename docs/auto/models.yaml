@@ -1,0 +1,36 @@
+meta:
+  title: "ActiveRecord Models"
+  source: "generated"
+  updated_at: "2025-12-24T21:22:29+00:00"
+
+models:
+  Author:
+    class: "app\\infrastructure\\persistence\\Author"
+    table: "authors"
+    behaviors:
+      []
+    relations:
+      - method: "getBooks()"
+        type: "hasMany"
+        target: "Book"
+        via: "book_authors"
+  Book:
+    class: "app\\infrastructure\\persistence\\Book"
+    table: "books"
+    behaviors:
+      - "TimestampBehavior"
+    relations:
+      - method: "getAuthors()"
+        type: "hasMany"
+        target: "Author"
+        via: "book_authors"
+  Subscription:
+    class: "app\\infrastructure\\persistence\\Subscription"
+    table: "subscriptions"
+    behaviors:
+      - "TimestampBehavior"
+    relations:
+      - method: "getAuthor()"
+        type: "hasOne"
+        target: "Author"
+        via: null

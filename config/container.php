@@ -13,31 +13,33 @@ use app\application\books\usecases\UpdateBookUseCase;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\EventPublisherInterface;
+use app\application\ports\FileStorageInterface;
 use app\application\ports\NotificationInterface;
 use app\application\ports\QueueInterface;
 use app\application\ports\ReportRepositoryInterface;
+use app\application\ports\SmsSenderInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\TransactionInterface;
+use app\application\ports\TranslatorInterface;
 use app\application\reports\queries\ReportQueryService;
 use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\application\subscriptions\usecases\SubscribeUseCase;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\adapters\YiiQueueAdapter;
 use app\infrastructure\adapters\YiiTransactionAdapter;
+use app\infrastructure\adapters\YiiTranslatorAdapter;
 use app\infrastructure\repositories\AuthorRepository;
 use app\infrastructure\repositories\BookRepository;
 use app\infrastructure\repositories\ReportRepository;
 use app\infrastructure\repositories\SubscriptionRepository;
-use app\interfaces\FileStorageInterface;
-use app\interfaces\SmsSenderInterface;
+use app\infrastructure\services\notifications\FlashNotificationService;
+use app\infrastructure\services\sms\SmsPilotSender;
+use app\infrastructure\services\storage\LocalFileStorage;
+use app\infrastructure\services\YiiPsrLogger;
 use app\presentation\adapters\PagedResultDataProviderFactory;
-use app\services\notifications\FlashNotificationService;
-use app\services\sms\SmsPilotSender;
-use app\services\storage\LocalFileStorage;
-use app\services\YiiPsrLogger;
-use app\validators\AuthorExistsValidator;
-use app\validators\UniqueFioValidator;
-use app\validators\UniqueIsbnValidator;
+use app\presentation\validators\AuthorExistsValidator;
+use app\presentation\validators\UniqueFioValidator;
+use app\presentation\validators\UniqueIsbnValidator;
 use Psr\Log\LoggerInterface;
 
 return [
@@ -52,6 +54,7 @@ return [
             '/uploads'
         ),
         NotificationInterface::class => FlashNotificationService::class,
+        TranslatorInterface::class => YiiTranslatorAdapter::class,
         BookRepositoryInterface::class => BookRepository::class,
         AuthorRepositoryInterface::class => AuthorRepository::class,
         SubscriptionRepositoryInterface::class => SubscriptionRepository::class,

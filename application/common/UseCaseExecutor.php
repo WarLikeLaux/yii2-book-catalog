@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace app\application\common;
 
 use app\application\ports\NotificationInterface;
+use app\application\ports\TranslatorInterface;
 use app\domain\exceptions\DomainException;
 use Psr\Log\LoggerInterface;
-use Yii;
 
 final class UseCaseExecutor
 {
     public function __construct(
         private readonly NotificationInterface $notifier,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly TranslatorInterface $translator
     ) {
     }
 
@@ -28,7 +29,7 @@ final class UseCaseExecutor
             return false;
         } catch (\Throwable $e) {
             $this->logger->error($e->getMessage(), array_merge($logContext, ['exception' => $e]));
-            $this->notifier->error(Yii::t('app', 'Unexpected error occurred. Please contact administrator.'));
+            $this->notifier->error($this->translator->translate('app', 'error.unexpected'));
             return false;
         }
     }
@@ -42,7 +43,7 @@ final class UseCaseExecutor
             return ['success' => false, 'message' => $e->getMessage()];
         } catch (\Throwable $e) {
             $this->logger->error($e->getMessage(), array_merge($logContext, ['exception' => $e]));
-            return ['success' => false, 'message' => Yii::t('app', 'Unexpected error occurred. Please contact administrator.')];
+            return ['success' => false, 'message' => $this->translator->translate('app', 'error.unexpected')];
         }
     }
 

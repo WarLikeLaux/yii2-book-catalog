@@ -5,8 +5,8 @@ declare(strict_types=1);
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\application\subscriptions\usecases\SubscribeUseCase;
 use app\domain\exceptions\DomainException;
-use app\models\Author;
-use app\models\Subscription;
+use app\infrastructure\persistence\Author;
+use app\infrastructure\persistence\Subscription;
 
 final class SubscribeUseCaseCest
 {

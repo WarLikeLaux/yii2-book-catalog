@@ -1,0 +1,17 @@
+# Project Context for LLMs
+
+## Architecture
+- /README.md: Project overview and structure
+
+## Database
+- /docs/auto/db.yaml: Auto-generated DB schema (source of truth)
+
+## Models
+- /docs/auto/models.yaml: Auto-generated ActiveRecord models and relations
+
+## Routes
+- /docs/auto/routes.yaml: Auto-generated HTTP routes for the app
+
+## Testing
+- /Makefile: Test commands
+- /tests: Functional, integration, acceptance, unit tests

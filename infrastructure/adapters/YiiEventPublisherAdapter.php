@@ -8,7 +8,7 @@ use app\application\ports\EventPublisherInterface;
 use app\application\ports\QueueInterface;
 use app\domain\events\BookCreatedEvent;
 use app\domain\events\DomainEvent;
-use app\jobs\NotifySubscribersJob;
+use app\infrastructure\queue\NotifySubscribersJob;
 
 final class YiiEventPublisherAdapter implements EventPublisherInterface
 {

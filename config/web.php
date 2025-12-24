@@ -11,6 +11,8 @@ $config = [
     'id' => 'basic',
     'name' => 'Yii 2 Book Catalog',
     'basePath' => dirname(__DIR__),
+    'controllerNamespace' => 'app\presentation\controllers',
+    'viewPath' => '@app/presentation/views',
     'language' => 'ru-RU',
     'sourceLanguage' => 'en-US',
     'bootstrap' => ['log'],
@@ -33,7 +35,7 @@ $config = [
             ],
         ],
         'user' => [
-            'identityClass' => 'app\models\User',
+            'identityClass' => 'app\infrastructure\persistence\User',
             'enableAutoLogin' => true,
         ],
         'errorHandler' => [
@@ -41,7 +43,7 @@ $config = [
         ],
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
-            'viewPath' => '@app/mail',
+            'viewPath' => '@app/presentation/mail',
             // send all mails to a file by default.
             'useFileTransport' => true,
         ],

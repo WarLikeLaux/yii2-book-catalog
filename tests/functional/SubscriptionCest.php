@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use app\models\Author;
-use app\models\Subscription;
+use app\infrastructure\persistence\Author;
+use app\infrastructure\persistence\Subscription;
 
 final class SubscriptionCest
 {

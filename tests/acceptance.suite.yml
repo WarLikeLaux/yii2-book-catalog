@@ -1,0 +1,12 @@
+actor: AcceptanceTester
+modules:
+    enabled:
+        - WebDriver:
+            url: http://php:80/
+            browser: chrome
+            host: selenium
+            port: 4444
+        - Yii2:
+            part: orm
+            entryScript: index-test.php
+            cleanup: false

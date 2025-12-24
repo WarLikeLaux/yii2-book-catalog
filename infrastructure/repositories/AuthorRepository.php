@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace app\infrastructure\repositories;
 
 use app\application\authors\queries\AuthorReadDto;
-use app\application\common\adapters\QueryResult;
 use app\application\common\dto\PaginationDto;
+use app\application\common\dto\QueryResult;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\PagedResultInterface;
-use app\models\Author;
+use app\infrastructure\persistence\Author;
 use yii\data\ActiveDataProvider;
 
 final class AuthorRepository implements AuthorRepositoryInterface

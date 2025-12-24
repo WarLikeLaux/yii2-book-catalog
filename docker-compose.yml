@@ -1,6 +1,7 @@
 services:
   php:
-    image: yiisoftware/yii2-php:8.4-fpm-nginx
+    build: .
+    image: yii2-app-custom
     volumes:
       - ~/.composer-docker/cache:/root/.composer/cache:delegated
       - ./:/app:delegated
@@ -30,7 +31,8 @@ services:
       interval: 5s
 
   queue:
-    image: yiisoftware/yii2-php:8.4-fpm-nginx
+    build: .
+    image: yii2-app-custom
     volumes:
       - ./:/app:delegated
     restart: on-failure
@@ -41,3 +43,9 @@ services:
       db:
         condition: service_healthy
     env_file: .env
+
+  selenium:
+    image: selenium/standalone-chrome:latest
+    shm_size: 2gb
+    ports:
+      - '4444:4444'

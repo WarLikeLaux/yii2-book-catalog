@@ -7,7 +7,7 @@ namespace app\presentation\services;
 use app\application\authors\queries\AuthorQueryService;
 use app\application\common\UseCaseExecutor;
 use app\application\subscriptions\usecases\SubscribeUseCase;
-use app\models\forms\SubscriptionForm;
+use app\presentation\forms\SubscriptionForm;
 use app\presentation\mappers\SubscriptionFormMapper;
 use Yii;
 use yii\web\Request;
