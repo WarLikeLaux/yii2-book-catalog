@@ -33,7 +33,7 @@
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
 *   **Controllers:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Не содержат бизнес-логику, маппинг, валидацию, загрузку форм или извлечение параметров запроса. Все контроллеры (`BookController`, `AuthorController`, `SiteController`) следуют единому паттерну: делегируют всю логику представления в Presentation Services.
-*   **Forms (`models/forms`, namespace: `app\models\forms`):** Валидация входных данных через `FormModel`.
+*   **Forms (`presentation/forms`, namespace: `app\presentation\forms`):** Валидация входных данных через `FormModel`.
 *   **Mappers (`presentation/mappers`, namespace: `app\presentation\mappers`):** Перевод форм в команды/criteria и обратно (DTO ↔ Form).
 *   **Presentation Services (`presentation/services`, namespace: `app\presentation\services`):** Инкапсулируют всю логику представления:
     *   **Form Preparation Services:**
@@ -105,7 +105,7 @@ class BookFormPreparationService {
 
 ### 5. DTO & Forms для валидации
 Слой представления отделен от домена.
-*   **Forms (`models/forms`, namespace: `app\models\forms`):** Валидируют сырые пользовательские данные (HTTP request).
+*   **Forms (`presentation/forms`, namespace: `app\presentation\forms`):** Валидируют сырые пользовательские данные (HTTP request).
 *   **Command DTO (`application/**/commands`, namespace: `app\application\**\commands`):** Передают уже валидные данные в ядро приложения.
 *   **Result DTO (`presentation/dto`, namespace: `app\presentation\dto`):** Типизированные результаты обработки форм для передачи между Presentation Services и контроллерами.
 *   **PaginationDto (`application/common/dto`, namespace: `app\application\common\dto`):** Чистый DTO для пагинации без зависимостей от фреймворка. Репозитории создают его вручную из параметров, сохраняя использование `ActiveDataProvider` для выполнения запросов (eager loading).
@@ -149,19 +149,17 @@ class BookFormPreparationService {
 *   **UX:** Обернуто в **PJAX** для фильтрации без перезагрузки страницы.
 
 ### 11. Dependency Injection
-Внешние зависимости закрыты портами в `application/ports` и интерфейсами внешних сервисов в `interfaces/`:
+Все внешние зависимости закрыты портами в `application/ports`:
 
 **Порты application layer (`application/ports`):**
-*   `EventPublisherInterface`: Абстракция для публикации доменных событий. Предоставляет типобезопасный метод `publishEvent(DomainEvent $event)` для публикации доменных событий, реализующих интерфейс `DomainEvent`. Use Cases не знают о конкретных реализациях очереди.
-*   `NotificationInterface`: Абстракция для уведомлений пользователя (Flash messages, логи). Используется в `UseCaseExecutor` для показа сообщений об успехе/ошибках. Реализации находятся в `services/notifications/` (FlashNotificationService, LogNotificationService).
-*   `TranslatorInterface`: Абстракция для переводов сообщений. Используется в `UseCaseExecutor` для переводов сообщений об ошибках. Реализация `YiiTranslatorAdapter` находится в `infrastructure/adapters/`.
-*   `PagedResultInterface`: Возвращает чистый `PaginationDto` вместо framework-объектов, сохраняя независимость application layer от Yii2.
+*   `EventPublisherInterface`: Публикация доменных событий. Реализация в `infrastructure/adapters/`.
+*   `NotificationInterface`: Уведомления пользователя (Flash messages, логи). Реализации в `infrastructure/services/notifications/`.
+*   `TranslatorInterface`: Переводы сообщений. Реализация в `infrastructure/adapters/`.
+*   `SmsSenderInterface`: Отправка SMS. Реализация в `infrastructure/services/sms/`.
+*   `FileStorageInterface`: Сохранение файлов. Реализация в `infrastructure/services/storage/`.
+*   `PagedResultInterface`: Пагинация без зависимостей от фреймворка.
 
-**Интерфейсы внешних сервисов (`interfaces/`):**
-*   `SmsSenderInterface`: Позволяет прозрачно менять провайдеров (Smspilot / Mock).
-*   `FileStorageInterface`: Абстракция для сохранения файлов (Local / S3).
-
-**Направление зависимостей:** Application layer зависит только от портов в `application/ports`. Infrastructure и Presentation реализуют эти порты, сохраняя правильное направление зависимостей Clean Architecture.
+**Направление зависимостей:** Application layer зависит только от портов. Infrastructure и Presentation реализуют эти порты, сохраняя правильное направление зависимостей Clean Architecture.
 
 ### 12. Структура проекта
 
@@ -173,27 +171,36 @@ class BookFormPreparationService {
 │   │   ├── queries/         # Query Services и Read DTOs
 │   │   └── usecases/        # Use Cases (CreateBookUseCase, UpdateBookUseCase)
 │   ├── authors/
+│   ├── subscriptions/
+│   ├── reports/
 │   ├── common/
-│   │   ├── dto/            # Общие DTO (PaginationDto)
-│   │   └── UseCaseExecutor.php  # Cross-cutting concern для выполнения use cases с обработкой ошибок
-│   └── ports/               # Порты application layer (EventPublisherInterface, NotificationInterface, PagedResultInterface)
-├── domain/                  # Domain Layer (Entities, Value Objects, Domain Exceptions)
+│   │   ├── dto/            # Общие DTO (PaginationDto, QueryResult)
+│   │   └── UseCaseExecutor.php
+│   └── ports/               # ВСЕ порты (EventPublisher, Notification, SMS, FileStorage, Translator)
+├── domain/                  # Domain Layer
 │   ├── events/             # Domain Events (BookCreatedEvent, DomainEvent interface)
 │   └── exceptions/         # Domain Exceptions (DomainException)
-├── infrastructure/          # Infrastructure Layer (ActiveRecord, DB, Queue)
-│   ├── adapters/           # Адаптеры портов (YiiEventPublisherAdapter, YiiQueueAdapter)
-│   └── repositories/        # Реализации репозиториев через ActiveRecord
-├── presentation/            # Presentation Layer (Controllers, Forms, Mappers, Services)
-│   ├── services/            # Presentation Services (инкапсулируют логику представления)
-│   ├── mappers/            # Маппинг между DTO и Forms
-│   ├── dto/                # DTO для результатов обработки форм
-│   └── adapters/           # Адаптеры для Yii2 компонентов (PagedResultDataProvider)
-├── controllers/             # Тонкие HTTP-контроллеры
-├── models/                  # ActiveRecord модели и Forms
-└── interfaces/              # Интерфейсы внешних сервисов (SMS, File Storage)
-```
-
-**Примечание:** Порты для application layer находятся в `application/ports` (например, `NotificationInterface`, `EventPublisherInterface`). Интерфейсы внешних сервисов (SMS, File Storage) остаются в `interfaces/` как внешние зависимости.
+├── infrastructure/          # Infrastructure Layer
+│   ├── adapters/           # Адаптеры портов (YiiEventPublisher, YiiTranslator, etc.)
+│   ├── persistence/        # ActiveRecord модели (Author, Book, Subscription, User)
+│   ├── queue/              # Queue Jobs (NotifySubscribersJob, NotifySingleSubscriberJob)
+│   ├── repositories/       # Реализации репозиториев
+│   └── services/           # Реализации сервисов (SMS, FileStorage, Notifications)
+├── presentation/            # Presentation Layer
+│   ├── controllers/        # HTTP-контроллеры
+│   ├── views/              # Yii2 views
+│   ├── forms/              # Form models (BookForm, AuthorForm, LoginForm)
+│   ├── validators/         # Yii2 validators (IsbnValidator, UniqueFioValidator)
+│   ├── widgets/            # Yii2 widgets (Alert)
+│   ├── mail/               # Email шаблоны
+│   ├── services/           # Presentation Services
+│   ├── mappers/            # Маппинг DTO ↔ Forms
+│   ├── dto/                # DTO результатов обработки форм
+│   └── adapters/           # Адаптеры для Yii2 (PagedResultDataProvider)
+├── commands/                # Console контроллеры (SeedController)
+├── config/                  # Конфигурация Yii2
+├── messages/                # Переводы i18n (ru-RU, en-US)
+└── migrations/              # Миграции БД
 ```
 
 **Примечание:** В коде используется namespace `app\`, что соответствует стандартному Yii2 алиасу `@app`. Структура директорий в корне проекта соответствует namespace-ам (например, `application/` → `app\application\*`).
