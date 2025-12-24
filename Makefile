@@ -79,3 +79,6 @@ test-integration:
 
 test-functional:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional --grep "BookCest|SubscriptionCest"
+
+test-acceptance:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run acceptance
