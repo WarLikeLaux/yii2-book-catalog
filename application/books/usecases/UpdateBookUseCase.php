@@ -8,6 +8,8 @@ use app\application\books\commands\UpdateBookCommand;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\exceptions\DomainException;
+use app\domain\values\BookYear;
+use app\domain\values\Isbn;
 
 final class UpdateBookUseCase
 {
