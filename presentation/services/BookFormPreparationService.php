@@ -12,6 +12,7 @@ use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\UseCaseExecutor;
+use app\application\ports\FileStorageInterface;
 use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\dto\BookCreateFormResult;
 use app\presentation\dto\BookUpdateFormResult;
@@ -20,6 +21,7 @@ use app\presentation\mappers\BookFormMapper;
 use Yii;
 use yii\web\Request;
 use yii\web\Response;
+use yii\web\UploadedFile;
 use yii\widgets\ActiveForm;
 
 final class BookFormPreparationService
@@ -32,7 +34,8 @@ final class BookFormPreparationService
         private readonly UpdateBookUseCase $updateBookUseCase,
         private readonly DeleteBookUseCase $deleteBookUseCase,
         private readonly UseCaseExecutor $useCaseExecutor,
-        private readonly PagedResultDataProviderFactory $dataProviderFactory
+        private readonly PagedResultDataProviderFactory $dataProviderFactory,
+        private readonly FileStorageInterface $fileStorage
     ) {
     }
 
@@ -111,7 +114,9 @@ final class BookFormPreparationService
             return new BookCreateFormResult($form, $viewData, false);
         }
 
-        $command = $this->bookFormMapper->toCreateCommand($form);
+        $coverPath = $this->processCoverUpload($form);
+        $command = $this->bookFormMapper->toCreateCommand($form, $coverPath);
+        
         $success = $this->useCaseExecutor->execute(
             fn() => $this->createBookUseCase->execute($command),
             Yii::t('app', 'Book has been created')
@@ -143,7 +148,9 @@ final class BookFormPreparationService
             return new BookUpdateFormResult($form, $viewData, false);
         }
 
-        $command = $this->bookFormMapper->toUpdateCommand($id, $form);
+        $coverPath = $this->processCoverUpload($form);
+        $command = $this->bookFormMapper->toUpdateCommand($id, $form, $coverPath);
+        
         $success = $this->useCaseExecutor->execute(
             fn() => $this->updateBookUseCase->execute($command),
             Yii::t('app', 'Book has been updated'),
@@ -165,5 +172,13 @@ final class BookFormPreparationService
             Yii::t('app', 'Book has been deleted'),
             ['book_id' => $id]
         );
+    }
+
+    private function processCoverUpload(BookForm $form): ?string
+    {
+        if ($form->cover instanceof UploadedFile) {
+            return $this->fileStorage->save($form->cover);
+        }
+        return null;
     }
 }

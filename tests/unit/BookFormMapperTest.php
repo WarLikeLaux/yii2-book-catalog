@@ -5,18 +5,15 @@ declare(strict_types=1);
 namespace tests\unit;
 
 use app\application\books\queries\BookReadDto;
-use app\application\ports\FileStorageInterface;
 use app\presentation\forms\BookForm;
 use app\presentation\mappers\BookFormMapper;
-use Codeception\Stub;
 use Codeception\Test\Unit;
 
 final class BookFormMapperTest extends Unit
 {
     public function testToForm(): void
     {
-        $storage = Stub::makeEmpty(FileStorageInterface::class);
-        $mapper = new BookFormMapper($storage);
+        $mapper = new BookFormMapper();
 
         $dto = new BookReadDto(
             id: 1,
@@ -40,8 +37,7 @@ final class BookFormMapperTest extends Unit
 
     public function testToCreateCommand(): void
     {
-        $storage = Stub::makeEmpty(FileStorageInterface::class);
-        $mapper = new BookFormMapper($storage);
+        $mapper = new BookFormMapper();
 
         $form = new BookForm();
         $form->title = 'New Book';
@@ -49,9 +45,9 @@ final class BookFormMapperTest extends Unit
         $form->description = 'Desc';
         $form->isbn = '978-3-16-148410-0';
         $form->authorIds = [1];
-        $form->cover = null;
 
-        $command = $mapper->toCreateCommand($form);
+        $coverPath = null;
+        $command = $mapper->toCreateCommand($form, $coverPath);
 
         $this->assertSame('New Book', $command->title);
         $this->assertSame(2024, $command->year);
@@ -59,12 +55,14 @@ final class BookFormMapperTest extends Unit
         $this->assertSame('978-3-16-148410-0', $command->isbn);
         $this->assertSame([1], $command->authorIds);
         $this->assertNull($command->cover);
+        $coverPath = '/uploads/cover.jpg';
+        $command = $mapper->toCreateCommand($form, $coverPath);
+        $this->assertSame($coverPath, $command->cover);
     }
 
     public function testToUpdateCommand(): void
     {
-        $storage = Stub::makeEmpty(FileStorageInterface::class);
-        $mapper = new BookFormMapper($storage);
+        $mapper = new BookFormMapper();
 
         $form = new BookForm();
         $form->title = 'Updated Book';
@@ -72,9 +70,9 @@ final class BookFormMapperTest extends Unit
         $form->description = 'Desc 2';
         $form->isbn = '978-3-16-148410-1';
         $form->authorIds = [2];
-        $form->cover = 'existing_cover.jpg'; // String case
 
-        $command = $mapper->toUpdateCommand(10, $form);
+        $coverPath = 'existing_cover.jpg';
+        $command = $mapper->toUpdateCommand(10, $form, $coverPath);
 
         $this->assertSame(10, $command->id);
         $this->assertSame('Updated Book', $command->title);
