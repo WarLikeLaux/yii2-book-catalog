@@ -1,6 +1,6 @@
-# Современный каталог книг: Clean(ish) Architecture на примере Yii 2, асинхронные очереди и гибридный поиск 📚 ⚡️
+# Современный каталог книг: Clean-ish Architecture на примере Yii 2, асинхронные очереди и гибридный поиск 📚 ⚡️
 
-Проект представляет собой реализацию каталога книг на базе **Yii2 Basic** и **PHP 8.4** с **clean-ish** архитектурой.
+Проект представляет собой реализацию каталога книг на базе **Yii2 Basic** и **PHP 8.4** с **Clean-ish** архитектурой.
 
 Основной акцент сделан на **отделении бизнес-логики от фреймворка**, строгой типизации и отказоустойчивости асинхронных процессов. Продемонстрирован компромиссный подход: Yii остается на уровне представления, а use cases и порты живут отдельно.
 
@@ -11,8 +11,8 @@
 *   **PHP:** 8.4 (Strict Types, Constructor Promotion, Readonly Classes).
 *   **Framework:** Yii2 Basic.
 *   **Database:** MySQL 8.0 (InnoDB + FullText Search).
-*   **Async:** `yii2-queue` (DB driver) с реализацией Fan-out паттерна.
-*   **Search:** Hybrid SQL Search (FullText + Exact Match) + PJAX.
+*   **Async:** `yii2-queue` (DB driver) с реализацией паттерна Fan-out.
+*   **Search:** Hybrid SQL (FullText + Exact Match) + UI: PJAX.
 *   **Testing:** Codeception (Integration + Functional).
 *   **Infra:** Docker Compose + Makefile.
 
@@ -20,31 +20,31 @@
 
 ### 1. Application Layer (Use Cases, CQS, Ports)
 Реализован **CQS (Command Query Separation)** и зависимости через порты:
-*   **Write Side (Команды):** Операции изменения состояния инкапсулированы в **Use Cases** (`CreateBookUseCase`, `SubscribeUseCase`). Входные данные строго типизированы через **Command DTO** (`CreateBookCommand`).
-*   **Read Side (Запросы):** Чтение данных отделено от бизнес-логики. **QueryServices** возвращают DTO (`BookReadDto`) и `PagedResult` с чистым `PaginationDto` вместо ActiveRecord моделей и framework-объектов.
-*   **Ports:** Интерфейсы репозиториев и внешних сервисов находятся в `application/ports` (namespace: `app\application\ports`). Use Cases зависят только от портов, не от конкретных реализаций фреймворка.
+*   **Write Side (Команды):** операции изменения состояния инкапсулированы в **Use Cases** (`CreateBookUseCase`, `SubscribeUseCase`). Входные данные строго типизированы через **Command DTO** (`CreateBookCommand`).
+*   **Read Side (Запросы):** чтение данных отделено от бизнес-логики. **QueryServices** возвращают DTO (`BookReadDto`) и `PagedResult` с чистым `PaginationDto` вместо ActiveRecord моделей и framework-объектов.
+*   **Ports:** интерфейсы репозиториев и внешних сервисов находятся в `application/ports` (namespace: `app\application\ports`). Use Cases зависят только от портов, не от конкретных реализаций фреймворка.
 *   **Event Publisher:** Use Cases публикуют доменные события через `EventPublisherInterface`, а не создают job напрямую. Это изолирует application layer от инфраструктуры.
-*   **UseCaseExecutor:** Cross-cutting concern для выполнения use cases с обработкой ошибок, логированием и уведомлениями. Находится в `application/common` (namespace: `app\application\common`) как общий компонент application layer. Использует порт `NotificationInterface` из `application/ports` для уведомлений, сохраняя независимость от конкретных реализаций (Flash messages, логи). Использует `Yii::t()` для переводов как компромисс для Yii2.
-*   **Контроллеры:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Вся логика представления (загрузка форм, валидация, маппинг, выполнение use cases, форматирование ответов, извлечение параметров запроса) вынесена в Presentation Services.
+*   **UseCaseExecutor:** сквозной функционал (Cross-cutting concern) для выполнения use cases с обработкой ошибок, логированием и уведомлениями. Находится в `application/common`. Использует нативные средства локализации фреймворка (`Yii::t`) для упрощения.
+*   **Контроллеры:** выступают оркестраторами. Загружают данные в формы и запускают валидацию, но делегируют выполнение бизнес-операций в Command Services, а выборку данных — в View Services. Не содержат самой бизнес-логики.
 
 ### 2. Domain vs ActiveRecord ("Cheap DDD")
 Доменный слой защищен **Value Objects** (`Isbn`, `BookYear`) для критических бизнес-правил. Валидация происходит **до** попадания в ActiveRecord/DB. 
-*   **Value Objects:** Гарантируют консистентность данных (нельзя создать объект с неверным ISBN).
-*   **ActiveRecord:** Остается для persistence и простых правил (unique, string length), но бизнес-валидация делегируется Value Objects.
+*   **Value Objects:** гарантируют консистентность данных (нельзя создать объект с неверным ISBN).
+*   **ActiveRecord:** остается для persistence и простых правил (unique, string length), но бизнес-валидация делегируется Value Objects.
 Это осознанный компромисс: мы не делаем Full Entities, но используем VO для защиты инвариантов.
 
-**Domain Events:** Доменные события (`BookCreatedEvent`) используются для декoupling между use cases и инфраструктурой. Все доменные события реализуют интерфейс `DomainEvent` с методами `getEventType()` и `getPayload()`. Use Cases публикуют события через типобезопасный метод `publishEvent(DomainEvent $event)` порта `EventPublisherInterface`, а инфраструктурный адаптер (`YiiEventPublisherAdapter`) преобразует их в конкретные job для очереди. Это исключает опечатки в строковых константах и обеспечивает типобезопасность.
+**Domain Events:** Доменные события (`BookCreatedEvent`) используются для **decoupling** (развязки) между use cases и инфраструктурой. Все доменные события реализуют интерфейс `DomainEvent` с методами `getEventType()` и `getPayload()`. Use Cases публикуют события через типобезопасный метод `publishEvent(DomainEvent $event)` порта `EventPublisherInterface`. Инфраструктурный адаптер (`YiiEventPublisherAdapter`) преобразует их в конкретные job для очереди. Это исключает опечатки и обеспечивает типобезопасность.
 
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
-*   **Controllers:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Не содержат бизнес-логику, маппинг, валидацию, загрузку форм или извлечение параметров запроса. Все контроллеры (`BookController`, `AuthorController`, `SiteController`) следуют единому паттерну: делегируют всю логику представления в Presentation Services.
-*   **Forms (`presentation/forms`, namespace: `app\presentation\forms`):** Валидация входных данных через `FormModel`.
-*   **Mappers (`presentation/mappers`, namespace: `app\presentation\mappers`):** Перевод форм в команды/criteria и обратно (DTO ↔ Form).
-*   **Presentation Services (`presentation/services`, namespace: `app\presentation\services`):** Following CQRS in presentation:
-    *   **Command Services (`app\presentation\services\**\**CommandService`):** Handle write operations (Create, Update, Delete). Accept Forms, map them to Commands, execute Use Cases, and return primitive results (IDs, bools). Purely logic-focused, no dependency on `yii\web\Request`.
-    *   **View Services (`app\presentation\services\**\**ViewService`):** Handle read operations. Prepare DTOs and DataProviders for views.
-    *   **Search Services:** Specialized services for AJAX searches (e.g., Select2).
-*   **Adapters (`presentation/adapters`, namespace: `app\presentation\adapters`):** `PagedResult` преобразуется в `DataProvider` через `PagedResultDataProviderFactory` без логики в контроллерах. Адаптер `PagedResultDataProvider` преобразует чистый `PaginationDto` обратно в `yii\data\Pagination` для Yii2 виджетов.
+*   **Controllers:** отвечают за валидацию входных данных (через Forms) и управление потоком выполнения. Вызывают Command Services для изменения состояния и View Services для получения данных.
+*   **Forms (`presentation/forms`, namespace: `app\presentation\forms`):** валидация входных данных через `FormModel`.
+*   **Mappers (`presentation/mappers`, namespace: `app\presentation\mappers`):** перевод форм в команды/criteria и обратно (DTO ↔ Form).
+*   **Presentation Services (`presentation/services`, namespace: `app\presentation\services`):** реализуют разделение ответственности (CQRS):
+    *   **Command Services:** пишущие операции (Create, Update, Delete). Принимают формы, выполняют Use Cases, возвращают примитивы (ID, bool). Чистая логика, без `Request`/`Response`.
+    *   **View Services:** читающие операции. Подготавливают DTO и DataProvider-ы для отображения в шаблонах.
+    *   **Search Services:** специфичные сервисы для AJAX-поиска (например, Select2).
+*   **Adapters (`presentation/adapters`, namespace: `app\presentation\adapters`):** преобразуют чистые DTO пагинации обратно в Yii2 форматы (`PagedResult` -> `DataProvider`) для совместимости с GridView.
 
 ### 4. Разделение ответственности: Use Cases vs Presentation Services
 
@@ -54,58 +54,60 @@
 *   Независимы от способа представления (HTTP, CLI, API, тесты)
 *   Содержат чистую бизнес-логику: транзакции, бизнес-правила, координация репозиториев
 
-**Presentation Services (Presentation Layer)** — логика представления:
-*   Загружают данные из HTTP-запросов (`Request`)
-*   Извлекают и валидируют параметры запроса (GET/POST параметры, пагинация)
-*   Валидируют формы (`Form->validate()`)
-*   Обрабатывают AJAX-валидацию (`ActiveForm::validate()`)
-*   Маппят формы ↔ команды (`FormMapper`)
-*   Устанавливают форматы ответов (`Response->format`)
-*   Вызывают Use Cases и обрабатывают результаты
-*   Подготавливают данные для представлений (`viewData`, `prepareIndexViewData()`, `prepareCreateViewData()`)
+**Presentation Services (Presentation Layer)** — разделены на Command и View:
+*   **Command Services:** Принимают заполненные формы, маппят их в команды и выполняют Use Cases. Не зависят от `Request` или `Response`.
+*   **View Services:** Подготавливают данные для отображения (списки авторов, книги).
+*   **Controller:** Выступает как Orchestrator. Загружает данные из HTTP-запроса, запускает валидацию форм, вызывает сервисы и формирует ответ.
 
 **Пример разделения:**
 
 ```php
-// Use Case - только бизнес-логика, не знает о HTTP и конкретных реализациях
-class CreateBookUseCase {
-    public function __construct(
-        private readonly BookRepositoryInterface $bookRepository,
-        private readonly TransactionInterface $transaction,
-        private readonly EventPublisherInterface $eventPublisher, // Порт, не конкретная реализация
-    ) {}
+// Контроллер - только HTTP логика
+public function actionCreate(): string|Response
+{
+    $form = new BookForm();
     
-    public function execute(CreateBookCommand $command): int {
-        // Транзакции, создание книги, синхронизация авторов
-        $bookId = $this->bookRepository->create(...);
-        
-        // Публикация типобезопасного доменного события через порт
-        $event = new BookCreatedEvent($bookId, $command->title);
-        $this->eventPublisher->publishEvent($event);
-        
-        return $bookId;
+    // HTTP: загрузка и валидация
+    if ($this->request->isPost && $form->load($this->request->post()) && $form->validate()) {
+        // Command Service: бизнес-операция
+        $bookId = $this->commandService->createBook($form);
+        if ($bookId) {
+            return $this->redirect(['view', 'id' => $bookId]);
+        }
     }
+
+    // View Service: данные для формы
+    return $this->render('create', [
+        'model' => $form,
+        'authors' => $this->viewService->getAuthorsList(),
+    ]);
 }
 
-// Presentation Service - адаптация HTTP к Use Case
-class BookFormPreparationService {
-    public function processCreateRequest(Request $request, Response $response): BookCreateFormResult {
-        $form->loadFromRequest($request);  // HTTP детали
-        $form->validate();                  // Валидация форм
-        $command = $mapper->toCommand($form); // Маппинг
-        $success = $useCaseExecutor->execute(...); // Вызов Use Case
-        return new BookCreateFormResult(...);  // Данные для представления
+// Command Service - чистая логика без HTTP зависимостей
+class BookCommandService 
+{
+    public function createBook(BookForm $form): ?int 
+    {
+        $coverPath = $this->fileStorage->save($form->cover);
+        $command = $this->mapper->toCreateCommand($form, $coverPath); 
+        
+        // Выполняем Use Case через экзекутор (транзакции, логи, уведомления)
+        $bookId = null;
+        $this->useCaseExecutor->execute(function() use ($command, &$bookId) {
+            $bookId = $this->useCase->execute($command);
+        });
+        
+        return $bookId;
     }
 }
 ```
 
 ### 5. DTO & Forms для валидации
 Слой представления отделен от домена.
-*   **Forms (`presentation/forms`, namespace: `app\presentation\forms`):** Валидируют сырые пользовательские данные (HTTP request).
-*   **Command DTO (`application/**/commands`, namespace: `app\application\**\commands`):** Передают уже валидные данные в ядро приложения.
-*   **Result DTO (`presentation/dto`, namespace: `app\presentation\dto`):** Типизированные результаты обработки форм для передачи между Presentation Services и контроллерами.
-*   **PaginationDto (`application/common/dto`, namespace: `app\application\common\dto`):** Чистый DTO для пагинации без зависимостей от фреймворка. Репозитории создают его вручную из параметров, сохраняя использование `ActiveDataProvider` для выполнения запросов (eager loading).
-*   Это позволяет безопасно обрабатывать загрузку файлов и сложную логику без засорения доменных сущностей правилами валидации форм.
+*   **Forms (`presentation/forms`, namespace: `app\presentation\forms`):** валидируют сырые пользовательские данные (HTTP request).
+*   **Command DTO (`application/**/commands`, namespace: `app\application\**\commands`):** передают валидные данные в Use Case.
+*   **PaginationDto (`application/common/dto`, namespace: `app\application\common\dto`):** чистый DTO для пагинации.
+*   Это позволяет разлепить валидацию HTTP-запроса и бизнес-правила (которые живут в Value Objects).
 
 ### 6. Infrastructure Layer
 *   **ActiveRecord и DB:** Реализации портов живут в `infrastructure` (namespace: `app\infrastructure`).
@@ -124,11 +126,11 @@ class BookFormPreparationService {
 *   **Решение:** Используется паттерн **Fan-out**.
     1.  `CreateBookUseCase` публикует типобезопасное доменное событие `BookCreatedEvent` через метод `publishEvent()` порта `EventPublisherInterface`.
     2.  `YiiEventPublisherAdapter` преобразует доменное событие в `NotifySubscribersJob` (Dispatcher).
-    3.  `NotifySubscribersJob` находит целевую аудиторию и нарезает задачи батчами.
-    4.  Создаются тысячи легких `NotifySingleSubscriberJob` для каждого получателя.
+    3.  `NotifySubscribersJob` получает список подписчиков.
+    4.  Для каждого подписчика создается отдельная задача `NotifySingleSubscriberJob`.
 *   **Результат:** Изоляция ошибок (сбой одного SMS не ломает рассылку), возможность параллельной обработки несколькими воркерами, полная независимость use cases от конкретных реализаций очереди, и типобезопасность через интерфейс `DomainEvent`.
 
-### 9. Чистая пагинация (Clean Pagination DTO)
+### 9. Чистая пагинация (Pagination DTO)
 Реализована пагинация без зависимостей от framework-объектов в application layer.
 *   **Проблема:** `yii\data\Pagination` протекал через `PagedResultInterface`, создавая зависимость application layer от фреймворка.
 *   **Решение:** 
@@ -160,7 +162,7 @@ class BookFormPreparationService {
 ### 12. Структура проекта
 
 ```
-./
+yii2-book-catalog/
 ├── application/              # Application Layer (Use Cases, Queries, Ports)
 │   ├── books/
 │   │   ├── commands/        # Command DTOs (CreateBookCommand, UpdateBookCommand)
@@ -175,7 +177,8 @@ class BookFormPreparationService {
 │   └── ports/               # ВСЕ порты (EventPublisher, Notification, SMS, FileStorage, Translator)
 ├── domain/                  # Domain Layer
 │   ├── events/             # Domain Events (BookCreatedEvent, DomainEvent interface)
-│   └── exceptions/         # Domain Exceptions (DomainException)
+│   ├── exceptions/         # Domain Exceptions (DomainException)
+│   └── values/             # Value Objects (Isbn, BookYear)
 ├── infrastructure/          # Infrastructure Layer
 │   ├── adapters/           # Адаптеры портов (YiiEventPublisher, YiiTranslator, etc.)
 │   ├── persistence/        # ActiveRecord модели (Author, Book, Subscription, User)
@@ -189,7 +192,7 @@ class BookFormPreparationService {
 │   ├── validators/         # Yii2 validators (IsbnValidator, UniqueFioValidator)
 │   ├── widgets/            # Yii2 widgets (Alert)
 │   ├── mail/               # Email шаблоны
-│   ├── services/           # Presentation Services (Command/View segregations)
+│   ├── services/           # Presentation Services (Command & View)
 │   │   ├── authors/        # AuthorCommandService, AuthorViewService
 │   │   ├── books/          # BookCommandService, BookViewService
 │   │   └── ...
@@ -204,70 +207,7 @@ class BookFormPreparationService {
 
 **Примечание:** В коде используется namespace `app\`, что соответствует стандартному Yii2 алиасу `@app`. Структура директорий в корне проекта соответствует namespace-ам (например, `application/` → `app\application\*`).
 
-**Пример использования Presentation Service:**
 
-```php
-// Контроллер (Orchestrator: HTTP -> Command/View Services -> Response)
-public function actionCreate(): string|Response|array
-{
-    $form = new BookForm();
-
-    // 1. HTTP Handling: Load & Validate Form
-    if ($this->request->isPost && $form->load($this->request->post())) {
-        if ($this->request->isAjax) {
-            $this->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($form);
-        }
-
-        if ($form->validate()) {
-            // 2. Command Service: Execute Write Operation
-            // Service returns ID on success, or null on domain failure
-            $bookId = $this->commandService->createBook($form);
-            if ($bookId !== null) {
-                return $this->redirect(['view', 'id' => $bookId]);
-            }
-        }
-    }
-
-    // 3. View Service: Prepare Data for Rendering
-    $authors = $this->viewService->getAuthorsList();
-
-    return $this->render('create', [
-        'model' => $form,
-        'authors' => $authors,
-    ]);
-}
-
-// Command Service (Write Logic) - No HTTP dependency, easy to test
-class BookCommandService 
-{
-    public function createBook(BookForm $form): ?int
-    {
-        // Side effects (File Upload) handled here, NOT in mapper
-        $coverPath = $this->uploadCover($form); 
-        
-        // Pure mapping
-        $command = $this->mapper->toCreateCommand($form, $coverPath); 
-
-        // Use Case execution (returns ID via closure capture)
-        $bookId = null;
-        $success = $this->useCaseExecutor->execute(function () use ($command, &$bookId) {
-            $bookId = $this->createBookUseCase->execute($command);
-        }, 'Book created successfully');
-
-        return $success ? $bookId : null;
-    }
-}
-
-// View Service (Read Logic)
-class BookViewService
-{
-    public function getAuthorsList(): array
-    {
-        return $this->authorQueryService->getAuthorsMap();
-    }
-}
-```
 
 ### 13. Компромиссы Clean-ish архитектуры
 
@@ -275,19 +215,19 @@ class BookViewService
 
 #### 13.1. Domain Layer минимален
 
-**Компромисс:** Доменный слой намеренно минимален — бизнес-операции выполняются через Use Cases и порты, а ActiveRecord остается источником данных и правил валидации на уровне инфраструктуры.
+**Компромисс:** доменный слой намеренно минимален — бизнес-операции выполняются через Use Cases и порты, а ActiveRecord остается источником данных и правил валидации на уровне инфраструктуры.
 
-**Почему:** В строгой Clean Architecture доменные сущности были бы чистыми PHP классами без зависимостей от фреймворка. Для Yii2 это означало бы тяжелый маппинг между доменными объектами и ActiveRecord моделями, что усложнило бы код без существенной пользы.
+**Почему:** в строгой Clean Architecture доменные сущности были бы чистыми PHP классами без зависимостей от фреймворка. Для Yii2 это означало бы тяжелый маппинг между доменными объектами и ActiveRecord моделями, что усложнило бы код без существенной пользы.
 
 **Что получили:** 
 * Use Cases остаются независимыми от фреймворка
 * ActiveRecord используется только в Infrastructure layer
-* Доменные события (`BookCreatedEvent`) обеспечивают декoupling
+* Доменные события (`BookCreatedEvent`) обеспечивают decoupling (развязку)
 * Бизнес-логика изолирована в Use Cases
 
 #### 13.2. Репозитории используют ActiveRecord для запросов
 
-**Компромисс:** Репозитории используют `ActiveDataProvider` и ActiveRecord для выполнения запросов (сохранение eager loading через `with()`), но возвращают чистые DTO вместо моделей.
+**Компромисс:** репозитории используют `ActiveDataProvider` и ActiveRecord для выполнения запросов (сохранение eager loading через `with()`), но возвращают чистые DTO вместо моделей.
 
 **Почему:** Yii2 ActiveRecord предоставляет мощные возможности оптимизации запросов (eager loading, оптимизация N+1 проблем), которые сложно реализовать вручную без потери производительности.
 
@@ -297,9 +237,9 @@ class BookViewService
 * Репозитории создают чистый `PaginationDto` вместо передачи framework-объектов
 * В presentation layer адаптер преобразует `PaginationDto` обратно в `yii\data\Pagination` для виджетов
 
-#### 13.3. Presentation Layer использует Yii2 компоненты
+#### 13.3. Использование Yii2 компонентов в слое Presentation
 
-**Компромисс:** Presentation layer использует Yii2 компоненты (`ActiveForm`, `DataProvider`, `Response`), но полностью изолирован от бизнес-логики.
+**Компромисс:** слой Presentation использует Yii2 компоненты (`ActiveForm`, `DataProvider`, `Response`), но полностью изолирован от бизнес-логики.
 
 **Почему:** Yii2 предоставляет мощные компоненты для работы с формами, пагинацией и HTTP, которые сложно заменить без потери функциональности и удобства разработки.
 
