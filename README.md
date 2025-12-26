@@ -27,8 +27,11 @@
 *   **UseCaseExecutor:** Cross-cutting concern для выполнения use cases с обработкой ошибок, логированием и уведомлениями. Находится в `application/common` (namespace: `app\application\common`) как общий компонент application layer. Использует порт `NotificationInterface` из `application/ports` для уведомлений, сохраняя независимость от конкретных реализаций (Flash messages, логи). Использует `Yii::t()` для переводов как компромисс для Yii2.
 *   **Контроллеры:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Вся логика представления (загрузка форм, валидация, маппинг, выполнение use cases, форматирование ответов, извлечение параметров запроса) вынесена в Presentation Services.
 
-### 2. Domain vs ActiveRecord (Clean-ish компромисс)
-Доменный слой намеренно минимален: бизнес-операции выполняются через use cases и порты, а ActiveRecord остается источником данных и правил валидации на уровне инфраструктуры. Это осознанный компромисс для Yii2, чтобы не тащить тяжелый маппинг.
+### 2. Domain vs ActiveRecord ("Cheap DDD")
+Доменный слой защищен **Value Objects** (`Isbn`, `BookYear`) для критических бизнес-правил. Валидация происходит **до** попадания в ActiveRecord/DB. 
+*   **Value Objects:** Гарантируют консистентность данных (нельзя создать объект с неверным ISBN).
+*   **ActiveRecord:** Остается для persistence и простых правил (unique, string length), но бизнес-валидация делегируется Value Objects.
+Это осознанный компромисс: мы не делаем Full Entities, но используем VO для защиты инвариантов.
 
 **Domain Events:** Доменные события (`BookCreatedEvent`) используются для декoupling между use cases и инфраструктурой. Все доменные события реализуют интерфейс `DomainEvent` с методами `getEventType()` и `getPayload()`. Use Cases публикуют события через типобезопасный метод `publishEvent(DomainEvent $event)` порта `EventPublisherInterface`, а инфраструктурный адаптер (`YiiEventPublisherAdapter`) преобразует их в конкретные job для очереди. Это исключает опечатки в строковых константах и обеспечивает типобезопасность.
 
@@ -37,19 +40,10 @@
 *   **Controllers:** Тонкие координаторы, которые только обрабатывают HTTP-запросы и ответы. Не содержат бизнес-логику, маппинг, валидацию, загрузку форм или извлечение параметров запроса. Все контроллеры (`BookController`, `AuthorController`, `SiteController`) следуют единому паттерну: делегируют всю логику представления в Presentation Services.
 *   **Forms (`presentation/forms`, namespace: `app\presentation\forms`):** Валидация входных данных через `FormModel`.
 *   **Mappers (`presentation/mappers`, namespace: `app\presentation\mappers`):** Перевод форм в команды/criteria и обратно (DTO ↔ Form).
-*   **Presentation Services (`presentation/services`, namespace: `app\presentation\services`):** Инкапсулируют всю логику представления:
-    *   **Form Preparation Services:**
-        *   `BookFormPreparationService` — полная обработка форм книг: загрузка из запроса, валидация (включая AJAX), маппинг в команды, выполнение use cases (включая удаление через `processDeleteRequest()`), подготовка данных для представления, извлечение параметров запроса (например, пагинация).
-        *   `AuthorFormPreparationService` — аналогично для авторов: обработка форм, извлечение параметров запроса (пагинация в `prepareIndexViewData()`), маппинг, выполнение use cases (включая удаление через `processDeleteRequest()`).
-        *   `LoginPresentationService` — обработка формы логина: загрузка из запроса, валидация, выполнение аутентификации через Yii2 User компонент (логика `login()` вынесена из формы в сервис), подготовка данных для представления.
-    *   **Search Services:**
-        *   `BookSearchPresentationService` — обработка поиска книг: извлечение параметров, маппинг criteria, вызов query service, создание data provider.
-        *   `AuthorSearchPresentationService` — обработка поиска авторов (AJAX): извлечение параметров, валидация, маппинг, форматирование JSON-ответа.
-    *   **Report Services:**
-        *   `ReportPresentationService` — генерация отчетов: валидация фильтров, маппинг criteria, выполнение запросов через UseCaseExecutor.
-    *   **Subscription Services:**
-        *   `SubscriptionPresentationService` — обработка подписок: загрузка формы, валидация, маппинг, выполнение use case, форматирование JSON-ответа.
-*   **DTO Results (`presentation/dto`, namespace: `app\presentation\dto`):** Типизированные результаты обработки форм (`BookCreateFormResult`, `BookUpdateFormResult`, `AuthorCreateFormResult`, `AuthorUpdateFormResult`) для передачи данных между Presentation Services и контроллерами. Все DTO содержат `viewData` для единообразной передачи данных в представления.
+*   **Presentation Services (`presentation/services`, namespace: `app\presentation\services`):** Following CQRS in presentation:
+    *   **Command Services (`app\presentation\services\**\**CommandService`):** Handle write operations (Create, Update, Delete). Accept Forms, map them to Commands, execute Use Cases, and return primitive results (IDs, bools). Purely logic-focused, no dependency on `yii\web\Request`.
+    *   **View Services (`app\presentation\services\**\**ViewService`):** Handle read operations. Prepare DTOs and DataProviders for views.
+    *   **Search Services:** Specialized services for AJAX searches (e.g., Select2).
 *   **Adapters (`presentation/adapters`, namespace: `app\presentation\adapters`):** `PagedResult` преобразуется в `DataProvider` через `PagedResultDataProviderFactory` без логики в контроллерах. Адаптер `PagedResultDataProvider` преобразует чистый `PaginationDto` обратно в `yii\data\Pagination` для Yii2 виджетов.
 
 ### 4. Разделение ответственности: Use Cases vs Presentation Services
@@ -195,7 +189,10 @@ class BookFormPreparationService {
 │   ├── validators/         # Yii2 validators (IsbnValidator, UniqueFioValidator)
 │   ├── widgets/            # Yii2 widgets (Alert)
 │   ├── mail/               # Email шаблоны
-│   ├── services/           # Presentation Services
+│   ├── services/           # Presentation Services (Command/View segregations)
+│   │   ├── authors/        # AuthorCommandService, AuthorViewService
+│   │   ├── books/          # BookCommandService, BookViewService
+│   │   └── ...
 │   ├── mappers/            # Маппинг DTO ↔ Forms
 │   ├── dto/                # DTO результатов обработки форм
 │   └── adapters/           # Адаптеры для Yii2 (PagedResultDataProvider)
@@ -210,211 +207,65 @@ class BookFormPreparationService {
 **Пример использования Presentation Service:**
 
 ```php
-// Контроллер (тонкий, только координация HTTP-запросов/ответов)
-public function actionUpdate(int $id): string|Response|array
+// Контроллер (Orchestrator: HTTP -> Command/View Services -> Response)
+public function actionCreate(): string|Response|array
 {
-    if (!$this->request->isPost) {
-        $viewData = $this->bookFormPreparationService->prepareUpdateViewData($id);
-        return $this->render('update', $viewData);
+    $form = new BookForm();
+
+    // 1. HTTP Handling: Load & Validate Form
+    if ($this->request->isPost && $form->load($this->request->post())) {
+        if ($this->request->isAjax) {
+            $this->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($form);
+        }
+
+        if ($form->validate()) {
+            // 2. Command Service: Execute Write Operation
+            // Service returns ID on success, or null on domain failure
+            $bookId = $this->commandService->createBook($form);
+            if ($bookId !== null) {
+                return $this->redirect(['view', 'id' => $bookId]);
+            }
+        }
     }
 
-    $result = $this->bookFormPreparationService->processUpdateRequest($id, $this->request, $this->response);
+    // 3. View Service: Prepare Data for Rendering
+    $authors = $this->viewService->getAuthorsList();
 
-    if ($result->ajaxValidation !== null) {
-        return $result->ajaxValidation;
-    }
-
-    if ($result->success && $result->redirectRoute !== null) {
-        return $this->redirect($result->redirectRoute);
-    }
-
-    return $this->render('update', $result->viewData);
+    return $this->render('create', [
+        'model' => $form,
+        'authors' => $authors,
+    ]);
 }
 
-// Presentation Service (инкапсулирует всю логику представления)
-class BookFormPreparationService
+// Command Service (Write Logic) - No HTTP dependency, easy to test
+class BookCommandService 
 {
-    public function processUpdateRequest(int $id, Request $request, Response $response): BookUpdateFormResult
+    public function createBook(BookForm $form): ?int
     {
-        $viewData = $this->prepareUpdateViewData($id);
-        $form = $viewData['model'];
+        // Side effects (File Upload) handled here, NOT in mapper
+        $coverPath = $this->uploadCover($form); 
+        
+        // Pure mapping
+        $command = $this->mapper->toCreateCommand($form, $coverPath); 
 
-        if (!$form->loadFromRequest($request)) {
-            return new BookUpdateFormResult($form, $viewData, false);
-        }
+        // Use Case execution (returns ID via closure capture)
+        $bookId = null;
+        $success = $this->useCaseExecutor->execute(function () use ($command, &$bookId) {
+            $bookId = $this->createBookUseCase->execute($command);
+        }, 'Book created successfully');
 
-        if ($request->isAjax) {
-            $response->format = Response::FORMAT_JSON;
-            $ajaxValidation = ActiveForm::validate($form);
-            return new BookUpdateFormResult($form, $viewData, false, null, $ajaxValidation);
-        }
-
-        if (!$form->validate()) {
-            return new BookUpdateFormResult($form, $viewData, false);
-        }
-
-        $command = $this->bookFormMapper->toUpdateCommand($id, $form);
-        $success = $this->useCaseExecutor->execute(
-            fn() => $this->updateBookUseCase->execute($command),
-            Yii::t('app', 'Book has been updated'),
-            ['book_id' => $id]
-        );
-
-        if ($success) {
-            return new BookUpdateFormResult($form, $viewData, true, ['view', 'id' => $id]);
-        }
-
-        return new BookUpdateFormResult($form, $viewData, false);
+        return $success ? $bookId : null;
     }
 }
 
-// Пример: контроллер не знает о формате ответа и параметрах запроса
-public function actionSearch(): array
+// View Service (Read Logic)
+class BookViewService
 {
-    return $this->authorSearchPresentationService->search($this->request, $this->response);
-    // Presentation Service сам устанавливает формат JSON и извлекает параметры
-}
-
-// Пример: извлечение параметров пагинации вынесено в Presentation Service
-public function actionIndex(): string
-{
-    $viewData = $this->authorFormPreparationService->prepareIndexViewData($this->request);
-    return $this->render('index', $viewData);
-    // Контроллер не знает о том, как извлекается параметр 'page' и валидируется
-}
-
-// Пример: унифицированный подход для всех контроллеров - использование viewData
-public function actionUpdate(int $id): string|Response
-{
-    if (!$this->request->isPost) {
-        $viewData = $this->authorFormPreparationService->prepareUpdateViewData($id);
-        return $this->render('update', $viewData);
-    }
-
-    $result = $this->authorFormPreparationService->processUpdateRequest($id, $this->request);
-
-    if ($result->success && $result->redirectRoute !== null) {
-        return $this->redirect($result->redirectRoute);
-    }
-
-    return $this->render('update', $result->viewData);
-    // Всегда используем viewData из результата, а не прямой доступ к form
-}
-
-// Пример: LoginPresentationService - даже стандартная Yii2 форма логина следует паттерну
-// Логика login() вынесена из формы в сервис для соответствия Clean Architecture
-public function actionLogin(): Response|string
-{
-    if (!Yii::$app->user->isGuest) {
-        return $this->goHome();
-    }
-
-    if (!$this->request->isPost) {
-        $viewData = $this->loginPresentationService->prepareLoginViewData();
-        return $this->render('login', $viewData);
-    }
-
-    $result = $this->loginPresentationService->processLoginRequest($this->request, $this->response);
-
-    if ($result['success']) {
-        return $this->goBack();
-    }
-
-    return $this->render('login', $result['viewData']);
-}
-
-// LoginPresentationService - логика аутентификации вынесена из формы
-class LoginPresentationService
-{
-    public function processLoginRequest(Request $request, Response $response): array
+    public function getAuthorsList(): array
     {
-        $viewData = $this->prepareLoginViewData();
-        $form = $viewData['model'];
-
-        if (!$form->load($request->post())) {
-            return ['success' => false, 'viewData' => $viewData];
-        }
-
-        if (!$form->validate()) {
-            $form->password = '';
-            return ['success' => false, 'viewData' => ['model' => $form]];
-        }
-
-        // Логика login() теперь в сервисе, а не в форме
-        $user = $form->getUser();
-        if (!$user || !$user->validatePassword($form->password)) {
-            $form->addError('password', Yii::t('app', 'Incorrect username or password.'));
-            $form->password = '';
-            return ['success' => false, 'viewData' => ['model' => $form]];
-        }
-
-        $duration = $form->rememberMe ? 3600 * 24 * 30 : 0;
-        Yii::$app->user->login($user, $duration);
-
-        return ['success' => true, 'viewData' => $viewData];
+        return $this->authorQueryService->getAuthorsMap();
     }
-}
-
-// Presentation Service извлекает и валидирует параметры
-class AuthorFormPreparationService
-{
-    public function prepareIndexViewData(Request $request): array
-    {
-        $page = max(1, (int)$request->get('page', 1)); // Извлечение и валидация
-        $pageSize = max(1, (int)$request->get('pageSize', 20)); // Извлечение и валидация
-        $queryResult = $this->authorQueryService->getIndexProvider($page, $pageSize);
-        $dataProvider = $this->dataProviderFactory->create($queryResult);
-        return ['dataProvider' => $dataProvider];
-    }
-    
-    public function prepareViewViewData(int $id): array
-    {
-        $author = $this->authorQueryService->getById($id);
-        return ['author' => $author];
-    }
-}
-
-// Контроллер делегирует всю логику представления
-class AuthorController
-{
-    public function actionIndex(): string
-    {
-        $viewData = $this->authorFormPreparationService->prepareIndexViewData($this->request);
-        return $this->render('index', $viewData);
-    }
-    
-    public function actionView(int $id): string
-    {
-        $viewData = $this->authorFormPreparationService->prepareViewViewData($id);
-        return $this->render('view', $viewData);
-    }
-}
-
-// Пример: Event Publisher изолирует Use Case от инфраструктуры
-// Infrastructure Adapter преобразует доменное событие в конкретный job
-class YiiEventPublisherAdapter implements EventPublisherInterface
-{
-    public function publishEvent(DomainEvent $event): void
-    {
-        // Используем типобезопасный метод для публикации доменных событий
-        // Проверяем тип события через instanceof для типобезопасности
-        if (!($event instanceof BookCreatedEvent)) {
-            return;
-        }
-
-        $this->queue->push(new NotifySubscribersJob([
-            'bookId' => $event->bookId,
-            'title' => $event->title,
-        ]));
-    }
-}
-
-// Пример: контроллер делегирует удаление в Presentation Service
-public function actionDelete(int $id): Response
-{
-    $this->bookFormPreparationService->processDeleteRequest($id);
-    return $this->redirect(['index']);
-    // Контроллер не знает о создании команд и выполнении use cases
 }
 ```
 
@@ -500,10 +351,10 @@ make test-functional # Только функциональные тесты
 Текущее покрытие: **~76% строк кода**.
 
 **Структура тестов:**
-1.  **Unit Tests (21 тест):**
+1.  **Unit Tests (29 тестов):**
     *   Проверка мапперов (DTO ↔ Forms ↔ Commands)
     *   Валидаторы (ISBN, уникальность)
-    *   Доменные события и Value Objects
+    *   Доменные события и Value Objects (Isbn, BookYear)
     *   Выполняются быстро, без базы данных.
 
 2.  **Functional Tests (32 теста):**
@@ -511,7 +362,7 @@ make test-functional # Только функциональные тесты
     *   **Use Cases:** Проверка бизнес-логики в интеграции с БД (создание книг, подписки).
     *   Проверка валидации форм и сообщений об ошибках (на русском языке).
 
-**Итого: 53 теста, >130 проверок (assertions)**
+**Итого: 61 тест, >146 проверок (assertions)**
 
 
 ### Основные команды

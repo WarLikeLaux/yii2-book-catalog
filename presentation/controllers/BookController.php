@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\presentation\services\BookFormPreparationService;
+use app\presentation\forms\BookForm;
+use app\presentation\services\books\BookCommandService;
+use app\presentation\services\books\BookViewService;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\Response;
+use yii\widgets\ActiveForm;
 
 final class BookController extends Controller
 {
     public function __construct(
         $id,
         $module,
-        private readonly BookFormPreparationService $bookFormPreparationService,
+        private readonly BookCommandService $commandService,
+        private readonly BookViewService $viewService,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -41,59 +45,82 @@ final class BookController extends Controller
 
     public function actionIndex(): string
     {
-        $viewData = $this->bookFormPreparationService->prepareIndexViewData($this->request);
-        return $this->render('index', $viewData);
+        $page = max(1, (int)$this->request->get('page', 1));
+        $pageSize = max(1, (int)$this->request->get('pageSize', 20));
+
+        $dataProvider = $this->viewService->getIndexDataProvider($page, $pageSize);
+
+        return $this->render('index', [
+            'dataProvider' => $dataProvider,
+        ]);
     }
 
     public function actionView(int $id): string
     {
-        $viewData = $this->bookFormPreparationService->prepareViewViewData($id);
-        return $this->render('view', $viewData);
+        $book = $this->viewService->getBookView($id);
+
+        return $this->render('view', [
+            'book' => $book,
+        ]);
     }
 
     public function actionCreate(): string|Response|array
     {
-        if (!$this->request->isPost) {
-            $viewData = $this->bookFormPreparationService->prepareCreateViewData();
-            return $this->render('create', $viewData);
+        $form = new BookForm();
+
+        if ($this->request->isPost && $form->load($this->request->post())) {
+            if ($this->request->isAjax) {
+                $this->response->format = Response::FORMAT_JSON;
+                return ActiveForm::validate($form);
+            }
+
+            if ($form->validate()) {
+                $bookId = $this->commandService->createBook($form);
+                if ($bookId !== null) {
+                    return $this->redirect(['view', 'id' => $bookId]);
+                }
+            }
         }
 
-        $result = $this->bookFormPreparationService->processCreateRequest($this->request, $this->response);
+        $authors = $this->viewService->getAuthorsList();
 
-        if ($result->ajaxValidation !== null) {
-            return $result->ajaxValidation;
-        }
-
-        if ($result->success && $result->redirectRoute !== null) {
-            return $this->redirect($result->redirectRoute);
-        }
-
-        return $this->render('create', $result->viewData);
+        return $this->render('create', [
+            'model' => $form,
+            'authors' => $authors,
+        ]);
     }
 
     public function actionUpdate(int $id): string|Response|array
     {
-        if (!$this->request->isPost) {
-            $viewData = $this->bookFormPreparationService->prepareUpdateViewData($id);
-            return $this->render('update', $viewData);
+        $form = $this->viewService->getBookForUpdate($id);
+
+        if ($this->request->isPost && $form->load($this->request->post())) {
+            if ($this->request->isAjax) {
+                $this->response->format = Response::FORMAT_JSON;
+                return ActiveForm::validate($form);
+            }
+
+            if ($form->validate()) {
+                $success = $this->commandService->updateBook($id, $form);
+                if ($success) {
+                    return $this->redirect(['view', 'id' => $id]);
+                }
+            }
         }
 
-        $result = $this->bookFormPreparationService->processUpdateRequest($id, $this->request, $this->response);
+        $authors = $this->viewService->getAuthorsList();
+        $bookDto = $this->viewService->getBookView($id);
 
-        if ($result->ajaxValidation !== null) {
-            return $result->ajaxValidation;
-        }
-
-        if ($result->success && $result->redirectRoute !== null) {
-            return $this->redirect($result->redirectRoute);
-        }
-
-        return $this->render('update', $result->viewData);
+        return $this->render('update', [
+            'model' => $form,
+            'authors' => $authors,
+            'book' => $bookDto,
+        ]);
     }
 
     public function actionDelete(int $id): Response
     {
-        $this->bookFormPreparationService->processDeleteRequest($id);
+        $this->commandService->deleteBook($id);
         return $this->redirect(['index']);
     }
 }

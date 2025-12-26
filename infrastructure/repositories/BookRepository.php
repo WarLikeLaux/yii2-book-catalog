@@ -9,6 +9,8 @@ use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
+use app\domain\values\BookYear;
+use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use yii\data\ActiveDataProvider;
@@ -19,15 +21,15 @@ final class BookRepository implements BookRepositoryInterface
 {
     public function create(
         string $title,
-        int $year,
-        string $isbn,
+        BookYear $year,
+        Isbn $isbn,
         ?string $description,
         ?string $coverUrl
     ): int {
         $book = Book::create(
             title: $title,
-            year: $year,
-            isbn: $isbn,
+            year: $year->value,
+            isbn: $isbn->value,
             description: $description,
             coverUrl: $coverUrl
         );
@@ -44,8 +46,8 @@ final class BookRepository implements BookRepositoryInterface
     public function update(
         int $id,
         string $title,
-        int $year,
-        string $isbn,
+        BookYear $year,
+        Isbn $isbn,
         ?string $description,
         ?string $coverUrl
     ): void {
@@ -56,8 +58,8 @@ final class BookRepository implements BookRepositoryInterface
 
         $book->edit(
             title: $title,
-            year: $year,
-            isbn: $isbn,
+            year: $year->value,
+            isbn: $isbn->value,
             description: $description,
             coverUrl: $coverUrl
         );

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\presentation\services\AuthorFormPreparationService;
+use app\presentation\forms\AuthorForm;
+use app\presentation\services\authors\AuthorCommandService;
+use app\presentation\services\authors\AuthorViewService;
 use app\presentation\services\AuthorSearchPresentationService;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -16,7 +18,8 @@ final class AuthorController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly AuthorFormPreparationService $authorFormPreparationService,
+        private readonly AuthorCommandService $commandService,
+        private readonly AuthorViewService $viewService,
         private readonly AuthorSearchPresentationService $authorSearchPresentationService,
         $config = []
     ) {
@@ -51,51 +54,57 @@ final class AuthorController extends Controller
 
     public function actionIndex(): string
     {
-        $viewData = $this->authorFormPreparationService->prepareIndexViewData($this->request);
-        return $this->render('index', $viewData);
+        $page = max(1, (int)$this->request->get('page', 1));
+        $pageSize = max(1, (int)$this->request->get('pageSize', 20));
+
+        $dataProvider = $this->viewService->getIndexDataProvider($page, $pageSize);
+
+        return $this->render('index', [
+            'dataProvider' => $dataProvider,
+        ]);
     }
 
     public function actionView(int $id): string
     {
-        $viewData = $this->authorFormPreparationService->prepareViewViewData($id);
-        return $this->render('view', $viewData);
+        $viewData = $this->viewService->getAuthorView($id);
+        return $this->render('view', ['model' => $viewData]);
     }
 
-    public function actionCreate(): string|Response
+    public function actionCreate(): string|Response|array
     {
-        if (!$this->request->isPost) {
-            $viewData = $this->authorFormPreparationService->prepareCreateViewData();
-            return $this->render('create', $viewData);
+        $form = new AuthorForm();
+
+        if ($this->request->isPost && $form->load($this->request->post())) {
+            if ($form->validate()) {
+                $authorId = $this->commandService->createAuthor($form);
+                if ($authorId !== null) {
+                    return $this->redirect(['view', 'id' => $authorId]);
+                }
+            }
         }
 
-        $result = $this->authorFormPreparationService->processCreateRequest($this->request);
-
-        if ($result->success && $result->redirectRoute !== null) {
-            return $this->redirect($result->redirectRoute);
-        }
-
-        return $this->render('create', $result->viewData);
+        return $this->render('create', ['model' => $form]);
     }
 
-    public function actionUpdate(int $id): string|Response
+    public function actionUpdate(int $id): string|Response|array
     {
-        if (!$this->request->isPost) {
-            $viewData = $this->authorFormPreparationService->prepareUpdateViewData($id);
-            return $this->render('update', $viewData);
+        $form = $this->viewService->getAuthorForUpdate($id);
+
+        if ($this->request->isPost && $form->load($this->request->post())) {
+            if ($form->validate()) {
+                $success = $this->commandService->updateAuthor($id, $form);
+                if ($success) {
+                    return $this->redirect(['view', 'id' => $id]);
+                }
+            }
         }
 
-        $result = $this->authorFormPreparationService->processUpdateRequest($id, $this->request);
-
-        if ($result->success && $result->redirectRoute !== null) {
-            return $this->redirect($result->redirectRoute);
-        }
-
-        return $this->render('update', $result->viewData);
+        return $this->render('update', ['model' => $form]);
     }
 
     public function actionDelete(int $id): Response
     {
-        $this->authorFormPreparationService->processDeleteRequest($id);
+        $this->commandService->deleteAuthor($id);
         return $this->redirect(['index']);
     }
 

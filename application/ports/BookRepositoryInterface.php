@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace app\application\ports;
 
 use app\application\books\queries\BookReadDto;
+use app\domain\values\BookYear;
+use app\domain\values\Isbn;
 
 interface BookRepositoryInterface
 {
     public function create(
         string $title,
-        int $year,
-        string $isbn,
+        BookYear $year,
+        Isbn $isbn,
         ?string $description,
         ?string $coverUrl
     ): int;
@@ -19,8 +21,8 @@ interface BookRepositoryInterface
     public function update(
         int $id,
         string $title,
-        int $year,
-        string $isbn,
+        BookYear $year,
+        Isbn $isbn,
         ?string $description,
         ?string $coverUrl
     ): void;

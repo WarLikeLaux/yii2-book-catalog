@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-/** @var app\application\authors\queries\AuthorReadDto $author */
+/** @var app\application\authors\queries\AuthorReadDto $model */
 
 use yii\helpers\Html;
 
-$this->title = $author->fio;
+$this->title = $model->fio;
 $this->params['breadcrumbs'][] = ['label' => 'Авторы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
@@ -15,8 +15,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Обновить', ['update', 'id' => $author->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a('Удалить', ['delete', 'id' => $author->id], [
+        <?= Html::a('Обновить', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+        <?= Html::a('Удалить', ['delete', 'id' => $model->id], [
             'class' => 'btn btn-danger',
             'data' => [
                 'confirm' => 'Вы уверены, что хотите удалить этого автора?',
@@ -28,11 +28,11 @@ $this->params['breadcrumbs'][] = $this->title;
     <table class="table table-striped table-bordered">
         <tr>
             <th>ID</th>
-            <td><?= Html::encode((string)$author->id) ?></td>
+            <td><?= Html::encode((string)$model->id) ?></td>
         </tr>
         <tr>
             <th>ФИО</th>
-            <td><?= Html::encode($author->fio) ?></td>
+            <td><?= Html::encode($model->fio) ?></td>
         </tr>
     </table>
 </div>

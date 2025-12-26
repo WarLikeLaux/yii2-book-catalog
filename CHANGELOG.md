@@ -4,17 +4,31 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.7.0] - 2025-12-27
+
+### 🛠 Рефакторинг и архитектура
+- **#14** - полное разделение Presentation Services на **Command Services** (Write) и **View Services** (Read) для всех контроллеров (Books, Authors, Subscriptions) ([fb0a11c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fb0a11c))
+- **#14** - внедрение Value Objects (`Isbn`, `BookYear`) для инкапсуляции бизнес-правил валидации ([70df022](https://github.com/WarLikeLaux/yii2-book-catalog/commit/70df022))
+- **#14** - устранение анти-паттерна "Supervisor Controller" и удаление монолитных FormPreparationService ([fb0a11c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fb0a11c))
+
+### ⚙️ Инфраструктура и надежность
+- **#14** - реализована **идемпотентность** отправки SMS (через Cache Lock) для защиты от дублей при ретраях очереди ([1564e15](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1564e15))
+- **#14** - добавлены архитектурные комментарии (Technical Debt) касательно Transactional Outbox, Service Locator в Job-ах и Stateful адаптеров ([bcab899](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bcab899))
+
+### 📝 Документация
+- **#14** - обновлен README: актуализирована структура проекта, описано разделение сервисов и использование DDD Value Objects ([a83f74d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a83f74d))
+
 ## [0.6.0] - 2025-12-25
 
 ### 🚀 Новые функции и возможности
 - **#12** - добавлена поддержка TranslatorInterface и адаптер YiiTranslatorAdapter для независимых переводов ([27378fb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/27378fb))
 - **#12** - добавлен сервис Selenium в docker-compose для приемочного тестирования ([77f05bd](https://github.com/WarLikeLaux/yii2-book-catalog/commit/77f05bd))
 
-### 🛠 Рефакторинг и Архитектура
+### 🛠 Рефакторинг и архитектура
 - **#12** - глобальный рефакторинг структуры проекта на слои Clean Architecture (application, domain, infrastructure, presentation) ([dba5729](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dba5729))
 - **#12** - настроена инфраструктура покрытия кода (pcov) и внедрены строгие типизированные тесты с поддержкой локализации ([96c589b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/96c589b))
 
-### ⚙️ Инфраструктура и Очистка
+### ⚙️ Инфраструктура и очистка
 - **#13** - удален конфигурационный файл .bowerrc ([ea559bb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ea559bb))
 - **#13** - удалены устаревшие конфиги Vagrant и сопутствующие файлы ([87b4f20](https://github.com/WarLikeLaux/yii2-book-catalog/commit/87b4f20))
 - **#12** - удален устаревший скрипт yii.bat и легаси загрузчики консоли ([0f5256d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0f5256d), [ba5840a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ba5840a))
@@ -36,7 +50,7 @@
 - **#8** - внедрена поддержка параметров пагинации в BookQueryService и BookSearchCriteria ([4224167](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4224167))
 - **#8** - добавлена поддержка динамического кеширования схемы БД ([ca9e91e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ca9e91e))
 
-### 🛠 Рефакторинг и Архитектура
+### 🛠 Рефакторинг и архитектура
 - **#8** - рефакторинг контроллеров (Author, Book, Site) для использования Presentation Services и View Data ([a3ce4dc](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a3ce4dc), [862246a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/862246a), [387aad3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/387aad3))
 - **#8** - рефакторинг системы уведомлений: перенос интерфейсов в порты приложения ([9aecbae](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9aecbae))
 - **#8** - внедрение интерфейса DomainEvent и рефакторинг публикации событий в Use Cases ([a62c364](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a62c364))
@@ -57,7 +71,7 @@
 
 ## [0.4.0] - 2025-12-21
 
-### 🛠 Рефакторинг и Архитектура
+### 🛠 Рефакторинг и архитектура
 - **#6** - рефакторинг приложения на использование паттернов Command, Query и Use Case ([463ce48](https://github.com/WarLikeLaux/yii2-book-catalog/commit/463ce48))
 - **#6** - удаление старого слоя сервисов и внедрение новых форм ([463ce48](https://github.com/WarLikeLaux/yii2-book-catalog/commit/463ce48))
 - **#6** - внедрение "богатых" моделей (Rich Models) для Author и Book ([e1f704a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e1f704a))
