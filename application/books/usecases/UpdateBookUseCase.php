@@ -30,8 +30,8 @@ final class UpdateBookUseCase
             $this->bookRepository->update(
                 id: $command->id,
                 title: $command->title,
-                year: $command->year,
-                isbn: $command->isbn,
+                year: new BookYear($command->year),
+                isbn: new Isbn($command->isbn),
                 description: $command->description,
                 coverUrl: $command->cover
             );

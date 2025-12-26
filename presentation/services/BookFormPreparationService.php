@@ -116,7 +116,7 @@ final class BookFormPreparationService
 
         $coverPath = $this->processCoverUpload($form);
         $command = $this->bookFormMapper->toCreateCommand($form, $coverPath);
-        
+
         $success = $this->useCaseExecutor->execute(
             fn() => $this->createBookUseCase->execute($command),
             Yii::t('app', 'Book has been created')
@@ -150,7 +150,7 @@ final class BookFormPreparationService
 
         $coverPath = $this->processCoverUpload($form);
         $command = $this->bookFormMapper->toUpdateCommand($id, $form, $coverPath);
-        
+
         $success = $this->useCaseExecutor->execute(
             fn() => $this->updateBookUseCase->execute($command),
             Yii::t('app', 'Book has been updated'),

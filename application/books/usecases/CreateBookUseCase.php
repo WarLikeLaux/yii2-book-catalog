@@ -9,6 +9,8 @@ use app\application\ports\BookRepositoryInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookCreatedEvent;
+use app\domain\values\BookYear;
+use app\domain\values\Isbn;
 
 final class CreateBookUseCase
 {
@@ -26,8 +28,8 @@ final class CreateBookUseCase
         try {
             $bookId = $this->bookRepository->create(
                 title: $command->title,
-                year: $command->year,
-                isbn: $command->isbn,
+                year: new BookYear($command->year),
+                isbn: new Isbn($command->isbn),
                 description: $command->description,
                 coverUrl: $command->cover
             );
