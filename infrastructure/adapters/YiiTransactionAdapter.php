@@ -7,6 +7,9 @@ namespace app\infrastructure\adapters;
 use app\application\ports\TransactionInterface;
 use yii\db\Connection;
 
+// TODO: адаптер хранит состояние ($transaction).
+// В long-running процессах (Swoole/RoadRunner) убедитесь, что сервис не Singleton,
+// или корректно сбрасывайте стейт.
 final class YiiTransactionAdapter implements TransactionInterface
 {
     private ?\yii\db\Transaction $transaction = null;
