@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\presentation\services\SubscriptionPresentationService;
+use app\presentation\forms\SubscriptionForm;
+use app\presentation\services\subscriptions\SubscriptionCommandService;
+use app\presentation\services\subscriptions\SubscriptionViewService;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
+use yii\web\Response;
 
 final class SubscriptionController extends Controller
 {
     public function __construct(
         $id,
         $module,
-        private readonly SubscriptionPresentationService $subscriptionPresentationService,
+        private readonly SubscriptionCommandService $commandService,
+        private readonly SubscriptionViewService $viewService,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -44,12 +48,25 @@ final class SubscriptionController extends Controller
 
     public function actionSubscribe(): array
     {
-        return $this->subscriptionPresentationService->processSubscribeRequest($this->request, $this->response);
+        $this->response->format = Response::FORMAT_JSON;
+        $form = new SubscriptionForm();
+
+        if ($form->load($this->request->post()) && $form->validate()) {
+            return $this->commandService->subscribe($form);
+        }
+
+        return ['success' => false, 'errors' => $form->errors];
     }
 
     public function actionForm(int $authorId): string
     {
-        $viewData = $this->subscriptionPresentationService->prepareFormViewData($authorId);
-        return $this->renderAjax('_form', $viewData);
+        $author = $this->viewService->getAuthor($authorId);
+        $form = new SubscriptionForm();
+
+        return $this->renderAjax('_form', [
+            'model' => $form,
+            'author' => $author,
+            'authorId' => $authorId,
+        ]);
     }
 }
