@@ -1,20 +1,87 @@
-# Современный каталог книг: Clean-ish Architecture на примере Yii 2, асинхронные очереди и гибридный поиск 📚 ⚡️
+<div align="center">
+
+# 📚 Yii2 Book Catalog
+
+**Modern Clean Architecture • PHP 8.4 • Async Queues • Hybrid Search**
+
+[![PHP Version](https://img.shields.io/badge/PHP-8.4-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Tests](https://img.shields.io/badge/Tests-161_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Coverage](https://img.shields.io/badge/Coverage-88%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+
+---
+
+<p align="center">
+  <b>🏛 Clean-ish Architecture</b> • <b>⚡ CQS Pattern</b> • <b>🎯 Value Objects</b> • <b>📨 Domain Events</b> • <b>🔄 Async Fan-out</b>
+</p>
+
+</div>
+
+---
 
 Проект представляет собой реализацию каталога книг на базе **Yii2 Basic** и **PHP 8.4** с **Clean-ish** архитектурой.
 
 Основной акцент сделан на **отделении бизнес-логики от фреймворка**, строгой типизации и отказоустойчивости асинхронных процессов. Продемонстрирован компромиссный подход: Yii остается на уровне представления, а use cases и порты живут отдельно.
 
-Подробная история изменений доступна в [CHANGELOG.md](CHANGELOG.md).
+📋 Подробная история изменений доступна в [CHANGELOG.md](CHANGELOG.md).
+
+## ✨ Ключевые особенности
+
+<table>
+<tr>
+<td width="50%">
+
+### 🏛️ Архитектура
+- **Clean-ish Architecture** — компромисс между чистотой и прагматизмом
+- **CQS Pattern** — разделение команд и запросов
+- **Value Objects** — `Isbn`, `BookYear` для бизнес-правил
+- **Domain Events** — асинхронное взаимодействие
+
+</td>
+<td width="50%">
+
+### ⚡ Производительность
+- **Async Fan-out** — масштабируемые уведомления
+- **Hybrid Search** — FullText + Exact Match
+- **Idempotency** — защита от дублей в очередях
+- **PJAX** — мгновенная фильтрация
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🧪 Качество кода
+- **161 тест** с 287 assertions
+- **88% покрытие** кода тестами
+- **Strict Types** везде
+- **PHPCS** + Slevomat Coding Standard
+
+</td>
+<td width="50%">
+
+### 🐳 DevOps Ready
+- **Docker Compose** — полный стек одной командой
+- **Makefile** — автоматизация рутины
+- **Health Checks** — мониторинг сервисов
+- **Hot Reload** — быстрая разработка
+
+</td>
+</tr>
+</table>
 
 ## 🛠 Технический стек
 
-*   **PHP:** 8.4 (Strict Types, Constructor Promotion, Readonly Classes).
-*   **Framework:** Yii2 Basic.
-*   **Database:** MySQL 8.0 (InnoDB + FullText Search).
-*   **Async:** `yii2-queue` (DB driver) с реализацией паттерна Fan-out.
-*   **Search:** Hybrid SQL (FullText + Exact Match) + UI: PJAX.
-*   **Testing:** Codeception (Integration + Functional).
-*   **Infra:** Docker Compose + Makefile.
+| Категория | Технология | Описание |
+|-----------|------------|----------|
+| **Язык** | ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white) | Strict Types, Constructor Promotion, Readonly Classes |
+| **Framework** | ![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii) | Basic Template с DI Container |
+| **Database** | ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white) | InnoDB + FullText Search |
+| **Queue** | `yii2-queue` | DB Driver + Fan-out Pattern |
+| **Testing** | ![Codeception](https://img.shields.io/badge/Codeception-5.0-purple) | Unit + Functional, 88% Coverage |
+| **Infra** | ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) | PHP 8.4 + MySQL 8 + Queue Worker |
 
 ## 🏗 Архитектурные решения
 
@@ -262,47 +329,84 @@ yii2-book-catalog/
 
 ## 🚀 Установка и запуск
 
-Проект полностью контейнеризирован. Все управление осуществляется через `Makefile`.
-
-### Инициализация
-Развернуть контейнеры, установить зависимости, применить миграции и наполнить базу тестовыми данными:
+<details open>
+<summary><b>⚡ Quick Start (3 команды)</b></summary>
 
 ```bash
+# 1. Клонируем проект
+git clone https://github.com/WarLikeLaux/yii2-book-catalog.git
+cd yii2-book-catalog
+
+# 2. Поднимаем всё одной командой
 make init
+
+# 3. Готово! 🎉
+open http://localhost:8000
 ```
 
-Приложение будет доступно по адресу: [http://localhost:8000](http://localhost:8000)
+</details>
+
+> 💡 **Что делает `make init`:**
+> - 🐳 Поднимает Docker контейнеры (PHP 8.4 + MySQL 8 + Queue Worker)
+> - 📦 Устанавливает Composer зависимости
+> - 🗄 Применяет миграции БД
+> - 🌱 Наполняет базу демо-данными
+
+<details>
+<summary><b>🔑 Тестовые учётные данные</b></summary>
+
+| Логин | Пароль |
+|-------|--------|
+| `admin` | `admin` |
+| `demo` | `demo` |
+
+</details>
+
+Приложение будет доступно по адресу: **[http://localhost:8000](http://localhost:8000)**
 
 ### 🧪 Тестирование и покрытие кода
 
-Проект имеет развитую систему автотестов на базе **Codeception** и **PCOV**.
+<table>
+<tr>
+<td align="center"><b>161</b><br>Tests</td>
+<td align="center"><b>287</b><br>Assertions</td>
+<td align="center"><b>88%</b><br>Coverage</td>
+<td align="center"><b>~1s</b><br>Runtime</td>
+</tr>
+</table>
 
 **Команды:**
 
 ```bash
-make test           # Автоматическая подготовка БД и запуск всех тестов
-make test-coverage  # Запуск с генерацией HTML-отчета о покрытии
-make test-unit      # Только Unit-тесты
-make test-functional # Только функциональные тесты
+make test           # 🧪 Запуск всех тестов
+make test-coverage  # 📊 Генерация HTML-отчета о покрытии
+make test-unit      # ⚡ Только Unit-тесты (быстро)
+make test-functional # 🌐 Только функциональные тесты
 ```
 
-**Отчет о покрытии:**
-После запуска `make test-coverage` отчет доступен в `tests/_output/coverage/index.html`.
-Текущее покрытие: **~88% строк кода**.
+<details>
+<summary><b>📋 Структура тестов</b></summary>
 
-**Структура тестов:**
-1.  **Unit Tests (113 тестов):**
-    *   Проверка мапперов (DTO ↔ Forms ↔ Commands)
-    *   Валидаторы (ISBN, уникальность)
-    *   Доменные события и Value Objects (Isbn, BookYear)
-    *   Выполняются быстро, без базы данных.
+| Тип | Количество | Описание |
+|-----|------------|----------|
+| **Unit** | 113 | Мапперы, Валидаторы, Value Objects, DTOs — без БД |
+| **Functional** | 48 | CRUD, Use Cases, HTTP-сценарии с БД |
 
-2.  **Functional Tests (48 тестов):**
-    *   **HTTP-сценарии:** CRUD операции (Книги, Авторы), поиск, фильтрация, аутентификация.
-    *   **Use Cases:** Проверка бизнес-логики в интеграции с БД (создание книг, подписки).
-    *   Проверка валидации форм и сообщений об ошибках (на русском языке).
+**Unit Tests покрывают:**
+- DTO ↔ Forms ↔ Commands маппинги
+- Валидаторы (ISBN, уникальность FIO, авторы)
+- Value Objects (`Isbn`, `BookYear`)
+- `UseCaseExecutor`, `QueryResult`, Adapters
 
-**Итого: 161 тест, >287 проверок (assertions)**
+**Functional Tests покрывают:**
+- CRUD операции (Книги, Авторы)
+- Use Cases (`CreateBook`, `UpdateBook`, `Subscribe`)
+- Валидация форм с русскоязычными сообщениями
+- Аутентификация и авторизация
+
+</details>
+
+> 📈 **Отчет о покрытии:** `make test-coverage` → `tests/_output/coverage/index.html`
 
 
 ### Основные команды
@@ -321,3 +425,20 @@ make test-functional # Только функциональные тесты
 Настройки окружения находятся в файле `.env`.
 *   `SMS_API_KEY`: Установите `MOCK_KEY` для эмуляции отправки (запись в лог) или реальный ключ.
 
+---
+
+<div align="center">
+
+### 📊 Статистика проекта
+
+![Lines of Code](https://img.shields.io/badge/Lines_of_Code-~5000-blue?style=flat-square)
+![PHP Files](https://img.shields.io/badge/PHP_Files-85-purple?style=flat-square)
+![Test Coverage](https://img.shields.io/badge/Coverage-88%25-brightgreen?style=flat-square)
+
+---
+
+**Made with ❤️ using Yii2 Framework**
+
+*Clean-ish Architecture • DDD • CQRS • Event-Driven*
+
+</div>
