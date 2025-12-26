@@ -24,6 +24,13 @@ final class NotifySingleSubscriberJob extends BaseObject implements Job, Retryab
 
     public function execute($queue): void
     {
+        $cache = Yii::$app->cache;
+        $idempotencyKey = sprintf('sms_handled:%d:%s', $this->bookId, md5($this->phone));
+
+        if ($cache && !$cache->add($idempotencyKey, 1, 3600 * 24)) {
+            return;
+        }
+
         $sender = Yii::$container->get(SmsSenderInterface::class);
         $logger = new YiiPsrLogger('sms');
 
@@ -35,6 +42,8 @@ final class NotifySingleSubscriberJob extends BaseObject implements Job, Retryab
                 'book_id' => $this->bookId,
             ]);
         } catch (Throwable $exception) {
+            $cache?->delete($idempotencyKey);
+
             $logger->error('SMS notification failed', [
                 'phone' => $this->phone,
                 'book_id' => $this->bookId,
