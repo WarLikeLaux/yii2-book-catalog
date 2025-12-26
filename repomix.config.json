@@ -1,0 +1,11 @@
+{
+	"ignore": {
+		"customPatterns": [
+			"composer.lock",
+			"package-lock.json",
+			"*.lock",
+			"repomix-output.txt",
+			"repomix-output.md"
+		]
+	}
+}

@@ -1,4 +1,4 @@
-.PHONY: init up down restart composer lint lint-fix migrate seed shell perms copy-env sms-logs queue-info logs test test-coverage test-unit test-functional test-acceptance docs
+.PHONY: init up down restart composer lint lint-fix migrate seed shell perms copy-env sms-logs queue-info logs test test-coverage test-unit test-functional test-acceptance docs repomix
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -78,3 +78,9 @@ test-acceptance:
 
 docs:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/all
+
+repomix:
+	@command -v npx >/dev/null 2>&1 || { echo "❌ npx not found. Install Node.js first"; exit 1; }
+	@echo "📦 Generating repomix output..."
+	@npx -y repomix --style markdown --output repomix-output.md
+	@echo "✅ Created repomix-output.md"
