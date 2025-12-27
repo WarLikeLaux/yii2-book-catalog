@@ -64,8 +64,12 @@ final class BookController extends Controller
                 description: 'JSON List of books',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'items', type: 'array', items: new OA\Items(type: 'object')),
-                        new OA\Property(property: '_meta', type: 'object'),
+                        new OA\Property(
+                            property: 'items',
+                            type: 'array',
+                            items: new OA\Items(ref: '#/components/schemas/Book')
+                        ),
+                        new OA\Property(property: '_meta', ref: '#/components/schemas/PaginationMeta'),
                     ],
                     type: 'object'
                 )

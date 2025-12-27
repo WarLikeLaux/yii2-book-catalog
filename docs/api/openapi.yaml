@@ -32,9 +32,66 @@ paths:
             application/json:
               schema:
                 properties:
-                  items: { type: array, items: { type: object } }
-                  _meta: { type: object }
+                  items: { type: array, items: { $ref: '#/components/schemas/Book' } }
+                  _meta: { $ref: '#/components/schemas/PaginationMeta' }
                 type: object
+components:
+  schemas:
+    Book:
+      title: Book
+      description: Книга
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: 'Чистый код'
+        year:
+          type: integer
+          example: 2008
+          nullable: true
+        description:
+          type: string
+          example: 'Руководство по созданию качественного кода'
+          nullable: true
+        isbn:
+          type: string
+          example: 978-0-13-235088-4
+        authorIds:
+          type: array
+          items:
+            type: integer
+          example:
+            - 1
+        authorNames:
+          type: object
+          example:
+            '1': 'Роберт Мартин'
+          additionalProperties:
+            type: string
+        coverUrl:
+          type: string
+          example: /uploads/covers/clean-code.jpg
+          nullable: true
+      type: object
+    PaginationMeta:
+      title: 'Pagination Meta'
+      description: 'Метаданные пагинации'
+      properties:
+        totalCount:
+          type: integer
+          example: 100
+        pageCount:
+          type: integer
+          example: 10
+        currentPage:
+          type: integer
+          example: 1
+        perPage:
+          type: integer
+          example: 10
+      type: object
 tags:
   -
     name: 'API Books'
