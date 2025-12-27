@@ -66,7 +66,6 @@ jobs:
       - name: Prepare Database
         run: |
           php yii migrate --interactive=0
-          php yii seed --interactive=0
 
       - name: Run Tests
         run: ./vendor/bin/codecept run functional,unit --no-colors
