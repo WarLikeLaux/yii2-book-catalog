@@ -2,9 +2,14 @@ name: CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches:
+      - main
+      - dev
   pull_request:
-    branches: [ main, dev ]
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
 
 jobs:
   build-and-test:
@@ -23,7 +28,8 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -67,8 +73,7 @@ jobs:
         run: ./vendor/bin/deptrac analyze
 
       - name: Prepare Database
-        run: |
-          php yii migrate --interactive=0
+        run: php yii migrate --interactive=0
 
       - name: Run Tests
         run: ./vendor/bin/codecept run functional,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage" -o "coverage: enabled: true" -o "coverage: include: [application/*,domain/*,infrastructure/*,presentation/*]"
