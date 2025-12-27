@@ -94,7 +94,7 @@ repomix:
 infection: _test-init
 	$(COMPOSE) exec $(PHP_CONTAINER) mkdir -p runtime/coverage
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage"
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=4 --min-msi=70 --min-covered-msi=80 --test-framework-options="functional,unit"
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=max --test-framework-options="functional,unit"
 
 swagger:
 	$(COMPOSE) exec $(PHP_CONTAINER) php docs/api/generate.php

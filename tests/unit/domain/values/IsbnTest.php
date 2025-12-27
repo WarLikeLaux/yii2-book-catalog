@@ -131,4 +131,37 @@ final class IsbnTest extends Unit
         $isbn = new Isbn('0306406152');
         $this->assertSame('0306406152', $isbn->getFormatted());
     }
+
+    public function testGetFormattedReturnsFormattedIsbn13WithDistinctLastDigits(): void
+    {
+        $isbn = new Isbn('979-10-90636-07-1');
+        $this->assertSame('979-1-09-063607-1', $isbn->getFormatted());
+    }
+
+    public function testThrowsExceptionOnIsbn13WithLetterInMiddle(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('978a000000002');
+    }
+
+    public function testThrowsExceptionOnIsbn10WithLetterInsteadOfZero(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('a306406152');
+    }
+
+    public function testThrowsExceptionOnIsbn10WithLetterYInsteadOfZeroAtEnd(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('000000000Y');
+    }
+
+    public function testThrowsExceptionOnIsbn10WithLetterYAtPosition8(): void
+    {
+        $this->expectException(DomainException::class);
+        // substr(0,9) is 00000000Y -> exception.
+        // substr(0,8) is 00000000 -> valid.
+        // 00000000Y0. Total 10 chars.
+        new Isbn('00000000Y0');
+    }
 }

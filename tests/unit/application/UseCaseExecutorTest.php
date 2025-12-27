@@ -75,11 +75,18 @@ final class UseCaseExecutorTest extends Unit
             ->with('unexpected');
         $this->notifier->expects($this->never())
             ->method('success');
+            
         $this->logger->expects($this->once())
             ->method('error')
-            ->with('boom', $this->callback(function (array $context): bool {
-                return $context['foo'] === 'bar' && $context['exception'] instanceof \Throwable;
-            }));
+            ->with(
+                'boom', 
+                $this->callback(function (array $context): bool {
+                    if (!isset($context['foo']) || !isset($context['exception'])) {
+                        return false;
+                    }
+                    return $context['foo'] === 'bar' && $context['exception'] instanceof \Throwable;
+                })
+            );
 
         $result = $this->executor->execute(function (): void {
             throw new \RuntimeException('boom');
@@ -108,9 +115,10 @@ final class UseCaseExecutorTest extends Unit
         $this->logger->expects($this->once())
             ->method('error')
             ->with('api boom', $this->callback(function (array $context) use ($exception): bool {
-                return $context['requestId'] === '123' 
-                    && isset($context['exception']) 
-                    && $context['exception'] === $exception;
+                if (!isset($context['requestId']) || !isset($context['exception'])) {
+                    return false;
+                }
+                return $context['requestId'] === '123' && $context['exception'] === $exception;
             }));
 
         $result = $this->executor->executeForApi(function () use ($exception): void {
