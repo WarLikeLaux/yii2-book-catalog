@@ -4,20 +4,22 @@
 
 Все значимые изменения в этом проекте документируются в данном файле.
 
-Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-
-
+Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.9.0] - 2025-12-28
 
-### �️ Безопасность
+### 🛡️ Безопасность
 - **#19** - внедрены строгие правила безопасности (`strict-rules`) и исправлены ошибки типизации ([56e4c08](https://github.com/WarLikeLaux/yii2-book-catalog/commit/56e4c08))
 
-### �🚀 Новые функции и возможности
+### 🐛 Исправления
+- **#19** - исправлены выжившие мутанты в валидации ISBN и обработке ошибок ([ec0ea51](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ec0ea51))
+
+### 🚀 Новые функции и возможности
 - **#18** - реализована **HTTP Idempotency** через заголовок `Idempotency-Key` для защиты от дублирования запросов ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 - **#18** - добавлен `IdempotencyFilter` для автоматического кеширования ответов POST-запросов ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 
 ### 🧪 Тестирование
+- **#19** - оптимизирована скорость мутационного тестирования и достигнут **MSI 96%** ([ec0ea51](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ec0ea51))
 - **#18** - достигнуто **100% покрытие кода тестами** (238 тестов, 517 assertions) ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 - **#18** - добавлены unit-тесты: `IdempotencyServiceTest`, `BookReadDtoTest`, `SubscribeUseCaseTest`, `YiiTransactionAdapterTest`, `IdempotencyFilterTest`, `LoginPresentationServiceTest` ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 - **#18** - добавлены functional-тесты: `IdempotencyCest`, расширены `AuthorRepositoryTest`, `BookRepositoryTest` ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
@@ -29,16 +31,20 @@
 - **#18** - упрощена конфигурация CI — coverage берётся из `codeception.yml` ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 
 ### ⚙️ Инфраструктура
+- **#19** - увеличен тайм-аут composer для предотвращения ошибок загрузки ([9d8c06b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9d8c06b))
 - **#18** - увеличен таймаут для `asset-packagist` и добавлен русский перевод в Dockerfile ([10df45a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/10df45a))
 - **#18** - добавлены workflow команды для `commit` и `changelog` ([051a2e5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/051a2e5))
 
 ### 📝 Документация
+- **#19** - обновлена спецификация OpenAPI с русскими переводами ([5a9d4bf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5a9d4bf))
+- **#19** - обновлены метрики тестирования в README (249 тестов, 96% MSI) ([de22ada](https://github.com/WarLikeLaux/yii2-book-catalog/commit/de22ada))
 - **#19** - обновлен README.md информацией о безопасности и новых стандартах качества ([79f7e20](https://github.com/WarLikeLaux/yii2-book-catalog/commit/79f7e20))
 - **#18** - добавлены русские комментарии в конфиги тестов и `OpenApiSpec` ([10df45a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/10df45a))
 - **#18** - добавлены схемы `Book` и `PaginationMeta` в OpenAPI спецификацию ([5ad416a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5ad416a))
 - **#18** - обновлен `CHANGELOG.md` ([051a2e5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/051a2e5))
 - **#18** - обновлен README: актуальная статистика (238 тестов, 100% coverage), новые команды ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 - **#18** - обновлен `contract.md`: добавлены команды `make dev/ci/pr/fix` ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
+
 
 ## [0.8.0] - 2025-12-27
 
