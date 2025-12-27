@@ -32,64 +32,30 @@
 
 ## ✨ Ключевые особенности
 
-<table>
-<tr>
-<td width="50%">
+| 🏛️ Архитектура | ⚡ Производительность |
+| :--- | :--- |
+| 🔹 **Clean-ish Architecture**<br>Компромисс между чистотой и прагматизмом | 🚀 **Async Fan-out**<br>Масштабируемые уведомления |
+| 🔹 **CQS Pattern**<br>Разделение команд и запросов | 🔍 **Hybrid Search**<br>FullText + Exact Match |
+| 🔹 **Value Objects**<br>`Isbn`, `BookYear` для бизнес-правил | 🛡 **Idempotency**<br>Защита от дублей в очередях |
+| 🔹 **Domain Events**<br>Асинхронное взаимодействие | ⚡ **PJAX**<br>Мгновенная фильтрация |
 
-### 🏛️ Архитектура
-- **Clean-ish Architecture** — компромисс между чистотой и прагматизмом
-- **CQS Pattern** — разделение команд и запросов
-- **Value Objects** — `Isbn`, `BookYear` для бизнес-правил
-- **Domain Events** — асинхронное взаимодействие
-
-</td>
-<td width="50%">
-
-### ⚡ Производительность
-- **Async Fan-out** — масштабируемые уведомления
-- **Hybrid Search** — FullText + Exact Match
-- **Idempotency** — защита от дублей в очередях
-- **PJAX** — мгновенная фильтрация
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### 🧪 Качество кода
-- **186 тестов** с 394 assertions
-- **100% покрытие** кода тестами
-- **PHPStan Level 9** (max strictness)
-- **Mutation Testing** (Infection PHP, MSI > 90%)
-- **Automated Refactoring** (Rector PHP 8.4)
-- **Architecture Testing** (Deptrac)
-- **Detailed Documentation** ([ARCHITECTURE.md](./docs/ARCHITECTURE.md))
-- **Strict Types** везде (`declare(strict_types=1)`)
-- **PHPCS** + Slevomat Coding Standard
-
-</td>
-<td width="50%">
-
-### 🐳 DevOps Ready
-- **Docker Compose** — полный стек одной командой
-- **Makefile** — автоматизация рутины
-- **Health Checks** — мониторинг сервисов
-- **Hot Reload** — быстрая разработка
-
-</td>
-</tr>
-</table>
+| 🧪 Качество кода | 🐳 DevOps Ready |
+| :--- | :--- |
+| ✅ **186 тестов** (394 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **PHPStan Level 9**<br>Максимальная строгость типов | 🛠 **Makefile**<br>Автоматизация рутины |
+| ✅ **Mutation Testing**<br>Infection PHP (MSI > 90%) | 💓 **Health Checks**<br>Мониторинг сервисов |
+| ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
 ## 🛠 Технический стек
 
 | Категория | Технология | Описание |
 |-----------|------------|----------|
-| **Язык** | ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white) | PHPStan Level 9, Strict Types, Constructor Promotion |
-| **Framework** | ![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii) | Basic Template с DI Container |
-| **Database** | ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white) | InnoDB + FullText Search |
+| **Язык** | <a href="https://www.php.net/" target="_blank">![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)</a> | PHPStan Level 9, Strict Types, Constructor Promotion |
+| **Framework** | <a href="https://www.yiiframework.com/" target="_blank">![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii)</a> | Basic Template с DI Container |
+| **Database** | <a href="https://www.mysql.com/" target="_blank">![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)</a> | InnoDB + FullText Search |
 | **Queue** | `yii2-queue` | DB Driver + Fan-out Pattern |
-| **Testing** | ![Codeception](https://img.shields.io/badge/Codeception-5.0-purple) | Unit + Functional, 100% Coverage |
-| **Infra** | ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) | PHP 8.4 + MySQL 8 + Queue Worker |
+| **Testing** | <a href="https://codeception.com/" target="_blank">![Codeception](https://img.shields.io/badge/Codeception-5.0-purple)</a> | Unit + Functional, 100% Coverage |
+| **Infra** | <a href="https://www.docker.com/" target="_blank">![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)</a> | PHP 8.4 + MySQL 8 + Queue Worker |
 | **Quality** | `Rector`, `PHPStan`, `Deptrac` | Automated Refactoring & Static Analysis |
 
 ## 🏗 Архитектурные решения

@@ -1,5 +1,7 @@
 # Список изменений (Changelog)
 
+[← Назад в README](README.md)
+
 Все значимые изменения в этом проекте документируются в данном файле.
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
