@@ -84,9 +84,18 @@ jobs:
       - name: Prepare Database
         run: php yii migrate --interactive=0
 
-      - name: Run Tests
+      - name: Start PHP Server
+        run: php -S 0.0.0.0:8080 -t web > /dev/null 2>&1 &
+
+      - name: Run Acceptance Tests
         run: |
-          ./vendor/bin/codecept run acceptance,functional,unit --no-colors \
+          ./vendor/bin/codecept run acceptance --no-colors \
+            -o "modules: config: WebDriver: url: http://172.17.0.1:8080" \
+            -o "modules: config: WebDriver: browser: chrome"
+
+      - name: Run Unit & Functional Tests (with Coverage)
+        run: |
+          ./vendor/bin/codecept run functional,unit --no-colors \
             --coverage-xml=coverage.xml \
             --coverage-phpunit=coverage-phpunit.xml \
             --xml=junit.xml \
