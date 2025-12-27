@@ -54,6 +54,9 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
+      - name: Run Security Audit
+        run: composer audit
+
       - name: Run Lint
         run: ./vendor/bin/phpcs
 
