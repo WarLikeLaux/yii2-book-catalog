@@ -1,0 +1,39 @@
+includes:
+	# Сюда можно подключить phpstan-yii2 плагин в будущем
+
+parameters:
+	# Уровень строгости анализа (0-9).
+	# Level 5: проверка типов аргументов и возвращаемых значений.
+	# Level 9: строгая работа с mixed (strict mode).
+	level: 9
+
+	# Загрузка Yii для видимости классов фреймворка
+	bootstrapFiles:
+		- phpstan-bootstrap.php
+
+	# Директории для сканирования (Clean Architecture слои)
+	paths:
+		- application
+		- domain
+		- infrastructure
+		- presentation
+
+	# Исключения (файлы, которые не нужно сканировать)
+	excludePaths:
+		- presentation/views/*  # View содержат HTML и PHP-теги, сложно анализировать
+		- tests/*              # Тесты анализируем отдельно (или не анализируем)
+		- runtime/*            # Временные файлы Yii2
+		- vendor/*             # Сторонние библиотеки
+
+	reportUnmatchedIgnoredErrors: false
+
+
+
+	# Игнорируемые ошибки (временный технический долг)
+	ignoreErrors:
+		# Yii::$app magic properties (session, user, etc.)
+		- '#Access to an undefined property .*Application::\$session#'
+		- '#Access to an undefined property .*Application::\$user#'
+
+		# Отключаем требование Generics для ActiveQuery (так как Yii2 их не поддерживает "искаропки")
+		- identifier: missingType.generics

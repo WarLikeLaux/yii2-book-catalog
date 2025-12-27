@@ -93,6 +93,9 @@ final class BookRepository implements BookRepositoryInterface
         }
     }
 
+    /**
+     * @param array<int> $newAuthorIds
+     */
     public function syncAuthors(int $bookId, array $newAuthorIds): void
     {
         $book = Book::findOne($bookId);
@@ -232,12 +235,15 @@ final class BookRepository implements BookRepositoryInterface
 
     private function prepareFulltextQuery(string $term): string
     {
-        $term = preg_replace('/[+\-><()~*\"@]+/', ' ', $term);
+        $term = (string)preg_replace('/[+\-><()~*\"@]+/', ' ', $term);
         $words = array_filter(explode(' ', trim($term)));
 
         return empty($words) ? '' : '+' . implode('* +', $words) . '*';
     }
 
+    /**
+     * @return array<mixed>
+     */
     private function buildAuthorCondition(string $term): array
     {
         $subQuery = Author::find()

@@ -16,6 +16,9 @@ interface AuthorRepositoryInterface
 
     public function delete(int $id): void;
 
+    /**
+     * @return AuthorReadDto[]
+     */
     public function findAllOrderedByFio(): array;
 
     public function search(string $search, int $page, int $pageSize): PagedResultInterface;

@@ -28,6 +28,9 @@ lint:
 lint-fix:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf
 
+analyze:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan analyse --memory-limit=2G
+
 migrate:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./yii migrate --interactive=0
 

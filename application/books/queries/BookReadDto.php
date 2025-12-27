@@ -14,7 +14,7 @@ readonly class BookReadDto
         public int $id,
         public string $title,
         public ?int $year,
-        public string $description,
+        public ?string $description,
         public string $isbn,
         public array $authorIds,
         public array $authorNames = [],

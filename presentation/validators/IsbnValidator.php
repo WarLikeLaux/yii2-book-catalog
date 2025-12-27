@@ -34,14 +34,14 @@ final class IsbnValidator extends Validator
         $value = $model->$attribute;
 
         if (!is_string($value)) {
-            $this->addError($model, $attribute, $this->message);
+            $this->addError($model, $attribute, (string)$this->message);
             return;
         }
 
         try {
             new Isbn($value);
         } catch (Exception $e) {
-            $this->addError($model, $attribute, $this->message);
+            $this->addError($model, $attribute, (string)$this->message);
         }
     }
 }

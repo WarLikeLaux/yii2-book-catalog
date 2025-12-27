@@ -33,11 +33,18 @@ final class PagedResultDataProvider extends BaseDataProvider
         parent::__construct($config);
     }
 
+    /**
+     * @return array<mixed>
+     */
     protected function prepareModels(): array
     {
         return $this->result->getModels();
     }
 
+    /**
+     * @param array<mixed> $models
+     * @return array<int|string>
+     */
     protected function prepareKeys($models): array
     {
         $keys = [];

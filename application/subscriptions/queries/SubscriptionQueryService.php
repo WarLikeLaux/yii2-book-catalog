@@ -13,6 +13,9 @@ final class SubscriptionQueryService
     ) {
     }
 
+    /**
+     * @return iterable<string>
+     */
     public function getSubscriberPhonesForBook(int $bookId, int $batchSize = 100): iterable
     {
         return $this->subscriptionRepository->getSubscriberPhonesForBook($bookId, $batchSize);

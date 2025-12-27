@@ -18,11 +18,19 @@ final class BookSearchPresentationService
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function prepareIndexViewData(Request $request): array
     {
-        $form = $this->bookSearchCriteriaMapper->toForm($request->get());
-        $page = max(1, (int)$request->get('page', 1));
-        $pageSize = max(1, (int)$request->get('pageSize', 9));
+        /** @var array<string, mixed> $params */
+        $params = (array)$request->get();
+        $form = $this->bookSearchCriteriaMapper->toForm($params);
+
+        $p = $request->get('page', 1);
+        $ps = $request->get('pageSize', 9);
+        $page = max(1, is_numeric($p) ? (int)$p : 1);
+        $pageSize = max(1, is_numeric($ps) ? (int)$ps : 9);
         $criteria = $this->bookSearchCriteriaMapper->toCriteria($form, $page, $pageSize);
         $result = $this->bookQueryService->search($criteria);
         $dataProvider = $this->dataProviderFactory->create($result);

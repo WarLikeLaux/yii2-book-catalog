@@ -20,6 +20,9 @@ final class AuthorQueryService
         return $this->authorRepository->search('', $page, $pageSize);
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function getAuthorsMap(): array
     {
         $authors = $this->authorRepository->findAllOrderedByFio();
@@ -48,8 +51,11 @@ final class AuthorQueryService
             $criteria->pageSize
         );
 
+        /** @var AuthorReadDto[] $items */
+        $items = $result->getModels();
+
         return new AuthorSearchResponse(
-            items: $result->getModels(),
+            items: $items,
             total: $result->getTotalCount(),
             page: $criteria->page,
             pageSize: $criteria->pageSize

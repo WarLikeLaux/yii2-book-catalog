@@ -39,6 +39,9 @@ final class BookViewService
         return $this->bookQueryService->getById($id);
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function getAuthorsList(): array
     {
         return $this->authorQueryService->getAuthorsMap();

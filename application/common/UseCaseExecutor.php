@@ -18,6 +18,9 @@ final class UseCaseExecutor
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $logContext
+     */
     public function execute(callable $useCase, string $successMessage, array $logContext = []): bool
     {
         try {
@@ -34,6 +37,10 @@ final class UseCaseExecutor
         }
     }
 
+    /**
+     * @param array<string, mixed> $logContext
+     * @return array<string, mixed>
+     */
     public function executeForApi(callable $useCase, string $successMessage, array $logContext = []): array
     {
         try {
@@ -47,6 +54,9 @@ final class UseCaseExecutor
         }
     }
 
+    /**
+     * @param array<string, mixed> $logContext
+     */
     public function query(callable $query, mixed $fallback, string $errorMessage, array $logContext = []): mixed
     {
         try {

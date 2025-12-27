@@ -7,6 +7,11 @@ namespace app\infrastructure\persistence;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
+/**
+ * @property int $id
+ * @property string $fio
+ * @property Book[] $books
+ */
 final class Author extends ActiveRecord
 {
     public static function create(string $fio): self

@@ -8,6 +8,9 @@ use app\application\ports\PagedResultInterface;
 
 final class QueryResult implements PagedResultInterface
 {
+    /**
+     * @param array<mixed> $models
+     */
     public function __construct(
         private readonly array $models,
         private readonly int $totalCount,

@@ -19,11 +19,14 @@ final class AuthorSearchPresentationService
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function search(Request $request, Response $response): array
     {
         $response->format = Response::FORMAT_JSON;
-
-        $requestParams = $request->get();
+        /** @var array<string, mixed> $requestParams */
+        $requestParams = (array)$request->get();
         $form = $this->authorSearchCriteriaMapper->toForm($requestParams);
         if (!$form->validate()) {
             return $this->authorSelect2Mapper->emptyResult();

@@ -19,6 +19,9 @@ final class ReportPresentationService
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function prepareIndexViewData(Request $request): array
     {
         $form = $this->reportCriteriaMapper->toForm($request);
@@ -32,6 +35,7 @@ final class ReportPresentationService
         }
 
         $criteria = $this->reportCriteriaMapper->toCriteria($form);
+        /** @var \app\application\reports\queries\ReportDto $data */
         $data = $this->useCaseExecutor->query(
             fn() => $this->reportQueryService->getTopAuthorsReport($criteria),
             $this->reportQueryService->getEmptyTopAuthorsReport($form->year ? (int)$form->year : null),

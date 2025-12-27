@@ -6,6 +6,10 @@ namespace app\infrastructure\persistence;
 
 use yii\db\ActiveQuery;
 
+/**
+ * @method Book[] all($db = null)
+ * @method Book|null one($db = null)
+ */
 final class BookQuery extends ActiveQuery
 {
     public function withAuthors(): self

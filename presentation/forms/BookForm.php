@@ -23,13 +23,13 @@ final class BookForm extends Model
     /** @var int|string|null */
     public $year = null;
 
-    /** @var string */
-    public $description = '';
+    /** @var string|null */
+    public $description = null;
 
     /** @var string */
     public $isbn = '';
 
-    /** @var array|string */
+    /** @var array<int> */
     public $authorIds = [];
 
     /** @var UploadedFile|string|null */
@@ -40,7 +40,7 @@ final class BookForm extends Model
      */
     public function loadFromRequest(Request $request): bool
     {
-        $isLoaded = $this->load($request->post());
+        $isLoaded = $this->load((array)$request->post());
         $this->cover = UploadedFile::getInstance($this, 'cover');
 
         return $isLoaded || $this->cover !== null;

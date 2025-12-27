@@ -17,6 +17,9 @@ final readonly class BookCreatedEvent implements DomainEvent
         return 'book.created';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getPayload(): array
     {
         return [

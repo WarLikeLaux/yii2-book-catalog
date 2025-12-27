@@ -58,7 +58,8 @@
 ### 🧪 Качество кода
 - **171 тест** с 345 assertions
 - **100% покрытие** кода тестами
-- **Strict Types** везде
+- **Strict Types** везде (`declare(strict_types=1)`)
+- **PHPStan Level 9** (max strictness)
 - **PHPCS** + Slevomat Coding Standard
 
 </td>
@@ -78,7 +79,7 @@
 
 | Категория | Технология | Описание |
 |-----------|------------|----------|
-| **Язык** | ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white) | Strict Types, Constructor Promotion, Readonly Classes |
+| **Язык** | ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white) | PHPStan Level 9, Strict Types, Constructor Promotion |
 | **Framework** | ![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii) | Basic Template с DI Container |
 | **Database** | ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white) | InnoDB + FullText Search |
 | **Queue** | `yii2-queue` | DB Driver + Fan-out Pattern |
@@ -377,14 +378,16 @@ open http://localhost:8000
 </tr>
 </table>
 
-**Команды:**
+### 🛠 Команды проверки
 
-```bash
-make test           # 🧪 Запуск всех тестов (unit + functional)
-make test-coverage  # 📊 Генерация HTML-отчета о покрытии
-make test-unit      # ⚡ Только unit-тесты (быстро, без БД)
-make test-functional # 🌐 Только functional-тесты (с БД)
-```
+| Команда | Описание | Назначение |
+|---|---|---|
+| `make test` | 🧪 Запуск всех тестов | **Testing** (Unit + Func) |
+| `make test-coverage` | 📊 Отчет о покрытии (HTML) | **Testing** (Metric) |
+| `make test-unit` | ⚡ Unit-тесты (без БД) | **Testing** (Speed) |
+| `make test-functional` | 🌐 Functional-тесты (с БД) | **Testing** (Integration) |
+| `make analyze` | 🔍 PHPStan (Level 9) | **Quality** (Static Analysis) |
+| `make lint-fix` | 🧹 PHPCS (Auto-fix) | **Quality** (Style) |
 
 <details>
 <summary><b>📋 Структура тестов</b></summary>
@@ -424,6 +427,7 @@ make test-functional # 🌐 Только functional-тесты (с БД)
 | `make up` / `make down` | Управление контейнерами |
 | `make seed` | Генерация демо-данных (Книги, Авторы) |
 | `make lint-fix` | Авто-фикс стиля кода (PHPCS) |
+| `make analyze` | Статический анализ (PHPStan Level 9) |
 | `make queue-info` | Статус очереди задач |
 | `make sms-logs` | Просмотр логов отправки SMS (Mock) |
 | `make shell` | Консоль PHP контейнера |
@@ -442,6 +446,7 @@ make test-functional # 🌐 Только functional-тесты (с БД)
 ![Lines of Code](https://img.shields.io/badge/Lines_of_Code-~5000-blue?style=flat-square)
 ![PHP Files](https://img.shields.io/badge/PHP_Files-85-purple?style=flat-square)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=flat-square)
+![PHPStan](https://img.shields.io/badge/PHPStan-Level_9-brightgreen?style=flat-square)
 
 ---
 

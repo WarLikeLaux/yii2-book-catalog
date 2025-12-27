@@ -25,6 +25,7 @@ final class NotifySubscribersJob extends BaseObject implements Job, RetryableJob
     public function execute($queue): void
     {
         $logger = new YiiPsrLogger('sms');
+        /** @var \yii\queue\Queue $jobQueue */
         $jobQueue = Yii::$app->get('queue');
         $queryService = Yii::$container->get(SubscriptionQueryService::class);
 

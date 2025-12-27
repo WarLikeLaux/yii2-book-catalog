@@ -14,6 +14,9 @@ final class ReportRepository implements ReportRepositoryInterface
     ) {
     }
 
+    /**
+     * @return array<array<string, mixed>>
+     */
     public function getTopAuthorsByYear(int $year, int $limit): array
     {
         return $this->db->createCommand('

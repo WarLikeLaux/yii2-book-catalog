@@ -8,5 +8,8 @@ interface DomainEvent
 {
     public function getEventType(): string;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getPayload(): array;
 }

@@ -54,8 +54,10 @@ final class AuthorController extends Controller
 
     public function actionIndex(): string
     {
-        $page = max(1, (int)$this->request->get('page', 1));
-        $pageSize = max(1, (int)$this->request->get('pageSize', 20));
+        $p = $this->request->get('page', 1);
+        $ps = $this->request->get('pageSize', 20);
+        $page = max(1, is_numeric($p) ? (int)$p : 1);
+        $pageSize = max(1, is_numeric($ps) ? (int)$ps : 20);
 
         $dataProvider = $this->viewService->getIndexDataProvider($page, $pageSize);
 
@@ -70,11 +72,11 @@ final class AuthorController extends Controller
         return $this->render('view', ['model' => $viewData]);
     }
 
-    public function actionCreate(): string|Response|array
+    public function actionCreate(): string|Response
     {
         $form = new AuthorForm();
 
-        if ($this->request->isPost && $form->load($this->request->post())) {
+        if ($this->request->isPost && $form->load((array)$this->request->post())) {
             if ($form->validate()) {
                 $authorId = $this->commandService->createAuthor($form);
                 if ($authorId !== null) {
@@ -86,11 +88,11 @@ final class AuthorController extends Controller
         return $this->render('create', ['model' => $form]);
     }
 
-    public function actionUpdate(int $id): string|Response|array
+    public function actionUpdate(int $id): string|Response
     {
         $form = $this->viewService->getAuthorForUpdate($id);
 
-        if ($this->request->isPost && $form->load($this->request->post())) {
+        if ($this->request->isPost && $form->load((array)$this->request->post())) {
             if ($form->validate()) {
                 $success = $this->commandService->updateAuthor($id, $form);
                 if ($success) {
@@ -108,6 +110,9 @@ final class AuthorController extends Controller
         return $this->redirect(['index']);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function actionSearch(): array
     {
         return $this->authorSearchPresentationService->search($this->request, $this->response);

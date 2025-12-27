@@ -18,7 +18,7 @@ final class ReportFilterForm extends Model
      */
     public function loadFromRequest(Request $request): bool
     {
-        return $this->load($request->get());
+        return $this->load((array)$request->get());
     }
 
     public function rules(): array

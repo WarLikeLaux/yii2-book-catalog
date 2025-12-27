@@ -106,4 +106,9 @@
         <exclude-pattern>web/index.php</exclude-pattern>
         <exclude-pattern>web/index-test.php</exclude-pattern>
     </rule>
+
+    <!-- Исключаем правило "Side Effects" для bootstrap файлов, где логично смешивать логику и объявления -->
+    <rule ref="PSR1.Files.SideEffects">
+        <exclude-pattern>phpstan-bootstrap.php</exclude-pattern>
+    </rule>
 </ruleset>

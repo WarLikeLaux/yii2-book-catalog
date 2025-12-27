@@ -74,7 +74,8 @@ final class YiiPsrLogger implements LoggerInterface
 
     public function log($level, string|\Stringable $message, array $context = []): void
     {
-        $yiiLevel = self::LEVEL_MAP[$level] ?? Logger::LEVEL_INFO;
+        $levelKey = is_scalar($level) ? (string)$level : 'info';
+        $yiiLevel = self::LEVEL_MAP[$levelKey] ?? Logger::LEVEL_INFO;
         $messageWithContext = $this->formatMessage((string)$message, $context);
 
         Yii::getLogger()->log($messageWithContext, $yiiLevel, $this->category);

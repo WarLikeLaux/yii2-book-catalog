@@ -7,7 +7,7 @@ namespace app\application\reports\queries;
 readonly class ReportDto
 {
     /**
-     * @param array<int, array{id: int, fio: string, books_count: int}> $topAuthors
+     * @param array<array<string, mixed>> $topAuthors
      */
     public function __construct(
         public array $topAuthors,

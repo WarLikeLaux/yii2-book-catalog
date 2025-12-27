@@ -68,6 +68,9 @@ final class AuthorRepository implements AuthorRepositoryInterface
         }
     }
 
+    /**
+     * @return AuthorReadDto[]
+     */
     public function findAllOrderedByFio(): array
     {
         $authors = Author::find()->orderBy(['fio' => SORT_ASC])->all();

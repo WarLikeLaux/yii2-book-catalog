@@ -9,6 +9,9 @@ use Yii;
 
 final class YiiTranslatorAdapter implements TranslatorInterface
 {
+    /**
+     * @param array<string, mixed> $params
+     */
     public function translate(string $category, string $message, array $params = []): string
     {
         return Yii::t($category, $message, $params);

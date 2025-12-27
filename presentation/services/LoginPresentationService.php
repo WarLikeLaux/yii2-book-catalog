@@ -11,6 +11,9 @@ use yii\web\Response;
 
 final class LoginPresentationService
 {
+    /**
+     * @return array<string, LoginForm>
+     */
     public function prepareLoginViewData(): array
     {
         $form = new LoginForm();
@@ -20,12 +23,15 @@ final class LoginPresentationService
         ];
     }
 
+    /**
+     * @return array{success: bool, viewData: array<string, mixed>}
+     */
     public function processLoginRequest(Request $request, Response $response): array
     {
         $viewData = $this->prepareLoginViewData();
         $form = $viewData['model'];
 
-        if (!$form->load($request->post())) {
+        if (!$form->load((array)$request->post())) {
             return [
                 'success' => false,
                 'viewData' => $viewData,

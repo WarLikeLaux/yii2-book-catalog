@@ -19,6 +19,9 @@ final class SubscriptionCommandService
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function subscribe(SubscriptionForm $form): array
     {
         $command = $this->mapper->toCommand($form);
