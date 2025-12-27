@@ -8,9 +8,9 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-238_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-249_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![Mutation Score](https://img.shields.io/badge/MSI-91%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Mutation Score](https://img.shields.io/badge/MSI-96%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
 ---
 
@@ -41,9 +41,9 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **238 тестов** (517 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **249 тестов** (539 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Strict Rules & Deprecations | 🛠 **Makefile**<br>Автоматизация рутины |
-| ✅ **Mutation Testing**<br>Infection PHP (MSI > 90%) | 🚀 **Performance**<br>Load tests (k6), 100% success |
+| ✅ **Mutation Testing**<br>Infection PHP (MSI > 96%) | 🚀 **Performance**<br>Load tests (k6), 100% success |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
 ## 🛠 Технический стек
@@ -344,8 +344,8 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>238</b><br>Tests</td>
-<td align="center"><b>517</b><br>Assertions</td>
+<td align="center"><b>249</b><br>Tests</td>
+<td align="center"><b>539</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~2s</b><br>Runtime</td>
 </tr>
@@ -370,8 +370,8 @@ open http://localhost:8000
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 184 | Чистая бизнес-логика без БД и фреймворка |
-| **Functional** | 54 | CRUD, API, Use Cases, HTTP-сценарии с БД |
+| **Unit** | 194 | Чистая бизнес-логика без БД и фреймворка |
+| **Functional** | 55 | CRUD, API, Use Cases, HTTP-сценарии с БД |
 
 **Unit Tests покрывают:**
 - **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult, PaginationRequest, IdempotencyService
