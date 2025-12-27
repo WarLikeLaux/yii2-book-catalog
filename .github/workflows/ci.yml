@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: yii2basic_test
+          MYSQL_USER: yii2
+          MYSQL_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, mysql, gd, pcov
+          coverage: pcov
+
+      - name: Setup environment
+        run: |
+          cp .env.example .env
+          sed -i 's/DB_HOST=db/DB_HOST=127.0.0.1/g' .env
+          sed -i 's/DB_NAME=yii2basic/DB_NAME=yii2basic_test/g' .env
+          sed -i 's/COOKIE_VALIDATION_KEY=changeme/COOKIE_VALIDATION_KEY=testkeytestkeytestkeytestkeytestkey/g' .env
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Run Lint
+        run: ./vendor/bin/phpcs
+
+      - name: Run PHPStan (Level 9)
+        run: ./vendor/bin/phpstan analyse --memory-limit=2G
+
+      - name: Run Deptrac (Architecture)
+        run: ./vendor/bin/deptrac analyze
+
+      - name: Prepare Database
+        run: |
+          php yii migrate --interactive=0
+          php yii seed --interactive=0
+
+      - name: Run Tests
+        run: ./vendor/bin/codecept run functional,unit --no-colors
