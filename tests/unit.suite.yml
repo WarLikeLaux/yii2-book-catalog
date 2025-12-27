@@ -1,11 +1,12 @@
-# Codeception Test Suite Configuration
-
-# suite for unit (internal) tests.
-# RUN `build` COMMAND AFTER ADDING/REMOVING MODULES.
+# Конфигурация Codeception Test Suite
+#
+# Набор юнит (модульных) тестов.
+# Тестирует классы в изоляции.
 
 actor: UnitTester
 modules:
     enabled:
-      - Asserts
-      - Yii2:
+        - Asserts
+        - Yii2:
             part: [orm, email, fixtures]
+            entryScript: index-test.php

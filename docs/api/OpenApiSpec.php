@@ -6,8 +6,8 @@ namespace app\docs\api;
 
 use OpenApi\Attributes as OA;
 
-#[OA\Info(title: 'Yii2 Book Catalog API', version: '1.0.0', description: 'Modern Yii2 Book Catalog API Documentation')]
-#[OA\Server(url: 'http://localhost:8000', description: 'Local Development Server')]
+#[OA\Info(title: 'Yii2 Book Catalog API', version: '1.0.0', description: 'Документация API каталога книг на Yii2')]
+#[OA\Server(url: 'http://localhost:8000', description: 'Локальный сервер разработки')]
 #[OA\Schema(
     schema: 'Book',
     title: 'Book',

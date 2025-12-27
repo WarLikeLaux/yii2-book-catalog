@@ -13,7 +13,7 @@ use yii\filters\AccessControl;
 use yii\filters\Cors;
 use yii\rest\Controller;
 
-#[OA\Tag(name: 'API Books', description: 'REST API for Books')]
+#[OA\Tag(name: 'API Books', description: 'REST API для работы с книгами')]
 final class BookController extends Controller
 {
     public function __construct(
@@ -52,7 +52,7 @@ final class BookController extends Controller
 
     #[OA\Get(
         path: '/api/books',
-        summary: 'List all books (JSON)',
+        summary: 'Получить список книг (JSON)',
         tags: ['API Books'],
         parameters: [
             new OA\Parameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer')),
@@ -61,7 +61,7 @@ final class BookController extends Controller
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'JSON List of books',
+                description: 'JSON список книг',
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(

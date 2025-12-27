@@ -95,7 +95,12 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "https://asset-packagist.org"
+            "url": "https://asset-packagist.org",
+            "options": {
+                "http": {
+                    "timeout": 60
+                }
+            }
         }
     ]
 }
