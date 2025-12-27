@@ -7,11 +7,11 @@ namespace app\infrastructure\services\sms;
 use app\application\ports\SmsSenderInterface;
 use Psr\Log\LoggerInterface;
 
-final class SmsPilotSender implements SmsSenderInterface
+final readonly class SmsPilotSender implements SmsSenderInterface
 {
     public function __construct(
-        private readonly string $apiKey,
-        private readonly LoggerInterface $logger
+        private string $apiKey,
+        private LoggerInterface $logger
     ) {
     }
 

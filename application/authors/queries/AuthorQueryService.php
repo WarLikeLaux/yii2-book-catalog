@@ -8,10 +8,10 @@ use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\exceptions\DomainException;
 
-final class AuthorQueryService
+final readonly class AuthorQueryService
 {
     public function __construct(
-        private readonly AuthorRepositoryInterface $authorRepository
+        private AuthorRepositoryInterface $authorRepository
     ) {
     }
 
@@ -36,7 +36,7 @@ final class AuthorQueryService
     public function getById(int $id): AuthorReadDto
     {
         $author = $this->authorRepository->findById($id);
-        if (!$author) {
+        if (!$author instanceof AuthorReadDto) {
             throw new DomainException('Author not found');
         }
 

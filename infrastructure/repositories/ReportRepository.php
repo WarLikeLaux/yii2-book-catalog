@@ -7,10 +7,10 @@ namespace app\infrastructure\repositories;
 use app\application\ports\ReportRepositoryInterface;
 use yii\db\Connection;
 
-final class ReportRepository implements ReportRepositoryInterface
+final readonly class ReportRepository implements ReportRepositoryInterface
 {
     public function __construct(
-        private readonly Connection $db
+        private Connection $db
     ) {
     }
 

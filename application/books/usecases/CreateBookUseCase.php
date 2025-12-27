@@ -12,12 +12,12 @@ use app\domain\events\BookCreatedEvent;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 
-final class CreateBookUseCase
+final readonly class CreateBookUseCase
 {
     public function __construct(
-        private readonly BookRepositoryInterface $bookRepository,
-        private readonly TransactionInterface $transaction,
-        private readonly EventPublisherInterface $eventPublisher,
+        private BookRepositoryInterface $bookRepository,
+        private TransactionInterface $transaction,
+        private EventPublisherInterface $eventPublisher,
     ) {
     }
 

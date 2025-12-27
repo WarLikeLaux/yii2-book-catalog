@@ -22,6 +22,7 @@ final class UniqueIsbnValidator extends Validator
         parent::__construct($config);
     }
 
+    #[\Override]
     public function validateAttribute($model, $attribute): void
     {
         $value = $model->$attribute;

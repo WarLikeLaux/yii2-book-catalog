@@ -5,24 +5,25 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
+use app\application\books\queries\BookReadDto;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\exceptions\DomainException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 
-final class UpdateBookUseCase
+final readonly class UpdateBookUseCase
 {
     public function __construct(
-        private readonly BookRepositoryInterface $bookRepository,
-        private readonly TransactionInterface $transaction,
+        private BookRepositoryInterface $bookRepository,
+        private TransactionInterface $transaction,
     ) {
     }
 
     public function execute(UpdateBookCommand $command): void
     {
         $book = $this->bookRepository->findById($command->id);
-        if (!$book) {
+        if (!$book instanceof BookReadDto) {
             throw new DomainException('Book not found');
         }
 

@@ -7,10 +7,10 @@ namespace app\infrastructure\adapters;
 use app\application\ports\QueueInterface;
 use yii\queue\db\Queue;
 
-final class YiiQueueAdapter implements QueueInterface
+final readonly class YiiQueueAdapter implements QueueInterface
 {
     public function __construct(
-        private readonly Queue $queue
+        private Queue $queue
     ) {
     }
 

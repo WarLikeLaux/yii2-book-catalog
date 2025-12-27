@@ -26,6 +26,7 @@ final class AuthorController extends Controller
         parent::__construct($id, $module, $config);
     }
 
+    #[\Override]
     public function behaviors(): array
     {
         return [
@@ -76,12 +77,10 @@ final class AuthorController extends Controller
     {
         $form = new AuthorForm();
 
-        if ($this->request->isPost && $form->load((array)$this->request->post())) {
-            if ($form->validate()) {
-                $authorId = $this->commandService->createAuthor($form);
-                if ($authorId !== null) {
-                    return $this->redirect(['view', 'id' => $authorId]);
-                }
+        if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
+            $authorId = $this->commandService->createAuthor($form);
+            if ($authorId !== null) {
+                return $this->redirect(['view', 'id' => $authorId]);
             }
         }
 
@@ -92,12 +91,10 @@ final class AuthorController extends Controller
     {
         $form = $this->viewService->getAuthorForUpdate($id);
 
-        if ($this->request->isPost && $form->load((array)$this->request->post())) {
-            if ($form->validate()) {
-                $success = $this->commandService->updateAuthor($id, $form);
-                if ($success) {
-                    return $this->redirect(['view', 'id' => $id]);
-                }
+        if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
+            $success = $this->commandService->updateAuthor($id, $form);
+            if ($success) {
+                return $this->redirect(['view', 'id' => $id]);
             }
         }
 

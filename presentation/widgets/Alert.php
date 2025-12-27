@@ -53,7 +53,7 @@ class Alert extends Widget
     /**
      * {@inheritdoc}
      */
-    public function run()
+    public function run(): void
     {
         $session = Yii::$app->session;
         $appendClass = isset($this->options['class']) ? ' ' . $this->options['class'] : '';

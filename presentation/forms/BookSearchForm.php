@@ -10,6 +10,7 @@ final class BookSearchForm extends Model
 {
     public string $globalSearch = '';
 
+    #[\Override]
     public function rules(): array
     {
         return [
@@ -18,6 +19,7 @@ final class BookSearchForm extends Model
         ];
     }
 
+    #[\Override]
     public function formName(): string
     {
         return '';

@@ -9,12 +9,12 @@ use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\mappers\BookSearchCriteriaMapper;
 use yii\web\Request;
 
-final class BookSearchPresentationService
+final readonly class BookSearchPresentationService
 {
     public function __construct(
-        private readonly BookSearchCriteriaMapper $bookSearchCriteriaMapper,
-        private readonly BookQueryService $bookQueryService,
-        private readonly PagedResultDataProviderFactory $dataProviderFactory
+        private BookSearchCriteriaMapper $bookSearchCriteriaMapper,
+        private BookQueryService $bookQueryService,
+        private PagedResultDataProviderFactory $dataProviderFactory
     ) {
     }
 

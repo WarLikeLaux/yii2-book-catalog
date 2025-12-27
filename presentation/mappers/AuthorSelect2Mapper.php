@@ -28,7 +28,7 @@ final class AuthorSelect2Mapper
     public function mapToSelect2(AuthorSearchResponse $response): array
     {
         return [
-            'results' => array_map(fn(AuthorReadDto $dto) => [
+            'results' => array_map(fn(AuthorReadDto $dto): array => [
                 'id' => $dto->id,
                 'text' => $dto->fio,
             ], $response->items),

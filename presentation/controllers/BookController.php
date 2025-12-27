@@ -25,6 +25,7 @@ final class BookController extends Controller
         parent::__construct($id, $module, $config);
     }
 
+    #[\Override]
     public function behaviors(): array
     {
         return [

@@ -12,13 +12,13 @@ use app\presentation\forms\BookForm;
 use app\presentation\mappers\BookFormMapper;
 use yii\data\DataProviderInterface;
 
-final class BookViewService
+final readonly class BookViewService
 {
     public function __construct(
-        private readonly BookQueryService $bookQueryService,
-        private readonly AuthorQueryService $authorQueryService,
-        private readonly BookFormMapper $mapper,
-        private readonly PagedResultDataProviderFactory $dataProviderFactory
+        private BookQueryService $bookQueryService,
+        private AuthorQueryService $authorQueryService,
+        private BookFormMapper $mapper,
+        private PagedResultDataProviderFactory $dataProviderFactory
     ) {
     }
 

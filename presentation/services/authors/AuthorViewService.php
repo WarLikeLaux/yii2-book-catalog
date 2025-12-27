@@ -11,12 +11,12 @@ use app\presentation\forms\AuthorForm;
 use app\presentation\mappers\AuthorFormMapper;
 use yii\data\DataProviderInterface;
 
-final class AuthorViewService
+final readonly class AuthorViewService
 {
     public function __construct(
-        private readonly AuthorQueryService $authorQueryService,
-        private readonly AuthorFormMapper $mapper,
-        private readonly PagedResultDataProviderFactory $dataProviderFactory
+        private AuthorQueryService $authorQueryService,
+        private AuthorFormMapper $mapper,
+        private PagedResultDataProviderFactory $dataProviderFactory
     ) {
     }
 

@@ -18,6 +18,7 @@ final class LoginForm extends Model
 
     private User|false|null $_user = false;
 
+    #[\Override]
     public function rules(): array
     {
         return [
@@ -27,6 +28,7 @@ final class LoginForm extends Model
         ];
     }
 
+    #[\Override]
     public function attributeLabels(): array
     {
         return [

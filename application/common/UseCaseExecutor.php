@@ -9,12 +9,12 @@ use app\application\ports\TranslatorInterface;
 use app\domain\exceptions\DomainException;
 use Psr\Log\LoggerInterface;
 
-final class UseCaseExecutor
+final readonly class UseCaseExecutor
 {
     public function __construct(
-        private readonly NotificationInterface $notifier,
-        private readonly LoggerInterface $logger,
-        private readonly TranslatorInterface $translator
+        private NotificationInterface $notifier,
+        private LoggerInterface $logger,
+        private TranslatorInterface $translator
     ) {
     }
 

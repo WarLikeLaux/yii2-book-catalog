@@ -5,20 +5,21 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\DeleteBookCommand;
+use app\application\books\queries\BookReadDto;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\exceptions\DomainException;
 
-final class DeleteBookUseCase
+final readonly class DeleteBookUseCase
 {
     public function __construct(
-        private readonly BookRepositoryInterface $bookRepository
+        private BookRepositoryInterface $bookRepository
     ) {
     }
 
     public function execute(DeleteBookCommand $command): void
     {
         $book = $this->bookRepository->findById($command->id);
-        if (!$book) {
+        if (!$book instanceof BookReadDto) {
             throw new DomainException('Book not found');
         }
 

@@ -6,10 +6,10 @@ namespace app\application\subscriptions\queries;
 
 use app\application\ports\SubscriptionRepositoryInterface;
 
-final class SubscriptionQueryService
+final readonly class SubscriptionQueryService
 {
     public function __construct(
-        private readonly SubscriptionRepositoryInterface $subscriptionRepository
+        private SubscriptionRepositoryInterface $subscriptionRepository
     ) {
     }
 

@@ -19,6 +19,7 @@ final class SubscriptionForm extends Model
     /** @var int|string */
     public $authorId = 0;
 
+    #[\Override]
     public function rules(): array
     {
         return [
@@ -31,6 +32,7 @@ final class SubscriptionForm extends Model
         ];
     }
 
+    #[\Override]
     public function attributeLabels(): array
     {
         return [

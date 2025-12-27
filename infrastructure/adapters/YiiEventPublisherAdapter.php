@@ -10,10 +10,10 @@ use app\domain\events\BookCreatedEvent;
 use app\domain\events\DomainEvent;
 use app\infrastructure\queue\NotifySubscribersJob;
 
-final class YiiEventPublisherAdapter implements EventPublisherInterface
+final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
 {
     public function __construct(
-        private readonly QueueInterface $queue
+        private QueueInterface $queue
     ) {
     }
 

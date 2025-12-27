@@ -11,7 +11,7 @@ use yii\web\Request;
 final class ReportFilterForm extends Model
 {
     /** @var int|string|null */
-    public $year = null;
+    public $year;
 
     /**
      * @codeCoverageIgnore
@@ -21,6 +21,7 @@ final class ReportFilterForm extends Model
         return $this->load((array)$request->get());
     }
 
+    #[\Override]
     public function rules(): array
     {
         return [
@@ -28,6 +29,7 @@ final class ReportFilterForm extends Model
         ];
     }
 
+    #[\Override]
     public function attributeLabels(): array
     {
         return [
@@ -38,6 +40,7 @@ final class ReportFilterForm extends Model
     /**
      * @codeCoverageIgnore
      */
+    #[\Override]
     public function formName(): string
     {
         return '';

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\validators;
 
+use app\application\authors\queries\AuthorReadDto;
 use app\application\ports\AuthorRepositoryInterface;
 use Yii;
 use yii\validators\Validator;
@@ -17,6 +18,7 @@ final class AuthorExistsValidator extends Validator
         parent::__construct($config);
     }
 
+    #[\Override]
     public function validateAttribute($model, $attribute): void
     {
         $value = $model->$attribute;
@@ -32,7 +34,7 @@ final class AuthorExistsValidator extends Validator
 
             $authorId = is_string($authorId) ? (int)$authorId : $authorId;
 
-            if ($this->repository->findById($authorId) !== null) {
+            if ($this->repository->findById($authorId) instanceof AuthorReadDto) {
                 continue;
             }
 

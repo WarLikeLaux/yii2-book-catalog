@@ -27,7 +27,7 @@ final class YiiTransactionAdapter implements TransactionInterface
 
     public function commit(): void
     {
-        if ($this->transaction === null) {
+        if (!$this->transaction instanceof Transaction) {
             throw new \RuntimeException('Transaction not started');
         }
         $this->transaction->commit();
@@ -36,7 +36,7 @@ final class YiiTransactionAdapter implements TransactionInterface
 
     public function rollBack(): void
     {
-        if ($this->transaction === null) {
+        if (!$this->transaction instanceof Transaction) {
             return;
         }
         $this->transaction->rollBack();

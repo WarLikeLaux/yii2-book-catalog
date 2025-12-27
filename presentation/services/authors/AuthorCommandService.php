@@ -13,14 +13,14 @@ use app\presentation\forms\AuthorForm;
 use app\presentation\mappers\AuthorFormMapper;
 use Yii;
 
-final class AuthorCommandService
+final readonly class AuthorCommandService
 {
     public function __construct(
-        private readonly AuthorFormMapper $mapper,
-        private readonly CreateAuthorUseCase $createAuthorUseCase,
-        private readonly UpdateAuthorUseCase $updateAuthorUseCase,
-        private readonly DeleteAuthorUseCase $deleteAuthorUseCase,
-        private readonly UseCaseExecutor $useCaseExecutor
+        private AuthorFormMapper $mapper,
+        private CreateAuthorUseCase $createAuthorUseCase,
+        private UpdateAuthorUseCase $updateAuthorUseCase,
+        private DeleteAuthorUseCase $deleteAuthorUseCase,
+        private UseCaseExecutor $useCaseExecutor
     ) {
     }
 
@@ -29,7 +29,7 @@ final class AuthorCommandService
         $command = $this->mapper->toCreateCommand($form);
 
         $authorId = null;
-        $success = $this->useCaseExecutor->execute(function () use ($command, &$authorId) {
+        $success = $this->useCaseExecutor->execute(function () use ($command, &$authorId): void {
             $authorId = $this->createAuthorUseCase->execute($command);
         }, Yii::t('app', 'Author has been created'));
 

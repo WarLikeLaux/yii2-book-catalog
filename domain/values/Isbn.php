@@ -6,7 +6,7 @@ namespace app\domain\values;
 
 use app\domain\exceptions\DomainException;
 
-final readonly class Isbn
+final readonly class Isbn implements \Stringable
 {
     public string $value;
 

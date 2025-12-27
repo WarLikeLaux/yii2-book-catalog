@@ -72,6 +72,9 @@ jobs:
       - name: Run Deptrac (Architecture)
         run: ./vendor/bin/deptrac analyze
 
+      - name: Run Rector (Refactoring Check)
+        run: ./vendor/bin/rector process --dry-run
+
       - name: Prepare Database
         run: php yii migrate --interactive=0
 

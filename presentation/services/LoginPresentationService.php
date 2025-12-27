@@ -7,7 +7,6 @@ namespace app\presentation\services;
 use app\presentation\forms\LoginForm;
 use Yii;
 use yii\web\Request;
-use yii\web\Response;
 
 final class LoginPresentationService
 {
@@ -26,7 +25,7 @@ final class LoginPresentationService
     /**
      * @return array{success: bool, viewData: array<string, mixed>}
      */
-    public function processLoginRequest(Request $request, Response $response): array
+    public function processLoginRequest(Request $request): array
     {
         $viewData = $this->prepareLoginViewData();
         $form = $viewData['model'];

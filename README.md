@@ -61,6 +61,7 @@
 - **100% покрытие** кода тестами
 - **PHPStan Level 9** (max strictness)
 - **Mutation Testing** (Infection PHP, MSI > 90%)
+- **Automated Refactoring** (Rector PHP 8.4)
 - **Architecture Testing** (Deptrac)
 - **Detailed Documentation** ([ARCHITECTURE.md](./docs/ARCHITECTURE.md))
 - **Strict Types** везде (`declare(strict_types=1)`)
@@ -89,6 +90,7 @@
 | **Queue** | `yii2-queue` | DB Driver + Fan-out Pattern |
 | **Testing** | ![Codeception](https://img.shields.io/badge/Codeception-5.0-purple) | Unit + Functional, 100% Coverage |
 | **Infra** | ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) | PHP 8.4 + MySQL 8 + Queue Worker |
+| **Quality** | `Rector`, `PHPStan`, `Deptrac` | Automated Refactoring & Static Analysis |
 
 ## 🏗 Архитектурные решения
 
@@ -191,7 +193,8 @@ class BookCommandService
 
 ### 7. Code Quality & Standards
 *   **Strict Types:** Весь проект работает в режиме `declare(strict_types=1)`.
-*   **Static Analysis:** Внедрен Advanced Coding Standard (на базе **Slevomat**).
+*   **Static Analysis:** Внедрен Advanced Coding Standard (на базе **Slevomat**) и **PHPStan** (Level 9).
+*   **Refactoring:** Используется **Rector** для автоматизированного обновления кода до PHP 8.4 и соблюдения Code Quality правил.
 *   **Linter:** Код автоматически форматируется и проверяется командой `make lint-fix`.
 
 ### 8. Масштабируемая очередь (Fan-out Pattern)
@@ -392,6 +395,7 @@ open http://localhost:8000
 | `make test-functional` | 🌐 Functional-тесты (с БД) | **Testing** (Integration) |
 | `make analyze` | 🔍 PHPStan (Level 9) | **Quality** (Static Analysis) |
 | `make deptrac` | 🏗 Архитектурный контроль | **Quality** (Architecture) |
+| `make rector` | ♻️ Автоматический рефакторинг | **Quality** (Refactoring) |
 | `make lint-fix` | 🧹 PHPCS (Auto-fix) | **Quality** (Style) |
 
 <details>

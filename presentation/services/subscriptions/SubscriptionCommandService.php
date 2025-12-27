@@ -10,12 +10,12 @@ use app\presentation\forms\SubscriptionForm;
 use app\presentation\mappers\SubscriptionFormMapper;
 use Yii;
 
-final class SubscriptionCommandService
+final readonly class SubscriptionCommandService
 {
     public function __construct(
-        private readonly SubscriptionFormMapper $mapper,
-        private readonly SubscribeUseCase $useCase,
-        private readonly UseCaseExecutor $useCaseExecutor
+        private SubscriptionFormMapper $mapper,
+        private SubscribeUseCase $useCase,
+        private UseCaseExecutor $useCaseExecutor
     ) {
     }
 

@@ -13,7 +13,7 @@ use yii\log\Logger;
  * PSR-3 adapter for Yii2 Logger with structured context support.
  * Maps PSR-3 log levels to Yii2 levels and preserves context array.
  */
-final class YiiPsrLogger implements LoggerInterface
+final readonly class YiiPsrLogger implements LoggerInterface
 {
     /** @var array<string, int> */
     private const array LEVEL_MAP = [
@@ -28,7 +28,7 @@ final class YiiPsrLogger implements LoggerInterface
     ];
 
     public function __construct(
-        private readonly string $category = 'application'
+        private string $category = 'application'
     ) {
     }
 
@@ -86,7 +86,7 @@ final class YiiPsrLogger implements LoggerInterface
      */
     private function formatMessage(string $message, array $context): string
     {
-        if (empty($context)) {
+        if ($context === []) {
             return $message;
         }
 

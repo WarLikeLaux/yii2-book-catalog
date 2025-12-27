@@ -14,6 +14,7 @@ final class AuthorSearchForm extends Model
 
     public int $pageSize = 20;
 
+    #[\Override]
     public function rules(): array
     {
         return [
@@ -24,6 +25,7 @@ final class AuthorSearchForm extends Model
         ];
     }
 
+    #[\Override]
     public function formName(): string
     {
         return '';

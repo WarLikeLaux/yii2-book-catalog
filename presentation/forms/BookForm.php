@@ -15,16 +15,16 @@ use yii\web\UploadedFile;
 final class BookForm extends Model
 {
     /** @var int|string|null */
-    public $id = null;
+    public $id;
 
     /** @var string */
     public $title = '';
 
     /** @var int|string|null */
-    public $year = null;
+    public $year;
 
     /** @var string|null */
-    public $description = null;
+    public $description;
 
     /** @var string */
     public $isbn = '';
@@ -33,7 +33,7 @@ final class BookForm extends Model
     public $authorIds = [];
 
     /** @var UploadedFile|string|null */
-    public $cover = null;
+    public $cover;
 
     /**
      * @codeCoverageIgnore
@@ -46,6 +46,7 @@ final class BookForm extends Model
         return $isLoaded || $this->cover !== null;
     }
 
+    #[\Override]
     public function rules(): array
     {
         return [
@@ -68,6 +69,7 @@ final class BookForm extends Model
         ];
     }
 
+    #[\Override]
     public function attributeLabels(): array
     {
         return [

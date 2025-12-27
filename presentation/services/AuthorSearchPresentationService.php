@@ -10,12 +10,12 @@ use app\presentation\mappers\AuthorSelect2Mapper;
 use yii\web\Request;
 use yii\web\Response;
 
-final class AuthorSearchPresentationService
+final readonly class AuthorSearchPresentationService
 {
     public function __construct(
-        private readonly AuthorSearchCriteriaMapper $authorSearchCriteriaMapper,
-        private readonly AuthorSelect2Mapper $authorSelect2Mapper,
-        private readonly AuthorQueryService $authorQueryService
+        private AuthorSearchCriteriaMapper $authorSearchCriteriaMapper,
+        private AuthorSelect2Mapper $authorSelect2Mapper,
+        private AuthorQueryService $authorQueryService
     ) {
     }
 

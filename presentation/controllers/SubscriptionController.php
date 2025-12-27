@@ -24,6 +24,7 @@ final class SubscriptionController extends Controller
         parent::__construct($id, $module, $config);
     }
 
+    #[\Override]
     public function behaviors(): array
     {
         return [
