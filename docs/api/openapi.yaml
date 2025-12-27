@@ -1,0 +1,41 @@
+openapi: 3.0.0
+info:
+  title: 'Yii2 Book Catalog API'
+  description: 'Modern Yii2 Book Catalog API Documentation'
+  version: 1.0.0
+servers:
+  -
+    url: 'http://localhost:8000'
+    description: 'Local Development Server'
+paths:
+  /api/books:
+    get:
+      tags:
+        - 'API Books'
+      summary: 'List all books (JSON)'
+      operationId: 2859aba8f08f99c987cf0ba4e030c7fe
+      parameters:
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+        -
+          name: pageSize
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'JSON List of books'
+          content:
+            application/json:
+              schema:
+                properties:
+                  items: { type: array, items: { type: object } }
+                  _meta: { type: object }
+                type: object
+tags:
+  -
+    name: 'API Books'
+    description: 'REST API for Books'

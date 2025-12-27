@@ -1,7 +1,7 @@
 meta:
   title: "HTTP Routes"
   source: "generated"
-  updated_at: "2025-12-24T21:22:29+00:00"
+  updated_at: "2025-12-27T13:16:46+00:00"
 
 routes:
   - path: "/"
@@ -58,6 +58,11 @@ routes:
     controller: "BookController"
     methods:
       - "GET"
+  - path: "/book/index"
+    action: "book/index"
+    controller: "BookController"
+    methods:
+      - "GET"
   - path: "/book/update"
     action: "book/update"
     controller: "BookController"
@@ -74,6 +79,12 @@ routes:
     controller: "ReportController"
     methods:
       - "GET"
+  - path: "/site/api"
+    action: "site/api"
+    controller: "SiteController"
+    methods:
+      - "GET"
+    view: "presentation/views/site/api.php"
   - path: "/site/login"
     action: "site/login"
     controller: "SiteController"

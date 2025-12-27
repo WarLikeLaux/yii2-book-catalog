@@ -91,4 +91,9 @@ final class SiteController extends Controller
 
         return $this->goHome();
     }
+
+    public function actionApi(): string
+    {
+        return $this->render('api');
+    }
 }

@@ -8,7 +8,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-186_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-195_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-91%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -32,64 +32,30 @@
 
 ## ✨ Ключевые особенности
 
-<table>
-<tr>
-<td width="50%">
+| 🏛️ Архитектура | ⚡ Производительность |
+| :--- | :--- |
+| 🔹 **Clean-ish Architecture**<br>Компромисс между чистотой и прагматизмом | 🚀 **Async Fan-out**<br>Масштабируемые уведомления |
+| 🔹 **CQS Pattern**<br>Разделение команд и запросов | 🔍 **Hybrid Search**<br>FullText + Exact Match |
+| 🔹 **Value Objects**<br>`Isbn`, `BookYear` для бизнес-правил | 🛡 **Idempotency**<br>Защита от дублей в очередях |
+| 🔹 **Domain Events**<br>Асинхронное взаимодействие | ⚡ **PJAX**<br>Мгновенная фильтрация |
 
-### 🏛️ Архитектура
-- **Clean-ish Architecture** — компромисс между чистотой и прагматизмом
-- **CQS Pattern** — разделение команд и запросов
-- **Value Objects** — `Isbn`, `BookYear` для бизнес-правил
-- **Domain Events** — асинхронное взаимодействие
-
-</td>
-<td width="50%">
-
-### ⚡ Производительность
-- **Async Fan-out** — масштабируемые уведомления
-- **Hybrid Search** — FullText + Exact Match
-- **Idempotency** — защита от дублей в очередях
-- **PJAX** — мгновенная фильтрация
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### 🧪 Качество кода
-- **186 тестов** с 394 assertions
-- **100% покрытие** кода тестами
-- **PHPStan Level 9** (max strictness)
-- **Mutation Testing** (Infection PHP, MSI > 90%)
-- **Automated Refactoring** (Rector PHP 8.4)
-- **Architecture Testing** (Deptrac)
-- **Detailed Documentation** ([ARCHITECTURE.md](./docs/ARCHITECTURE.md))
-- **Strict Types** везде (`declare(strict_types=1)`)
-- **PHPCS** + Slevomat Coding Standard
-
-</td>
-<td width="50%">
-
-### 🐳 DevOps Ready
-- **Docker Compose** — полный стек одной командой
-- **Makefile** — автоматизация рутины
-- **Health Checks** — мониторинг сервисов
-- **Hot Reload** — быстрая разработка
-
-</td>
-</tr>
-</table>
+| 🧪 Качество кода | 🐳 DevOps Ready |
+| :--- | :--- |
+| ✅ **195 тестов** (416 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **PHPStan Level 9**<br>Максимальная строгость типов | 🛠 **Makefile**<br>Автоматизация рутины |
+| ✅ **Mutation Testing**<br>Infection PHP (MSI > 90%) | 🚀 **Performance**<br>Load tests (k6), 100% success |
+| ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
 ## 🛠 Технический стек
 
 | Категория | Технология | Описание |
 |-----------|------------|----------|
-| **Язык** | ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white) | PHPStan Level 9, Strict Types, Constructor Promotion |
-| **Framework** | ![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii) | Basic Template с DI Container |
-| **Database** | ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white) | InnoDB + FullText Search |
+| **Язык** | [![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)](https://www.php.net/) | PHPStan Level 9, Strict Types, Constructor Promotion |
+| **Framework** | [![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii)](https://www.yiiframework.com/) | Basic Template с DI Container |
+| **Database** | [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/) | InnoDB + FullText Search |
 | **Queue** | `yii2-queue` | DB Driver + Fan-out Pattern |
-| **Testing** | ![Codeception](https://img.shields.io/badge/Codeception-5.0-purple) | Unit + Functional, 100% Coverage |
-| **Infra** | ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) | PHP 8.4 + MySQL 8 + Queue Worker |
+| **Testing** | [![Codeception](https://img.shields.io/badge/Codeception-5.0-purple)](https://codeception.com/) | Unit + Functional, 100% Coverage |
+| **Infra** | [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) | PHP 8.4 + MySQL 8 + Queue Worker |
 | **Quality** | `Rector`, `PHPStan`, `Deptrac` | Automated Refactoring & Static Analysis |
 
 ## 🏗 Архитектурные решения
@@ -378,8 +344,8 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>186</b><br>Tests</td>
-<td align="center"><b>394</b><br>Assertions</td>
+<td align="center"><b>195</b><br>Tests</td>
+<td align="center"><b>416</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~2s</b><br>Runtime</td>
 </tr>
@@ -403,16 +369,17 @@ open http://localhost:8000
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 122 | Чистая бизнес-логика без БД и фреймворка |
-| **Functional** | 49 | CRUD, Use Cases, HTTP-сценарии с БД |
+| **Unit** | 144 | Чистая бизнес-логика без БД и фреймворка |
+| **Functional** | 51 | CRUD, API, Use Cases, HTTP-сценарии с БД |
 
 **Unit Tests покрывают:**
-- **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult
+- **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult, PaginationRequest
 - **Domain Layer**: Value Objects (`Isbn`, `BookYear`), Domain Events
 - **Infrastructure**: Queue jobs (retry logic), Logger, Notifications
 - **Presentation**: Validators, Mappers, DataProvider adapters
 
 **Functional Tests покрывают:**
+- REST API (Книги)
 - CRUD операции (Книги, Авторы)
 - Use Cases с реальной БД
 - Валидация форм
@@ -429,17 +396,21 @@ open http://localhost:8000
 > 📈 **Отчет о покрытии:** `make test-coverage` → `tests/_output/coverage/index.html`
 
 
-### Основные команды
+### 🛠 Основные команды
 
-| Команда | Описание |
-|---|---|
-| `make up` / `make down` | Управление контейнерами |
-| `make seed` | Генерация демо-данных (Книги, Авторы) |
-| `make lint-fix` | Авто-фикс стиля кода (PHPCS) |
-| `make analyze` | Статический анализ (PHPStan Level 9) |
-| `make queue-info` | Статус очереди задач |
-| `make sms-logs` | Просмотр логов отправки SMS (Mock) |
-| `make shell` | Консоль PHP контейнера |
+| Группа | Команда | Описание |
+| :--- | :--- | :--- |
+| **🐳 Docker** | `make up` / `make down` | Запуск и остановка окружения |
+| **📦 Data** | `make seed` | Наполнение базы демо-данными |
+| **🧪 Quality** | `make check` | **Запуск всех проверок (lint, analyze, test)** |
+| | `make test` | Запуск тестов (unit + functional) |
+| | `make analyze` | Статический анализ (PHPStan Level 9) |
+| | `make lint-fix` | Автоматическое исправление стиля кода |
+| **🔍 Debug** | `make logs` | Просмотр логов всех сервисов |
+| | `make sms-logs` | Логи отправки SMS (Mock-сервис) |
+| | `make shell` | Доступ в консоль PHP-контейнера |
+| **📜 API** | `make swagger` | Генерация OpenAPI документации |
+| **🚀 Performance** | `make load-test` | Запуск нагрузочного теста (k6) |
 
 ## ⚙️ Конфигурация
 
@@ -452,14 +423,14 @@ open http://localhost:8000
 
 ### 📊 Статистика проекта
 
-![Lines of Code](https://img.shields.io/badge/Lines_of_Code-~5000-blue?style=flat-square)
-![PHP Files](https://img.shields.io/badge/PHP_Files-85-purple?style=flat-square)
-![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=flat-square)
-![PHPStan](https://img.shields.io/badge/PHPStan-Level_9-brightgreen?style=flat-square)
+![Lines of Code](https://img.shields.io/badge/Lines_of_Code-5.3k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![PHP Files](https://img.shields.io/badge/PHP_Files-120-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
+![PHPStan](https://img.shields.io/badge/PHPStan-Level_9-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
----
+<br>
 
-**Made with ❤️ using Yii2 Framework**
+**Made with ❤️ using [Yii2 Framework](https://www.yiiframework.com/)**
 
 *Clean-ish Architecture • DDD • CQRS • Event-Driven*
 

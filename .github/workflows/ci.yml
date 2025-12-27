@@ -81,6 +81,11 @@ jobs:
       - name: Run Rector (Refactoring Check)
         run: ./vendor/bin/rector process --dry-run
 
+      - name: Check OpenAPI Documentation
+        run: |
+          php docs/api/generate.php
+          git diff --exit-code docs/api/openapi.yaml
+
       - name: Prepare Database
         run: php yii migrate --interactive=0
 

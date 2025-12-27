@@ -43,6 +43,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         $menuItems = [
             ['label' => 'Каталог', 'url' => ['/site/index']],
             ['label' => 'Отчет', 'url' => ['/report/index']],
+            ['label' => 'API', 'url' => ['/site/api']],
         ];
 
         if (!Yii::$app->user->isGuest) {

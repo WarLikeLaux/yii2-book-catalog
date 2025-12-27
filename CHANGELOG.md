@@ -1,10 +1,16 @@
 # Список изменений (Changelog)
 
+[← Назад в README](README.md)
+
 Все значимые изменения в этом проекте документируются в данном файле.
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.8.0] - 2025-12-27
+
+### 🚀 Новые функции и возможности
+- **#17** - реализован **REST API** для книг с поддержкой OpenAPI спецификации ([4ac7aa2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4ac7aa2))
+- **#17** - внедрена автоматическая генерация документации Swagger и настроены заголовки безопасности (HSTS, CSP, X-Frame-Options) ([4ac7aa2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4ac7aa2))
 
 ### 🛠 Рефакторинг и архитектура
 - **#16** - внедрен **Rector** для автоматического рефакторинга под стандарты **PHP 8.4** (readonly классы, типизация) ([9351974](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9351974))
@@ -12,6 +18,7 @@
 - **#15** - оптимизирован CI пайплайн: добавлено кеширование зависимостей Composer ([f5eb0fa](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f5eb0fa))
 
 ### ⚙️ Инфраструктура и надежность
+- **#17** - добавлен нагрузочный тест (**k6**) для проверки производительности API ([4ac7aa2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4ac7aa2))
 - **#16** - исправлена конфигурация хоста **Selenium** в CI и удален конфликтующий модуль Yii2 из acceptance suite ([f27436e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f27436e))
 - **#16** - настроен запуск фонового PHP-сервера и **Selenium** для полноценного выполнения приемочных тестов в CI ([0649d1e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0649d1e))
 - **#16** - настроен запуск Infection с ограничением сьютов (`functional,unit`) для стабильности CI ([0376291](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0376291))
@@ -25,6 +32,10 @@
 - **#15** - удален сидинг базы данных из CI для предотвращения загрязнения тестовых данных ([d42971a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d42971a))
 
 ### 📝 Документация
+- **#17** - обновлена автогенерируемая документация схемы БД, моделей и маршрутов ([ff0a75b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ff0a75b))
+- **#16** - исправлена навигация и обработка внешних ссылок в документации ([cba78e8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cba78e8), [47bc9e6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/47bc9e6))
+- **#16** - обновлена статистика проекта и оформление команд в README ([1af7cdf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1af7cdf))
+- **#16** - выполнен откат HTML-ссылок на Markdown для соблюдения политики безопасности GitHub ([904d466](https://github.com/WarLikeLaux/yii2-book-catalog/commit/904d466))
 - **#15** - интегрированы архитектурные диаграммы и документация по безопасности ([17b0075](https://github.com/WarLikeLaux/yii2-book-catalog/commit/17b0075))
 
 ## [0.7.0] - 2025-12-27

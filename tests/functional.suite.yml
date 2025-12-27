@@ -12,3 +12,5 @@ modules:
       - Filesystem
       - Yii2
       - Asserts
+      - REST:
+          depends: Yii2
