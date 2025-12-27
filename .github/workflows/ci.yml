@@ -68,4 +68,7 @@ jobs:
           php yii migrate --interactive=0
 
       - name: Run Tests
-        run: ./vendor/bin/codecept run functional,unit --no-colors
+        run: ./vendor/bin/codecept run functional,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage" -o "coverage: enabled: true" -o "coverage: include: [application/*,domain/*,infrastructure/*,presentation/*]"
+
+      - name: Run Mutation Tests (Infection)
+        run: ./vendor/bin/infection --coverage=runtime/coverage --threads=4 --min-msi=70 --min-covered-msi=80

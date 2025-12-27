@@ -1,4 +1,4 @@
-.PHONY: init up down restart composer lint lint-fix migrate seed shell perms copy-env sms-logs queue-info logs test test-coverage test-unit test-functional test-acceptance docs repomix analyze deptrac
+.PHONY: init up down restart composer lint lint-fix migrate seed shell perms copy-env sms-logs queue-info logs test test-coverage test-unit test-functional test-acceptance docs repomix analyze deptrac infection check
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -90,3 +90,10 @@ repomix:
 	@echo "📦 Generating repomix output..."
 	@npx -y repomix --style markdown --output repomix-output.md
 	@echo "✅ Created repomix-output.md"
+
+infection:
+	$(COMPOSE) exec $(PHP_CONTAINER) mkdir -p runtime/coverage
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage" -o "coverage: enabled: true" -o "coverage: include: [application/*,domain/*,infrastructure/*,presentation/*]"
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=4 --min-msi=70 --min-covered-msi=80
+
+check: lint analyze deptrac test

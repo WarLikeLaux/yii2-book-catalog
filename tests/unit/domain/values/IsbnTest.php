@@ -29,6 +29,36 @@ final class IsbnTest extends Unit
         new Isbn('invalid-isbn');
     }
 
+    public function testThrowsExceptionOnIsbn13WithPrefixGarbage(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('abc9783161484100'); 
+    }
+
+    public function testThrowsExceptionOnIsbn13WithSuffixGarbage(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('9783161484100xyz');
+    }
+
+    public function testThrowsExceptionOnIsbn10WithPrefixGarbage(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('a0306406152');
+    }
+
+    public function testThrowsExceptionOnIsbn10WithSuffixGarbage(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('0306406152x');
+    }
+
+    public function testThrowsExceptionOnInvalidIsbn13Prefix(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('9773161484100');
+    }
+
     public function testThrowsExceptionOnInvalidChecksum(): void
     {
         $this->expectException(DomainException::class);
@@ -58,12 +88,6 @@ final class IsbnTest extends Unit
     {
         $isbn = new Isbn('979-10-90636-07-1');
         $this->assertSame('9791090636071', $isbn->value);
-    }
-
-    public function testThrowsExceptionOnInvalidIsbn13Prefix(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('9770000000001');
     }
 
     public function testThrowsExceptionOnInvalidIsbn10Checksum(): void

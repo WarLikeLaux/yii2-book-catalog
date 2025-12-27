@@ -49,3 +49,12 @@ tests/_support/_generated
 
 # environment variables
 .env
+
+# Tool caches and reports
+.deptrac.cache
+.phpstan.cache
+coverage.xml
+coverage-phpunit.xml
+junit.xml
+infection.log
+repomix-output.md

@@ -14,7 +14,7 @@ final class BookYear
     {
         $currentYear = (int)date('Y');
 
-        if ($value < 1000) {
+        if ($value <= 1000) {
             throw new DomainException('Invalid year: must be greater than 1000.');
         }
 

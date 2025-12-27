@@ -44,12 +44,15 @@
         "yiisoft/yii2-coding-standards": "^3.0",
         "slevomat/coding-standard": "^8.25",
         "phpstan/phpstan": "^2.1",
-        "deptrac/deptrac": "^3.0"
+        "deptrac/deptrac": "^3.0",
+        "infection/infection": "^0.32.0",
+        "infection/codeception-adapter": "^0.4.4"
     },
     "config": {
         "allow-plugins": {
             "yiisoft/yii2-composer": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "infection/extension-installer": true
         },
         "process-timeout": 1800,
         "fxp-asset": {
