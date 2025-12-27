@@ -6,6 +6,7 @@ parameters:
 	# Level 5: проверка типов аргументов и возвращаемых значений.
 	# Level 9: строгая работа с mixed (strict mode).
 	level: 9
+	phpVersion: 80400
 
 	# Загрузка Yii для видимости классов фреймворка
 	bootstrapFiles:
@@ -35,5 +36,5 @@ parameters:
 		- '#Access to an undefined property .*Application::\$session#'
 		- '#Access to an undefined property .*Application::\$user#'
 
-		# Отключаем требование Generics для ActiveQuery (так как Yii2 их не поддерживает "искаропки")
+		# Отключаем требование Generics для ActiveQuery
 		- identifier: missingType.generics

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\application\books\queries;
 
-readonly class BookReadDto
+final readonly class BookReadDto
 {
     /**
      * @param int[] $authorIds
@@ -13,12 +13,17 @@ readonly class BookReadDto
     public function __construct(
         public int $id,
         public string $title,
-        public ?int $year,
-        public ?string $description,
+        public int|null $year,
+        public string|null $description,
         public string $isbn,
         public array $authorIds,
         public array $authorNames = [],
-        public ?string $coverUrl = null
+        public string|null $coverUrl = null
     ) {
+    }
+
+    public function getFullTitle(): string
+    {
+        return $this->year ? "{$this->title} ({$this->year})" : $this->title;
     }
 }
