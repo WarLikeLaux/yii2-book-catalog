@@ -8,7 +8,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-186_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-195_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-91%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -41,9 +41,9 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **186 тестов** (394 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **195 тестов** (416 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Максимальная строгость типов | 🛠 **Makefile**<br>Автоматизация рутины |
-| ✅ **Mutation Testing**<br>Infection PHP (MSI > 90%) | 💓 **Health Checks**<br>Мониторинг сервисов |
+| ✅ **Mutation Testing**<br>Infection PHP (MSI > 90%) | 🚀 **Performance**<br>Load tests (k6), 100% success |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
 ## 🛠 Технический стек
@@ -344,8 +344,8 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>186</b><br>Tests</td>
-<td align="center"><b>394</b><br>Assertions</td>
+<td align="center"><b>195</b><br>Tests</td>
+<td align="center"><b>416</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~2s</b><br>Runtime</td>
 </tr>
@@ -369,16 +369,17 @@ open http://localhost:8000
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 122 | Чистая бизнес-логика без БД и фреймворка |
-| **Functional** | 49 | CRUD, Use Cases, HTTP-сценарии с БД |
+| **Unit** | 144 | Чистая бизнес-логика без БД и фреймворка |
+| **Functional** | 51 | CRUD, API, Use Cases, HTTP-сценарии с БД |
 
 **Unit Tests покрывают:**
-- **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult
+- **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult, PaginationRequest
 - **Domain Layer**: Value Objects (`Isbn`, `BookYear`), Domain Events
 - **Infrastructure**: Queue jobs (retry logic), Logger, Notifications
 - **Presentation**: Validators, Mappers, DataProvider adapters
 
 **Functional Tests покрывают:**
+- REST API (Книги)
 - CRUD операции (Книги, Авторы)
 - Use Cases с реальной БД
 - Валидация форм
@@ -408,6 +409,8 @@ open http://localhost:8000
 | **🔍 Debug** | `make logs` | Просмотр логов всех сервисов |
 | | `make sms-logs` | Логи отправки SMS (Mock-сервис) |
 | | `make shell` | Доступ в консоль PHP-контейнера |
+| **📜 API** | `make swagger` | Генерация OpenAPI документации |
+| **🚀 Performance** | `make load-test` | Запуск нагрузочного теста (k6) |
 
 ## ⚙️ Конфигурация
 
@@ -420,8 +423,8 @@ open http://localhost:8000
 
 ### 📊 Статистика проекта
 
-![Lines of Code](https://img.shields.io/badge/Lines_of_Code-5.2k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![PHP Files](https://img.shields.io/badge/PHP_Files-117-purple?style=for-the-badge&logo=php&logoColor=white)
+![Lines of Code](https://img.shields.io/badge/Lines_of_Code-5.3k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![PHP Files](https://img.shields.io/badge/PHP_Files-120-purple?style=for-the-badge&logo=php&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 

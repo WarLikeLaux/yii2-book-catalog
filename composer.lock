@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c112964e62cbe55d3dafaee12ccbdbe7",
+    "content-hash": "6d64af8c586a47c1268d1c8ae55d4655",
     "packages": [
         {
             "name": "bower-asset/inputmask",
@@ -2889,6 +2889,55 @@
             "time": "2025-11-27T21:09:09+00:00"
         },
         {
+            "name": "codeception/lib-xml",
+            "version": "1.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Codeception/lib-xml.git",
+                "reference": "758a525ed766ad641cc66cd619d96dbb9e887be2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Codeception/lib-xml/zipball/758a525ed766ad641cc66cd619d96dbb9e887be2",
+                "reference": "758a525ed766ad641cc66cd619d96dbb9e887be2",
+                "shasum": ""
+            },
+            "require": {
+                "codeception/lib-web": "^1.0.6 || ^2",
+                "ext-dom": "*",
+                "php": "^8.2",
+                "symfony/css-selector": ">=4.4.24 <9.0"
+            },
+            "conflict": {
+                "codeception/codeception": "<5.0.0-alpha3"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Gintautas Miselis"
+                }
+            ],
+            "description": "Files used by module-rest and module-soap",
+            "homepage": "https://codeception.com/",
+            "keywords": [
+                "codeception"
+            ],
+            "support": {
+                "issues": "https://github.com/Codeception/lib-xml/issues",
+                "source": "https://github.com/Codeception/lib-xml/tree/1.1.1"
+            },
+            "time": "2025-11-28T08:21:33+00:00"
+        },
+        {
             "name": "codeception/module-asserts",
             "version": "3.3.0",
             "source": {
@@ -2996,6 +3045,66 @@
                 "source": "https://github.com/Codeception/module-filesystem/tree/3.0.2"
             },
             "time": "2025-11-28T11:47:18+00:00"
+        },
+        {
+            "name": "codeception/module-rest",
+            "version": "3.4.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Codeception/module-rest.git",
+                "reference": "596817fcb5a603f6f55306f67f9eb84943df8998"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Codeception/module-rest/zipball/596817fcb5a603f6f55306f67f9eb84943df8998",
+                "reference": "596817fcb5a603f6f55306f67f9eb84943df8998",
+                "shasum": ""
+            },
+            "require": {
+                "codeception/codeception": "^5.0.8",
+                "codeception/lib-xml": "^1.0",
+                "ext-dom": "*",
+                "ext-json": "*",
+                "justinrainbow/json-schema": "^5.2.9 || ^6",
+                "php": "^8.2",
+                "softcreatr/jsonpath": "^0.8 || ^0.9 || ^0.10 || ^0.11 || ^1.0"
+            },
+            "require-dev": {
+                "codeception/lib-innerbrowser": "^3.0 | ^4.0",
+                "codeception/stub": "^4.0",
+                "codeception/util-universalframework": "^2.0",
+                "ext-libxml": "*",
+                "ext-simplexml": "*"
+            },
+            "suggest": {
+                "aws/aws-sdk-php": "For using AWS Auth"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Gintautas Miselis"
+                }
+            ],
+            "description": "REST module for Codeception",
+            "homepage": "https://codeception.com/",
+            "keywords": [
+                "codeception",
+                "rest"
+            ],
+            "support": {
+                "issues": "https://github.com/Codeception/module-rest/issues",
+                "source": "https://github.com/Codeception/module-rest/tree/3.4.3"
+            },
+            "time": "2025-12-22T14:13:56+00:00"
         },
         {
             "name": "codeception/module-webdriver",
@@ -6935,6 +7044,75 @@
             "time": "2025-12-21T18:01:15+00:00"
         },
         {
+            "name": "softcreatr/jsonpath",
+            "version": "0.10.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/SoftCreatR/JSONPath.git",
+                "reference": "74f0b330a98135160db947ba7bc65216b64a0c86"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/SoftCreatR/JSONPath/zipball/74f0b330a98135160db947ba7bc65216b64a0c86",
+                "reference": "74f0b330a98135160db947ba7bc65216b64a0c86",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": "8.1 - 8.4"
+            },
+            "replace": {
+                "flow/jsonpath": "*"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.58",
+                "phpunit/phpunit": "10 - 12",
+                "squizlabs/php_codesniffer": "^3.10"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Flow\\JSONPath\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Stephen Frank",
+                    "email": "stephen@flowsa.com",
+                    "homepage": "https://prismaticbytes.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Sascha Greuel",
+                    "email": "hello@1-2.dev",
+                    "homepage": "https://1-2.dev",
+                    "role": "Developer"
+                }
+            ],
+            "description": "JSONPath implementation for parsing, searching and flattening arrays",
+            "support": {
+                "email": "hello@1-2.dev",
+                "forum": "https://github.com/SoftCreatR/JSONPath/discussions",
+                "issues": "https://github.com/SoftCreatR/JSONPath/issues",
+                "source": "https://github.com/SoftCreatR/JSONPath"
+            },
+            "funding": [
+                {
+                    "url": "https://ecologi.com/softcreatr?r=61212ab3fc69b8eb8a2014f4",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/softcreatr",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-03-22T00:28:17+00:00"
+        },
+        {
             "name": "squizlabs/php_codesniffer",
             "version": "4.0.1",
             "source": {
@@ -8516,6 +8694,94 @@
                 }
             ],
             "time": "2025-02-13T21:21:17+00:00"
+        },
+        {
+            "name": "zircote/swagger-php",
+            "version": "5.7.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/zircote/swagger-php.git",
+                "reference": "e4727bad28cf426b026421162af384f893c0142c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/zircote/swagger-php/zipball/e4727bad28cf426b026421162af384f893c0142c",
+                "reference": "e4727bad28cf426b026421162af384f893c0142c",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "nikic/php-parser": "^4.19 || ^5.0",
+                "php": ">=7.4",
+                "phpstan/phpdoc-parser": "^2.0",
+                "psr/log": "^1.1 || ^2.0 || ^3.0",
+                "symfony/deprecation-contracts": "^2 || ^3",
+                "symfony/finder": "^5.0 || ^6.0 || ^7.0 || ^8.0",
+                "symfony/yaml": "^5.4 || ^6.0 || ^7.0 || ^8.0"
+            },
+            "conflict": {
+                "symfony/process": ">=6, <6.4.14"
+            },
+            "require-dev": {
+                "composer/package-versions-deprecated": "^1.11",
+                "doctrine/annotations": "^2.0",
+                "friendsofphp/php-cs-fixer": "^3.62.0",
+                "phpstan/phpstan": "^1.6 || ^2.0",
+                "phpunit/phpunit": "^9.0",
+                "rector/rector": "^1.0 || ^2.0",
+                "vimeo/psalm": "^4.30 || ^5.0"
+            },
+            "suggest": {
+                "doctrine/annotations": "^2.0",
+                "radebatz/type-info-extras": "^1.0.2"
+            },
+            "bin": [
+                "bin/openapi"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "5.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "OpenApi\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Robert Allen",
+                    "email": "zircote@gmail.com"
+                },
+                {
+                    "name": "Bob Fanger",
+                    "email": "bfanger@gmail.com",
+                    "homepage": "https://bfanger.nl"
+                },
+                {
+                    "name": "Martin Rademacher",
+                    "email": "mano@radebatz.net",
+                    "homepage": "https://radebatz.net"
+                }
+            ],
+            "description": "Generate interactive documentation for your RESTful API using PHP attributes (preferred) or PHPDoc annotations",
+            "homepage": "https://github.com/zircote/swagger-php",
+            "keywords": [
+                "api",
+                "json",
+                "rest",
+                "service discovery"
+            ],
+            "support": {
+                "issues": "https://github.com/zircote/swagger-php/issues",
+                "source": "https://github.com/zircote/swagger-php/tree/5.7.6"
+            },
+            "time": "2025-12-04T01:33:01+00:00"
         }
     ],
     "aliases": [],

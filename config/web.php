@@ -25,6 +25,14 @@ $config = [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => env('COOKIE_VALIDATION_KEY', ''),
         ],
+        'response' => [
+            'on beforeSend' => function ($event) {
+                $event->sender->headers->add('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;");
+                $event->sender->headers->add('X-Frame-Options', 'SAMEORIGIN');
+                $event->sender->headers->add('X-Content-Type-Options', 'nosniff');
+                $event->sender->headers->add('Referrer-Policy', 'strict-origin-when-cross-origin');
+            },
+        ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
@@ -77,7 +85,9 @@ $config = [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
-            'rules' => [],
+            'rules' => [
+                'api/books' => 'api/book/index',
+            ],
         ],
     ],
     'container' => require __DIR__ . '/container.php',

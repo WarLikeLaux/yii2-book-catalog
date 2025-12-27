@@ -48,3 +48,17 @@ services:
     shm_size: 2gb
     ports:
       - '4444:4444'
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./docs/api/openapi.yaml:/app/openapi.yaml
+    environment:
+      SWAGGER_JSON: /app/openapi.yaml
+
+  k6:
+    image: grafana/k6:latest
+    volumes:
+      - ./tests/load:/scripts
