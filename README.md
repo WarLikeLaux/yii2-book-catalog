@@ -8,9 +8,9 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-180_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-186_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![Mutation Score](https://img.shields.io/badge/MSI-92%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Mutation Score](https://img.shields.io/badge/MSI-91%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
 ---
 
@@ -57,7 +57,7 @@
 <td width="50%">
 
 ### 🧪 Качество кода
-- **180 тестов** с 372 assertions
+- **186 тестов** с 394 assertions
 - **100% покрытие** кода тестами
 - **PHPStan Level 9** (max strictness)
 - **Mutation Testing** (Infection PHP, MSI > 90%)
@@ -378,10 +378,10 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>171</b><br>Tests</td>
-<td align="center"><b>345</b><br>Assertions</td>
+<td align="center"><b>186</b><br>Tests</td>
+<td align="center"><b>394</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~1s</b><br>Runtime</td>
+<td align="center"><b>~2s</b><br>Runtime</td>
 </tr>
 </table>
 
