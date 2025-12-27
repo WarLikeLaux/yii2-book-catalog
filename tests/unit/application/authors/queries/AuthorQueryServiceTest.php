@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\application\authors\queries;
+namespace app\tests\unit\application\authors\queries;
 
 use app\application\authors\queries\AuthorQueryService;
+use app\application\authors\queries\AuthorReadDto;
+use app\application\authors\queries\AuthorSearchCriteria;
+use app\application\authors\queries\AuthorSearchResponse;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\PagedResultInterface;
 use Codeception\Test\Unit;
@@ -21,7 +24,7 @@ final class AuthorQueryServiceTest extends Unit
         $this->service = new AuthorQueryService($this->repository);
     }
 
-    public function testGetIndexProviderUsesDefaultPagination(): void
+    public function testGetIndexProvider(): void
     {
         $this->repository->expects($this->once())
             ->method('search')
@@ -31,13 +34,57 @@ final class AuthorQueryServiceTest extends Unit
         $this->service->getIndexProvider();
     }
 
-    public function testGetIndexProviderUsesCustomPagination(): void
+    public function testGetAuthorsMap(): void
     {
         $this->repository->expects($this->once())
-            ->method('search')
-            ->with('', 5, 50)
-            ->willReturn($this->createMock(PagedResultInterface::class));
+            ->method('findAllOrderedByFio')
+            ->willReturn([
+                new AuthorReadDto(1, 'Author 1'),
+                new AuthorReadDto(2, 'Author 2'),
+            ]);
 
-        $this->service->getIndexProvider(5, 50);
+        $result = $this->service->getAuthorsMap();
+        $this->assertSame([1 => 'Author 1', 2 => 'Author 2'], $result);
+    }
+
+    public function testGetById(): void
+    {
+        $dto = new AuthorReadDto(1, 'Test');
+        $this->repository->expects($this->once())
+            ->method('findById')
+            ->with(1)
+            ->willReturn($dto);
+
+        $result = $this->service->getById(1);
+        $this->assertSame($dto, $result);
+    }
+
+    public function testGetByIdThrowsExceptionWhenNotFound(): void
+    {
+        $this->repository->expects($this->once())
+            ->method('findById')
+            ->with(999)
+            ->willReturn(null);
+
+        $this->expectException(\app\domain\exceptions\DomainException::class);
+        $this->expectExceptionMessage('Author not found');
+
+        $this->service->getById(999);
+    }
+
+    public function testSearch(): void
+    {
+        $criteria = new AuthorSearchCriteria(search: 'term', page: 1, pageSize: 10);
+        $pagedResult = $this->createMock(PagedResultInterface::class);
+        $pagedResult->method('getModels')->willReturn([]);
+        $pagedResult->method('getTotalCount')->willReturn(0);
+
+        $this->repository->expects($this->once())
+            ->method('search')
+            ->with('term', 1, 10)
+            ->willReturn($pagedResult);
+
+        $response = $this->service->search($criteria);
+        $this->assertInstanceOf(AuthorSearchResponse::class, $response);
     }
 }

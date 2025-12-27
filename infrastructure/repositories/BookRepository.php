@@ -17,6 +17,9 @@ use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
 use yii\db\Expression;
 
+/**
+ * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
+ */
 final class BookRepository implements BookRepositoryInterface
 {
     public function create(

@@ -19,9 +19,7 @@ final class NotifySubscribersJob extends BaseObject implements Job, RetryableJob
 
     public string $title;
 
-    /**
-     * @codeCoverageIgnore
-     */
+    /** @codeCoverageIgnore Fan-out джоба: зависит от Yii-очереди и DI */
     public function execute($queue): void
     {
         $logger = new YiiPsrLogger('sms');

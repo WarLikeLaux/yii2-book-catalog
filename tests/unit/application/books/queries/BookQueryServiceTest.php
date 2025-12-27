@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\application\books\queries;
+namespace app\tests\unit\application\books\queries;
 
 use app\application\books\queries\BookQueryService;
+use app\application\books\queries\BookReadDto;
+use app\application\books\queries\BookSearchCriteria;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
 use Codeception\Test\Unit;
@@ -21,7 +23,7 @@ final class BookQueryServiceTest extends Unit
         $this->service = new BookQueryService($this->repository);
     }
 
-    public function testGetIndexProviderUsesDefaultPagination(): void
+    public function testGetIndexProvider(): void
     {
         $this->repository->expects($this->once())
             ->method('search')
@@ -31,13 +33,39 @@ final class BookQueryServiceTest extends Unit
         $this->service->getIndexProvider();
     }
 
-    public function testGetIndexProviderUsesCustomPagination(): void
+    public function testGetById(): void
+    {
+        $dto = new BookReadDto(1, 'Title', 2025, null, '9783161484100', [], [], null);
+        $this->repository->expects($this->once())
+            ->method('findByIdWithAuthors')
+            ->with(1)
+            ->willReturn($dto);
+
+        $result = $this->service->getById(1);
+        $this->assertSame($dto, $result);
+    }
+
+    public function testGetByIdThrowsExceptionWhenNotFound(): void
     {
         $this->repository->expects($this->once())
+            ->method('findByIdWithAuthors')
+            ->with(999)
+            ->willReturn(null);
+
+        $this->expectException(\app\domain\exceptions\DomainException::class);
+        $this->expectExceptionMessage('Book not found');
+
+        $this->service->getById(999);
+    }
+
+    public function testSearch(): void
+    {
+        $criteria = new BookSearchCriteria(globalSearch: 'term', page: 1, pageSize: 10);
+        $this->repository->expects($this->once())
             ->method('search')
-            ->with('', 3, 15)
+            ->with('term', 1, 10)
             ->willReturn($this->createMock(PagedResultInterface::class));
 
-        $this->service->getIndexProvider(3, 15);
+        $this->service->search($criteria);
     }
 }

@@ -119,4 +119,16 @@ final class IsbnTest extends Unit
         $this->expectException(DomainException::class);
         new Isbn('12345ABCD0');
     }
+
+    public function testGetFormattedReturnsFormattedIsbn13(): void
+    {
+        $isbn = new Isbn('9783161484100');
+        $this->assertSame('978-3-16-148410-0', $isbn->getFormatted());
+    }
+
+    public function testGetFormattedReturnsRawValueForIsbn10(): void
+    {
+        $isbn = new Isbn('0306406152');
+        $this->assertSame('0306406152', $isbn->getFormatted());
+    }
 }

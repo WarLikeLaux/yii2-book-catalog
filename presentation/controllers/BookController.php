@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\controllers;
 
 use app\application\common\dto\PaginationRequest;
+use app\presentation\filters\IdempotencyFilter;
 use app\presentation\forms\BookForm;
 use app\presentation\services\books\BookCommandService;
 use app\presentation\services\books\BookViewService;
@@ -30,6 +31,10 @@ final class BookController extends Controller
     public function behaviors(): array
     {
         return [
+            'idempotency' => [
+                'class' => IdempotencyFilter::class,
+                'only' => ['create', 'update'],
+            ],
             'access' => [
                 'class' => AccessControl::class,
                 'rules' => [

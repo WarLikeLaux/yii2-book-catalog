@@ -10,10 +10,13 @@ use app\application\books\queries\BookQueryService;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
+use app\application\common\IdempotencyService;
+use app\application\common\IdempotencyServiceInterface;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\FileStorageInterface;
+use app\application\ports\IdempotencyInterface;
 use app\application\ports\NotificationInterface;
 use app\application\ports\QueueInterface;
 use app\application\ports\ReportRepositoryInterface;
@@ -30,6 +33,7 @@ use app\infrastructure\adapters\YiiTransactionAdapter;
 use app\infrastructure\adapters\YiiTranslatorAdapter;
 use app\infrastructure\repositories\AuthorRepository;
 use app\infrastructure\repositories\BookRepository;
+use app\infrastructure\repositories\IdempotencyRepository;
 use app\infrastructure\repositories\ReportRepository;
 use app\infrastructure\repositories\SubscriptionRepository;
 use app\infrastructure\services\notifications\FlashNotificationService;
@@ -55,6 +59,7 @@ return [
         ),
         NotificationInterface::class => FlashNotificationService::class,
         TranslatorInterface::class => YiiTranslatorAdapter::class,
+        IdempotencyInterface::class => IdempotencyRepository::class,
         BookRepositoryInterface::class => BookRepository::class,
         AuthorRepositoryInterface::class => AuthorRepository::class,
         SubscriptionRepositoryInterface::class => SubscriptionRepository::class,
@@ -120,6 +125,9 @@ return [
         ),
         ReportQueryService::class => static fn($container) => new ReportQueryService(
             $container->get(ReportRepositoryInterface::class)
+        ),
+        IdempotencyServiceInterface::class => static fn($container) => new IdempotencyService(
+            $container->get(IdempotencyInterface::class)
         ),
     ],
 ];

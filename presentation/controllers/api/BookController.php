@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\controllers\api;
 
 use app\application\common\dto\PaginationRequest;
+use app\presentation\filters\IdempotencyFilter;
 use app\presentation\services\books\BookViewService;
 use OpenApi\Attributes as OA;
 use yii\data\DataProviderInterface;
@@ -24,10 +25,14 @@ final class BookController extends Controller
         parent::__construct($id, $module, $config);
     }
 
+    /** @return array<int|string, mixed> */
     #[\Override]
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();
+        $behaviors['idempotency'] = [
+            'class' => IdempotencyFilter::class,
+        ];
         $behaviors['corsFilter'] = [
             'class' => Cors::class,
         ];

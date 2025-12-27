@@ -8,6 +8,9 @@ use app\application\ports\SubscriptionRepositoryInterface;
 use app\infrastructure\persistence\Subscription;
 use yii\db\Query;
 
+/**
+ * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
+ */
 final class SubscriptionRepository implements SubscriptionRepositoryInterface
 {
     public function create(string $phone, int $authorId): void

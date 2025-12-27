@@ -7,6 +7,7 @@ namespace app\infrastructure\services\sms;
 use app\application\ports\SmsSenderInterface;
 use Psr\Log\LoggerInterface;
 
+/** @codeCoverageIgnore Интеграция с внешним API (SmsPilot.ru) */
 final readonly class SmsPilotSender implements SmsSenderInterface
 {
     public function __construct(

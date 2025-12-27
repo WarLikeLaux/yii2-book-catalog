@@ -16,9 +16,7 @@ final class IsbnValidator extends Validator
 {
     public $message;
 
-    /**
-     * @codeCoverageIgnore
-     */
+    /** @codeCoverageIgnore Инициализация Yii-валидатора, тестируется функционально */
     #[\Override]
     public function init(): void
     {

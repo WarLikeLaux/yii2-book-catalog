@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\presentation\filters\IdempotencyFilter;
 use app\presentation\forms\AuthorForm;
 use app\presentation\services\authors\AuthorCommandService;
 use app\presentation\services\authors\AuthorViewService;
@@ -30,6 +31,10 @@ final class AuthorController extends Controller
     public function behaviors(): array
     {
         return [
+            'idempotency' => [
+                'class' => IdempotencyFilter::class,
+                'only' => ['create', 'update'],
+            ],
             'access' => [
                 'class' => AccessControl::class,
                 'rules' => [

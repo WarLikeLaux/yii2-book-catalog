@@ -105,9 +105,7 @@ jobs:
             --coverage-xml=coverage.xml \
             --coverage-phpunit=coverage-phpunit.xml \
             --xml=junit.xml \
-            -o "paths: output: runtime/coverage" \
-            -o "coverage: enabled: true" \
-            -o "coverage: include: [application/*,domain/*,infrastructure/*,presentation/*]"
+            -o "paths: output: runtime/coverage"
 
       - name: Run Mutation Tests (Infection)
         run: |

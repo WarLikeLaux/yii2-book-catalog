@@ -23,6 +23,7 @@ final class LoginPresentationService
     }
 
     /**
+     * @codeCoverageIgnore Зависит от Yii::$app->user->login()
      * @return array{success: bool, viewData: array<string, mixed>}
      */
     public function processLoginRequest(Request $request): array

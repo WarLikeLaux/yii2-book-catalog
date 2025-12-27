@@ -1,4 +1,4 @@
-.PHONY: init up down restart composer lint lint-fix migrate seed shell perms copy-env sms-logs queue-info logs test test-coverage test-unit test-functional docs repomix analyze deptrac rector rector-fix infection check
+.PHONY: init up down restart composer lint lint-fix migrate seed shell perms copy-env sms-logs queue-info logs test test-coverage test-unit test-functional docs repomix analyze deptrac rector rector-fix infection ci pr dev fix audit swagger load-test
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -59,7 +59,6 @@ queue-info:
 logs:
 	$(COMPOSE) logs -f
 
-# Internal: Prepare test database (create if not exists & migrate)
 _test-init:
 	@echo "🔧 Preparing test database..."
 	@$(COMPOSE) exec -T db sh -c 'mysql -uroot -p"$${MYSQL_ROOT_PASSWORD}" -h127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS $(DB_TEST_NAME); GRANT ALL PRIVILEGES ON $(DB_TEST_NAME).* TO \"$${MYSQL_USER}\"@\"%\"; FLUSH PRIVILEGES;"' 2>&1 | grep -v "Using a password" || true
@@ -71,14 +70,17 @@ test: _test-init
 
 test-coverage: _test-init
 	@echo "📊 Running tests with coverage..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --coverage-html
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --coverage --coverage-html --coverage-text
+	@echo ""
+	@echo "═══════════════════════════════════════"
+	@$(COMPOSE) exec $(PHP_CONTAINER) cat tests/_output/coverage.txt 2>/dev/null | head -12 | tail -8 || echo "See HTML report: tests/_output/coverage/index.html"
+	@echo "═══════════════════════════════════════"
 
 test-unit:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit
 
 test-functional: _test-init
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional
-
 
 docs:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/all
@@ -89,9 +91,9 @@ repomix:
 	@npx -y repomix --style markdown --output repomix-output.md
 	@echo "✅ Created repomix-output.md"
 
-infection:
+infection: _test-init
 	$(COMPOSE) exec $(PHP_CONTAINER) mkdir -p runtime/coverage
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage" -o "coverage: enabled: true" -o "coverage: include: [application/*,domain/*,infrastructure/*,presentation/*]"
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage"
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=4 --min-msi=70 --min-covered-msi=80 --test-framework-options="functional,unit"
 
 swagger:
@@ -107,7 +109,13 @@ rector:
 rector-fix:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process
 
-check: lint analyze deptrac rector audit test infection swagger
-
 audit:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer audit
+
+fix: lint-fix rector-fix
+
+ci: lint analyze test
+
+dev: fix ci
+
+pr: ci deptrac infection audit

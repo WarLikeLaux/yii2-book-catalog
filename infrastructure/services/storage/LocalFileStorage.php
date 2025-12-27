@@ -18,6 +18,9 @@ final readonly class LocalFileStorage implements FileStorageInterface
     ) {
     }
 
+    /**
+     * @codeCoverageIgnore Зависит от Yii::getAlias и файловой системы
+     */
     public function save(UploadedFile $file): string
     {
         $dir = Yii::getAlias($this->basePath);

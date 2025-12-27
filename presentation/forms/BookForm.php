@@ -35,9 +35,7 @@ final class BookForm extends Model
     /** @var UploadedFile|string|null */
     public $cover;
 
-    /**
-     * @codeCoverageIgnore
-     */
+    /** @codeCoverageIgnore Работает с Yii UploadedFile::getInstance */
     public function loadFromRequest(Request $request): bool
     {
         $isLoaded = $this->load((array)$request->post());

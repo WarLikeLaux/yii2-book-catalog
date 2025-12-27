@@ -17,6 +17,7 @@ final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
     ) {
     }
 
+    /** @codeCoverageIgnore Работает с Yii-очередью, тестируется функционально */
     public function publishEvent(DomainEvent $event): void
     {
         if (!($event instanceof BookCreatedEvent)) {

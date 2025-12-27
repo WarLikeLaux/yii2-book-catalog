@@ -21,6 +21,7 @@ final readonly class ReportPresentationService
     }
 
     /**
+     * @codeCoverageIgnore Использует Yii::t() и UseCaseExecutor с flash-сообщениями
      * @return array<string, mixed>
      */
     public function prepareIndexViewData(Request $request): array

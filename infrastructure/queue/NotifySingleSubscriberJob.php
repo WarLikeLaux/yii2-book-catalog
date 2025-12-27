@@ -22,9 +22,7 @@ final class NotifySingleSubscriberJob extends BaseObject implements Job, Retryab
 
     public int $bookId;
 
-    /**
-     * @codeCoverageIgnore
-     */
+    /** @codeCoverageIgnore Выполнение джобы: зависит от Yii DI и кэша */
     public function execute($queue): void
     {
         $cache = Yii::$app->cache;
