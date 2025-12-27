@@ -12,6 +12,7 @@ use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
+use app\application\common\validators\IsbnValidator;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\EventPublisherInterface;
@@ -48,6 +49,7 @@ use Psr\Log\LoggerInterface;
 
 return [
     'definitions' => [
+        // Инфраструктурные сервисы с явной конфигурацией
         SmsSenderInterface::class => static fn() => new SmsPilotSender(
             (string)env('SMS_API_KEY', 'MOCK_KEY'),
             new YiiPsrLogger('sms')
@@ -57,77 +59,43 @@ return [
             '@app/web/uploads',
             '/uploads'
         ),
+
+        // Простые маппинги (Autowiring справится сам)
         NotificationInterface::class => FlashNotificationService::class,
         TranslatorInterface::class => YiiTranslatorAdapter::class,
         IdempotencyInterface::class => IdempotencyRepository::class,
         BookRepositoryInterface::class => BookRepository::class,
         AuthorRepositoryInterface::class => AuthorRepository::class,
         SubscriptionRepositoryInterface::class => SubscriptionRepository::class,
-        ReportRepositoryInterface::class => static fn($container) => new ReportRepository(
-            Yii::$app->get('db')
-        ),
-        TransactionInterface::class => static fn($container) => new YiiTransactionAdapter(
-            Yii::$app->get('db')
-        ),
-        QueueInterface::class => static fn($container) => new YiiQueueAdapter(
-            Yii::$app->get('queue')
-        ),
-        EventPublisherInterface::class => static fn($container) => new YiiEventPublisherAdapter(
-            $container->get(QueueInterface::class)
-        ),
-        UniqueFioValidator::class => static fn($container, $params, $config) => new UniqueFioValidator(
-            $container->get(AuthorRepositoryInterface::class),
-            $config
-        ),
-        UniqueIsbnValidator::class => static fn($container, $params, $config) => new UniqueIsbnValidator(
-            $container->get(BookRepositoryInterface::class),
-            $config
-        ),
-        AuthorExistsValidator::class => static fn($container, $params, $config) => new AuthorExistsValidator(
-            $container->get(AuthorRepositoryInterface::class),
-            $config
-        ),
-        PagedResultDataProviderFactory::class => static fn() => new PagedResultDataProviderFactory(),
+
+        // Адаптеры, требующие доступа к компонентам Yii::$app
+        ReportRepositoryInterface::class => static fn() => new ReportRepository(Yii::$app->get('db')),
+        TransactionInterface::class => static fn() => new YiiTransactionAdapter(Yii::$app->get('db')),
+        QueueInterface::class => static fn() => new YiiQueueAdapter(Yii::$app->get('queue')),
+        EventPublisherInterface::class => YiiEventPublisherAdapter::class,
+
+        // Валидаторы (автоматически получают зависимости через конструктор)
+        UniqueFioValidator::class => UniqueFioValidator::class,
+        UniqueIsbnValidator::class => UniqueIsbnValidator::class,
+        AuthorExistsValidator::class => AuthorExistsValidator::class,
+        IsbnValidator::class => IsbnValidator::class,
+
+        // Фабрики
+        PagedResultDataProviderFactory::class => PagedResultDataProviderFactory::class,
     ],
     'singletons' => [
-        CreateBookUseCase::class => static fn($container) => new CreateBookUseCase(
-            $container->get(BookRepositoryInterface::class),
-            $container->get(TransactionInterface::class),
-            $container->get(EventPublisherInterface::class)
-        ),
-        UpdateBookUseCase::class => static fn($container) => new UpdateBookUseCase(
-            $container->get(BookRepositoryInterface::class),
-            $container->get(TransactionInterface::class)
-        ),
-        DeleteBookUseCase::class => static fn($container) => new DeleteBookUseCase(
-            $container->get(BookRepositoryInterface::class)
-        ),
-        CreateAuthorUseCase::class => static fn($container) => new CreateAuthorUseCase(
-            $container->get(AuthorRepositoryInterface::class)
-        ),
-        UpdateAuthorUseCase::class => static fn($container) => new UpdateAuthorUseCase(
-            $container->get(AuthorRepositoryInterface::class)
-        ),
-        DeleteAuthorUseCase::class => static fn($container) => new DeleteAuthorUseCase(
-            $container->get(AuthorRepositoryInterface::class)
-        ),
-        SubscribeUseCase::class => static fn($container) => new SubscribeUseCase(
-            $container->get(SubscriptionRepositoryInterface::class)
-        ),
-        BookQueryService::class => static fn($container) => new BookQueryService(
-            $container->get(BookRepositoryInterface::class)
-        ),
-        AuthorQueryService::class => static fn($container) => new AuthorQueryService(
-            $container->get(AuthorRepositoryInterface::class)
-        ),
-        SubscriptionQueryService::class => static fn($container) => new SubscriptionQueryService(
-            $container->get(SubscriptionRepositoryInterface::class)
-        ),
-        ReportQueryService::class => static fn($container) => new ReportQueryService(
-            $container->get(ReportRepositoryInterface::class)
-        ),
-        IdempotencyServiceInterface::class => static fn($container) => new IdempotencyService(
-            $container->get(IdempotencyInterface::class)
-        ),
+        // Все UseCases и QueryServices разрешаются автоматически через конструктор (Autowiring)
+        CreateBookUseCase::class,
+        UpdateBookUseCase::class,
+        DeleteBookUseCase::class,
+        CreateAuthorUseCase::class,
+        UpdateAuthorUseCase::class,
+        DeleteAuthorUseCase::class,
+        SubscribeUseCase::class,
+        BookQueryService::class,
+        AuthorQueryService::class,
+        SubscriptionQueryService::class,
+        ReportQueryService::class,
+        IdempotencyServiceInterface::class => IdempotencyService::class,
     ],
 ];

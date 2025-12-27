@@ -4,30 +4,42 @@ declare(strict_types=1);
 
 namespace app\infrastructure\queue;
 
+use app\application\ports\TranslatorInterface;
 use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\infrastructure\services\YiiPsrLogger;
 use Yii;
-use yii\base\BaseObject;
 use yii\queue\JobInterface;
 use yii\queue\RetryableJobInterface;
 
-final class NotifySubscribersJob extends BaseObject implements JobInterface, RetryableJobInterface
+/**
+ * Джоб для уведомления подписчиков о новой книге.
+ *
+ * ВАЖНО: Мы не используем Dependency Injection в конструкторе, так как объект сериализуется
+ * при попадании в очередь. Зависимости извлекаются в методе execute().
+ */
+final readonly class NotifySubscribersJob implements JobInterface, RetryableJobInterface
 {
     private const int TTR_SECONDS = 300;
 
-    public int $bookId;
+    public function __construct(
+        public int $bookId,
+        public string $title,
+    ) {
+    }
 
-    public string $title;
-
-    /** @codeCoverageIgnore Fan-out джоба: зависит от Yii-очереди и DI */
+    /** @codeCoverageIgnore Fan-out джоба: зависит от Yii-очереди и внешних сервисов */
     public function execute($queue): void
     {
         $logger = new YiiPsrLogger('sms');
         /** @var \yii\queue\Queue $jobQueue */
         $jobQueue = Yii::$app->get('queue');
-        $queryService = Yii::$container->get(SubscriptionQueryService::class);
 
-        $message = Yii::t('app', 'New book released: {title}', ['title' => $this->title]);
+        /** @var SubscriptionQueryService $queryService */
+        $queryService = Yii::$container->get(SubscriptionQueryService::class);
+        /** @var TranslatorInterface $translator */
+        $translator = Yii::$container->get(TranslatorInterface::class);
+
+        $message = $translator->translate('app', 'New book released: {title}', ['title' => $this->title]);
         $totalDispatched = 0;
 
         foreach ($queryService->getSubscriberPhonesForBook($this->bookId) as $phone) {

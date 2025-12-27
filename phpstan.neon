@@ -54,3 +54,25 @@ parameters:
 		# Аннотации фреймворка используют сложные дженерики, которые конфликтуют с нашими строгими типами.
 		- '#Return type .*::find\(\) should be compatible with return type .*ActiveRecord::find\(\)#'
 		- '#Return type .*::behaviors\(\) should be covariant with return type.*#'
+
+services:
+	-
+		class: app\infrastructure\phpstan\Rules\UseCaseMustBeFinalRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\ValueObjectMustBeFinalRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\DomainIsCleanRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\DisallowYiiTOutsideAdaptersRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\DisallowDateTimeRule
+		tags:
+			- phpstan.rules.rule
