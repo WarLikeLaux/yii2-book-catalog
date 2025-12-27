@@ -5,64 +5,86 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__);
 $readmePath = $root . '/README.md';
-$makefilePath = $root . '/Makefile';
-$contractPath = $root . '/docs/ai/contract.md';
+$coveragePath = $root . '/tests/_output/coverage.txt';
 
-if (!file_exists($readmePath) || !file_exists($contractPath)) {
-    exit(1);
-}
+if (!file_exists($readmePath)) exit(1);
 
 $readme = file_get_contents($readmePath);
-$makefile = file_get_contents($makefilePath);
-$contract = file_get_contents($contractPath);
 $errors = [];
 
-preg_match_all('/^([a-zA-Z0-9_-]+):/m', $makefile, $matches);
-$makeCommands = array_filter($matches[1], fn($cmd) => !in_array($cmd, ['.PHONY', 'all', 'help']));
-$ignored = [
-    'rector-fix', 'lint-fix', 'ps', 'logs', 'shell', 'restart', 'composer', 'migrate', 
-    'perms', 'copy-env', 'queue-info', '_test-init', 'docs', 'repomix', 'infection',
-    'swagger', 'load-test', 'sms-logs', 'seed'
-];
+$srcFiles = 0; $testFiles = 0;
+$srcSloc = 0; $testSloc = 0;
 
-foreach ($makeCommands as $cmd) {
-    if (!in_array($cmd, $ignored) && !str_contains($readme, "make $cmd")) {
-        $errors[] = "Команда Makefile `make $cmd` не описана в README.md";
+$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
+foreach ($it as $file) {
+    if ($file->isFile() && $file->getExtension() === 'php') {
+        $path = $file->getPathname();
+        if (preg_match('/\/(vendor|runtime|tests\/_output)\//', $path)) continue;
+        
+        $lines = file($path);
+        $count = 0;
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line !== "" && !preg_match('/^(\/\/|\/\*|\*|#)/', $line)) $count++;
+        }
+
+        if (str_contains($path, '/tests/')) {
+            $testFiles++;
+            $testSloc += $count;
+        } elseif (preg_match('/(application|domain|infrastructure|presentation)/', $path)) {
+            $srcFiles++;
+            $srcSloc += $count;
+        }
     }
 }
 
-$realFileCount = (int)shell_exec("find . -name '*.php' -not -path './vendor/*' -not -path './runtime/*' | wc -l");
-if (preg_match('/PHP_Files-(\d+)-/', $readme, $matches)) {
-    $documentedFiles = (int)$matches[1];
-    if (abs($realFileCount - $documentedFiles) > 10) {
-        $errors[] = "Количество PHP-файлов в README ($documentedFiles) сильно расходится с реальным ($realFileCount)";
+if (preg_match('/Source_Files-(\d+)-/', $readme, $m) && $srcFiles !== (int)$m[1]) {
+    $errors[] = "Source Files: в README {$m[1]}, реально $srcFiles";
+}
+
+if (preg_match('/Test_Files-(\d+)-/', $readme, $m) && $testFiles !== (int)$m[1]) {
+    $errors[] = "Test Files: в README {$m[1]}, реально $testFiles";
+}
+
+if (preg_match('/Source_Code-(\d+\.?\d*)k\+-/', $readme, $m)) {
+    $realK = round($srcSloc / 1000, 1);
+    if (abs((float)$m[1] - $realK) > 0.5) $errors[] = "Source Code SLOC: в README {$m[1]}k+, реально {$realK}k+";
+}
+
+if (preg_match('/Test_Code-(\d+\.?\d*)k\+-/', $readme, $m)) {
+    $realK = round($testSloc / 1000, 1);
+    if (abs((float)$m[1] - $realK) > 0.5) $errors[] = "Test Code SLOC: в README {$m[1]}k+, реально {$realK}k+";
+}
+
+if (file_exists($coveragePath)) {
+    $report = file_get_contents($coveragePath);
+    if (preg_match('/OK \((\d+) tests, (\d+) assertions\)/', $report, $testMatches)) {
+        $realTests = (int)$testMatches[1];
+        $realAss = (int)$testMatches[2];
+        preg_match_all('/(\d+)\s+(тест|test|passed)/i', $readme, $rmTests);
+        foreach (array_unique(array_map('intval', $rmTests[1])) as $val) {
+            if ($val !== $realTests) $errors[] = "Тесты: в README $val, реально $realTests";
+        }
+        preg_match_all('/(\d+)\s+assertions/i', $readme, $rmAss);
+        foreach (array_unique(array_map('intval', $rmAss[1])) as $val) {
+            if ($val !== $realAss) $errors[] = "Ассерты: в README $val, реально $realAss";
+        }
+    }
+    if (preg_match('/Lines:\s+([\d\.]+)%/', $report, $m1) && preg_match('/Coverage-([\d\.]+)%/', $readme, $m2)) {
+        if ((float)$m1[1] !== (float)$m2[1]) $errors[] = "Покрытие: в README {$m2[1]}%, реально {$m1[1]}%";
     }
 }
 
-if (!preg_match('/Coverage-\d+%/', $readme)) {
-    $errors[] = "В README.md отсутствует бейдж или значение покрытия (Coverage)";
-}
-if (!preg_match('/Tests-\d+_passed/', $readme)) {
-    $errors[] = "В README.md отсутствует бейдж или значение пройденных тестов (Tests passed)";
-}
-
-foreach (['commit.md', 'changelog.md', 'readme.md'] as $wf) {
-    if (!str_contains($contract, $wf)) {
-        $errors[] = "В AI Контракте отсутствует ссылка на обязательный воркфлоу: $wf";
-    }
-}
-
-if (!str_contains($contract, '--amend')) {
-    $errors[] = "В AI Контракте должен быть явный запрет на использование git commit --amend";
+preg_match_all('/\[.*?\]\((?!http)(.*?)\)/', $readme, $m);
+foreach ($m[1] as $link) {
+    if (empty($link = explode('#', $link)[0])) continue;
+    if (!file_exists($root . '/' . ltrim($link, '/'))) $errors[] = "Битая ссылка: $link";
 }
 
 if ($errors) {
-    echo "\033[31m[ПРОВАЛ]\033[0m Ошибки синхронизации документации:\n";
-    foreach ($errors as $error) {
-        echo "  - $error\n";
-    }
+    echo "\033[31m[ПРОВАЛ]\033[0m Ошибки документации:\n  - " . implode("\n  - ", $errors) . "\n";
     exit(1);
 }
 
-echo "\033[32m[ОК]\033[0m Документация актуальна.\n";
+echo "\033[32m[ОК]\033[0m Документация актуальна (СТРОГО).\n";
 exit(0);

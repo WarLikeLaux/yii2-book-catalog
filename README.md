@@ -42,8 +42,8 @@
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
 | ✅ **242 теста** (516 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
-| ✅ **PHPStan Level 9**<br>Strict Rules & Deprecations | 🛠 **Makefile**<br>Автоматизация рутины |
-| ✅ **Mutation Testing**<br>Infection PHP (MSI > 96%) | 🚀 **Performance**<br>Load tests (k6), 100% success |
+| ✅ **PHPStan Level 9**<br>Custom Architecture Rules | 🛠 **Makefile**<br>Автоматизация рутины |
+| ✅ **Mutation Testing**<br>Infection PHP (MSI > 96%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
 ## 🛠 Технический стек
@@ -206,6 +206,7 @@ class BookCommandService
 
 ```
 yii2-book-catalog/
+├── bin/                      # Кастомные скрипты (валидаторы ченджлога и документации)
 ├── application/              # Application Layer (Use Cases, Queries, Ports)
 │   ├── books/
 │   │   ├── commands/        # Command DTOs (CreateBookCommand, UpdateBookCommand)
@@ -227,7 +228,8 @@ yii2-book-catalog/
 │   ├── persistence/        # ActiveRecord модели (Author, Book, Subscription, User)
 │   ├── queue/              # Queue Jobs (NotifySubscribersJob, NotifySingleSubscriberJob)
 │   ├── repositories/       # Реализации репозиториев
-│   └── services/           # Реализации сервисов (SMS, FileStorage, Notifications)
+│   ├── services/           # Реализации сервисов (SMS, FileStorage, Notifications)
+│   └── phpstan/            # Кастомные правила статического анализа (архитектурный контроль)
 ├── presentation/            # Presentation Layer
 │   ├── controllers/        # HTTP-контроллеры
 │   ├── views/              # Yii2 views
@@ -426,8 +428,10 @@ open http://localhost:8000
 
 ### 📊 Статистика проекта
 
-![Lines of Code](https://img.shields.io/badge/Lines_of_Code-6.5k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![PHP Files](https://img.shields.io/badge/PHP_Files-233-purple?style=for-the-badge&logo=php&logoColor=white)
+![Source Code](https://img.shields.io/badge/Source_Code-4.5k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-5.5k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-132-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-73-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
