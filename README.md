@@ -4,10 +4,10 @@
 
 **Modern Clean Architecture • PHP 8.4 • Async Queues • Hybrid Search**
 
-<a href="https://www.php.net/" target="_blank">![PHP Version](https://img.shields.io/badge/PHP-8.4-777BB4?style=for-the-badge&logo=php&logoColor=white)</a>
-<a href="https://www.yiiframework.com/" target="_blank">![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)</a>
-<a href="https://www.mysql.com/" target="_blank">![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)</a>
-<a href="https://www.docker.com/" target="_blank">![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)</a>
+[![PHP Version](https://img.shields.io/badge/PHP-8.4-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Tests](https://img.shields.io/badge/Tests-186_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-91%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
@@ -50,12 +50,12 @@
 
 | Категория | Технология | Описание |
 |-----------|------------|----------|
-| **Язык** | <a href="https://www.php.net/" target="_blank">![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)</a> | PHPStan Level 9, Strict Types, Constructor Promotion |
-| **Framework** | <a href="https://www.yiiframework.com/" target="_blank">![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii)</a> | Basic Template с DI Container |
-| **Database** | <a href="https://www.mysql.com/" target="_blank">![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)</a> | InnoDB + FullText Search |
+| **Язык** | [![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)](https://www.php.net/) | PHPStan Level 9, Strict Types, Constructor Promotion |
+| **Framework** | [![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii)](https://www.yiiframework.com/) | Basic Template с DI Container |
+| **Database** | [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/) | InnoDB + FullText Search |
 | **Queue** | `yii2-queue` | DB Driver + Fan-out Pattern |
-| **Testing** | <a href="https://codeception.com/" target="_blank">![Codeception](https://img.shields.io/badge/Codeception-5.0-purple)</a> | Unit + Functional, 100% Coverage |
-| **Infra** | <a href="https://www.docker.com/" target="_blank">![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)</a> | PHP 8.4 + MySQL 8 + Queue Worker |
+| **Testing** | [![Codeception](https://img.shields.io/badge/Codeception-5.0-purple)](https://codeception.com/) | Unit + Functional, 100% Coverage |
+| **Infra** | [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) | PHP 8.4 + MySQL 8 + Queue Worker |
 | **Quality** | `Rector`, `PHPStan`, `Deptrac` | Automated Refactoring & Static Analysis |
 
 ## 🏗 Архитектурные решения
@@ -338,7 +338,7 @@ open http://localhost:8000
 
 </details>
 
-Приложение будет доступно по адресу: **<a href="http://localhost:8000" target="_blank">http://localhost:8000</a>**
+Приложение будет доступно по адресу: **[http://localhost:8000](http://localhost:8000)**
 
 ### 🧪 Тестирование и покрытие кода
 
@@ -427,7 +427,7 @@ open http://localhost:8000
 
 <br>
 
-**Made with ❤️ using <a href="https://www.yiiframework.com/" target="_blank">Yii2 Framework</a>**
+**Made with ❤️ using [Yii2 Framework](https://www.yiiframework.com/)**
 
 *Clean-ish Architecture • DDD • CQRS • Event-Driven*
 
