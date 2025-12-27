@@ -89,7 +89,7 @@ jobs:
 
       - name: Run Acceptance Tests
         run: |
-          ./vendor/bin/codecept run acceptance --no-colors \
+          ./vendor/bin/codecept run acceptance --no-colors -vvv \
             -o "modules: config: WebDriver: url: http://172.17.0.1:8080" \
             -o "modules: config: WebDriver: browser: chrome"
 
