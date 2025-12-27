@@ -91,6 +91,7 @@ jobs:
         run: |
           ./vendor/bin/codecept run acceptance --no-colors -vvv \
             -o "modules: config: WebDriver: url: http://172.17.0.1:8080" \
+            -o "modules: config: WebDriver: host: 127.0.0.1" \
             -o "modules: config: WebDriver: browser: chrome"
 
       - name: Run Unit & Functional Tests (with Coverage)
