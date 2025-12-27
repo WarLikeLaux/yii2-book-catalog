@@ -58,8 +58,9 @@
 ### 🧪 Качество кода
 - **171 тест** с 345 assertions
 - **100% покрытие** кода тестами
-- **Strict Types** везде (`declare(strict_types=1)`)
 - **PHPStan Level 9** (max strictness)
+- **Architecture Testing** (Deptrac)
+- **Strict Types** везде (`declare(strict_types=1)`)
 - **PHPCS** + Slevomat Coding Standard
 
 </td>
@@ -387,6 +388,7 @@ open http://localhost:8000
 | `make test-unit` | ⚡ Unit-тесты (без БД) | **Testing** (Speed) |
 | `make test-functional` | 🌐 Functional-тесты (с БД) | **Testing** (Integration) |
 | `make analyze` | 🔍 PHPStan (Level 9) | **Quality** (Static Analysis) |
+| `make deptrac` | 🏗 Архитектурный контроль | **Quality** (Architecture) |
 | `make lint-fix` | 🧹 PHPCS (Auto-fix) | **Quality** (Style) |
 
 <details>

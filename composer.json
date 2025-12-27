@@ -43,7 +43,8 @@
         "squizlabs/php_codesniffer": "^4.0",
         "yiisoft/yii2-coding-standards": "^3.0",
         "slevomat/coding-standard": "^8.25",
-        "phpstan/phpstan": "^2.1"
+        "phpstan/phpstan": "^2.1",
+        "deptrac/deptrac": "^3.0"
     },
     "config": {
         "allow-plugins": {

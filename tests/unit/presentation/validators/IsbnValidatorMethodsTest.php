@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace tests\unit\presentation\validators;
 
 use app\presentation\forms\BookForm;
-use app\presentation\validators\IsbnValidator;
+use app\application\common\validators\IsbnValidator;
 use Codeception\Test\Unit;
 use yii\base\Model;
 

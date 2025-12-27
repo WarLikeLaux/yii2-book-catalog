@@ -1,4 +1,4 @@
-.PHONY: init up down restart composer lint lint-fix migrate seed shell perms copy-env sms-logs queue-info logs test test-coverage test-unit test-functional test-acceptance docs repomix
+.PHONY: init up down restart composer lint lint-fix migrate seed shell perms copy-env sms-logs queue-info logs test test-coverage test-unit test-functional test-acceptance docs repomix analyze deptrac
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -30,6 +30,9 @@ lint-fix:
 
 analyze:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan analyse --memory-limit=2G
+
+deptrac:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/deptrac analyze
 
 migrate:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./yii migrate --interactive=0

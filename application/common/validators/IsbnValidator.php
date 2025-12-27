@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\presentation\validators;
+namespace app\application\common\validators;
 
 use app\domain\values\Isbn;
 use Exception;

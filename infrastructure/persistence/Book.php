@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\infrastructure\persistence;
 
-use app\presentation\validators\IsbnValidator;
+use app\application\common\validators\IsbnValidator;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
