@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace tests\unit;
+namespace tests\unit\presentation\mappers;
 
 use app\application\books\queries\BookReadDto;
 use app\presentation\forms\BookForm;

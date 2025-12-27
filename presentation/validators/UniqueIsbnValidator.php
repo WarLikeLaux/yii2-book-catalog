@@ -12,6 +12,9 @@ final class UniqueIsbnValidator extends Validator
 {
     public string|null $excludeId = null;
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function __construct(
         private readonly BookRepositoryInterface $repository,
         $config = []

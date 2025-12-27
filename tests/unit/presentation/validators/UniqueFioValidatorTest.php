@@ -71,4 +71,22 @@ final class UniqueFioValidatorTest extends Unit
         
         $this->assertFalse($form->hasErrors('fio'));
     }
+
+    public function testValidateCastsStringIdToInt(): void
+    {
+        $repository = $this->createMock(AuthorRepositoryInterface::class);
+        $repository->method('existsByFio')
+            ->with('Author Name', 42)
+            ->willReturn(false);
+
+        $validator = new UniqueFioValidator($repository);
+
+        $form = new AuthorForm();
+        $form->id = '42';
+        $form->fio = 'Author Name';
+
+        $validator->validateAttribute($form, 'fio');
+
+        $this->assertFalse($form->hasErrors('fio'));
+    }
 }

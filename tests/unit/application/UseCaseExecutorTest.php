@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace tests\unit;
+namespace tests\unit\application;
 
 use app\application\common\UseCaseExecutor;
 use app\application\ports\NotificationInterface;

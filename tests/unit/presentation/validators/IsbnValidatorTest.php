@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace tests\unit;
+namespace tests\unit\presentation\validators;
 
 use app\presentation\validators\IsbnValidator;
 use Codeception\Test\Unit;

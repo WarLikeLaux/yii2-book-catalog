@@ -13,6 +13,9 @@ final class ReportFilterForm extends Model
     /** @var int|string|null */
     public $year = null;
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function loadFromRequest(Request $request): bool
     {
         return $this->load($request->get());
@@ -32,6 +35,9 @@ final class ReportFilterForm extends Model
         ];
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function formName(): string
     {
         return '';

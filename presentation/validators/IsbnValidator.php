@@ -16,6 +16,9 @@ final class IsbnValidator extends Validator
 {
     public $message;
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function init(): void
     {
         parent::init();

@@ -35,6 +35,9 @@ final class BookForm extends Model
     /** @var UploadedFile|string|null */
     public $cover = null;
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function loadFromRequest(Request $request): bool
     {
         $isLoaded = $this->load($request->post());

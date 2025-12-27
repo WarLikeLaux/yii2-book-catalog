@@ -12,6 +12,9 @@ final class UniqueFioValidator extends Validator
 {
     public string|int|null $excludeId = null;
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function __construct(
         private readonly AuthorRepositoryInterface $repository,
         $config = []

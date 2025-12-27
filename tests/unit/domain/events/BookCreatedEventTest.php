@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace tests\unit;
+namespace tests\unit\domain\events;
 
 use app\domain\events\BookCreatedEvent;
 use Codeception\Test\Unit;

@@ -6,6 +6,7 @@ namespace tests\unit\infrastructure;
 
 use app\infrastructure\queue\NotifySingleSubscriberJob;
 use Codeception\Test\Unit;
+use Exception;
 
 final class NotifySingleSubscriberJobTest extends Unit
 {
@@ -26,8 +27,8 @@ final class NotifySingleSubscriberJobTest extends Unit
             'message' => 'Test',
             'bookId' => 1,
         ]);
-        $this->assertTrue($job->canRetry(1, new \Exception()));
-        $this->assertTrue($job->canRetry(2, new \Exception()));
+        $this->assertTrue($job->canRetry(1, new Exception()));
+        $this->assertTrue($job->canRetry(2, new Exception()));
     }
 
     public function testCanRetryReturnsFalse(): void
@@ -37,6 +38,7 @@ final class NotifySingleSubscriberJobTest extends Unit
             'message' => 'Test',
             'bookId' => 1,
         ]);
-        $this->assertFalse($job->canRetry(3, new \Exception()));
+        $this->assertFalse($job->canRetry(3, new Exception()));
     }
 }
+

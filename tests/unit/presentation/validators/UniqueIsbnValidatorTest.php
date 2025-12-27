@@ -71,4 +71,22 @@ final class UniqueIsbnValidatorTest extends Unit
         
         $this->assertFalse($form->hasErrors('isbn'));
     }
+
+    public function testValidateCastsStringIdToInt(): void
+    {
+        $repository = $this->createMock(BookRepositoryInterface::class);
+        $repository->method('existsByIsbn')
+            ->with('9783161484100', 42)
+            ->willReturn(false);
+
+        $validator = new UniqueIsbnValidator($repository);
+
+        $form = new BookForm();
+        $form->id = '42';
+        $form->isbn = '9783161484100';
+
+        $validator->validateAttribute($form, 'isbn');
+
+        $this->assertFalse($form->hasErrors('isbn'));
+    }
 }
