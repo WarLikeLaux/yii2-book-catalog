@@ -42,7 +42,7 @@
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
 | ✅ **238 тестов** (517 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
-| ✅ **PHPStan Level 9**<br>Максимальная строгость типов | 🛠 **Makefile**<br>Автоматизация рутины |
+| ✅ **PHPStan Level 9**<br>Strict Rules & Deprecations | 🛠 **Makefile**<br>Автоматизация рутины |
 | ✅ **Mutation Testing**<br>Infection PHP (MSI > 90%) | 🚀 **Performance**<br>Load tests (k6), 100% success |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
@@ -56,7 +56,7 @@
 | **Queue** | `yii2-queue` | DB Driver + Fan-out Pattern |
 | **Testing** | [![Codeception](https://img.shields.io/badge/Codeception-5.0-purple)](https://codeception.com/) | Unit + Functional, 100% Coverage |
 | **Infra** | [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) | PHP 8.4 + MySQL 8 + Queue Worker |
-| **Quality** | `Rector`, `PHPStan`, `Deptrac` | Automated Refactoring & Static Analysis |
+| **Quality** | `Rector`, `PHPStan`, `Deptrac`, `Advisories` | Strict Static Analysis & Security Checks |
 
 ## 🏗 Архитектурные решения
 
@@ -359,10 +359,11 @@ open http://localhost:8000
 | `make test-coverage` | 📊 Отчет о покрытии (HTML) | **Testing** (Metric) |
 | `make test-unit` | ⚡ Unit-тесты (без БД) | **Testing** (Speed) |
 | `make test-functional` | 🌐 Functional-тесты (с БД) | **Testing** (Integration) |
-| `make analyze` | 🔍 PHPStan (Level 9) | **Quality** (Static Analysis) |
+| `make analyze` | 🔍 PHPStan (Level 9 + Strict) | **Quality** (Static Analysis) |
 | `make deptrac` | 🏗 Архитектурный контроль | **Quality** (Architecture) |
 | `make rector` | ♻️ Автоматический рефакторинг | **Quality** (Refactoring) |
 | `make lint-fix` | 🧹 PHPCS (Auto-fix) | **Quality** (Style) |
+| `make audit` | 🛡 Проверка зависимостей | **Security** (Vulnerabilities) |
 
 <details>
 <summary><b>📋 Структура тестов</b></summary>
@@ -428,7 +429,7 @@ open http://localhost:8000
 ![Lines of Code](https://img.shields.io/badge/Lines_of_Code-5.7k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
 ![PHP Files](https://img.shields.io/badge/PHP_Files-134-purple?style=for-the-badge&logo=php&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
-![PHPStan](https://img.shields.io/badge/PHPStan-Level_9-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
+![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
 <br>
 
