@@ -27,6 +27,12 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
+      selenium:
+        image: selenium/standalone-chrome:latest
+        ports:
+          - 4444:4444
+        options: --shm-size=2g
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -80,7 +86,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          ./vendor/bin/codecept run functional,unit --no-colors \
+          ./vendor/bin/codecept run acceptance,functional,unit --no-colors \
             --coverage-xml=coverage.xml \
             --coverage-phpunit=coverage-phpunit.xml \
             --xml=junit.xml \
@@ -94,4 +100,5 @@ jobs:
             --coverage=runtime/coverage \
             --threads=4 \
             --min-msi=70 \
-            --min-covered-msi=80
+            --min-covered-msi=80 \
+            --test-framework-options="functional,unit"
