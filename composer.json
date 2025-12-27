@@ -66,6 +66,7 @@
             "infection/extension-installer": true
         },
         "process-timeout": 1800,
+        "default-socket-timeout": 120,
         "fxp-asset": {
             "enabled": false
         }
@@ -101,7 +102,7 @@
             "url": "https://asset-packagist.org",
             "options": {
                 "http": {
-                    "timeout": 60
+                    "timeout": 120
                 }
             }
         }
