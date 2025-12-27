@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use app\application\books\queries\BookReadDto;
+use yii\bootstrap5\LinkPager;
 use yii\grid\GridView;
 use yii\helpers\Html;
 
@@ -20,7 +22,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'pager' => [
-            'class' => \yii\bootstrap5\LinkPager::class,
+            'class' => LinkPager::class,
         ],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
@@ -30,9 +32,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'isbn',
             [
                 'attribute' => 'authors',
-                'value' => function (app\application\books\queries\BookReadDto $model) {
-                    return implode(', ', $model->authorNames);
-                },
+                'value' => fn (BookReadDto $model) => implode(', ', $model->authorNames),
             ],
             [
                 'class' => 'yii\grid\ActionColumn',

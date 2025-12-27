@@ -5,6 +5,8 @@ declare(strict_types=1);
 use kartik\select2\Select2;
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\web\JsExpression;
 
 $this->title = 'Обновить книгу';
 $this->params['breadcrumbs'][] = ['label' => 'Книги', 'url' => ['index']];
@@ -31,10 +33,10 @@ $this->params['breadcrumbs'][] = $this->title;
             'allowClear' => true,
             'minimumInputLength' => 2,
             'ajax' => [
-                'url' => \yii\helpers\Url::to(['author/search']),
+                'url' => Url::to(['author/search']),
                 'dataType' => 'json',
                 'delay' => 250,
-                'data' => new \yii\web\JsExpression('function(params) { return {q:params.term, page:params.page}; }'),
+                'data' => new JsExpression('function(params) { return {q:params.term, page:params.page}; }'),
                 'cache' => true,
             ],
         ],

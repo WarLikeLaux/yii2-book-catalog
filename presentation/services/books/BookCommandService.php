@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\services\books;
 
+use app\application\books\commands\DeleteBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
@@ -53,7 +54,7 @@ final class BookCommandService
 
     public function deleteBook(int $id): bool
     {
-        $command = new \app\application\books\commands\DeleteBookCommand($id);
+        $command = new DeleteBookCommand($id);
 
         return $this->useCaseExecutor->execute(
             fn() => $this->deleteBookUseCase->execute($command),

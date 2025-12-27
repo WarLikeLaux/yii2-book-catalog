@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\services\authors;
 
+use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
@@ -48,7 +49,7 @@ final class AuthorCommandService
 
     public function deleteAuthor(int $id): bool
     {
-        $command = new \app\application\authors\commands\DeleteAuthorCommand($id);
+        $command = new DeleteAuthorCommand($id);
 
         return $this->useCaseExecutor->execute(
             fn() => $this->deleteAuthorUseCase->execute($command),
