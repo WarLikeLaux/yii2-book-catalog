@@ -4,10 +4,10 @@
 
 **Modern Clean Architecture • PHP 8.4 • Async Queues • Hybrid Search**
 
-[![PHP Version](https://img.shields.io/badge/PHP-8.4-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
-[![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+<a href="https://www.php.net/" target="_blank">![PHP Version](https://img.shields.io/badge/PHP-8.4-777BB4?style=for-the-badge&logo=php&logoColor=white)</a>
+<a href="https://www.yiiframework.com/" target="_blank">![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)</a>
+<a href="https://www.mysql.com/" target="_blank">![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)</a>
+<a href="https://www.docker.com/" target="_blank">![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)</a>
 [![Tests](https://img.shields.io/badge/Tests-186_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-91%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
@@ -338,7 +338,7 @@ open http://localhost:8000
 
 </details>
 
-Приложение будет доступно по адресу: **[http://localhost:8000](http://localhost:8000)**
+Приложение будет доступно по адресу: **<a href="http://localhost:8000" target="_blank">http://localhost:8000</a>**
 
 ### 🧪 Тестирование и покрытие кода
 
