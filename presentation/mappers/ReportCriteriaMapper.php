@@ -13,7 +13,7 @@ final class ReportCriteriaMapper
     public function toCriteria(ReportFilterForm $form): ReportCriteria
     {
         return new ReportCriteria(
-            year: $form->year ? (int)$form->year : null
+            year: $form->year !== null && $form->year !== '' ? (int)$form->year : null
         );
     }
 

@@ -44,7 +44,7 @@ final readonly class SmsPilotSender implements SmsSenderInterface
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode !== 200 || !$response) {
+        if ($httpCode !== 200 || $response === false) {
             $this->logger->error('SMS API error', [
                 'phone' => $phone,
                 'http_code' => $httpCode,

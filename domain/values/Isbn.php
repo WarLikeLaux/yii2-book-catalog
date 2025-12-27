@@ -53,7 +53,7 @@ final readonly class Isbn implements \Stringable
 
     private function validateIsbn10(string $isbn): bool
     {
-        if (!preg_match('/^\d{9}[\dX]$/i', $isbn)) {
+        if (preg_match('/^\d{9}[\dX]/i', $isbn) !== 1) {
             return false;
         }
 
@@ -69,7 +69,7 @@ final readonly class Isbn implements \Stringable
 
     private function validateIsbn13(string $isbn): bool
     {
-        if (!preg_match('/^\d{13}$/', $isbn)) {
+        if (preg_match('/^\d{13}/', $isbn) !== 1) {
             return false;
         }
 

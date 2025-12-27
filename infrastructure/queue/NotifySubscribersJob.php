@@ -8,10 +8,10 @@ use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\infrastructure\services\YiiPsrLogger;
 use Yii;
 use yii\base\BaseObject;
-use yii\queue\Job;
+use yii\queue\JobInterface;
 use yii\queue\RetryableJobInterface;
 
-final class NotifySubscribersJob extends BaseObject implements Job, RetryableJobInterface
+final class NotifySubscribersJob extends BaseObject implements JobInterface, RetryableJobInterface
 {
     private const int TTR_SECONDS = 300;
 

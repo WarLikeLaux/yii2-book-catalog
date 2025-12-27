@@ -49,7 +49,10 @@
         "infection/codeception-adapter": "^0.4.4",
         "rector/rector": "^2.3",
         "zircote/swagger-php": "^5.0",
-        "codeception/module-rest": "^3.4"
+        "codeception/module-rest": "^3.4",
+        "roave/security-advisories": "dev-latest",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpstan/phpstan-deprecation-rules": "^2.0"
     },
     "autoload": {
         "psr-4": {

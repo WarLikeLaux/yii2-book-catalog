@@ -47,9 +47,11 @@ final class PagedResultDataProvider extends BaseDataProvider
      */
     protected function prepareKeys($models): array
     {
+        /** @var array<int|string> $keys */
         $keys = [];
         foreach ($models as $index => $model) {
-            if (is_object($model) && isset($model->id)) {
+            if (is_object($model) && property_exists($model, 'id')) {
+                /** @var object{id: int|string} $model */
                 $keys[] = $model->id;
                 continue;
             }

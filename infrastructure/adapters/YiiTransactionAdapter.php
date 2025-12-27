@@ -35,7 +35,7 @@ final class YiiTransactionAdapter implements TransactionInterface
         $this->transaction = null;
     }
 
-    public function rollback(): void
+    public function rollBack(): void
     {
         if (!$this->transaction instanceof Transaction) {
             throw new \RuntimeException('Transaction not started');

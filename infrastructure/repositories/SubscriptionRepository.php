@@ -19,7 +19,7 @@ final class SubscriptionRepository implements SubscriptionRepositoryInterface
 
         if (!$subscription->save()) {
             $errors = $subscription->getFirstErrors();
-            $message = $errors ? array_shift($errors) : 'Failed to create subscription';
+            $message = $errors !== [] ? array_shift($errors) : 'Failed to create subscription';
             throw new \RuntimeException($message);
         }
     }
