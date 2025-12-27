@@ -25,6 +25,7 @@ final class BookController extends Controller
         parent::__construct($id, $module, $config);
     }
 
+    #[\Override]
     public function behaviors(): array
     {
         return [
@@ -45,8 +46,10 @@ final class BookController extends Controller
 
     public function actionIndex(): string
     {
-        $page = max(1, (int)$this->request->get('page', 1));
-        $pageSize = max(1, (int)$this->request->get('pageSize', 20));
+        $p = $this->request->get('page', 1);
+        $ps = $this->request->get('pageSize', 20);
+        $page = max(1, is_numeric($p) ? (int)$p : 1);
+        $pageSize = max(1, is_numeric($ps) ? (int)$ps : 20);
 
         $dataProvider = $this->viewService->getIndexDataProvider($page, $pageSize);
 
@@ -64,11 +67,14 @@ final class BookController extends Controller
         ]);
     }
 
+    /**
+     * @return string|Response|array<string, mixed>
+     */
     public function actionCreate(): string|Response|array
     {
         $form = new BookForm();
 
-        if ($this->request->isPost && $form->load($this->request->post())) {
+        if ($this->request->isPost && $form->load((array) $this->request->post())) {
             if ($this->request->isAjax) {
                 $this->response->format = Response::FORMAT_JSON;
                 return ActiveForm::validate($form);
@@ -90,11 +96,14 @@ final class BookController extends Controller
         ]);
     }
 
+    /**
+     * @return string|Response|array<string, mixed>
+     */
     public function actionUpdate(int $id): string|Response|array
     {
         $form = $this->viewService->getBookForUpdate($id);
 
-        if ($this->request->isPost && $form->load($this->request->post())) {
+        if ($this->request->isPost && $form->load((array) $this->request->post())) {
             if ($this->request->isAjax) {
                 $this->response->format = Response::FORMAT_JSON;
                 return ActiveForm::validate($form);

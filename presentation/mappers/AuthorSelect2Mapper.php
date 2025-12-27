@@ -9,6 +9,9 @@ use app\application\authors\queries\AuthorSearchResponse;
 
 final class AuthorSelect2Mapper
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function emptyResult(): array
     {
         return [
@@ -19,10 +22,13 @@ final class AuthorSelect2Mapper
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function mapToSelect2(AuthorSearchResponse $response): array
     {
         return [
-            'results' => array_map(fn(AuthorReadDto $dto) => [
+            'results' => array_map(fn(AuthorReadDto $dto): array => [
                 'id' => $dto->id,
                 'text' => $dto->fio,
             ], $response->items),

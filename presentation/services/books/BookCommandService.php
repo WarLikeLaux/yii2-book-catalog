@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\services\books;
 
+use app\application\books\commands\DeleteBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
@@ -14,15 +15,15 @@ use app\presentation\mappers\BookFormMapper;
 use Yii;
 use yii\web\UploadedFile;
 
-final class BookCommandService
+final readonly class BookCommandService
 {
     public function __construct(
-        private readonly BookFormMapper $mapper,
-        private readonly CreateBookUseCase $createBookUseCase,
-        private readonly UpdateBookUseCase $updateBookUseCase,
-        private readonly DeleteBookUseCase $deleteBookUseCase,
-        private readonly UseCaseExecutor $useCaseExecutor,
-        private readonly FileStorageInterface $fileStorage
+        private BookFormMapper $mapper,
+        private CreateBookUseCase $createBookUseCase,
+        private UpdateBookUseCase $updateBookUseCase,
+        private DeleteBookUseCase $deleteBookUseCase,
+        private UseCaseExecutor $useCaseExecutor,
+        private FileStorageInterface $fileStorage
     ) {
     }
 
@@ -32,7 +33,7 @@ final class BookCommandService
         $command = $this->mapper->toCreateCommand($form, $coverPath);
 
         $bookId = null;
-        $success = $this->useCaseExecutor->execute(function () use ($command, &$bookId) {
+        $success = $this->useCaseExecutor->execute(function () use ($command, &$bookId): void {
             $bookId = $this->createBookUseCase->execute($command);
         }, Yii::t('app', 'Book has been created'));
 
@@ -53,7 +54,7 @@ final class BookCommandService
 
     public function deleteBook(int $id): bool
     {
-        $command = new \app\application\books\commands\DeleteBookCommand($id);
+        $command = new DeleteBookCommand($id);
 
         return $this->useCaseExecutor->execute(
             fn() => $this->deleteBookUseCase->execute($command),

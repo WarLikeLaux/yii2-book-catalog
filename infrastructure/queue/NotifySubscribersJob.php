@@ -19,13 +19,14 @@ final class NotifySubscribersJob extends BaseObject implements Job, RetryableJob
 
     public string $title;
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function execute($queue): void
     {
         $logger = new YiiPsrLogger('sms');
+        /** @var \yii\queue\Queue $jobQueue */
         $jobQueue = Yii::$app->get('queue');
-        // TODO: здесь юзается Service Locator, зависимости скрыты.
-        // По-хорошему надо разделять Job (DTO) и JobHandler (DI).
-        // Но yii2-queue заставляет писать логику в джобе, так что живем с этим.
         $queryService = Yii::$container->get(SubscriptionQueryService::class);
 
         $message = Yii::t('app', 'New book released: {title}', ['title' => $this->title]);

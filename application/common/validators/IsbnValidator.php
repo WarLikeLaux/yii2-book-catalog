@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\presentation\validators;
+namespace app\application\common\validators;
 
 use app\domain\values\Isbn;
 use Exception;
@@ -16,6 +16,10 @@ final class IsbnValidator extends Validator
 {
     public $message;
 
+    /**
+     * @codeCoverageIgnore
+     */
+    #[\Override]
     public function init(): void
     {
         parent::init();
@@ -26,19 +30,20 @@ final class IsbnValidator extends Validator
         $this->message = Yii::t('app', 'Invalid ISBN. Use ISBN-10 or ISBN-13 format.');
     }
 
+    #[\Override]
     public function validateAttribute($model, $attribute): void
     {
         $value = $model->$attribute;
 
         if (!is_string($value)) {
-            $this->addError($model, $attribute, $this->message);
+            $this->addError($model, $attribute, (string)$this->message);
             return;
         }
 
         try {
             new Isbn($value);
-        } catch (Exception $e) {
-            $this->addError($model, $attribute, $this->message);
+        } catch (Exception) {
+            $this->addError($model, $attribute, (string)$this->message);
         }
     }
 }

@@ -6,12 +6,15 @@ namespace app\application\common\dto;
 
 use app\application\ports\PagedResultInterface;
 
-final class QueryResult implements PagedResultInterface
+final readonly class QueryResult implements PagedResultInterface
 {
+    /**
+     * @param array<mixed> $models
+     */
     public function __construct(
-        private readonly array $models,
-        private readonly int $totalCount,
-        private readonly ?PaginationDto $pagination = null
+        private array $models,
+        private int $totalCount,
+        private ?PaginationDto $pagination = null
     ) {
     }
 

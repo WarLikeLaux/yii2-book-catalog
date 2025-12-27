@@ -8,10 +8,10 @@ use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\exceptions\DomainException;
 
-final class AuthorQueryService
+final readonly class AuthorQueryService
 {
     public function __construct(
-        private readonly AuthorRepositoryInterface $authorRepository
+        private AuthorRepositoryInterface $authorRepository
     ) {
     }
 
@@ -20,6 +20,9 @@ final class AuthorQueryService
         return $this->authorRepository->search('', $page, $pageSize);
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function getAuthorsMap(): array
     {
         $authors = $this->authorRepository->findAllOrderedByFio();
@@ -33,7 +36,7 @@ final class AuthorQueryService
     public function getById(int $id): AuthorReadDto
     {
         $author = $this->authorRepository->findById($id);
-        if (!$author) {
+        if (!$author instanceof AuthorReadDto) {
             throw new DomainException('Author not found');
         }
 
@@ -48,8 +51,11 @@ final class AuthorQueryService
             $criteria->pageSize
         );
 
+        /** @var AuthorReadDto[] $items */
+        $items = $result->getModels();
+
         return new AuthorSearchResponse(
-            items: $result->getModels(),
+            items: $items,
             total: $result->getTotalCount(),
             page: $criteria->page,
             pageSize: $criteria->pageSize

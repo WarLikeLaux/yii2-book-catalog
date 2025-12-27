@@ -8,10 +8,10 @@ use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\exceptions\DomainException;
 
-final class BookQueryService
+final readonly class BookQueryService
 {
     public function __construct(
-        private readonly BookRepositoryInterface $bookRepository
+        private BookRepositoryInterface $bookRepository
     ) {
     }
 
@@ -23,7 +23,7 @@ final class BookQueryService
     public function getById(int $id): BookReadDto
     {
         $book = $this->bookRepository->findByIdWithAuthors($id);
-        if (!$book) {
+        if (!$book instanceof BookReadDto) {
             throw new DomainException('Book not found');
         }
 

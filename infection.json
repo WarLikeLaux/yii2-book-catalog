@@ -1,0 +1,16 @@
+{
+	"$schema": "vendor/infection/infection/resources/schema.json",
+	"source": {
+		"directories": [
+			"domain",
+			"application"
+		]
+	},
+	"logs": {
+		"text": "runtime/logs/infection.log"
+	},
+	"mutators": {
+		"@default": true
+	},
+	"testFramework": "codeception"
+}

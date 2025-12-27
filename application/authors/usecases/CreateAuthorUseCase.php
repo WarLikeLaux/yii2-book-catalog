@@ -8,10 +8,10 @@ use app\application\authors\commands\CreateAuthorCommand;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\exceptions\DomainException;
 
-final class CreateAuthorUseCase
+final readonly class CreateAuthorUseCase
 {
     public function __construct(
-        private readonly AuthorRepositoryInterface $authorRepository
+        private AuthorRepositoryInterface $authorRepository
     ) {
     }
 
@@ -19,7 +19,7 @@ final class CreateAuthorUseCase
     {
         try {
             return $this->authorRepository->create($command->fio);
-        } catch (\RuntimeException $e) {
+        } catch (\RuntimeException) {
             throw new DomainException('Failed to create author');
         }
     }

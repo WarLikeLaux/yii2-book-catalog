@@ -28,6 +28,9 @@ final class SubscriptionRepository implements SubscriptionRepositoryInterface
             ->exists();
     }
 
+    /**
+     * @return iterable<string>
+     */
     public function getSubscriberPhonesForBook(int $bookId, int $batchSize): iterable
     {
         $query = (new Query())
@@ -37,9 +40,17 @@ final class SubscriptionRepository implements SubscriptionRepositoryInterface
             ->innerJoin('book_authors ba', 'ba.author_id = s.author_id')
             ->andWhere(['ba.book_id' => $bookId]);
 
-        foreach ($query->batch($batchSize) as $batch) {
+        /** @var iterable<array<mixed>> $batches */
+        $batches = $query->batch($batchSize);
+        foreach ($batches as $batch) {
+            /** @var array<string, mixed> $row */
             foreach ($batch as $row) {
-                yield $row['phone'];
+                $phone = $row['phone'];
+                if (!is_string($phone)) {
+                    continue;
+                }
+
+                yield $phone;
             }
         }
     }

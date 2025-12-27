@@ -19,7 +19,7 @@
     },
     "minimum-stability": "stable",
     "require": {
-        "php": ">=8.0.0",
+        "php": ">=8.4.0",
         "yiisoft/yii2": "~2.0.45",
         "yiisoft/yii2-bootstrap5": "~2.0.2",
         "yiisoft/yii2-symfonymailer": "~2.0.3",
@@ -42,12 +42,18 @@
         "codeception/verify": "^3.0 || ^2.2",
         "squizlabs/php_codesniffer": "^4.0",
         "yiisoft/yii2-coding-standards": "^3.0",
-        "slevomat/coding-standard": "^8.25"
+        "slevomat/coding-standard": "^8.25",
+        "phpstan/phpstan": "^2.1",
+        "deptrac/deptrac": "^3.0",
+        "infection/infection": "^0.32.0",
+        "infection/codeception-adapter": "^0.4.4",
+        "rector/rector": "^2.3"
     },
     "config": {
         "allow-plugins": {
             "yiisoft/yii2-composer": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "infection/extension-installer": true
         },
         "process-timeout": 1800,
         "fxp-asset": {

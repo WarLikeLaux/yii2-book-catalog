@@ -10,20 +10,23 @@ use app\presentation\mappers\AuthorSelect2Mapper;
 use yii\web\Request;
 use yii\web\Response;
 
-final class AuthorSearchPresentationService
+final readonly class AuthorSearchPresentationService
 {
     public function __construct(
-        private readonly AuthorSearchCriteriaMapper $authorSearchCriteriaMapper,
-        private readonly AuthorSelect2Mapper $authorSelect2Mapper,
-        private readonly AuthorQueryService $authorQueryService
+        private AuthorSearchCriteriaMapper $authorSearchCriteriaMapper,
+        private AuthorSelect2Mapper $authorSelect2Mapper,
+        private AuthorQueryService $authorQueryService
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function search(Request $request, Response $response): array
     {
         $response->format = Response::FORMAT_JSON;
-
-        $requestParams = $request->get();
+        /** @var array<string, mixed> $requestParams */
+        $requestParams = (array)$request->get();
         $form = $this->authorSearchCriteriaMapper->toForm($requestParams);
         if (!$form->validate()) {
             return $this->authorSelect2Mapper->emptyResult();

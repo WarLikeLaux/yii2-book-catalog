@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace tests\unit;
+namespace tests\unit\application;
 
 use app\application\common\UseCaseExecutor;
 use app\application\ports\NotificationInterface;
@@ -96,5 +96,27 @@ final class UseCaseExecutorTest extends Unit
         $result = $this->executor->executeForApi(function (): void {}, 'done');
 
         $this->assertSame(['success' => true, 'message' => 'done'], $result);
+    }
+
+    public function testExecuteForApiHandlesUnexpectedExceptionWithLogging(): void
+    {
+        $this->translator->method('translate')->willReturn('error');
+        
+        $exception = new \RuntimeException('api boom');
+        $logContext = ['requestId' => '123'];
+        
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('api boom', $this->callback(function (array $context) use ($exception): bool {
+                return $context['requestId'] === '123' 
+                    && isset($context['exception']) 
+                    && $context['exception'] === $exception;
+            }));
+
+        $result = $this->executor->executeForApi(function () use ($exception): void {
+            throw $exception;
+        }, 'ok', $logContext);
+
+        $this->assertSame(['success' => false, 'message' => 'error'], $result);
     }
 }

@@ -7,10 +7,10 @@ namespace app\infrastructure\services\notifications;
 use app\application\ports\NotificationInterface;
 use Psr\Log\LoggerInterface;
 
-final class LogNotificationService implements NotificationInterface
+final readonly class LogNotificationService implements NotificationInterface
 {
     public function __construct(
-        private readonly LoggerInterface $logger
+        private LoggerInterface $logger
     ) {
     }
 

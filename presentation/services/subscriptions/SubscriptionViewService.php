@@ -7,10 +7,10 @@ namespace app\presentation\services\subscriptions;
 use app\application\authors\queries\AuthorQueryService;
 use app\application\authors\queries\AuthorReadDto;
 
-final class SubscriptionViewService
+final readonly class SubscriptionViewService
 {
     public function __construct(
-        private readonly AuthorQueryService $authorQueryService
+        private AuthorQueryService $authorQueryService
     ) {
     }
 

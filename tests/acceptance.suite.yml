@@ -6,7 +6,3 @@ modules:
             browser: chrome
             host: selenium
             port: 4444
-        - Yii2:
-            part: orm
-            entryScript: index-test.php
-            cleanup: false

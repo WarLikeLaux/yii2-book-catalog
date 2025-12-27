@@ -6,13 +6,14 @@ namespace app\infrastructure\adapters;
 
 use app\application\ports\TransactionInterface;
 use yii\db\Connection;
+use yii\db\Transaction;
 
 // TODO: адаптер хранит состояние ($transaction).
 // В long-running процессах (Swoole/RoadRunner) убедитесь, что сервис не Singleton,
 // или корректно сбрасывайте стейт.
 final class YiiTransactionAdapter implements TransactionInterface
 {
-    private ?\yii\db\Transaction $transaction = null;
+    private ?Transaction $transaction = null;
 
     public function __construct(
         private readonly Connection $db
@@ -26,7 +27,7 @@ final class YiiTransactionAdapter implements TransactionInterface
 
     public function commit(): void
     {
-        if ($this->transaction === null) {
+        if (!$this->transaction instanceof Transaction) {
             throw new \RuntimeException('Transaction not started');
         }
         $this->transaction->commit();
@@ -35,7 +36,7 @@ final class YiiTransactionAdapter implements TransactionInterface
 
     public function rollBack(): void
     {
-        if ($this->transaction === null) {
+        if (!$this->transaction instanceof Transaction) {
             return;
         }
         $this->transaction->rollBack();

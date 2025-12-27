@@ -20,7 +20,14 @@ final class BookYearTest extends Unit
     {
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Invalid year: must be greater than 1000');
-        new BookYear(999);
+        new BookYear(1000);
+    }
+
+    public function testCanCreateYearFromFutureBoundary(): void
+    {
+        $year = (int)date('Y') + 1;
+        $bookYear = new BookYear($year);
+        $this->assertSame($year, $bookYear->value);
     }
 
     public function testThrowsExceptionOnFutureYear(): void

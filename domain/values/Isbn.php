@@ -6,9 +6,9 @@ namespace app\domain\values;
 
 use app\domain\exceptions\DomainException;
 
-final class Isbn
+final readonly class Isbn implements \Stringable
 {
-    public readonly string $value;
+    public string $value;
 
     public function __construct(string $value)
     {
@@ -21,6 +21,15 @@ final class Isbn
         $this->value = $normalized;
     }
 
+    public function getFormatted(): string
+    {
+        if (strlen($this->value) === 13) {
+            return substr($this->value, 0, 3) . '-' . $this->value[3] . '-' . substr($this->value, 4, 2) . '-' . substr($this->value, 6, 6) . '-' . $this->value[12];
+        }
+
+        return $this->value;
+    }
+
     public function __toString(): string
     {
         return $this->value;
@@ -28,7 +37,7 @@ final class Isbn
 
     private function normalizeIsbn(string $isbn): string
     {
-        return preg_replace('/[\s\-]/', '', $isbn) ?? '';
+        return (string)preg_replace('/[\s\-]/', '', $isbn);
     }
 
     private function isValidIsbn(string $isbn): bool
@@ -51,8 +60,8 @@ final class Isbn
         $checksum = 0;
         for ($i = 0; $i < 10; $i++) {
             $digit = $isbn[$i];
-            $value = $digit === 'X' || $digit === 'x' ? 10 : (int)$digit;
-            $checksum += $value * (10 - $i);
+            $digitValue = $digit === 'X' || $digit === 'x' ? 10 : (int)$digit;
+            $checksum += $digitValue * (10 - $i);
         }
 
         return $checksum % 11 === 0;

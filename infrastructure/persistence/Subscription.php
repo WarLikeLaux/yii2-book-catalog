@@ -8,6 +8,13 @@ use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
+/**
+ * @property int $id
+ * @property string $phone
+ * @property int $author_id
+ * @property int $created_at
+ * @property Author $author
+ */
 final class Subscription extends ActiveRecord
 {
     public static function create(string $phone, int $authorId): self

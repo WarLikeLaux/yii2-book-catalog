@@ -31,6 +31,9 @@ interface BookRepositoryInterface
 
     public function delete(int $id): void;
 
+    /**
+     * @param array<int> $authorIds
+     */
     public function syncAuthors(int $bookId, array $authorIds): void;
 
     public function findByIdWithAuthors(int $id): ?BookReadDto;

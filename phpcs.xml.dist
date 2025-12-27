@@ -16,6 +16,8 @@
     <exclude-pattern>tests/*</exclude-pattern>
 
     <rule ref="vendor/yiisoft/yii2-coding-standards/Yii2"/>
+    
+    <!-- Сортировка и очистка use импортов -->
     <rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses">
         <properties>
             <property name="caseSensitive" value="false"/>
@@ -24,12 +26,14 @@
     <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses"/>
     <rule ref="SlevomatCodingStandard.Namespaces.UselessAlias"/>
 
+    <!-- Требование declare(strict_types=1) -->
     <rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes">
         <properties>
             <property name="spacesCountAroundEqualsSign" value="0"/>
         </properties>
     </rule>
 
+    <!-- Правила отступов в классах -->
     <rule ref="SlevomatCodingStandard.Classes.MethodSpacing">
         <properties>
             <property name="minLinesCount" value="1"/>
@@ -45,6 +49,7 @@
         </properties>
     </rule>
 
+    <!-- Улучшение читаемости -->
     <rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
     <rule ref="SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses"/>
 
@@ -54,4 +59,56 @@
     <rule ref="SlevomatCodingStandard.Namespaces.UseFromSameNamespace"/>
 
     <rule ref="SlevomatCodingStandard.Commenting.EmptyComment"/>
+
+    <!-- Запрет FQCN (Fully Qualified Class Names), требуем use -->
+    <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
+        <properties>
+            <property name="allowFullyQualifiedGlobalClasses" value="true"/>
+            <property name="allowFullyQualifiedGlobalFunctions" value="true"/>
+            <property name="allowFullyQualifiedGlobalConstants" value="true"/>
+            <property name="allowFallbackGlobalFunctions" value="true"/>
+            <property name="allowFallbackGlobalConstants" value="true"/>
+        </properties>
+    </rule>
+
+    <!-- Modern PHP syntax (стрелочные функции, типизированные константы) -->
+    <rule ref="SlevomatCodingStandard.Functions.RequireArrowFunction"/>
+    <rule ref="SlevomatCodingStandard.Classes.ClassConstantVisibility"/>
+
+    <!-- Clean Code (удаление мертвого кода и неиспользуемых переменных) -->
+    <rule ref="SlevomatCodingStandard.Variables.UnusedVariable"/>
+    <rule ref="SlevomatCodingStandard.Exceptions.DeadCatch"/>
+
+    <!-- Отключаем требование underscore для приватных свойств (используем camelCase) -->
+    <rule ref="Squiz.NamingConventions.ValidVariableName.PrivateNoUnderscore">
+        <severity>0</severity>
+    </rule>
+
+    <!-- Исключаем миграции из проверок имен классов (Yii2 использует mXXXXXX_name) -->
+    <rule ref="Squiz.Classes.ValidClassName.NotPascalCase">
+        <exclude-pattern>migrations/*</exclude-pattern>
+        <exclude-pattern>config/__autocomplete.php</exclude-pattern>
+    </rule>
+
+    <!-- Исключаем системные файлы Yii2 из строгих проверок (namespace, one class per file) -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>migrations/*</exclude-pattern>
+        <exclude-pattern>config/*</exclude-pattern>
+        <exclude-pattern>views/*</exclude-pattern>
+    </rule>
+    <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
+        <exclude-pattern>config/__autocomplete.php</exclude-pattern>
+    </rule>
+    
+    <!-- Разрешаем FQCN в конфигах и entry scripts (там это необходимо или удобно) -->
+    <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
+        <exclude-pattern>config/*</exclude-pattern>
+        <exclude-pattern>web/index.php</exclude-pattern>
+        <exclude-pattern>web/index-test.php</exclude-pattern>
+    </rule>
+
+    <!-- Исключаем правило "Side Effects" для bootstrap файлов, где логично смешивать логику и объявления -->
+    <rule ref="PSR1.Files.SideEffects">
+        <exclude-pattern>phpstan-bootstrap.php</exclude-pattern>
+    </rule>
 </ruleset>

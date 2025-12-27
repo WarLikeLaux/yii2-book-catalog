@@ -24,6 +24,7 @@ final class SubscriptionController extends Controller
         parent::__construct($id, $module, $config);
     }
 
+    #[\Override]
     public function behaviors(): array
     {
         return [
@@ -46,12 +47,15 @@ final class SubscriptionController extends Controller
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function actionSubscribe(): array
     {
         $this->response->format = Response::FORMAT_JSON;
         $form = new SubscriptionForm();
 
-        if ($form->load($this->request->post()) && $form->validate()) {
+        if ($form->load((array)$this->request->post()) && $form->validate()) {
             return $this->commandService->subscribe($form);
         }
 

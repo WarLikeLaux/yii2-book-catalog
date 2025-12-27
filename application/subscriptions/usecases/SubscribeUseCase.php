@@ -8,10 +8,10 @@ use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\domain\exceptions\DomainException;
 
-final class SubscribeUseCase
+final readonly class SubscribeUseCase
 {
     public function __construct(
-        private readonly SubscriptionRepositoryInterface $subscriptionRepository
+        private SubscriptionRepositoryInterface $subscriptionRepository
     ) {
     }
 
@@ -23,7 +23,7 @@ final class SubscribeUseCase
 
         try {
             $this->subscriptionRepository->create($command->phone, $command->authorId);
-        } catch (\RuntimeException $e) {
+        } catch (\RuntimeException) {
             throw new DomainException('Failed to create subscription');
         }
     }

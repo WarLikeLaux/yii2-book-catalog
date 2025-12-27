@@ -10,11 +10,11 @@ use Yii;
 use yii\helpers\FileHelper;
 use yii\web\UploadedFile;
 
-final class LocalFileStorage implements FileStorageInterface
+final readonly class LocalFileStorage implements FileStorageInterface
 {
     public function __construct(
-        private readonly string $basePath,
-        private readonly string $baseUrl
+        private string $basePath,
+        private string $baseUrl
     ) {
     }
 

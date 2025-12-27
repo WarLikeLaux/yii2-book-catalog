@@ -1,0 +1,60 @@
+deptrac:
+  paths:
+    - application
+    - domain
+    - infrastructure
+    - presentation
+  
+  exclude_files:
+    - '#.*test.*#'
+    - '#.*bootstrap.*#'
+
+  layers:
+    - name: Domain
+      collectors:
+        - type: directory
+          value: domain/.*
+    
+    - name: Application
+      collectors:
+        - type: directory
+          value: application/.*
+    
+    - name: Infrastructure
+      collectors:
+        - type: directory
+          value: infrastructure/.*
+    
+    - name: Presentation
+      collectors:
+        - type: directory
+          value: presentation/.*
+    
+    - name: Vendor
+      collectors:
+        - type: classLike
+          value: ^(Yii|yii\\|Ramsey\\|Psr\\|Symfony\\|Doctrine\\).*
+  
+  ruleset:
+    Domain:
+      - Vendor
+    
+    Application:
+      - Domain
+      - Vendor
+    
+    Infrastructure:
+      - Domain
+      - Application
+      - Vendor
+    
+    Presentation:
+      - Domain
+      - Application
+      - Vendor
+
+  skip_violations:
+    app\presentation\forms\SubscriptionForm:
+      - app\infrastructure\persistence\Author
+    app\presentation\forms\LoginForm:
+      - app\infrastructure\persistence\User

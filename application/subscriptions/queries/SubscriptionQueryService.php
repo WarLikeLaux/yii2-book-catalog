@@ -6,13 +6,16 @@ namespace app\application\subscriptions\queries;
 
 use app\application\ports\SubscriptionRepositoryInterface;
 
-final class SubscriptionQueryService
+final readonly class SubscriptionQueryService
 {
     public function __construct(
-        private readonly SubscriptionRepositoryInterface $subscriptionRepository
+        private SubscriptionRepositoryInterface $subscriptionRepository
     ) {
     }
 
+    /**
+     * @return iterable<string>
+     */
     public function getSubscriberPhonesForBook(int $bookId, int $batchSize = 100): iterable
     {
         return $this->subscriptionRepository->getSubscriberPhonesForBook($bookId, $batchSize);

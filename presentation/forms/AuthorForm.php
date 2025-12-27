@@ -11,11 +11,12 @@ use yii\base\Model;
 final class AuthorForm extends Model
 {
     /** @var int|string|null */
-    public $id = null;
+    public $id;
 
     /** @var string */
     public $fio = '';
 
+    #[\Override]
     public function rules(): array
     {
         return [
@@ -26,6 +27,7 @@ final class AuthorForm extends Model
         ];
     }
 
+    #[\Override]
     public function attributeLabels(): array
     {
         return [

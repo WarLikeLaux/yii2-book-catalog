@@ -68,11 +68,14 @@ final class AuthorRepository implements AuthorRepositoryInterface
         }
     }
 
+    /**
+     * @return AuthorReadDto[]
+     */
     public function findAllOrderedByFio(): array
     {
         $authors = Author::find()->orderBy(['fio' => SORT_ASC])->all();
         return array_map(
-            fn(Author $author) => new AuthorReadDto(
+            fn(Author $author): AuthorReadDto => new AuthorReadDto(
                 id: $author->id,
                 fio: $author->fio
             ),
@@ -97,7 +100,7 @@ final class AuthorRepository implements AuthorRepositoryInterface
         ]);
 
         $models = array_map(
-            fn(Author $author) => new AuthorReadDto(
+            fn(Author $author): AuthorReadDto => new AuthorReadDto(
                 id: $author->id,
                 fio: $author->fio
             ),

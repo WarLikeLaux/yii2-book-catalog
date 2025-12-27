@@ -12,6 +12,9 @@ final class UniqueIsbnValidator extends Validator
 {
     public string|null $excludeId = null;
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function __construct(
         private readonly BookRepositoryInterface $repository,
         $config = []
@@ -19,6 +22,7 @@ final class UniqueIsbnValidator extends Validator
         parent::__construct($config);
     }
 
+    #[\Override]
     public function validateAttribute($model, $attribute): void
     {
         $value = $model->$attribute;

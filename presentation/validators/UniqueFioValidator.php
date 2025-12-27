@@ -12,6 +12,9 @@ final class UniqueFioValidator extends Validator
 {
     public string|int|null $excludeId = null;
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function __construct(
         private readonly AuthorRepositoryInterface $repository,
         $config = []
@@ -19,6 +22,7 @@ final class UniqueFioValidator extends Validator
         parent::__construct($config);
     }
 
+    #[\Override]
     public function validateAttribute($model, $attribute): void
     {
         $value = $model->$attribute;

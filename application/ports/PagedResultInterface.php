@@ -8,6 +8,9 @@ use app\application\common\dto\PaginationDto;
 
 interface PagedResultInterface
 {
+    /**
+     * @return array<mixed>
+     */
     public function getModels(): array;
 
     public function getTotalCount(): int;

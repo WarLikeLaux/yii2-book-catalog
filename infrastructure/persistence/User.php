@@ -7,18 +7,19 @@ namespace app\infrastructure\persistence;
 use yii\base\BaseObject;
 use yii\web\IdentityInterface;
 
-class User extends BaseObject implements IdentityInterface
+final class User extends BaseObject implements IdentityInterface
 {
-    public $id;
+    public string $id;
 
-    public $username;
+    public string $username;
 
-    public $password;
+    public string $password;
 
-    public $authKey;
+    public string $authKey;
 
-    public $accessToken;
+    public string $accessToken;
 
+    /** @var array<int|string, array<string, string>> */
     private static $_users = [
         '100' => [
             'id' => '100',
@@ -78,6 +79,7 @@ class User extends BaseObject implements IdentityInterface
 
     /**
      * {@inheritdoc}
+     * @return string
      */
     public function getId()
     {
@@ -86,6 +88,7 @@ class User extends BaseObject implements IdentityInterface
 
     /**
      * {@inheritdoc}
+     * @return string
      */
     public function getAuthKey()
     {
@@ -94,6 +97,7 @@ class User extends BaseObject implements IdentityInterface
 
     /**
      * {@inheritdoc}
+     * @return bool
      */
     public function validateAuthKey($authKey)
     {

@@ -4,11 +4,22 @@ declare(strict_types=1);
 
 namespace app\infrastructure\persistence;
 
-use app\presentation\validators\IsbnValidator;
+use app\application\common\validators\IsbnValidator;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
+/**
+ * @property int $id
+ * @property string $title
+ * @property int $year
+ * @property string $isbn
+ * @property string|null $description
+ * @property string|null $cover_url
+ * @property int $created_at
+ * @property int $updated_at
+ * @property Author[] $authors
+ */
 final class Book extends ActiveRecord
 {
     public static function find(): BookQuery

@@ -8,8 +8,9 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-161_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![Coverage](https://img.shields.io/badge/Coverage-88%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-186_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Mutation Score](https://img.shields.io/badge/MSI-91%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
 ---
 
@@ -56,9 +57,14 @@
 <td width="50%">
 
 ### 🧪 Качество кода
-- **161 тест** с 287 assertions
-- **88% покрытие** кода тестами
-- **Strict Types** везде
+- **186 тестов** с 394 assertions
+- **100% покрытие** кода тестами
+- **PHPStan Level 9** (max strictness)
+- **Mutation Testing** (Infection PHP, MSI > 90%)
+- **Automated Refactoring** (Rector PHP 8.4)
+- **Architecture Testing** (Deptrac)
+- **Detailed Documentation** ([ARCHITECTURE.md](./docs/ARCHITECTURE.md))
+- **Strict Types** везде (`declare(strict_types=1)`)
 - **PHPCS** + Slevomat Coding Standard
 
 </td>
@@ -78,12 +84,13 @@
 
 | Категория | Технология | Описание |
 |-----------|------------|----------|
-| **Язык** | ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white) | Strict Types, Constructor Promotion, Readonly Classes |
+| **Язык** | ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white) | PHPStan Level 9, Strict Types, Constructor Promotion |
 | **Framework** | ![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii) | Basic Template с DI Container |
 | **Database** | ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white) | InnoDB + FullText Search |
 | **Queue** | `yii2-queue` | DB Driver + Fan-out Pattern |
-| **Testing** | ![Codeception](https://img.shields.io/badge/Codeception-5.0-purple) | Unit + Functional, 88% Coverage |
+| **Testing** | ![Codeception](https://img.shields.io/badge/Codeception-5.0-purple) | Unit + Functional, 100% Coverage |
 | **Infra** | ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) | PHP 8.4 + MySQL 8 + Queue Worker |
+| **Quality** | `Rector`, `PHPStan`, `Deptrac` | Automated Refactoring & Static Analysis |
 
 ## 🏗 Архитектурные решения
 
@@ -186,7 +193,8 @@ class BookCommandService
 
 ### 7. Code Quality & Standards
 *   **Strict Types:** Весь проект работает в режиме `declare(strict_types=1)`.
-*   **Static Analysis:** Внедрен Advanced Coding Standard (на базе **Slevomat**).
+*   **Static Analysis:** Внедрен Advanced Coding Standard (на базе **Slevomat**) и **PHPStan** (Level 9).
+*   **Refactoring:** Используется **Rector** для автоматизированного обновления кода до PHP 8.4 и соблюдения Code Quality правил.
 *   **Linter:** Код автоматически форматируется и проверяется командой `make lint-fix`.
 
 ### 8. Масштабируемая очередь (Fan-out Pattern)
@@ -370,41 +378,51 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>161</b><br>Tests</td>
-<td align="center"><b>287</b><br>Assertions</td>
-<td align="center"><b>88%</b><br>Coverage</td>
-<td align="center"><b>~1s</b><br>Runtime</td>
+<td align="center"><b>186</b><br>Tests</td>
+<td align="center"><b>394</b><br>Assertions</td>
+<td align="center"><b>100%</b><br>Coverage</td>
+<td align="center"><b>~2s</b><br>Runtime</td>
 </tr>
 </table>
 
-**Команды:**
+### 🛠 Команды проверки
 
-```bash
-make test           # 🧪 Запуск всех тестов
-make test-coverage  # 📊 Генерация HTML-отчета о покрытии
-make test-unit      # ⚡ Только Unit-тесты (быстро)
-make test-functional # 🌐 Только функциональные тесты
-```
+| Команда | Описание | Назначение |
+|---|---|---|
+| `make test` | 🧪 Запуск всех тестов | **Testing** (Unit + Func) |
+| `make test-coverage` | 📊 Отчет о покрытии (HTML) | **Testing** (Metric) |
+| `make test-unit` | ⚡ Unit-тесты (без БД) | **Testing** (Speed) |
+| `make test-functional` | 🌐 Functional-тесты (с БД) | **Testing** (Integration) |
+| `make analyze` | 🔍 PHPStan (Level 9) | **Quality** (Static Analysis) |
+| `make deptrac` | 🏗 Архитектурный контроль | **Quality** (Architecture) |
+| `make rector` | ♻️ Автоматический рефакторинг | **Quality** (Refactoring) |
+| `make lint-fix` | 🧹 PHPCS (Auto-fix) | **Quality** (Style) |
 
 <details>
 <summary><b>📋 Структура тестов</b></summary>
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 113 | Мапперы, Валидаторы, Value Objects, DTOs — без БД |
-| **Functional** | 48 | CRUD, Use Cases, HTTP-сценарии с БД |
+| **Unit** | 122 | Чистая бизнес-логика без БД и фреймворка |
+| **Functional** | 49 | CRUD, Use Cases, HTTP-сценарии с БД |
 
 **Unit Tests покрывают:**
-- DTO ↔ Forms ↔ Commands маппинги
-- Валидаторы (ISBN, уникальность FIO, авторы)
-- Value Objects (`Isbn`, `BookYear`)
-- `UseCaseExecutor`, `QueryResult`, Adapters
+- **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult
+- **Domain Layer**: Value Objects (`Isbn`, `BookYear`), Domain Events
+- **Infrastructure**: Queue jobs (retry logic), Logger, Notifications
+- **Presentation**: Validators, Mappers, DataProvider adapters
 
 **Functional Tests покрывают:**
 - CRUD операции (Книги, Авторы)
-- Use Cases (`CreateBook`, `UpdateBook`, `Subscribe`)
-- Валидация форм с русскоязычными сообщениями
+- Use Cases с реальной БД
+- Валидация форм
 - Аутентификация и авторизация
+
+**Принципы тестирования:**
+- ✅ Не тестируем функции фреймворка (`rules()`, `attributeLabels()`, `tableName()`)
+- ✅ Unit-тесты изолированы от БД и внешних сервисов (mocking)
+- ✅ `@codeCoverageIgnore` на методах требующих integration тестов
+- ✅ Исключены из coverage: controllers, forms, views, AR models (покрыты functional тестами)
 
 </details>
 
@@ -418,6 +436,7 @@ make test-functional # 🌐 Только функциональные тесты
 | `make up` / `make down` | Управление контейнерами |
 | `make seed` | Генерация демо-данных (Книги, Авторы) |
 | `make lint-fix` | Авто-фикс стиля кода (PHPCS) |
+| `make analyze` | Статический анализ (PHPStan Level 9) |
 | `make queue-info` | Статус очереди задач |
 | `make sms-logs` | Просмотр логов отправки SMS (Mock) |
 | `make shell` | Консоль PHP контейнера |
@@ -435,7 +454,8 @@ make test-functional # 🌐 Только функциональные тесты
 
 ![Lines of Code](https://img.shields.io/badge/Lines_of_Code-~5000-blue?style=flat-square)
 ![PHP Files](https://img.shields.io/badge/PHP_Files-85-purple?style=flat-square)
-![Test Coverage](https://img.shields.io/badge/Coverage-88%25-brightgreen?style=flat-square)
+![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=flat-square)
+![PHPStan](https://img.shields.io/badge/PHPStan-Level_9-brightgreen?style=flat-square)
 
 ---
 

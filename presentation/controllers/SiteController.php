@@ -25,6 +25,7 @@ final class SiteController extends Controller
         parent::__construct($id, $module, $config);
     }
 
+    #[\Override]
     public function behaviors(): array
     {
         return [
@@ -48,6 +49,7 @@ final class SiteController extends Controller
         ];
     }
 
+    #[\Override]
     public function actions(): array
     {
         return [
@@ -74,7 +76,7 @@ final class SiteController extends Controller
             return $this->render('login', $viewData);
         }
 
-        $result = $this->loginPresentationService->processLoginRequest($this->request, $this->response);
+        $result = $this->loginPresentationService->processLoginRequest($this->request);
 
         if ($result['success']) {
             return $this->goBack();

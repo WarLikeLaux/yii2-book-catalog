@@ -134,4 +134,27 @@ final class ReportCest
         $I->seeResponseCodeIs(200);
         $I->see('Нет данных о книгах за 1999 год');
     }
+
+    public function testReportLimitsToTenAuthors(\FunctionalTester $I): void
+    {
+        $currentYear = (int)date('Y');
+        
+        for ($i = 1; $i <= 11; $i++) {
+            $authorId = $I->haveRecord(Author::class, ['fio' => "Author Rank $i"]);
+            $bookId = $I->haveRecord(Book::class, [
+                'title' => "Book of Author $i",
+                'year' => $currentYear,
+                'isbn' => '978316148' . str_pad((string)$i, 4, '0', STR_PAD_LEFT),
+                'description' => 'Test',
+            ]);
+            \Yii::$app->db->createCommand()->insert('book_authors', [
+                'book_id' => $bookId,
+                'author_id' => $authorId,
+            ])->execute();
+        }
+
+        $I->amOnRoute('report/index', ['year' => $currentYear]);
+        $I->seeResponseCodeIs(200);
+        $I->seeNumberOfElements('table tbody tr', 10);
+    }
 }

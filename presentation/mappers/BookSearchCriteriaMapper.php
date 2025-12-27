@@ -18,6 +18,9 @@ final class BookSearchCriteriaMapper
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function toForm(array $params): BookSearchForm
     {
         $form = new BookSearchForm();

@@ -93,6 +93,9 @@ final class BookRepository implements BookRepositoryInterface
         }
     }
 
+    /**
+     * @param array<int> $newAuthorIds
+     */
     public function syncAuthors(int $bookId, array $newAuthorIds): void
     {
         $book = Book::findOne($bookId);
@@ -101,13 +104,13 @@ final class BookRepository implements BookRepositoryInterface
         }
 
         $existingAuthorIds = $book->getAuthors()->select('id')->column();
-        $existingAuthorIds = array_map('intval', $existingAuthorIds);
-        $newAuthorIds = array_map('intval', $newAuthorIds);
+        $existingAuthorIds = array_map(intval(...), $existingAuthorIds);
+        $newAuthorIds = array_map(intval(...), $newAuthorIds);
 
         $toDelete = array_diff($existingAuthorIds, $newAuthorIds);
         $toAdd = array_diff($newAuthorIds, $existingAuthorIds);
 
-        if ($toDelete) {
+        if ($toDelete !== []) {
             \Yii::$app->db->createCommand()->delete('book_authors', [
                 'and',
                 ['book_id' => $bookId],
@@ -115,12 +118,12 @@ final class BookRepository implements BookRepositoryInterface
             ])->execute();
         }
 
-        if (!$toAdd) {
+        if ($toAdd === []) {
             return;
         }
 
         $rows = array_map(
-            fn($authorId) => [$bookId, $authorId],
+            fn($authorId): array => [$bookId, $authorId],
             $toAdd
         );
         \Yii::$app->db->createCommand()->batchInsert(
@@ -157,7 +160,7 @@ final class BookRepository implements BookRepositoryInterface
         ]);
 
         $models = array_map(
-            fn(Book $model) => $this->mapToDto($model),
+            $this->mapToDto(...),
             $dataProvider->getModels()
         );
 
@@ -220,7 +223,7 @@ final class BookRepository implements BookRepositoryInterface
         $conditions[] = $this->buildAuthorCondition($term);
 
         $fulltextQuery = $this->prepareFulltextQuery($term);
-        if ($fulltextQuery) {
+        if ($fulltextQuery !== '' && $fulltextQuery !== '0') {
             $conditions[] = new Expression(
                 'MATCH(title, description) AGAINST(:query IN BOOLEAN MODE)',
                 [':query' => $fulltextQuery]
@@ -232,12 +235,15 @@ final class BookRepository implements BookRepositoryInterface
 
     private function prepareFulltextQuery(string $term): string
     {
-        $term = preg_replace('/[+\-><()~*\"@]+/', ' ', $term);
+        $term = (string)preg_replace('/[+\-><()~*\"@]+/', ' ', $term);
         $words = array_filter(explode(' ', trim($term)));
 
-        return empty($words) ? '' : '+' . implode('* +', $words) . '*';
+        return $words === [] ? '' : '+' . implode('* +', $words) . '*';
     }
 
+    /**
+     * @return array<mixed>
+     */
     private function buildAuthorCondition(string $term): array
     {
         $subQuery = Author::find()

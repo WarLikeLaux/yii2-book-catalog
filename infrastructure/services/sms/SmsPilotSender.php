@@ -7,11 +7,11 @@ namespace app\infrastructure\services\sms;
 use app\application\ports\SmsSenderInterface;
 use Psr\Log\LoggerInterface;
 
-final class SmsPilotSender implements SmsSenderInterface
+final readonly class SmsPilotSender implements SmsSenderInterface
 {
     public function __construct(
-        private readonly string $apiKey,
-        private readonly LoggerInterface $logger
+        private string $apiKey,
+        private LoggerInterface $logger
     ) {
     }
 
@@ -52,8 +52,14 @@ final class SmsPilotSender implements SmsSenderInterface
             return false;
         }
 
-        $data = json_decode($response, true);
-        $status = $data['send'][0]['status'] ?? null;
+        $data = json_decode((string)$response, true);
+        /** @var array<string, mixed> $data */
+        $send = $data['send'] ?? [];
+
+        $status = null;
+        if (is_array($send) && isset($send[0]) && is_array($send[0])) {
+            $status = $send[0]['status'] ?? null;
+        }
         if ($status === 'OK' || $status === '0') {
             $this->logger->info('SMS sent successfully', [
                 'phone' => $phone,

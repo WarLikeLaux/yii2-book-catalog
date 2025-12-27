@@ -6,10 +6,10 @@ namespace app\application\reports\queries;
 
 use app\application\ports\ReportRepositoryInterface;
 
-final class ReportQueryService
+final readonly class ReportQueryService
 {
     public function __construct(
-        private readonly ReportRepositoryInterface $reportRepository
+        private ReportRepositoryInterface $reportRepository
     ) {
     }
 

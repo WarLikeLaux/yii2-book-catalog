@@ -37,10 +37,12 @@ final class PagedResultDataProviderTest extends Unit
 
     public function testPrepareKeysFromObjectWithId(): void
     {
-        $obj1 = new \stdClass();
-        $obj1->id = 10;
-        $obj2 = new \stdClass();
-        $obj2->id = 20;
+        $obj1 = new class {
+            public int $id = 10;
+        };
+        $obj2 = new class {
+            public int $id = 20;
+        };
 
         $result = $this->createMockResult([$obj1, $obj2], 2, new PaginationDto(1, 10, 2, 1));
 
@@ -83,6 +85,15 @@ final class PagedResultDataProviderTest extends Unit
         $this->assertFalse($provider->getPagination());
     }
 
+    public function testGetTotalCountFromResult(): void
+    {
+        $result = $this->createMockResult([], 42, new PaginationDto(1, 10, 42, 5));
+
+        $provider = new PagedResultDataProvider($result);
+
+        $this->assertSame(42, $provider->getTotalCount());
+    }
+
     private function createMockResult(
         array $models,
         int $totalCount,
@@ -95,3 +106,4 @@ final class PagedResultDataProviderTest extends Unit
         return $mock;
     }
 }
+

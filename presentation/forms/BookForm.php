@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\presentation\forms;
 
+use app\application\common\validators\IsbnValidator;
 use app\presentation\validators\AuthorExistsValidator;
-use app\presentation\validators\IsbnValidator;
 use app\presentation\validators\UniqueIsbnValidator;
 use Yii;
 use yii\base\Model;
@@ -15,34 +15,38 @@ use yii\web\UploadedFile;
 final class BookForm extends Model
 {
     /** @var int|string|null */
-    public $id = null;
+    public $id;
 
     /** @var string */
     public $title = '';
 
     /** @var int|string|null */
-    public $year = null;
+    public $year;
 
-    /** @var string */
-    public $description = '';
+    /** @var string|null */
+    public $description;
 
     /** @var string */
     public $isbn = '';
 
-    /** @var array|string */
+    /** @var array<int> */
     public $authorIds = [];
 
     /** @var UploadedFile|string|null */
-    public $cover = null;
+    public $cover;
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function loadFromRequest(Request $request): bool
     {
-        $isLoaded = $this->load($request->post());
+        $isLoaded = $this->load((array)$request->post());
         $this->cover = UploadedFile::getInstance($this, 'cover');
 
         return $isLoaded || $this->cover !== null;
     }
 
+    #[\Override]
     public function rules(): array
     {
         return [
@@ -65,6 +69,7 @@ final class BookForm extends Model
         ];
     }
 
+    #[\Override]
     public function attributeLabels(): array
     {
         return [

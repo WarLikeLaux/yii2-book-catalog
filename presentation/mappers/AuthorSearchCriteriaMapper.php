@@ -18,6 +18,9 @@ final class AuthorSearchCriteriaMapper
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function toForm(array $params): AuthorSearchForm
     {
         $form = new AuthorSearchForm();
