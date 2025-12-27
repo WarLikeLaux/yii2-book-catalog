@@ -7,6 +7,7 @@ namespace app\infrastructure\services\sms;
 use app\application\ports\SmsSenderInterface;
 use Psr\Log\LoggerInterface;
 
+/** @codeCoverageIgnore Интеграция с внешним API (SmsPilot.ru) */
 final readonly class SmsPilotSender implements SmsSenderInterface
 {
     public function __construct(
@@ -43,7 +44,7 @@ final readonly class SmsPilotSender implements SmsSenderInterface
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode !== 200 || !$response) {
+        if ($httpCode !== 200 || $response === false) {
             $this->logger->error('SMS API error', [
                 'phone' => $phone,
                 'http_code' => $httpCode,

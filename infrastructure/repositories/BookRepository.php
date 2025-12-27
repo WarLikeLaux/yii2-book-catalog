@@ -17,6 +17,9 @@ use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
 use yii\db\Expression;
 
+/**
+ * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
+ */
 final class BookRepository implements BookRepositoryInterface
 {
     public function create(
@@ -36,7 +39,7 @@ final class BookRepository implements BookRepositoryInterface
 
         if (!$book->save()) {
             $errors = $book->getFirstErrors();
-            $message = $errors ? array_shift($errors) : 'Failed to save book';
+            $message = $errors !== [] ? array_shift($errors) : 'Failed to save book';
             throw new \RuntimeException($message);
         }
 
@@ -52,7 +55,7 @@ final class BookRepository implements BookRepositoryInterface
         ?string $coverUrl
     ): void {
         $book = Book::findOne($id);
-        if (!$book) {
+        if ($book === null) {
             throw new \RuntimeException('Book not found');
         }
 
@@ -66,7 +69,7 @@ final class BookRepository implements BookRepositoryInterface
 
         if (!$book->save()) {
             $errors = $book->getFirstErrors();
-            $message = $errors ? array_shift($errors) : 'Failed to update book';
+            $message = $errors !== [] ? array_shift($errors) : 'Failed to update book';
             throw new \RuntimeException($message);
         }
     }
@@ -74,7 +77,7 @@ final class BookRepository implements BookRepositoryInterface
     public function findById(int $id): ?BookReadDto
     {
         $book = Book::findOne($id);
-        if (!$book) {
+        if ($book === null) {
             return null;
         }
 
@@ -84,11 +87,11 @@ final class BookRepository implements BookRepositoryInterface
     public function delete(int $id): void
     {
         $book = Book::findOne($id);
-        if (!$book) {
+        if ($book === null) {
             throw new \RuntimeException('Book not found');
         }
 
-        if (!$book->delete()) {
+        if ($book->delete() === false) {
             throw new \RuntimeException('Failed to delete book');
         }
     }
@@ -99,7 +102,7 @@ final class BookRepository implements BookRepositoryInterface
     public function syncAuthors(int $bookId, array $newAuthorIds): void
     {
         $book = Book::findOne($bookId);
-        if (!$book) {
+        if ($book === null) {
             return;
         }
 
@@ -136,7 +139,7 @@ final class BookRepository implements BookRepositoryInterface
     public function findByIdWithAuthors(int $id): ?BookReadDto
     {
         $book = Book::find()->byId($id)->withAuthors()->one();
-        if (!$book) {
+        if ($book === null) {
             return null;
         }
 
@@ -215,7 +218,7 @@ final class BookRepository implements BookRepositoryInterface
     {
         $conditions = ['or'];
 
-        if (preg_match('/^\d{4}$/', $term)) {
+        if (preg_match('/^\d{4}$/', $term) === 1) {
             $conditions[] = ['year' => (int)$term];
         }
 
@@ -236,7 +239,7 @@ final class BookRepository implements BookRepositoryInterface
     private function prepareFulltextQuery(string $term): string
     {
         $term = (string)preg_replace('/[+\-><()~*\"@]+/', ' ', $term);
-        $words = array_filter(explode(' ', trim($term)));
+        $words = array_filter(explode(' ', trim($term)), fn($w): bool => $w !== '');
 
         return $words === [] ? '' : '+' . implode('* +', $words) . '*';
     }

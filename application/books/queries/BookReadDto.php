@@ -24,6 +24,6 @@ final readonly class BookReadDto
 
     public function getFullTitle(): string
     {
-        return $this->year ? "{$this->title} ({$this->year})" : $this->title;
+        return $this->year !== null ? "{$this->title} ({$this->year})" : $this->title;
     }
 }

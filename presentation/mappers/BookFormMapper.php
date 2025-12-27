@@ -18,7 +18,7 @@ final class BookFormMapper
             year: (int)$form->year,
             description: $form->description,
             isbn: $form->isbn,
-            authorIds: (array)$form->authorIds,
+            authorIds: $form->authorIds,
             cover: $coverPath,
         );
     }
@@ -31,7 +31,7 @@ final class BookFormMapper
             year: (int)$form->year,
             description: $form->description,
             isbn: $form->isbn,
-            authorIds: (array)$form->authorIds,
+            authorIds: $form->authorIds,
             cover: $coverPath,
         );
     }

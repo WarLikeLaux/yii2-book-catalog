@@ -1,40 +1,78 @@
 includes:
-	# Сюда можно подключить phpstan-yii2 плагин в будущем
+	- vendor/phpstan/phpstan-strict-rules/rules.neon
+	- vendor/phpstan/phpstan-deprecation-rules/rules.neon
 
 parameters:
-	# Уровень строгости анализа (0-9).
-	# Level 5: проверка типов аргументов и возвращаемых значений.
-	# Level 9: строгая работа с mixed (strict mode).
+	# Уровень анализа (0-9). Level 9 — максимальная строгость.
 	level: 9
+	# Версия PHP для анализа (8.4)
 	phpVersion: 80400
 
-	# Загрузка Yii для видимости классов фреймворка
+	# Загрузка окружения Yii2 для корректного анализа классов фреймворка
 	bootstrapFiles:
 		- phpstan-bootstrap.php
 
-	# Директории для сканирования (Clean Architecture слои)
+	# Директории для анализа (соответствуют слоям Clean Architecture)
 	paths:
 		- application
 		- domain
 		- infrastructure
 		- presentation
 
-	# Исключения (файлы, которые не нужно сканировать)
+	# Исключения из анализа
 	excludePaths:
-		- presentation/views/*  # View содержат HTML и PHP-теги, сложно анализировать
-		- tests/*              # Тесты анализируем отдельно (или не анализируем)
+		- presentation/views/* # View-файлы содержат HTML и PHP, сложны для статического анализа
+		- tests/*              # Тесты анализируются отдельно (или не требуют такой строгости)
 		- runtime/*            # Временные файлы Yii2
 		- vendor/*             # Сторонние библиотеки
 
+	# Не ругаться, если какое-то правило ignoreErrors больше не срабатывает (полезно при рефакторинге)
 	reportUnmatchedIgnoredErrors: false
 
-
-
-	# Игнорируемые ошибки (временный технический долг)
+	# Игнорируемые ошибки (технический долг и особенности архитектуры Yii2)
 	ignoreErrors:
-		# Yii::$app magic properties (session, user, etc.)
+		# === Магия Yii2 Framework ===
+		
+		# Свойства Yii::$app (session, user и т.д.) реализованы через __get
 		- '#Access to an undefined property .*Application::\$session#'
 		- '#Access to an undefined property .*Application::\$user#'
 
-		# Отключаем требование Generics для ActiveQuery
+		# Доступ к свойствам моделей ($model->$attribute) в валидаторах динамический.
+		# Strict Rules блокируют это, но это паттерн фреймворка.
+		- '#Variable property access on .*#'
+		
+		# Generic валидаторы и провайдеры часто обращаются к $model->id.
+		# Так как мы работаем с object/Model, PHPStan не видит это свойство гарантированно.
+		- '#Access to an undefined property (object|yii\\base\\Model)::\$id#'
+
+		# === Generics и Ковариантность ===
+		
+		# Отключаем требование писать Generics для ActiveQuery (это слишком verbose для Yii2 AR)
 		- identifier: missingType.generics
+
+		# Проблемы совместимости типов возврата при наследовании от Yii2 классов (ActiveRecord, Controller).
+		# Аннотации фреймворка используют сложные дженерики, которые конфликтуют с нашими строгими типами.
+		- '#Return type .*::find\(\) should be compatible with return type .*ActiveRecord::find\(\)#'
+		- '#Return type .*::behaviors\(\) should be covariant with return type.*#'
+
+services:
+	-
+		class: app\infrastructure\phpstan\Rules\UseCaseMustBeFinalRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\ValueObjectMustBeFinalRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\DomainIsCleanRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\DisallowYiiTOutsideAdaptersRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\DisallowDateTimeRule
+		tags:
+			- phpstan.rules.rule

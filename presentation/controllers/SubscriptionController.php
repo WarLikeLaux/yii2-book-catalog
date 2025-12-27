@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\presentation\filters\IdempotencyFilter;
 use app\presentation\forms\SubscriptionForm;
 use app\presentation\services\subscriptions\SubscriptionCommandService;
 use app\presentation\services\subscriptions\SubscriptionViewService;
@@ -28,6 +29,10 @@ final class SubscriptionController extends Controller
     public function behaviors(): array
     {
         return [
+            'idempotency' => [
+                'class' => IdempotencyFilter::class,
+                'only' => ['subscribe'],
+            ],
             'access' => [
                 'class' => AccessControl::class,
                 'rules' => [

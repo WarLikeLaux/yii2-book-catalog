@@ -12,6 +12,9 @@ use app\application\ports\PagedResultInterface;
 use app\infrastructure\persistence\Author;
 use yii\data\ActiveDataProvider;
 
+/**
+ * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
+ */
 final class AuthorRepository implements AuthorRepositoryInterface
 {
     public function create(string $fio): int
@@ -20,7 +23,7 @@ final class AuthorRepository implements AuthorRepositoryInterface
 
         if (!$author->save()) {
             $errors = $author->getFirstErrors();
-            $message = $errors ? array_shift($errors) : 'Failed to create author';
+            $message = $errors !== [] ? array_shift($errors) : 'Failed to create author';
             throw new \RuntimeException($message);
         }
 
@@ -30,7 +33,7 @@ final class AuthorRepository implements AuthorRepositoryInterface
     public function update(int $id, string $fio): void
     {
         $author = Author::findOne($id);
-        if (!$author) {
+        if ($author === null) {
             throw new \RuntimeException('Author not found');
         }
 
@@ -38,7 +41,7 @@ final class AuthorRepository implements AuthorRepositoryInterface
 
         if (!$author->save()) {
             $errors = $author->getFirstErrors();
-            $message = $errors ? array_shift($errors) : 'Failed to update author';
+            $message = $errors !== [] ? array_shift($errors) : 'Failed to save author';
             throw new \RuntimeException($message);
         }
     }
@@ -46,7 +49,7 @@ final class AuthorRepository implements AuthorRepositoryInterface
     public function findById(int $id): ?AuthorReadDto
     {
         $author = Author::findOne($id);
-        if (!$author) {
+        if ($author === null) {
             return null;
         }
 
@@ -59,11 +62,11 @@ final class AuthorRepository implements AuthorRepositoryInterface
     public function delete(int $id): void
     {
         $author = Author::findOne($id);
-        if (!$author) {
+        if ($author === null) {
             throw new \RuntimeException('Author not found');
         }
 
-        if (!$author->delete()) {
+        if ($author->delete() === false) {
             throw new \RuntimeException('Failed to delete author');
         }
     }

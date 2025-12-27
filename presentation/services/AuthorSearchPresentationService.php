@@ -20,6 +20,7 @@ final readonly class AuthorSearchPresentationService
     }
 
     /**
+     * @codeCoverageIgnore Мутирует Yii Response, тестируется функционально
      * @return array<string, mixed>
      */
     public function search(Request $request, Response $response): array

@@ -53,7 +53,12 @@ final readonly class Isbn implements \Stringable
 
     private function validateIsbn10(string $isbn): bool
     {
-        if (!preg_match('/^\d{9}[\dX]$/i', $isbn)) {
+        if (!ctype_digit(substr($isbn, 0, 9))) {
+            return false;
+        }
+
+        $last = $isbn[9];
+        if (!ctype_digit($last) && $last !== 'X' && $last !== 'x') {
             return false;
         }
 
@@ -69,7 +74,7 @@ final readonly class Isbn implements \Stringable
 
     private function validateIsbn13(string $isbn): bool
     {
-        if (!preg_match('/^\d{13}$/', $isbn)) {
+        if (!ctype_digit($isbn)) {
             return false;
         }
 

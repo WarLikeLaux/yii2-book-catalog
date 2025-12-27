@@ -32,6 +32,35 @@ final class BookCrudCest
         $I->seeInField('BookForm[title]', 'Book To Update');
     }
 
+    public function testUpdateBookSuccess(\FunctionalTester $I): void
+    {
+        $authorId = $I->haveRecord(Author::class, ['fio' => 'Update Author']);
+        $bookId = $I->haveRecord(Book::class, [
+            'title' => 'Original Title',
+            'year' => 2024,
+            'isbn' => '9783161484100',
+        ]);
+
+        $I->amOnRoute('book/update', ['id' => $bookId]);
+        $I->fillField('BookForm[title]', 'Updated Title');
+        $I->fillField('BookForm[year]', '2025');
+        
+        $I->sendPost('/index-test.php?r=book/update&id=' . $bookId, [
+            'BookForm' => [
+                'title' => 'Updated Title',
+                'year' => '2025',
+                'isbn' => '9783161484100',
+                'authorIds' => [$authorId]
+            ]
+        ]);
+
+        // Flexible check for view page URL (accounting for encoding)
+        $I->seeInCurrentUrl('book');
+        $I->seeInCurrentUrl('view');
+        $I->see('Updated Title');
+        $I->seeRecord(Book::class, ['id' => $bookId, 'title' => 'Updated Title', 'year' => 2025]);
+    }
+
     public function testDeleteBook(\FunctionalTester $I): void
     {
         $bookId = $I->haveRecord(Book::class, [

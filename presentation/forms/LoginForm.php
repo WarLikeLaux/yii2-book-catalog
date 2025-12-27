@@ -46,7 +46,7 @@ final class LoginForm extends Model
 
         $user = $this->getUser();
 
-        if ($user && $user->validatePassword($this->password)) {
+        if ($user instanceof User && $user->validatePassword($this->password)) {
             return;
         }
 

@@ -9,10 +9,10 @@ use app\infrastructure\services\YiiPsrLogger;
 use Throwable;
 use Yii;
 use yii\base\BaseObject;
-use yii\queue\Job;
+use yii\queue\JobInterface;
 use yii\queue\RetryableJobInterface;
 
-final class NotifySingleSubscriberJob extends BaseObject implements Job, RetryableJobInterface
+final class NotifySingleSubscriberJob extends BaseObject implements JobInterface, RetryableJobInterface
 {
     private const int TTR_SECONDS = 30;
 
@@ -21,16 +21,13 @@ final class NotifySingleSubscriberJob extends BaseObject implements Job, Retryab
     public string $message;
 
     public int $bookId;
-
-    /**
-     * @codeCoverageIgnore
-     */
+    /** @codeCoverageIgnore Выполнение джобы: зависит от Yii DI и кэша */
     public function execute($queue): void
     {
         $cache = Yii::$app->cache;
         $idempotencyKey = sprintf('sms_handled:%d:%s', $this->bookId, md5($this->phone));
 
-        if ($cache && !$cache->add($idempotencyKey, 1, 3600 * 24)) {
+        if ($cache !== null && !$cache->add($idempotencyKey, 1, 3600 * 24)) {
             return;
         }
 

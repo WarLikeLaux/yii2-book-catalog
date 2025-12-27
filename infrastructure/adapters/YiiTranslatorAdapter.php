@@ -7,6 +7,7 @@ namespace app\infrastructure\adapters;
 use app\application\ports\TranslatorInterface;
 use Yii;
 
+/** @codeCoverageIgnore Обёртка над Yii::t() */
 final class YiiTranslatorAdapter implements TranslatorInterface
 {
     /**

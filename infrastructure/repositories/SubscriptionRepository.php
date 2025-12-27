@@ -8,6 +8,9 @@ use app\application\ports\SubscriptionRepositoryInterface;
 use app\infrastructure\persistence\Subscription;
 use yii\db\Query;
 
+/**
+ * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
+ */
 final class SubscriptionRepository implements SubscriptionRepositoryInterface
 {
     public function create(string $phone, int $authorId): void
@@ -16,7 +19,7 @@ final class SubscriptionRepository implements SubscriptionRepositoryInterface
 
         if (!$subscription->save()) {
             $errors = $subscription->getFirstErrors();
-            $message = $errors ? array_shift($errors) : 'Failed to create subscription';
+            $message = $errors !== [] ? array_shift($errors) : 'Failed to create subscription';
             throw new \RuntimeException($message);
         }
     }

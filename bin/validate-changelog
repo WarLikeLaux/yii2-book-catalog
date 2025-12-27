@@ -1,0 +1,111 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$changelogPath = __DIR__ . '/../CHANGELOG.md';
+
+if (!file_exists($changelogPath)) {
+    echo "❌ Ошибка: Файл CHANGELOG.md не найден: $changelogPath\n";
+    exit(1);
+}
+
+$content = file_get_contents($changelogPath);
+$lines = explode("\n", $content);
+
+$errors = [];
+$warnings = [];
+
+echo "🔍 Проверка CHANGELOG.md...\n";
+
+$currentVersion = null;
+$versionSections = [];
+$mentionedHashes = [];
+
+foreach ($lines as $lineNum => $line) {
+    if (preg_match('/^## \[(.*?)\]/', $line, $matches)) {
+        $currentVersion = $matches[1];
+        $versionSections[$currentVersion] = [];
+        continue;
+    }
+
+    if ($currentVersion && preg_match('/^### (.*)/', $line, $matches)) {
+        $section = trim($matches[1]);
+        if (in_array($section, $versionSections[$currentVersion], true)) {
+            $errors[] = "Дубликат секции '{$section}' в версии [{$currentVersion}] на строке " . ($lineNum + 1);
+        } else {
+            $versionSections[$currentVersion][] = $section;
+        }
+    }
+
+    if (preg_match_all('/\[([a-f0-9]{7,40})\]/', $line, $matches)) {
+        foreach ($matches[1] as $hash) {
+            if (ctype_xdigit($hash)) {
+                $mentionedHashes[] = $hash;
+            }
+        }
+    }
+}
+
+$uniqueHashes = array_unique($mentionedHashes);
+foreach ($uniqueHashes as $hash) {
+    if (strpos($hash, '.') !== false) {
+        continue;
+    }
+
+    $command = "git cat-file -t " . escapeshellarg($hash) . " 2>/dev/null";
+    exec($command, $output, $returnVar);
+    
+    if ($returnVar !== 0) {
+        $errors[] = "Хеш '{$hash}' указанный в CHANGELOG не найден в git.";
+    }
+}
+
+echo "🔍 Проверка наличия коммитов...\n";
+
+exec('git log --format="%h|%s" -n 30', $gitLog);
+$missingCommits = [];
+
+foreach ($gitLog as $logLine) {
+    [$shortHash, $message] = explode('|', $logLine, 2);
+    
+    if (stripos($message, 'changelog') !== false && stripos($message, 'update') !== false) {
+        continue;
+    }
+    if (str_starts_with($message, 'tools:') || str_starts_with($message, 'style:') || str_starts_with($message, 'docs:')) {
+        continue;
+    }
+    if (str_starts_with($message, 'Merge branch')) {
+        continue;
+    }
+
+    if (strpos($content, $shortHash) === false) {
+        $missingCommits[] = "$shortHash - $message";
+    }
+}
+
+if (!empty($missingCommits)) {
+    $warnings[] = "Найдены недавние коммиты, которых НЕТ в CHANGELOG (последние 30):\n   - " . implode("\n   - ", $missingCommits);
+}
+
+if (!empty($errors)) {
+    echo "\n❌ Найдены ошибки:\n";
+    foreach ($errors as $error) {
+        echo "   - $error\n";
+    }
+}
+
+if (!empty($warnings)) {
+    echo "\n⚠️  Предупреждения:\n";
+    foreach ($warnings as $warning) {
+        echo "   - $warning\n";
+    }
+}
+
+if (empty($errors)) {
+    echo "\n✅ Структура CHANGELOG и хеши валидны.\n";
+}
+
+if (!empty($errors)) {
+    exit(1);
+}

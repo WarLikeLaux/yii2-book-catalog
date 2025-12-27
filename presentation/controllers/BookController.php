@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\common\dto\PaginationRequest;
+use app\presentation\filters\IdempotencyFilter;
 use app\presentation\forms\BookForm;
 use app\presentation\services\books\BookCommandService;
 use app\presentation\services\books\BookViewService;
@@ -29,6 +31,10 @@ final class BookController extends Controller
     public function behaviors(): array
     {
         return [
+            'idempotency' => [
+                'class' => IdempotencyFilter::class,
+                'only' => ['create', 'update'],
+            ],
             'access' => [
                 'class' => AccessControl::class,
                 'rules' => [
@@ -46,12 +52,15 @@ final class BookController extends Controller
 
     public function actionIndex(): string
     {
-        $p = $this->request->get('page', 1);
-        $ps = $this->request->get('pageSize', 20);
-        $page = max(1, is_numeric($p) ? (int)$p : 1);
-        $pageSize = max(1, is_numeric($ps) ? (int)$ps : 20);
+        $pagination = new PaginationRequest(
+            $this->request->get('page'),
+            $this->request->get('pageSize')
+        );
 
-        $dataProvider = $this->viewService->getIndexDataProvider($page, $pageSize);
+        $dataProvider = $this->viewService->getIndexDataProvider(
+            $pagination->page,
+            $pagination->limit
+        );
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,

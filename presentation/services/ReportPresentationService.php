@@ -21,6 +21,7 @@ final readonly class ReportPresentationService
     }
 
     /**
+     * @codeCoverageIgnore Использует Yii::t() и UseCaseExecutor с flash-сообщениями
      * @return array<string, mixed>
      */
     public function prepareIndexViewData(Request $request): array
@@ -39,7 +40,7 @@ final readonly class ReportPresentationService
         /** @var \app\application\reports\queries\ReportDto $data */
         $data = $this->useCaseExecutor->query(
             fn(): ReportDto => $this->reportQueryService->getTopAuthorsReport($criteria),
-            $this->reportQueryService->getEmptyTopAuthorsReport($form->year ? (int)$form->year : null),
+            $this->reportQueryService->getEmptyTopAuthorsReport($form->year !== null && $form->year !== '' ? (int)$form->year : null),
             Yii::t('app', 'Error while generating report. Please contact administrator.')
         );
 

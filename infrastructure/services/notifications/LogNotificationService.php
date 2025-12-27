@@ -7,6 +7,7 @@ namespace app\infrastructure\services\notifications;
 use app\application\ports\NotificationInterface;
 use Psr\Log\LoggerInterface;
 
+/** @codeCoverageIgnore Альтернативная реализация для CLI/консоли */
 final readonly class LogNotificationService implements NotificationInterface
 {
     public function __construct(

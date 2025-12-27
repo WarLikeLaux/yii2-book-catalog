@@ -47,7 +47,17 @@
         "deptrac/deptrac": "^3.0",
         "infection/infection": "^0.32.0",
         "infection/codeception-adapter": "^0.4.4",
-        "rector/rector": "^2.3"
+        "rector/rector": "^2.3",
+        "zircote/swagger-php": "^5.0",
+        "codeception/module-rest": "^3.4",
+        "roave/security-advisories": "dev-latest",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpstan/phpstan-deprecation-rules": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": ""
+        }
     },
     "config": {
         "allow-plugins": {
@@ -56,6 +66,7 @@
             "infection/extension-installer": true
         },
         "process-timeout": 1800,
+        "default-socket-timeout": 120,
         "fxp-asset": {
             "enabled": false
         }
@@ -88,7 +99,12 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "https://asset-packagist.org"
+            "url": "https://asset-packagist.org",
+            "options": {
+                "http": {
+                    "timeout": 120
+                }
+            }
         }
     ]
 }

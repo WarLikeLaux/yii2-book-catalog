@@ -13,9 +13,7 @@ final class ReportFilterForm extends Model
     /** @var int|string|null */
     public $year;
 
-    /**
-     * @codeCoverageIgnore
-     */
+    /** @codeCoverageIgnore Обёртка над Yii Model::load() */
     public function loadFromRequest(Request $request): bool
     {
         return $this->load((array)$request->get());
@@ -37,9 +35,7 @@ final class ReportFilterForm extends Model
         ];
     }
 
-    /**
-     * @codeCoverageIgnore
-     */
+    /** @codeCoverageIgnore Переопределение Yii formName() */
     #[\Override]
     public function formName(): string
     {

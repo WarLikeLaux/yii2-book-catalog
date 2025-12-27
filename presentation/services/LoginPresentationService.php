@@ -23,6 +23,7 @@ final class LoginPresentationService
     }
 
     /**
+     * @codeCoverageIgnore Зависит от Yii::$app->user->login()
      * @return array{success: bool, viewData: array<string, mixed>}
      */
     public function processLoginRequest(Request $request): array
@@ -46,7 +47,7 @@ final class LoginPresentationService
         }
 
         $user = $form->getUser();
-        if (!$user || !$user->validatePassword($form->password)) {
+        if ($user === null || !$user->validatePassword($form->password)) {
             $form->addError('password', Yii::t('app', 'Incorrect username or password.'));
             $form->password = '';
             return [

@@ -63,6 +63,7 @@ final readonly class BookCommandService
         );
     }
 
+    /** @codeCoverageIgnore Делегирует в FileStorage, который покрыт отдельно */
     private function uploadCover(BookForm $form): ?string
     {
         if ($form->cover instanceof UploadedFile) {
