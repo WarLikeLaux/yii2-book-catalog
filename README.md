@@ -8,7 +8,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-249_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-242_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-96%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -41,7 +41,7 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **249 тестов** (539 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **242 теста** (516 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Strict Rules & Deprecations | 🛠 **Makefile**<br>Автоматизация рутины |
 | ✅ **Mutation Testing**<br>Infection PHP (MSI > 96%) | 🚀 **Performance**<br>Load tests (k6), 100% success |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
@@ -344,8 +344,8 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>249</b><br>Tests</td>
-<td align="center"><b>539</b><br>Assertions</td>
+<td align="center"><b>242</b><br>Tests</td>
+<td align="center"><b>516</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~2s</b><br>Runtime</td>
 </tr>
@@ -426,8 +426,8 @@ open http://localhost:8000
 
 ### 📊 Статистика проекта
 
-![Lines of Code](https://img.shields.io/badge/Lines_of_Code-5.7k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![PHP Files](https://img.shields.io/badge/PHP_Files-134-purple?style=for-the-badge&logo=php&logoColor=white)
+![Lines of Code](https://img.shields.io/badge/Lines_of_Code-6.5k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![PHP Files](https://img.shields.io/badge/PHP_Files-233-purple?style=for-the-badge&logo=php&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
