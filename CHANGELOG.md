@@ -23,7 +23,14 @@
 - **#18** - удалены избыточные `@codeCoverageIgnoreStart/End` блоки в репозиториях ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 - **#18** - упрощена конфигурация CI — coverage берётся из `codeception.yml` ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 
+### ⚙️ Инфраструктура
+- **#18** - увеличен таймаут для `asset-packagist` и добавлен русский перевод в Dockerfile ([10df45a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/10df45a))
+- **#18** - добавлены workflow команды для `commit` и `changelog` ([051a2e5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/051a2e5))
+
 ### 📝 Документация
+- **#18** - добавлены русские комментарии в конфиги тестов и `OpenApiSpec` ([10df45a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/10df45a))
+- **#18** - добавлены схемы `Book` и `PaginationMeta` в OpenAPI спецификацию ([5ad416a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5ad416a))
+- **#18** - обновлен `CHANGELOG.md` ([051a2e5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/051a2e5))
 - **#18** - обновлен README: актуальная статистика (238 тестов, 100% coverage), новые команды ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 - **#18** - обновлен `contract.md`: добавлены команды `make dev/ci/pr/fix` ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 
