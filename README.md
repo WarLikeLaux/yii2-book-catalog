@@ -62,6 +62,7 @@
 - **PHPStan Level 9** (max strictness)
 - **Mutation Testing** (Infection PHP, MSI > 90%)
 - **Architecture Testing** (Deptrac)
+- **Detailed Documentation** ([ARCHITECTURE.md](./docs/ARCHITECTURE.md))
 - **Strict Types** везде (`declare(strict_types=1)`)
 - **PHPCS** + Slevomat Coding Standard
 
