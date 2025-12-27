@@ -427,7 +427,7 @@ open http://localhost:8000
 
 <br>
 
-**Made with ❤️ using [Yii2 Framework](https://www.yiiframework.com/)**
+**Made with ❤️ using <a href="https://www.yiiframework.com/" target="_blank">Yii2 Framework</a>**
 
 *Clean-ish Architecture • DDD • CQRS • Event-Driven*
 
