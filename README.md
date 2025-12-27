@@ -395,17 +395,19 @@ open http://localhost:8000
 > 📈 **Отчет о покрытии:** `make test-coverage` → `tests/_output/coverage/index.html`
 
 
-### Основные команды
+### 🛠 Основные команды
 
-| Команда | Описание |
-|---|---|
-| `make up` / `make down` | Управление контейнерами |
-| `make seed` | Генерация демо-данных (Книги, Авторы) |
-| `make lint-fix` | Авто-фикс стиля кода (PHPCS) |
-| `make analyze` | Статический анализ (PHPStan Level 9) |
-| `make queue-info` | Статус очереди задач |
-| `make sms-logs` | Просмотр логов отправки SMS (Mock) |
-| `make shell` | Консоль PHP контейнера |
+| Группа | Команда | Описание |
+| :--- | :--- | :--- |
+| **🐳 Docker** | `make up` / `make down` | Запуск и остановка окружения |
+| **📦 Data** | `make seed` | Наполнение базы демо-данными |
+| **🧪 Quality** | `make check` | **Запуск всех проверок (lint, analyze, test)** |
+| | `make test` | Запуск тестов (unit + functional) |
+| | `make analyze` | Статический анализ (PHPStan Level 9) |
+| | `make lint-fix` | Автоматическое исправление стиля кода |
+| **🔍 Debug** | `make logs` | Просмотр логов всех сервисов |
+| | `make sms-logs` | Логи отправки SMS (Mock-сервис) |
+| | `make shell` | Доступ в консоль PHP-контейнера |
 
 ## ⚙️ Конфигурация
 
@@ -418,14 +420,14 @@ open http://localhost:8000
 
 ### 📊 Статистика проекта
 
-![Lines of Code](https://img.shields.io/badge/Lines_of_Code-~5000-blue?style=flat-square)
-![PHP Files](https://img.shields.io/badge/PHP_Files-85-purple?style=flat-square)
-![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=flat-square)
-![PHPStan](https://img.shields.io/badge/PHPStan-Level_9-brightgreen?style=flat-square)
+![Lines of Code](https://img.shields.io/badge/Lines_of_Code-5.2k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![PHP Files](https://img.shields.io/badge/PHP_Files-117-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
+![PHPStan](https://img.shields.io/badge/PHPStan-Level_9-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
----
+<br>
 
-**Made with ❤️ using Yii2 Framework**
+**Made with ❤️ using [Yii2 Framework](https://www.yiiframework.com/)**
 
 *Clean-ish Architecture • DDD • CQRS • Event-Driven*
 
