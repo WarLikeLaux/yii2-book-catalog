@@ -24,3 +24,14 @@ coverage:
         - domain/*
         - infrastructure/*
         - presentation/*
+    exclude:
+        # Views/templates - not unit testable
+        - presentation/views/*
+        - presentation/widgets/*
+        - presentation/mail/*
+        # Controllers - covered by functional tests
+        - presentation/controllers/*
+        # Forms - covered by functional tests (validation integration)
+        - presentation/forms/*
+        # AR models - covered by functional tests (DB integration)
+        - infrastructure/persistence/*

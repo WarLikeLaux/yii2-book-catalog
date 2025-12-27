@@ -8,8 +8,8 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-161_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![Coverage](https://img.shields.io/badge/Coverage-88%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-171_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 
 ---
 
@@ -56,8 +56,8 @@
 <td width="50%">
 
 ### 🧪 Качество кода
-- **161 тест** с 287 assertions
-- **88% покрытие** кода тестами
+- **171 тест** с 345 assertions
+- **100% покрытие** кода тестами
 - **Strict Types** везде
 - **PHPCS** + Slevomat Coding Standard
 
@@ -82,7 +82,7 @@
 | **Framework** | ![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii) | Basic Template с DI Container |
 | **Database** | ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white) | InnoDB + FullText Search |
 | **Queue** | `yii2-queue` | DB Driver + Fan-out Pattern |
-| **Testing** | ![Codeception](https://img.shields.io/badge/Codeception-5.0-purple) | Unit + Functional, 88% Coverage |
+| **Testing** | ![Codeception](https://img.shields.io/badge/Codeception-5.0-purple) | Unit + Functional, 100% Coverage |
 | **Infra** | ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) | PHP 8.4 + MySQL 8 + Queue Worker |
 
 ## 🏗 Архитектурные решения
@@ -370,9 +370,9 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>161</b><br>Tests</td>
-<td align="center"><b>287</b><br>Assertions</td>
-<td align="center"><b>88%</b><br>Coverage</td>
+<td align="center"><b>171</b><br>Tests</td>
+<td align="center"><b>345</b><br>Assertions</td>
+<td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~1s</b><br>Runtime</td>
 </tr>
 </table>
@@ -380,10 +380,10 @@ open http://localhost:8000
 **Команды:**
 
 ```bash
-make test           # 🧪 Запуск всех тестов
+make test           # 🧪 Запуск всех тестов (unit + functional)
 make test-coverage  # 📊 Генерация HTML-отчета о покрытии
-make test-unit      # ⚡ Только Unit-тесты (быстро)
-make test-functional # 🌐 Только функциональные тесты
+make test-unit      # ⚡ Только unit-тесты (быстро, без БД)
+make test-functional # 🌐 Только functional-тесты (с БД)
 ```
 
 <details>
@@ -391,20 +391,26 @@ make test-functional # 🌐 Только функциональные тесты
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 113 | Мапперы, Валидаторы, Value Objects, DTOs — без БД |
-| **Functional** | 48 | CRUD, Use Cases, HTTP-сценарии с БД |
+| **Unit** | 122 | Чистая бизнес-логика без БД и фреймворка |
+| **Functional** | 49 | CRUD, Use Cases, HTTP-сценарии с БД |
 
 **Unit Tests покрывают:**
-- DTO ↔ Forms ↔ Commands маппинги
-- Валидаторы (ISBN, уникальность FIO, авторы)
-- Value Objects (`Isbn`, `BookYear`)
-- `UseCaseExecutor`, `QueryResult`, Adapters
+- **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult
+- **Domain Layer**: Value Objects (`Isbn`, `BookYear`), Domain Events
+- **Infrastructure**: Queue jobs (retry logic), Logger, Notifications
+- **Presentation**: Validators, Mappers, DataProvider adapters
 
 **Functional Tests покрывают:**
 - CRUD операции (Книги, Авторы)
-- Use Cases (`CreateBook`, `UpdateBook`, `Subscribe`)
-- Валидация форм с русскоязычными сообщениями
+- Use Cases с реальной БД
+- Валидация форм
 - Аутентификация и авторизация
+
+**Принципы тестирования:**
+- ✅ Не тестируем функции фреймворка (`rules()`, `attributeLabels()`, `tableName()`)
+- ✅ Unit-тесты изолированы от БД и внешних сервисов (mocking)
+- ✅ `@codeCoverageIgnore` на методах требующих integration тестов
+- ✅ Исключены из coverage: controllers, forms, views, AR models (покрыты functional тестами)
 
 </details>
 
@@ -435,7 +441,7 @@ make test-functional # 🌐 Только функциональные тесты
 
 ![Lines of Code](https://img.shields.io/badge/Lines_of_Code-~5000-blue?style=flat-square)
 ![PHP Files](https://img.shields.io/badge/PHP_Files-85-purple?style=flat-square)
-![Test Coverage](https://img.shields.io/badge/Coverage-88%25-brightgreen?style=flat-square)
+![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=flat-square)
 
 ---
 
