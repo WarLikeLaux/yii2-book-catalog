@@ -80,13 +80,13 @@
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
 *   **Controllers:** отвечают за валидацию входных данных (через Forms) и управление потоком выполнения. Вызывают Command Services для изменения состояния и View Services для получения данных.
-*   **Forms (`presentation/forms`, namespace: `app\presentation\forms`):** валидация входных данных через `FormModel`.
-*   **Mappers (`presentation/mappers`, namespace: `app\presentation\mappers`):** перевод форм в команды/criteria и обратно (DTO ↔ Form).
-*   **Presentation Services (`presentation/services`, namespace: `app\presentation\services`):** реализуют разделение ответственности (CQRS):
-    *   **Command Services:** пишущие операции (Create, Update, Delete). Принимают формы, выполняют Use Cases, возвращают примитивы (ID, bool). Чистая логика, без `Request`/`Response`.
-    *   **View Services:** читающие операции. Подготавливают DTO и DataProvider-ы для отображения в шаблонах.
-    *   **Search Services:** специфичные сервисы для AJAX-поиска (например, Select2).
-*   **Adapters (`presentation/adapters`, namespace: `app\presentation\adapters`):** преобразуют чистые DTO пагинации обратно в Yii2 форматы (`PagedResult` -> `DataProvider`) для совместимости с GridView.
+*   **Forms (`presentation/{feature}/forms`):** валидация входных данных через `FormModel`.
+*   **Mappers (`presentation/{feature}/mappers`):** перевод форм в команды/criteria и обратно (DTO ↔ Form).
+*   **Handlers (`presentation/{feature}/handlers`):** реализуют разделение ответственности (CQRS):
+    *   **Command Handlers:** пишущие операции (Create, Update, Delete). Принимают формы, выполняют Use Cases.
+    *   **View Data Factories:** читающие операции. Подготавливают DTO для отображения.
+    *   **Search Handlers:** специфичные сервисы для AJAX-поиска (например, Select2).
+*   **Adapters (`presentation/common/adapters`):** преобразуют чистые DTO пагинации обратно в Yii2 форматы.
 
 ### 4. Разделение ответственности: Use Cases vs Presentation Services
 
@@ -96,10 +96,10 @@
 *   Независимы от способа представления (HTTP, CLI, API, тесты)
 *   Содержат чистую бизнес-логику: транзакции, бизнес-правила, координация репозиториев
 
-**Presentation Services (Presentation Layer)** — разделены на Command и View:
-*   **Command Services:** Принимают заполненные формы, маппят их в команды и выполняют Use Cases. Не зависят от `Request` или `Response`.
-*   **View Services:** Подготавливают данные для отображения (списки авторов, книги).
-*   **Controller:** Выступает как Orchestrator. Загружает данные из HTTP-запроса, запускает валидацию форм, вызывает сервисы и формирует ответ.
+**Presentation Layer** — разделен на Handlers и Factories:
+*   **Command Handlers:** Принимают заполненные формы, маппят их в команды и выполняют Use Cases. Не зависят от `Request` или `Response`.
+*   **View Data Factories:** Подготавливают данные для отображения (списки авторов, книги).
+*   **Controller:** Выступает как Orchestrator. Загружает данные из HTTP-запроса, запускает валидацию форм, вызывает хендлеры и формирует ответ.
 
 **Пример разделения:**
 
@@ -111,22 +111,22 @@ public function actionCreate(): string|Response
     
     // HTTP: загрузка и валидация
     if ($this->request->isPost && $form->load($this->request->post()) && $form->validate()) {
-        // Command Service: бизнес-операция
-        $bookId = $this->commandService->createBook($form);
+    // Command Handler: бизнес-операция
+        $bookId = $this->commandHandler->createBook($form);
         if ($bookId) {
             return $this->redirect(['view', 'id' => $bookId]);
         }
     }
 
-    // View Service: данные для формы
+    // View Data Factory: данные для формы
     return $this->render('create', [
         'model' => $form,
-        'authors' => $this->viewService->getAuthorsList(),
+        'authors' => $this->viewFactory->getAuthorsList(),
     ]);
 }
 
-// Command Service - чистая логика без HTTP зависимостей
-class BookCommandService 
+// Command Handler - чистая логика без HTTP зависимостей
+class BookCommandHandler 
 {
     public function createBook(BookForm $form): ?int 
     {
@@ -146,9 +146,9 @@ class BookCommandService
 
 ### 5. DTO & Forms для валидации
 Слой представления отделен от домена.
-*   **Forms (`presentation/forms`, namespace: `app\presentation\forms`):** валидируют сырые пользовательские данные (HTTP request).
-*   **Command DTO (`application/**/commands`, namespace: `app\application\**\commands`):** передают валидные данные в Use Case.
-*   **PaginationDto (`application/common/dto`, namespace: `app\application\common\dto`):** чистый DTO для пагинации.
+*   **Forms (`presentation/{feature}/forms`):** валидируют сырые пользовательские данные (HTTP request).
+*   **Command DTO (`application/{feature}/commands`):** передают валидные данные в Use Case.
+*   **PaginationDto (`application/common/dto`):** чистый DTO для пагинации.
 *   Это позволяет разлепить валидацию HTTP-запроса и бизнес-правила (которые живут в Value Objects).
 
 ### 6. Infrastructure Layer
@@ -208,46 +208,38 @@ class BookCommandService
 yii2-book-catalog/
 ├── bin/                      # Кастомные скрипты (валидаторы ченджлога и документации)
 ├── application/              # Application Layer (Use Cases, Queries, Ports)
-│   ├── books/
-│   │   ├── commands/        # Command DTOs (CreateBookCommand, UpdateBookCommand)
-│   │   ├── queries/         # Query Services и Read DTOs
-│   │   └── usecases/        # Use Cases (CreateBookUseCase, UpdateBookUseCase)
-│   ├── authors/
-│   ├── subscriptions/
-│   ├── reports/
-│   ├── common/
-│   │   ├── dto/            # Общие DTO (PaginationDto, QueryResult)
-│   │   └── UseCaseExecutor.php
-│   └── ports/               # ВСЕ порты (EventPublisher, Notification, SMS, FileStorage, Translator)
-├── domain/                  # Domain Layer
-│   ├── events/             # Domain Events (BookCreatedEvent, DomainEvent interface)
-│   ├── exceptions/         # Domain Exceptions (DomainException, EntityNotFoundException)
-│   ├── entities/           # Rich Domain Entities (Author, Book, Subscription)
+│   ├── books/                # Модуль Книги (Commands, Queries, UseCases)
+│   ├── authors/              # Модуль Авторы
+│   ├── subscriptions/        # Модуль Подписки
+│   ├── reports/              # Модуль Отчеты
+│   ├── common/               # Общие компоненты (UseCaseExecutor, Shared DTOs)
+│   └── ports/                # Интерфейсы (EventPublisher, Notification, SMS, FileStorage, etc.)
+├── domain/                  # Domain Layer (Чистый PHP)
+│   ├── entities/           # Rich Entities (Book, Author, Subscription)
+│   ├── events/             # Domain Events (BookCreatedEvent)
+│   ├── exceptions/         # Domain Exceptions (EntityNotFoundException)
 │   └── values/             # Value Objects (Isbn, BookYear)
-├── infrastructure/          # Infrastructure Layer
-│   ├── adapters/           # Адаптеры портов (YiiEventPublisher, YiiTranslator, etc.)
-│   ├── persistence/        # ActiveRecord модели (Author, Book, Subscription, User)
-│   ├── queue/              # Queue Jobs (NotifySubscribersJob, NotifySingleSubscriberJob)
-│   ├── repositories/       # Реализации репозиториев
-│   ├── services/           # Реализации сервисов (SMS, FileStorage, Notifications)
-│   └── phpstan/            # Кастомные правила статического анализа (архитектурный контроль)
-├── presentation/            # Presentation Layer
-│   ├── controllers/        # HTTP-контроллеры
-│   ├── views/              # Yii2 views
-│   ├── forms/              # Form models (BookForm, AuthorForm, LoginForm)
-│   ├── validators/         # Yii2 validators (IsbnValidator, UniqueFioValidator)
-│   ├── widgets/            # Yii2 widgets (Alert)
-│   ├── mail/               # Email шаблоны
-│   ├── services/           # Presentation Services (Command & View)
-│   │   ├── authors/        # AuthorCommandService, AuthorViewService
-│   │   ├── books/          # BookCommandService, BookViewService
-│   │   └── ...
-│   ├── mappers/            # Маппинг DTO ↔ Forms
-│   ├── dto/                # DTO результатов обработки форм
-│   └── adapters/           # Адаптеры для Yii2 (PagedResultDataProvider)
-├── commands/                # Console контроллеры (SeedController)
-├── config/                  # Конфигурация Yii2
-├── messages/                # Переводы i18n (ru-RU, en-US)
+├── infrastructure/          # Infrastructure Layer (Реализации портов)
+│   ├── adapters/           # Адаптеры (YiiEventPublisher, YiiTranslator)
+│   ├── persistence/        # ActiveRecord модели (Persistence Models)
+│   ├── queue/              # Queue Jobs (Асинхронные задачи)
+│   ├── repositories/       # Реализации репозиториев (SQL логика)
+│   ├── services/           # Внешние сервисы (SMS, Storage, Logger)
+│   └── phpstan/            # Правила статического анализа
+├── presentation/            # Presentation Layer (Yii2 & Web)
+│   ├── controllers/        # Тонкие контроллеры
+│   ├── auth/               # Модуль Авторизации (Forms, Handlers, Mappers)
+│   ├── books/              # Модуль Книги (Forms, Handlers, Mappers, Validators)
+│   ├── authors/            # Модуль Авторы
+│   ├── subscriptions/      # Модуль Подписки
+│   ├── reports/            # Модуль Отчеты
+│   ├── common/             # Общие виджеты, фильтры и адаптеры
+│   ├── views/              # Шаблоны (Views)
+│   ├── mail/               # Шаблоны писем
+│   └── dto/                # DTO для слоя представления
+├── commands/                # Console контроллеры (CLI)
+├── config/                  # Конфигурация приложения
+├── messages/                # Переводы i18n
 └── migrations/              # Миграции БД
 ```
 
