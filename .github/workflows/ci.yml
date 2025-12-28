@@ -94,7 +94,9 @@ jobs:
           git diff --exit-code docs/api/openapi.yaml
 
       - name: Prepare Database
-        run: php yii migrate --interactive=0
+        run: |
+          php yii migrate --interactive=0
+          php yii seed --interactive=0
 
       - name: Start PHP Server
         run: |
