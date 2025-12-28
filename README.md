@@ -8,9 +8,9 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-242_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-252_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![Mutation Score](https://img.shields.io/badge/MSI-96%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Mutation Score](https://img.shields.io/badge/MSI-94%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
 ---
 
@@ -41,9 +41,9 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **242 теста** (516 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **252 теста** (549 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Custom Architecture Rules | 🛠 **Makefile**<br>Автоматизация рутины |
-| ✅ **Mutation Testing**<br>Infection PHP (MSI > 96%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
+| ✅ **Mutation Testing**<br>Infection PHP (MSI > 94%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
 ## 🛠 Технический стек
@@ -346,8 +346,8 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>242</b><br>Tests</td>
-<td align="center"><b>516</b><br>Assertions</td>
+<td align="center"><b>252</b><br>Tests</td>
+<td align="center"><b>549</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~2s</b><br>Runtime</td>
 </tr>
@@ -405,6 +405,8 @@ open http://localhost:8000
 
 | Группа | Команда | Описание |
 | :--- | :--- | :--- |
+| **🚀 Setup** | `make init` | Полная инициализация проекта |
+| | `make configure` | Настройка окружения (.env) |
 | **🐳 Docker** | `make up` / `make down` | Запуск и остановка окружения |
 | **📦 Data** | `make seed` | Наполнение базы демо-данными |
 | **🧪 Quality** | `make dev` | **Автофикс + проверка (разработка)** |
@@ -412,6 +414,7 @@ open http://localhost:8000
 | | `make pr` | Полная проверка перед PR (+ deptrac, infection, audit) |
 | | `make fix` | Автоисправление (lint-fix + rector-fix) |
 | **🔍 Debug** | `make logs` | Просмотр логов всех сервисов |
+| | `make comments` | Показать TODO и заметки |
 | | `make sms-logs` | Логи отправки SMS (Mock-сервис) |
 | | `make shell` | Доступ в консоль PHP-контейнера |
 | **📜 API** | `make swagger` | Генерация OpenAPI документации |
@@ -430,8 +433,8 @@ open http://localhost:8000
 
 ![Source Code](https://img.shields.io/badge/Source_Code-4.5k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
 ![Test Code](https://img.shields.io/badge/Test_Code-5.5k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-132-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-73-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-135-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-74-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
