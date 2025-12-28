@@ -3,88 +3,185 @@
 
 declare(strict_types=1);
 
-$root = dirname(__DIR__);
-$readmePath = $root . '/README.md';
-$coveragePath = $root . '/tests/_output/coverage.txt';
+/**
+ * Валидатор документации README.md на актуальность метрик и ссылок.
+ */
 
-if (!file_exists($readmePath)) exit(1);
+final class DocsValidator
+{
+    private const string COLOR_RED = "\033[31m";
+    private const string COLOR_GREEN = "\033[32m";
+    private const string COLOR_RESET = "\033[0m";
 
-$readme = file_get_contents($readmePath);
-$errors = [];
+    /** @var string[] */
+    private array $errors = [];
 
-$srcFiles = 0; $testFiles = 0;
-$srcSloc = 0; $testSloc = 0;
+    public function __construct(
+        private readonly string $rootPath
+    ) {
+    }
 
-$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
-foreach ($it as $file) {
-    if ($file->isFile() && $file->getExtension() === 'php') {
-        $path = $file->getPathname();
-        if (preg_match('/\/(vendor|runtime|tests\/_output)\//', $path)) continue;
+    public function run(): void
+    {
+        $readmePath = $this->rootPath . '/README.md';
+
+        if (!file_exists($readmePath)) {
+            exit(1);
+        }
+
+        $readmeContent = file_get_contents($readmePath) ?: '';
+
+        $stats = $this->calculateCodeStats();
+        $this->validateReadmeStats($readmeContent, $stats);
+        $this->validateCoverage($readmeContent);
+        $this->validateLinks($readmeContent);
+
+        if (!empty($this->errors)) {
+            echo self::COLOR_RED . "[ПРОВАЛ]" . self::COLOR_RESET . " Ошибки документации:\n  - " . implode("\n  - ", $this->errors) . "\n";
+            exit(1);
+        }
+
+        echo self::COLOR_GREEN . "[ОК]" . self::COLOR_RESET . " Документация актуальна (СТРОГО).\n";
+    }
+
+    /**
+     * @return array{srcFiles: int, testFiles: int, srcSloc: int, testSloc: int}
+     */
+    private function calculateCodeStats(): array
+    {
+        $srcFiles = 0;
+        $testFiles = 0;
+        $srcSloc = 0;
+        $testSloc = 0;
+
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->rootPath));
+
+        /** @var SplFileInfo $file */
+        foreach ($iterator as $file) {
+            if (!$file->isFile() || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $path = $file->getPathname();
+            // Игнорируем vendor, runtime и output тестов
+            if (preg_match('#/(vendor|runtime|tests/_output)/#', $path)) {
+                continue;
+            }
+
+            $lines = file($path);
+            if ($lines === false) {
+                continue;
+            }
+
+            $count = 0;
+            foreach ($lines as $line) {
+                $line = trim($line);
+                // Считаем непустые строки, не являющиеся комментариями
+                if ($line !== "" && !preg_match('/^(\/\/|\/\*|\*|#)/', $line)) {
+                    $count++;
+                }
+            }
+
+            if (str_contains($path, '/tests/')) {
+                $testFiles++;
+                $testSloc += $count;
+            } elseif (preg_match('/(application|domain|infrastructure|presentation)/', $path)) {
+                $srcFiles++;
+                $srcSloc += $count;
+            }
+        }
+
+        return [
+            'srcFiles' => $srcFiles,
+            'testFiles' => $testFiles,
+            'srcSloc' => $srcSloc,
+            'testSloc' => $testSloc,
+        ];
+    }
+
+    /**
+     * @param array{srcFiles: int, testFiles: int, srcSloc: int, testSloc: int} $stats
+     */
+    private function validateReadmeStats(string $readme, array $stats): void
+    {
+        if (preg_match('/Source_Files-(\d+)-/', $readme, $m) && $stats['srcFiles'] !== (int)$m[1]) {
+            $this->errors[] = "Source Files: в README {$m[1]}, реально {$stats['srcFiles']}";
+        }
+
+        if (preg_match('/Test_Files-(\d+)-/', $readme, $m) && $stats['testFiles'] !== (int)$m[1]) {
+            $this->errors[] = "Test Files: в README {$m[1]}, реально {$stats['testFiles']}";
+        }
+
+        if (preg_match('/Source_Code-(\d+\.?\d*)k\+-/', $readme, $m)) {
+            $realK = round($stats['srcSloc'] / 1000, 1);
+            if (abs((float)$m[1] - $realK) > 0.5) {
+                $this->errors[] = "Source Code SLOC: в README {$m[1]}k+, реально {$realK}k+";
+            }
+        }
+
+        if (preg_match('/Test_Code-(\d+\.?\d*)k\+-/', $readme, $m)) {
+            $realK = round($stats['testSloc'] / 1000, 1);
+            if (abs((float)$m[1] - $realK) > 0.5) {
+                $this->errors[] = "Test Code SLOC: в README {$m[1]}k+, реально {$realK}k+";
+            }
+        }
+    }
+
+    private function validateCoverage(string $readme): void
+    {
+        $coveragePath = $this->rootPath . '/tests/_output/coverage.txt';
+
+        if (!file_exists($coveragePath)) {
+            return;
+        }
+
+        $report = file_get_contents($coveragePath) ?: '';
+
+        if (preg_match('/OK \((\d+) tests, (\d+) assertions\)/', $report, $testMatches)) {
+            $realTests = (int)$testMatches[1];
+            $realAss = (int)$testMatches[2];
+
+            $this->validateBadgeCounts($readme, '/(\d+)\s+(тест|test|passed)/i', $realTests, "Тесты");
+            $this->validateBadgeCounts($readme, '/(\d+)\s+assertions/i', $realAss, "Ассерты");
+        }
+
+        if (preg_match('/Lines:\s+([\d\.]+)%/', $report, $m1) && preg_match('/Coverage-([\d\.]+)%/', $readme, $m2)) {
+            if ((float)$m1[1] !== (float)$m2[1]) {
+                $this->errors[] = "Покрытие: в README {$m2[1]}%, реально {$m1[1]}%";
+            }
+        }
+    }
+
+    private function validateBadgeCounts(string $readme, string $pattern, int $realValue, string $label): void
+    {
+        preg_match_all($pattern, $readme, $matches);
+        if (isset($matches[1])) {
+            foreach (array_unique(array_map('intval', $matches[1])) as $val) {
+                if ($val !== $realValue) {
+                    $this->errors[] = "$label: в README $val, реально $realValue";
+                }
+            }
+        }
+    }
+
+    private function validateLinks(string $readme): void
+    {
+        preg_match_all('/\[.*?\]\((?!http)(.*?)\)/', $readme, $matches);
         
-        $lines = file($path);
-        $count = 0;
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if ($line !== "" && !preg_match('/^(\/\/|\/\*|\*|#)/', $line)) $count++;
+        if (!isset($matches[1])) {
+             return;
         }
 
-        if (str_contains($path, '/tests/')) {
-            $testFiles++;
-            $testSloc += $count;
-        } elseif (preg_match('/(application|domain|infrastructure|presentation)/', $path)) {
-            $srcFiles++;
-            $srcSloc += $count;
-        }
-    }
-}
-
-if (preg_match('/Source_Files-(\d+)-/', $readme, $m) && $srcFiles !== (int)$m[1]) {
-    $errors[] = "Source Files: в README {$m[1]}, реально $srcFiles";
-}
-
-if (preg_match('/Test_Files-(\d+)-/', $readme, $m) && $testFiles !== (int)$m[1]) {
-    $errors[] = "Test Files: в README {$m[1]}, реально $testFiles";
-}
-
-if (preg_match('/Source_Code-(\d+\.?\d*)k\+-/', $readme, $m)) {
-    $realK = round($srcSloc / 1000, 1);
-    if (abs((float)$m[1] - $realK) > 0.5) $errors[] = "Source Code SLOC: в README {$m[1]}k+, реально {$realK}k+";
-}
-
-if (preg_match('/Test_Code-(\d+\.?\d*)k\+-/', $readme, $m)) {
-    $realK = round($testSloc / 1000, 1);
-    if (abs((float)$m[1] - $realK) > 0.5) $errors[] = "Test Code SLOC: в README {$m[1]}k+, реально {$realK}k+";
-}
-
-if (file_exists($coveragePath)) {
-    $report = file_get_contents($coveragePath);
-    if (preg_match('/OK \((\d+) tests, (\d+) assertions\)/', $report, $testMatches)) {
-        $realTests = (int)$testMatches[1];
-        $realAss = (int)$testMatches[2];
-        preg_match_all('/(\d+)\s+(тест|test|passed)/i', $readme, $rmTests);
-        foreach (array_unique(array_map('intval', $rmTests[1])) as $val) {
-            if ($val !== $realTests) $errors[] = "Тесты: в README $val, реально $realTests";
-        }
-        preg_match_all('/(\d+)\s+assertions/i', $readme, $rmAss);
-        foreach (array_unique(array_map('intval', $rmAss[1])) as $val) {
-            if ($val !== $realAss) $errors[] = "Ассерты: в README $val, реально $realAss";
+        foreach ($matches[1] as $link) {
+            $linkPath = explode('#', $link)[0];
+            if (empty($linkPath)) {
+                continue;
+            }
+            if (!file_exists($this->rootPath . '/' . ltrim($linkPath, '/'))) {
+                $this->errors[] = "Битая ссылка: $link";
+            }
         }
     }
-    if (preg_match('/Lines:\s+([\d\.]+)%/', $report, $m1) && preg_match('/Coverage-([\d\.]+)%/', $readme, $m2)) {
-        if ((float)$m1[1] !== (float)$m2[1]) $errors[] = "Покрытие: в README {$m2[1]}%, реально {$m1[1]}%";
-    }
 }
 
-preg_match_all('/\[.*?\]\((?!http)(.*?)\)/', $readme, $m);
-foreach ($m[1] as $link) {
-    if (empty($link = explode('#', $link)[0])) continue;
-    if (!file_exists($root . '/' . ltrim($link, '/'))) $errors[] = "Битая ссылка: $link";
-}
-
-if ($errors) {
-    echo "\033[31m[ПРОВАЛ]\033[0m Ошибки документации:\n  - " . implode("\n  - ", $errors) . "\n";
-    exit(1);
-}
-
-echo "\033[32m[ОК]\033[0m Документация актуальна (СТРОГО).\n";
-exit(0);
+(new DocsValidator(dirname(__DIR__)))->run();

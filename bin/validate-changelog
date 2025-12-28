@@ -3,109 +3,170 @@
 
 declare(strict_types=1);
 
-$changelogPath = __DIR__ . '/../CHANGELOG.md';
+/**
+ * Валидатор CHANGELOG.md на соответствие коммитам и структуре.
+ */
 
-if (!file_exists($changelogPath)) {
-    echo "❌ Ошибка: Файл CHANGELOG.md не найден: $changelogPath\n";
-    exit(1);
-}
+final class ChangelogValidator
+{
+    /** @var string[] */
+    private array $errors = [];
+    /** @var string[] */
+    private array $warnings = [];
 
-$content = file_get_contents($changelogPath);
-$lines = explode("\n", $content);
-
-$errors = [];
-$warnings = [];
-
-echo "🔍 Проверка CHANGELOG.md...\n";
-
-$currentVersion = null;
-$versionSections = [];
-$mentionedHashes = [];
-
-foreach ($lines as $lineNum => $line) {
-    if (preg_match('/^## \[(.*?)\]/', $line, $matches)) {
-        $currentVersion = $matches[1];
-        $versionSections[$currentVersion] = [];
-        continue;
+    public function __construct(
+        private readonly string $rootPath
+    ) {
     }
 
-    if ($currentVersion && preg_match('/^### (.*)/', $line, $matches)) {
-        $section = trim($matches[1]);
-        if (in_array($section, $versionSections[$currentVersion], true)) {
-            $errors[] = "Дубликат секции '{$section}' в версии [{$currentVersion}] на строке " . ($lineNum + 1);
-        } else {
-            $versionSections[$currentVersion][] = $section;
+    public function run(): void
+    {
+        $changelogPath = $this->rootPath . '/CHANGELOG.md';
+
+        if (!file_exists($changelogPath)) {
+            $this->error("Файл CHANGELOG.md не найден: $changelogPath");
+            exit(1);
+        }
+
+        $content = file_get_contents($changelogPath);
+        if ($content === false) {
+             $this->error("Не удалось прочитать CHANGELOG.md");
+             exit(1);
+        }
+
+        echo "🔍 Проверка CHANGELOG.md...\n";
+
+        $this->validateStructureAndHashes($content);
+        $this->validateCommits($content);
+
+        $this->printResults();
+
+        if (!empty($this->errors)) {
+            exit(1);
         }
     }
 
-    if (preg_match_all('/\[([a-f0-9]{7,40})\]/', $line, $matches)) {
-        foreach ($matches[1] as $hash) {
-            if (ctype_xdigit($hash)) {
-                $mentionedHashes[] = $hash;
+    private function validateStructureAndHashes(string $content): void
+    {
+        $lines = explode("\n", $content);
+        $currentVersion = null;
+        /** @var array<string, array<int, string>> $versionSections */
+        $versionSections = [];
+        $mentionedHashes = [];
+
+        foreach ($lines as $lineNum => $line) {
+            if (preg_match('/^## \[(.*?)\]/', $line, $matches)) {
+                $currentVersion = $matches[1];
+                $versionSections[$currentVersion] = [];
+                continue;
+            }
+
+            if ($currentVersion !== null && preg_match('/^### (.*)/', $line, $matches)) {
+                $section = trim($matches[1]);
+                if (in_array($section, $versionSections[$currentVersion], true)) {
+                    $this->errors[] = "Дубликат секции '{$section}' в версии [{$currentVersion}] на строке " . ($lineNum + 1);
+                } else {
+                    $versionSections[$currentVersion][] = $section;
+                }
+            }
+
+            if (preg_match_all('/\[([a-f0-9]{7,40})\]/', $line, $matches)) {
+                foreach ($matches[1] as $hash) {
+                    if (ctype_xdigit($hash)) {
+                        $mentionedHashes[] = $hash;
+                    }
+                }
+            }
+        }
+
+        $this->verifyHashesInGit(array_unique($mentionedHashes));
+    }
+
+    /**
+     * @param string[] $hashes
+     */
+    private function verifyHashesInGit(array $hashes): void
+    {
+        foreach ($hashes as $hash) {
+            if (str_contains($hash, '.')) {
+                continue;
+            }
+
+            $command = "git cat-file -t " . escapeshellarg($hash) . " 2>/dev/null";
+            exec($command, $output, $returnVar);
+
+            if ($returnVar !== 0) {
+                $this->errors[] = "Хеш '{$hash}' указанный в CHANGELOG не найден в git.";
             }
         }
     }
-}
 
-$uniqueHashes = array_unique($mentionedHashes);
-foreach ($uniqueHashes as $hash) {
-    if (strpos($hash, '.') !== false) {
-        continue;
+    private function validateCommits(string $content): void
+    {
+        echo "🔍 Проверка наличия коммитов...\n";
+
+        exec('git log --format="%h|%s" -n 30', $gitLog);
+        $missingCommits = [];
+
+        foreach ($gitLog as $logLine) {
+            if (!str_contains($logLine, '|')) {
+                continue;
+            }
+            [$shortHash, $message] = explode('|', $logLine, 2);
+
+            if ($this->shouldSkipCommit($message)) {
+                continue;
+            }
+
+            if (!str_contains($content, $shortHash)) {
+                $missingCommits[] = "$shortHash - $message";
+            }
+        }
+
+        if (!empty($missingCommits)) {
+            $this->warnings[] = "Найдены недавние коммиты, которых НЕТ в CHANGELOG (последние 30):\n   - " . implode("\n   - ", $missingCommits);
+        }
     }
 
-    $command = "git cat-file -t " . escapeshellarg($hash) . " 2>/dev/null";
-    exec($command, $output, $returnVar);
-    
-    if ($returnVar !== 0) {
-        $errors[] = "Хеш '{$hash}' указанный в CHANGELOG не найден в git.";
+    private function shouldSkipCommit(string $message): bool
+    {
+        if (stripos($message, 'changelog') !== false && stripos($message, 'update') !== false) {
+            return true;
+        }
+        if (str_starts_with($message, 'tools:') || str_starts_with($message, 'style:') || str_starts_with($message, 'docs:')) {
+            return true;
+        }
+        if (str_starts_with($message, 'Merge branch')) {
+            return true;
+        }
+        return false;
+    }
+
+    private function printResults(): void
+    {
+        if (!empty($this->errors)) {
+            echo "\n❌ Найдены ошибки:\n";
+            foreach ($this->errors as $error) {
+                echo "   - $error\n";
+            }
+        }
+
+        if (!empty($this->warnings)) {
+            echo "\n⚠️  Предупреждения:\n";
+            foreach ($this->warnings as $warning) {
+                echo "   - $warning\n";
+            }
+        }
+
+        if (empty($this->errors)) {
+            echo "\n✅ Структура CHANGELOG и хеши валидны.\n";
+        }
+    }
+
+    private function error(string $text): void
+    {
+        echo "\n❌ " . $text . "\n";
     }
 }
 
-echo "🔍 Проверка наличия коммитов...\n";
-
-exec('git log --format="%h|%s" -n 30', $gitLog);
-$missingCommits = [];
-
-foreach ($gitLog as $logLine) {
-    [$shortHash, $message] = explode('|', $logLine, 2);
-    
-    if (stripos($message, 'changelog') !== false && stripos($message, 'update') !== false) {
-        continue;
-    }
-    if (str_starts_with($message, 'tools:') || str_starts_with($message, 'style:') || str_starts_with($message, 'docs:')) {
-        continue;
-    }
-    if (str_starts_with($message, 'Merge branch')) {
-        continue;
-    }
-
-    if (strpos($content, $shortHash) === false) {
-        $missingCommits[] = "$shortHash - $message";
-    }
-}
-
-if (!empty($missingCommits)) {
-    $warnings[] = "Найдены недавние коммиты, которых НЕТ в CHANGELOG (последние 30):\n   - " . implode("\n   - ", $missingCommits);
-}
-
-if (!empty($errors)) {
-    echo "\n❌ Найдены ошибки:\n";
-    foreach ($errors as $error) {
-        echo "   - $error\n";
-    }
-}
-
-if (!empty($warnings)) {
-    echo "\n⚠️  Предупреждения:\n";
-    foreach ($warnings as $warning) {
-        echo "   - $warning\n";
-    }
-}
-
-if (empty($errors)) {
-    echo "\n✅ Структура CHANGELOG и хеши валидны.\n";
-}
-
-if (!empty($errors)) {
-    exit(1);
-}
+(new ChangelogValidator(__DIR__ . '/..'))->run();
