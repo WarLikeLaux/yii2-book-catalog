@@ -42,11 +42,11 @@ use app\infrastructure\services\notifications\FlashNotificationService;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\storage\LocalFileStorage;
 use app\infrastructure\services\YiiPsrLogger;
-use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\authors\validators\UniqueFioValidator;
 use app\presentation\books\validators\AuthorExistsValidator;
 use app\presentation\books\validators\IsbnValidator;
-use app\presentation\authors\validators\UniqueFioValidator;
 use app\presentation\books\validators\UniqueIsbnValidator;
+use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use Psr\Log\LoggerInterface;
 
 return [
