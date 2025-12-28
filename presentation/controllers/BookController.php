@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace app\presentation\controllers;
 
 use app\application\common\dto\PaginationRequest;
-use app\presentation\filters\IdempotencyFilter;
-use app\presentation\forms\BookForm;
-use app\presentation\services\books\BookCommandService;
-use app\presentation\services\books\BookViewService;
+use app\presentation\books\forms\BookForm;
+use app\presentation\books\handlers\BookCommandHandler;
+use app\presentation\books\handlers\BookViewDataFactory;
+use app\presentation\common\filters\IdempotencyFilter;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -20,8 +20,8 @@ final class BookController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly BookCommandService $commandService,
-        private readonly BookViewService $viewService,
+        private readonly BookCommandHandler $commandHandler,
+        private readonly BookViewDataFactory $viewDataFactory,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -57,7 +57,7 @@ final class BookController extends Controller
             $this->request->get('pageSize')
         );
 
-        $dataProvider = $this->viewService->getIndexDataProvider(
+        $dataProvider = $this->viewDataFactory->getIndexDataProvider(
             $pagination->page,
             $pagination->limit
         );
@@ -69,7 +69,7 @@ final class BookController extends Controller
 
     public function actionView(int $id): string
     {
-        $book = $this->viewService->getBookView($id);
+        $book = $this->viewDataFactory->getBookView($id);
 
         return $this->render('view', [
             'book' => $book,
@@ -90,14 +90,14 @@ final class BookController extends Controller
             }
 
             if ($form->validate()) {
-                $bookId = $this->commandService->createBook($form);
+                $bookId = $this->commandHandler->createBook($form);
                 if ($bookId !== null) {
                     return $this->redirect(['view', 'id' => $bookId]);
                 }
             }
         }
 
-        $authors = $this->viewService->getAuthorsList();
+        $authors = $this->viewDataFactory->getAuthorsList();
 
         return $this->render('create', [
             'model' => $form,
@@ -110,7 +110,7 @@ final class BookController extends Controller
      */
     public function actionUpdate(int $id): string|Response|array
     {
-        $form = $this->viewService->getBookForUpdate($id);
+        $form = $this->viewDataFactory->getBookForUpdate($id);
 
         if ($this->request->isPost && $form->loadFromRequest($this->request)) {
             if ($this->request->isAjax) {
@@ -119,15 +119,15 @@ final class BookController extends Controller
             }
 
             if ($form->validate()) {
-                $success = $this->commandService->updateBook($id, $form);
+                $success = $this->commandHandler->updateBook($id, $form);
                 if ($success) {
                     return $this->redirect(['view', 'id' => $id]);
                 }
             }
         }
 
-        $authors = $this->viewService->getAuthorsList();
-        $bookDto = $this->viewService->getBookView($id);
+        $authors = $this->viewDataFactory->getAuthorsList();
+        $bookDto = $this->viewDataFactory->getBookView($id);
 
         return $this->render('update', [
             'model' => $form,
@@ -138,7 +138,7 @@ final class BookController extends Controller
 
     public function actionDelete(int $id): Response
     {
-        $this->commandService->deleteBook($id);
+        $this->commandHandler->deleteBook($id);
         return $this->redirect(['index']);
     }
 }

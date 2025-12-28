@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace app\presentation\controllers\api;
 
 use app\application\common\dto\PaginationRequest;
-use app\presentation\filters\IdempotencyFilter;
-use app\presentation\services\books\BookViewService;
+use app\presentation\books\handlers\BookViewDataFactory;
+use app\presentation\common\filters\IdempotencyFilter;
 use OpenApi\Attributes as OA;
 use yii\data\DataProviderInterface;
 use yii\filters\AccessControl;
@@ -19,7 +19,7 @@ final class BookController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly BookViewService $viewService,
+        private readonly BookViewDataFactory $viewDataFactory,
         array $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -83,7 +83,7 @@ final class BookController extends Controller
             $this->request->get('pageSize')
         );
 
-        return $this->viewService->getIndexDataProvider(
+        return $this->viewDataFactory->getIndexDataProvider(
             $pagination->page,
             $pagination->limit
         );

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\presentation\filters\IdempotencyFilter;
-use app\presentation\forms\SubscriptionForm;
-use app\presentation\services\subscriptions\SubscriptionCommandService;
-use app\presentation\services\subscriptions\SubscriptionViewService;
+use app\presentation\common\filters\IdempotencyFilter;
+use app\presentation\subscriptions\forms\SubscriptionForm;
+use app\presentation\subscriptions\handlers\SubscriptionCommandHandler;
+use app\presentation\subscriptions\handlers\SubscriptionViewDataFactory;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -18,8 +18,8 @@ final class SubscriptionController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly SubscriptionCommandService $commandService,
-        private readonly SubscriptionViewService $viewService,
+        private readonly SubscriptionCommandHandler $commandHandler,
+        private readonly SubscriptionViewDataFactory $viewDataFactory,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -61,7 +61,7 @@ final class SubscriptionController extends Controller
         $form = new SubscriptionForm();
 
         if ($form->load((array)$this->request->post()) && $form->validate()) {
-            return $this->commandService->subscribe($form);
+            return $this->commandHandler->subscribe($form);
         }
 
         return ['success' => false, 'errors' => $form->errors];
@@ -69,7 +69,7 @@ final class SubscriptionController extends Controller
 
     public function actionForm(int $authorId): string
     {
-        $author = $this->viewService->getAuthor($authorId);
+        $author = $this->viewDataFactory->getAuthor($authorId);
         $form = new SubscriptionForm();
 
         return $this->renderAjax('_form', [
