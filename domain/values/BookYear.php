@@ -6,7 +6,7 @@ namespace app\domain\values;
 
 use app\domain\exceptions\DomainException;
 
-final readonly class BookYear
+final readonly class BookYear implements \Stringable
 {
     public function __construct(
         public int $value
@@ -20,5 +20,15 @@ final readonly class BookYear
         if ($this->value > $currentYear + 1) {
             throw new DomainException('year.error.future');
         }
+    }
+
+    public function __toString(): string
+    {
+        return (string)$this->value;
+    }
+
+    public function equals(self $other): bool
+    {
+        return $this->value === $other->value;
     }
 }

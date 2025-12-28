@@ -45,4 +45,11 @@ return [
     'Failed to save author' => 'Не удалось сохранить автора',
     'Failed to delete book' => 'Не удалось удалить книгу',
     'Failed to delete author' => 'Не удалось удалить автора',
+    'author.error.fio_empty' => 'ФИО автора не может быть пустым',
+    'author.error.fio_too_short' => 'ФИО автора слишком короткое',
+    'author.error.fio_too_long' => 'ФИО автора слишком длинное',
+    'book.error.title_empty' => 'Название книги не может быть пустым',
+    'book.error.title_too_long' => 'Название книги слишком длинное',
+    'Invalid author ID' => 'Некорректный ID автора',
+    'Author does not exist' => 'Автор не существует',
 ];

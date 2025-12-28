@@ -37,4 +37,26 @@ final class BookYearTest extends Unit
         $this->expectExceptionMessage('year.error.future');
         new BookYear($futureYear);
     }
+
+    public function testToStringReturnsValueAsString(): void
+    {
+        $year = new BookYear(2023);
+        $this->assertSame('2023', (string)$year);
+    }
+
+    public function testEqualsReturnsTrueForSameYear(): void
+    {
+        $year1 = new BookYear(2023);
+        $year2 = new BookYear(2023);
+
+        $this->assertTrue($year1->equals($year2));
+    }
+
+    public function testEqualsReturnsFalseForDifferentYear(): void
+    {
+        $year1 = new BookYear(2023);
+        $year2 = new BookYear(2024);
+
+        $this->assertFalse($year1->equals($year2));
+    }
 }

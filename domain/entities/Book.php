@@ -11,6 +11,8 @@ use RuntimeException;
 
 final class Book
 {
+    private const int MAX_TITLE_LENGTH = 255;
+
     /** @var int[] */
     private array $authorIds = [];
 
@@ -27,7 +29,21 @@ final class Book
         array $authorIds = [],
         private bool $published = false
     ) {
+        $this->validateTitle($title);
         $this->authorIds = array_map(intval(...), $authorIds);
+    }
+
+    private function validateTitle(string $title): void
+    {
+        $trimmed = trim($title);
+
+        if ($trimmed === '') {
+            throw new DomainException('book.error.title_empty');
+        }
+
+        if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
+            throw new DomainException('book.error.title_too_long');
+        }
     }
 
     public static function create(
@@ -57,6 +73,8 @@ final class Book
         ?string $description,
         ?string $coverUrl
     ): void {
+        $this->validateTitle($title);
+
         if ($this->published && !$this->isbn->equals($isbn)) {
             throw new DomainException('book.error.isbn_change_published');
         }

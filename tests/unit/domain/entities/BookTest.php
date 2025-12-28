@@ -135,4 +135,48 @@ final class BookTest extends Unit
 
         $this->assertSame('New Title', $book->getTitle());
     }
+
+    public function testThrowsExceptionOnEmptyTitle(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.title_empty');
+
+        Book::create('', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+    }
+
+    public function testThrowsExceptionOnWhitespaceOnlyTitle(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.title_empty');
+
+        Book::create('   ', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+    }
+
+    public function testThrowsExceptionOnTooLongTitle(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.title_too_long');
+
+        Book::create(str_repeat('A', 256), new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+    }
+
+    public function testUpdateThrowsExceptionOnEmptyTitle(): void
+    {
+        $book = Book::create('Valid Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.title_empty');
+
+        $book->update('', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+    }
+
+    public function testUpdateThrowsExceptionOnTooLongTitle(): void
+    {
+        $book = Book::create('Valid Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.title_too_long');
+
+        $book->update(str_repeat('X', 256), new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+    }
 }
