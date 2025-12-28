@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\subscriptions\forms;
 
-use app\infrastructure\persistence\Author;
+use app\presentation\subscriptions\validators\AuthorExistsValidator;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
@@ -25,7 +25,7 @@ final class SubscriptionForm extends Model
         return [
             [['phone', 'authorId'], 'required'],
             [['authorId'], 'integer'],
-            [['authorId'], 'exist', 'targetClass' => Author::class, 'targetAttribute' => 'id'],
+            [['authorId'], AuthorExistsValidator::class],
             [['phone'], 'trim'],
             [['phone'], 'string', 'max' => 20],
             [['phone'], 'validatePhone'],
