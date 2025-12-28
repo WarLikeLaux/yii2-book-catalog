@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\infrastructure\services;
 
+use app\infrastructure\services\observability\RequestIdProvider;
 use yii\helpers\Json;
 use yii\log\Logger;
 use yii\log\Target;
@@ -37,6 +38,7 @@ final class BuggregatorLogTarget extends Target
                 'context' => [
                     'category' => $category,
                     'memory' => round(memory_get_usage() / 1024 / 1024, 2) . 'MB',
+                    'request_id' => RequestIdProvider::get(),
                 ],
                 'level' => $this->getMonologLevel($level),
                 'level_name' => Logger::getLevelName($level),

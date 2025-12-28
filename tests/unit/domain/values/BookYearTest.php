@@ -19,7 +19,7 @@ final class BookYearTest extends Unit
     public function testThrowsExceptionOnTooOldYear(): void
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Invalid year: must be greater than 1000');
+        $this->expectExceptionMessage('year.error.too_old');
         new BookYear(1000);
     }
 
@@ -34,7 +34,7 @@ final class BookYearTest extends Unit
     {
         $futureYear = (int)date('Y') + 2;
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Invalid year: cannot be in the future');
+        $this->expectExceptionMessage('year.error.future');
         new BookYear($futureYear);
     }
 }

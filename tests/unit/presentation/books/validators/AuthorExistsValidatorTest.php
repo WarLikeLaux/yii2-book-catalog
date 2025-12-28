@@ -16,14 +16,14 @@ final class AuthorExistsValidatorTest extends Unit
     {
         $repository = $this->createMock(AuthorRepositoryInterface::class);
         $repository->method('findById')->willReturn(new AuthorReadDto(1, 'Author'));
-        
+
         $validator = new AuthorExistsValidator($repository);
-        
+
         $form = new BookForm();
         $form->authorIds = [1, 2, 3];
-        
+
         $validator->validateAttribute($form, 'authorIds');
-        
+
         $this->assertFalse($form->hasErrors('authorIds'));
     }
 
@@ -31,14 +31,14 @@ final class AuthorExistsValidatorTest extends Unit
     {
         $repository = $this->createMock(AuthorRepositoryInterface::class);
         $repository->method('findById')->willReturn(null);
-        
+
         $validator = new AuthorExistsValidator($repository);
-        
+
         $form = new BookForm();
         $form->authorIds = [999];
-        
+
         $validator->validateAttribute($form, 'authorIds');
-        
+
         $this->assertTrue($form->hasErrors('authorIds'));
     }
 
@@ -46,12 +46,12 @@ final class AuthorExistsValidatorTest extends Unit
     {
         $repository = $this->createMock(AuthorRepositoryInterface::class);
         $repository->expects($this->never())->method('findById');
-        
+
         $validator = new AuthorExistsValidator($repository);
-        
+
         $form = new BookForm();
         $form->authorIds = 'not-an-array';
-        
+
         $validator->validateAttribute($form, 'authorIds');
     }
 
@@ -61,14 +61,14 @@ final class AuthorExistsValidatorTest extends Unit
         $repository->method('findById')
             ->with(1)
             ->willReturn(new AuthorReadDto(1, 'Author'));
-        
+
         $validator = new AuthorExistsValidator($repository);
-        
+
         $form = new BookForm();
         $form->authorIds = ['1'];
-        
+
         $validator->validateAttribute($form, 'authorIds');
-        
+
         $this->assertFalse($form->hasErrors('authorIds'));
     }
 }

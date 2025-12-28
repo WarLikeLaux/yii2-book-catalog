@@ -9,7 +9,9 @@ use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
+use app\application\ports\TranslatorInterface;
 use app\domain\entities\Book as BookEntity;
+use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
@@ -19,13 +21,21 @@ use RuntimeException;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
 use yii\db\Expression;
+use yii\db\IntegrityException;
 use yii\db\Query;
 
 /**
  * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
  */
-final class BookRepository implements BookRepositoryInterface
+final readonly class BookRepository implements BookRepositoryInterface
 {
+    use DatabaseExceptionHandlerTrait;
+
+    public function __construct(
+        private TranslatorInterface $translator
+    ) {
+    }
+
     public function save(BookEntity $book): void
     {
         if ($book->getId() === null) {
@@ -33,7 +43,7 @@ final class BookRepository implements BookRepositoryInterface
         } else {
             $ar = Book::findOne($book->getId());
             if ($ar === null) {
-                throw new RuntimeException('Book record not found for update');
+                throw new EntityNotFoundException($this->translator->translate('app', 'Book not found'));
             }
         }
 
@@ -43,10 +53,22 @@ final class BookRepository implements BookRepositoryInterface
         $ar->description = $book->getDescription();
         $ar->cover_url = $book->getCoverUrl();
 
-        if (!$ar->save()) {
-            $errors = $ar->getFirstErrors();
-            $message = $errors !== [] ? array_shift($errors) : 'Failed to save book';
-            throw new RuntimeException($message);
+        try {
+            if (!$ar->save()) {
+                $errors = $ar->getFirstErrors();
+                $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'Failed to save book');
+                throw new RuntimeException($message);
+            }
+        } catch (IntegrityException $e) {
+            if ($this->isDuplicateError($e)) {
+                $message = $this->translator->translate(
+                    'app',
+                    'Book with ISBN {isbn} already exists',
+                    ['isbn' => $book->getIsbn()->value]
+                );
+                throw new AlreadyExistsException($message, 409, $e);
+            }
+            throw $e;
         }
 
         if ($book->getId() === null) {
@@ -60,7 +82,7 @@ final class BookRepository implements BookRepositoryInterface
     {
         $ar = Book::find()->where(['id' => $id])->with('authors')->one();
         if ($ar === null) {
-            throw new EntityNotFoundException('Book not found');
+            throw new EntityNotFoundException($this->translator->translate('app', 'Book not found'));
         }
 
         /** @var Author[] $authors */
@@ -82,11 +104,11 @@ final class BookRepository implements BookRepositoryInterface
     {
         $ar = Book::findOne($book->getId());
         if ($ar === null) {
-            throw new EntityNotFoundException('Book not found');
+            throw new EntityNotFoundException($this->translator->translate('app', 'Book not found'));
         }
 
         if ($ar->delete() === false) {
-            throw new RuntimeException('Failed to delete book');
+            throw new RuntimeException($this->translator->translate('app', 'Failed to delete book'));
         }
     }
 

@@ -15,14 +15,14 @@ final class UniqueIsbnValidatorTest extends Unit
     {
         $repository = $this->createMock(BookRepositoryInterface::class);
         $repository->method('existsByIsbn')->willReturn(false);
-        
+
         $validator = new UniqueIsbnValidator($repository);
-        
+
         $form = new BookForm();
         $form->isbn = '9783161484100';
-        
+
         $validator->validateAttribute($form, 'isbn');
-        
+
         $this->assertFalse($form->hasErrors('isbn'));
     }
 
@@ -30,14 +30,14 @@ final class UniqueIsbnValidatorTest extends Unit
     {
         $repository = $this->createMock(BookRepositoryInterface::class);
         $repository->method('existsByIsbn')->willReturn(true);
-        
+
         $validator = new UniqueIsbnValidator($repository);
-        
+
         $form = new BookForm();
         $form->isbn = '9783161484100';
-        
+
         $validator->validateAttribute($form, 'isbn');
-        
+
         $this->assertTrue($form->hasErrors('isbn'));
     }
 
@@ -45,12 +45,12 @@ final class UniqueIsbnValidatorTest extends Unit
     {
         $repository = $this->createMock(BookRepositoryInterface::class);
         $repository->expects($this->never())->method('existsByIsbn');
-        
+
         $validator = new UniqueIsbnValidator($repository);
-        
+
         $form = new BookForm();
         $form->isbn = 123;
-        
+
         $validator->validateAttribute($form, 'isbn');
     }
 
@@ -60,15 +60,15 @@ final class UniqueIsbnValidatorTest extends Unit
         $repository->method('existsByIsbn')
             ->with('9783161484100', 42)
             ->willReturn(false);
-        
+
         $validator = new UniqueIsbnValidator($repository);
-        
+
         $form = new BookForm();
         $form->id = 42;
         $form->isbn = '9783161484100';
-        
+
         $validator->validateAttribute($form, 'isbn');
-        
+
         $this->assertFalse($form->hasErrors('isbn'));
     }
 

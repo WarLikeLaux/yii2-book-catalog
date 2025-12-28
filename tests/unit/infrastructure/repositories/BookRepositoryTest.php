@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\tests\unit\infrastructure\repositories;
 
+use app\application\ports\TranslatorInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
@@ -20,7 +21,9 @@ final class BookRepositoryTest extends Unit
 
     protected function _before(): void
     {
-        $this->repository = new BookRepository();
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('translate')->willReturnArgument(1);
+        $this->repository = new BookRepository($translator);
         Book::deleteAll();
         Author::deleteAll();
     }

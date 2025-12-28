@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace app\tests\unit\infrastructure\repositories;
 
+use app\application\ports\TranslatorInterface;
 use app\domain\entities\Author as AuthorEntity;
 use app\domain\exceptions\EntityNotFoundException;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\repositories\AuthorRepository;
 use Codeception\Test\Unit;
+use PHPUnit\Framework\MockObject\MockObject;
 
 final class AuthorRepositoryTest extends Unit
 {
     private AuthorRepository $repository;
+    private TranslatorInterface&MockObject $translator;
 
     protected function _before(): void
     {
-        $this->repository = new AuthorRepository();
+        $this->translator = $this->createMock(TranslatorInterface::class);
+        $this->translator->method('translate')->willReturnCallback(
+            fn(string $category, string $message): string => $message
+        );
+        $this->repository = new AuthorRepository($this->translator);
         Author::deleteAll();
     }
 

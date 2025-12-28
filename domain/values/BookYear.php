@@ -14,11 +14,11 @@ final readonly class BookYear
         $currentYear = (int)date('Y');
 
         if ($this->value <= 1000) {
-            throw new DomainException('Invalid year: must be greater than 1000.');
+            throw new DomainException('year.error.too_old');
         }
 
         if ($this->value > $currentYear + 1) {
-            throw new DomainException('Invalid year: cannot be in the future.');
+            throw new DomainException('year.error.future');
         }
     }
 }

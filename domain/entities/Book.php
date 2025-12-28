@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\domain\entities;
 
+use app\domain\exceptions\DomainException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use RuntimeException;
@@ -23,7 +24,8 @@ final class Book
         private Isbn $isbn,
         private ?string $description,
         private ?string $coverUrl,
-        array $authorIds = []
+        array $authorIds = [],
+        private bool $published = false
     ) {
         $this->authorIds = array_map(intval(...), $authorIds);
     }
@@ -45,6 +47,9 @@ final class Book
         );
     }
 
+    /**
+     * @throws DomainException
+     */
     public function update(
         string $title,
         BookYear $year,
@@ -52,6 +57,10 @@ final class Book
         ?string $description,
         ?string $coverUrl
     ): void {
+        if ($this->published && !$this->isbn->equals($isbn)) {
+            throw new DomainException('book.error.isbn_change_published');
+        }
+
         $this->title = $title;
         $this->year = $year;
         $this->isbn = $isbn;
@@ -118,5 +127,21 @@ final class Book
     public function getAuthorIds(): array
     {
         return $this->authorIds;
+    }
+
+    /**
+     * @throws DomainException
+     */
+    public function publish(): void
+    {
+        if ($this->authorIds === []) {
+            throw new DomainException('book.error.publish_without_authors');
+        }
+        $this->published = true;
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->published;
     }
 }

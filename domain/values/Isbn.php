@@ -15,7 +15,7 @@ final readonly class Isbn implements \Stringable
         $normalized = $this->normalizeIsbn($value);
 
         if (!$this->isValidIsbn($normalized)) {
-            throw new DomainException('Invalid ISBN format.');
+            throw new DomainException('isbn.error.invalid_format');
         }
 
         $this->value = $normalized;
@@ -33,6 +33,11 @@ final readonly class Isbn implements \Stringable
     public function __toString(): string
     {
         return $this->value;
+    }
+
+    public function equals(self $other): bool
+    {
+        return $this->value === $other->value;
     }
 
     private function normalizeIsbn(string $isbn): string

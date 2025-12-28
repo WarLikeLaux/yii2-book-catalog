@@ -29,11 +29,12 @@ $config = [
             'savePath' => '@runtime/sessions',
         ],
         'response' => [
-            'on beforeSend' => function ($event) {
+            'on beforeSend' => static function ($event): void {
                 $event->sender->headers->add('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;");
                 $event->sender->headers->add('X-Frame-Options', 'SAMEORIGIN');
                 $event->sender->headers->add('X-Content-Type-Options', 'nosniff');
                 $event->sender->headers->add('Referrer-Policy', 'strict-origin-when-cross-origin');
+                $event->sender->headers->add('X-Request-Id', \app\infrastructure\services\observability\RequestIdProvider::get());
             },
         ],
         'redis' => [
@@ -75,6 +76,7 @@ $config = [
                 [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
+                    'prefix' => static fn () => '[req:' . \app\infrastructure\services\observability\RequestIdProvider::get() . ']',
                 ],
                 [
                     'class' => 'yii\log\FileTarget',
@@ -82,6 +84,7 @@ $config = [
                     'levels' => ['info', 'error'],
                     'logFile' => '@runtime/logs/sms.log',
                     'logVars' => [],
+                    'prefix' => static fn () => '[req:' . \app\infrastructure\services\observability\RequestIdProvider::get() . ']',
                 ],
                 YII_ENV_DEV ? [
                     'class' => 'app\infrastructure\services\BuggregatorLogTarget',

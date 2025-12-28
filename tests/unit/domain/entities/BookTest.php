@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace tests\unit\domain\entities;
 
 use app\domain\entities\Book;
+use app\domain\exceptions\DomainException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use Codeception\Test\Unit;
@@ -64,13 +65,74 @@ final class BookTest extends Unit
     public function testSetId(): void
     {
         $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
-        
+
         $book->setId(100);
         $this->assertSame(100, $book->getId());
-        
+
         $book->setId(100);
-        
+
         $this->expectException(\RuntimeException::class);
         $book->setId(200);
+    }
+
+    public function testIsPublishedReturnsFalseByDefault(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+
+        $this->assertFalse($book->isPublished());
+    }
+
+    public function testPublishWithAuthorsSucceeds(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+        $book->syncAuthors([1, 2]);
+
+        $book->publish();
+
+        $this->assertTrue($book->isPublished());
+    }
+
+    public function testPublishWithoutAuthorsThrowsDomainException(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_authors');
+
+        $book->publish();
+    }
+
+    public function testUpdateIsbnOnPublishedBookThrowsDomainException(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+        $book->syncAuthors([1]);
+        $book->publish();
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.isbn_change_published');
+
+        $book->update('Title', new BookYear(2023), new Isbn('979-10-90636-07-1'), null, null);
+    }
+
+    public function testUpdateIsbnOnDraftBookSucceeds(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+        $newIsbn = new Isbn('979-10-90636-07-1');
+
+        $book->update('Title', new BookYear(2023), $newIsbn, null, null);
+
+        $this->assertTrue($book->getIsbn()->equals($newIsbn));
+    }
+
+    public function testUpdateSameIsbnOnPublishedBookSucceeds(): void
+    {
+        $isbn = new Isbn('978-3-16-148410-0');
+        $book = Book::create('Title', new BookYear(2023), $isbn, null, null);
+        $book->syncAuthors([1]);
+        $book->publish();
+
+        $book->update('New Title', new BookYear(2024), new Isbn('978-3-16-148410-0'), 'Desc', null);
+
+        $this->assertSame('New Title', $book->getTitle());
     }
 }

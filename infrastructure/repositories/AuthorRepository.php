@@ -9,16 +9,26 @@ use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\PagedResultInterface;
+use app\application\ports\TranslatorInterface;
 use app\domain\entities\Author as AuthorEntity;
+use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
 use app\infrastructure\persistence\Author;
 use yii\data\ActiveDataProvider;
+use yii\db\IntegrityException;
 
 /**
  * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
  */
-final class AuthorRepository implements AuthorRepositoryInterface
+final readonly class AuthorRepository implements AuthorRepositoryInterface
 {
+    use DatabaseExceptionHandlerTrait;
+
+    public function __construct(
+        private TranslatorInterface $translator
+    ) {
+    }
+
     public function findById(int $id): ?AuthorReadDto
     {
         $author = Author::findOne($id);
@@ -39,15 +49,26 @@ final class AuthorRepository implements AuthorRepositoryInterface
         } else {
             $ar = Author::findOne($author->getId());
             if ($ar === null) {
-                throw new EntityNotFoundException('Author not found');
+                throw new EntityNotFoundException($this->translator->translate('app', 'Author not found'));
             }
             $ar->edit($author->getFio());
         }
 
-        if (!$ar->save()) {
-            $errors = $ar->getFirstErrors();
-            $message = $errors !== [] ? array_shift($errors) : 'Failed to save author';
-            throw new \RuntimeException($message);
+        try {
+            if (!$ar->save()) {
+                $errors = $ar->getFirstErrors();
+                $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'Failed to save author');
+                throw new \RuntimeException($message);
+            }
+        } catch (IntegrityException $e) {
+            if ($this->isDuplicateError($e)) {
+                $message = $this->translator->translate(
+                    'app',
+                    'Author with this FIO already exists'
+                );
+                throw new AlreadyExistsException($message, 409, $e);
+            }
+            throw $e;
         }
 
         if ($author->getId() !== null) {
@@ -61,7 +82,7 @@ final class AuthorRepository implements AuthorRepositoryInterface
     {
         $ar = Author::findOne($id);
         if ($ar === null) {
-            throw new EntityNotFoundException('Author not found');
+            throw new EntityNotFoundException($this->translator->translate('app', 'Author not found'));
         }
 
         return new AuthorEntity(
@@ -74,11 +95,11 @@ final class AuthorRepository implements AuthorRepositoryInterface
     {
         $ar = Author::findOne($author->getId());
         if ($ar === null) {
-            throw new EntityNotFoundException('Author not found');
+            throw new EntityNotFoundException($this->translator->translate('app', 'Author not found'));
         }
 
         if ($ar->delete() === false) {
-            throw new \RuntimeException('Failed to delete author');
+            throw new \RuntimeException($this->translator->translate('app', 'Failed to delete author'));
         }
     }
 

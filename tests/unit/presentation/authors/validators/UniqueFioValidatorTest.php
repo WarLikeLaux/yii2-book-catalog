@@ -15,14 +15,14 @@ final class UniqueFioValidatorTest extends Unit
     {
         $repository = $this->createMock(AuthorRepositoryInterface::class);
         $repository->method('existsByFio')->willReturn(false);
-        
+
         $validator = new UniqueFioValidator($repository);
-        
+
         $form = new AuthorForm();
         $form->fio = 'Unique Author Name';
-        
+
         $validator->validateAttribute($form, 'fio');
-        
+
         $this->assertFalse($form->hasErrors('fio'));
     }
 
@@ -30,14 +30,14 @@ final class UniqueFioValidatorTest extends Unit
     {
         $repository = $this->createMock(AuthorRepositoryInterface::class);
         $repository->method('existsByFio')->willReturn(true);
-        
+
         $validator = new UniqueFioValidator($repository);
-        
+
         $form = new AuthorForm();
         $form->fio = 'Existing Author';
-        
+
         $validator->validateAttribute($form, 'fio');
-        
+
         $this->assertTrue($form->hasErrors('fio'));
     }
 
@@ -45,12 +45,12 @@ final class UniqueFioValidatorTest extends Unit
     {
         $repository = $this->createMock(AuthorRepositoryInterface::class);
         $repository->expects($this->never())->method('existsByFio');
-        
+
         $validator = new UniqueFioValidator($repository);
-        
+
         $form = new AuthorForm();
         $form->fio = 123;
-        
+
         $validator->validateAttribute($form, 'fio');
     }
 
@@ -60,15 +60,15 @@ final class UniqueFioValidatorTest extends Unit
         $repository->method('existsByFio')
             ->with('Author Name', 42)
             ->willReturn(false);
-        
+
         $validator = new UniqueFioValidator($repository);
-        
+
         $form = new AuthorForm();
         $form->id = 42;
         $form->fio = 'Author Name';
-        
+
         $validator->validateAttribute($form, 'fio');
-        
+
         $this->assertFalse($form->hasErrors('fio'));
     }
 

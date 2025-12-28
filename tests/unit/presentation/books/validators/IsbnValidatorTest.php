@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace tests\unit\presentation\books\validators;
 
 use app\presentation\books\validators\IsbnValidator;
-use app\application\ports\TranslatorInterface;
 use app\presentation\books\forms\BookForm;
 use Codeception\Test\Unit;
 use yii\base\Model;
@@ -16,10 +15,7 @@ final class IsbnValidatorTest extends Unit
 
     protected function _before(): void
     {
-        $translator = $this->makeEmpty(TranslatorInterface::class, [
-            'translate' => 'Некорректный ISBN',
-        ]);
-        $this->validator = new IsbnValidator($translator);
+        $this->validator = new IsbnValidator();
     }
 
     /**
@@ -50,7 +46,6 @@ final class IsbnValidatorTest extends Unit
         $this->validator->validateAttribute($model, 'isbn');
 
         $this->assertNotEmpty($model->getErrors(), "ISBN '$isbn' should be invalid");
-        $this->assertStringContainsString('Некорректный ISBN', $model->getFirstError('isbn'));
     }
 
     public function testValidateAttributeWithValidIsbnFromForm(): void

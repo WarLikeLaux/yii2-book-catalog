@@ -49,16 +49,20 @@ final class UseCaseExecutorTest extends Unit
 
     public function testExecuteHandlesDomainException(): void
     {
+        $this->translator->expects($this->once())
+            ->method('translate')
+            ->with('domain', 'domain.error.key')
+            ->willReturn('Translated error');
         $this->notifier->expects($this->once())
             ->method('error')
-            ->with('fail');
+            ->with('Translated error');
         $this->notifier->expects($this->never())
             ->method('success');
         $this->logger->expects($this->never())
             ->method('error');
 
         $result = $this->executor->execute(function (): void {
-            throw new DomainException('fail');
+            throw new DomainException('domain.error.key');
         }, 'ok');
 
         $this->assertFalse($result);

@@ -42,11 +42,6 @@ use app\infrastructure\services\notifications\FlashNotificationService;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\storage\LocalFileStorage;
 use app\infrastructure\services\YiiPsrLogger;
-use app\presentation\authors\validators\UniqueFioValidator;
-use app\presentation\books\validators\AuthorExistsValidator;
-use app\presentation\books\validators\IsbnValidator;
-use app\presentation\books\validators\UniqueIsbnValidator;
-use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use Psr\Log\LoggerInterface;
 
 return [
@@ -76,15 +71,6 @@ return [
         QueueInterface::class => static fn() => new YiiQueueAdapter(Yii::$app->get('queue')),
         CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
         EventPublisherInterface::class => YiiEventPublisherAdapter::class,
-
-        // Валидаторы (автоматически получают зависимости через конструктор)
-        UniqueFioValidator::class => UniqueFioValidator::class,
-        UniqueIsbnValidator::class => UniqueIsbnValidator::class,
-        AuthorExistsValidator::class => AuthorExistsValidator::class,
-        IsbnValidator::class => IsbnValidator::class,
-
-        // Фабрики
-        PagedResultDataProviderFactory::class => PagedResultDataProviderFactory::class,
     ],
     'singletons' => [
         // Все UseCases и QueryServices разрешаются автоматически через конструктор (Autowiring)

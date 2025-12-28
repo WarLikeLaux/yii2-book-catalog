@@ -35,10 +35,14 @@ final class UseCaseExecutorQueryTest extends Unit
 
     public function testQueryReturnsFallbackOnDomainException(): void
     {
-        $this->notifier->expects($this->once())->method('error')->with('domain error');
+        $this->translator->expects($this->once())
+            ->method('translate')
+            ->with('domain', 'domain.error.key')
+            ->willReturn('Translated domain error');
+        $this->notifier->expects($this->once())->method('error')->with('Translated domain error');
 
         $result = $this->executor->query(
-            fn() => throw new DomainException('domain error'),
+            fn() => throw new DomainException('domain.error.key'),
             'fallback',
             'error message'
         );
@@ -62,13 +66,18 @@ final class UseCaseExecutorQueryTest extends Unit
 
     public function testExecuteForApiReturnsDomainError(): void
     {
+        $this->translator->expects($this->once())
+            ->method('translate')
+            ->with('domain', 'domain.error.key')
+            ->willReturn('Translated domain error');
+
         $result = $this->executor->executeForApi(
-            fn() => throw new DomainException('domain fail'),
+            fn() => throw new DomainException('domain.error.key'),
             'success'
         );
 
         $this->assertFalse($result['success']);
-        $this->assertSame('domain fail', $result['message']);
+        $this->assertSame('Translated domain error', $result['message']);
     }
 
     public function testExecuteForApiReturnsGenericError(): void
