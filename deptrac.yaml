@@ -10,10 +10,15 @@ deptrac:
     - '#.*bootstrap.*#'
 
   layers:
-    - name: Domain
+    - name: DomainEntities
       collectors:
         - type: directory
-          value: domain/.*
+          value: domain/entities/.*
+
+    - name: DomainShared
+      collectors:
+        - type: directory
+          value: domain/(values|events|exceptions)/.*
     
     - name: Application
       collectors:
@@ -41,21 +46,27 @@ deptrac:
           value: ^(Ramsey\\|Psr\\|Symfony\\|Doctrine\\).*  
 
   ruleset:
-    Domain:
+    DomainEntities:
+      - DomainShared
+      - Vendor
+
+    DomainShared:
       - Vendor
     
     Application:
-      - Domain
+      - DomainEntities
+      - DomainShared
       - Vendor
     
     Infrastructure:
-      - Domain
+      - DomainEntities
+      - DomainShared
       - Application
       - Vendor
       - Framework
     
     Presentation:
-      - Domain
+      - DomainShared
       - Application
       - Vendor
       - Framework
