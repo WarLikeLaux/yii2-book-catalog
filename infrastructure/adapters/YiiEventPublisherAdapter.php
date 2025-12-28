@@ -24,9 +24,11 @@ final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
             return;
         }
 
-        // TODO: в проде лучше юзать Transactional Outbox. Иначе есть риск, что коммит отвалится,
-        // а джоба уже улетит (фантомное уведомление).
-        // Как вариант — хук 'afterCommit'.
+        /*
+         * TODO: в проде лучше юзать Transactional Outbox. Иначе есть риск, что коммит отвалится,
+         * а джоба уже улетит (фантомное уведомление).
+         * Как вариант — хук 'afterCommit'.
+         */
         $this->queue->push(new NotifySubscribersJob(
             $event->bookId,
             $event->title,

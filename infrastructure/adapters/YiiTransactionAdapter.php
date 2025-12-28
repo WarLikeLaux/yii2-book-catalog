@@ -10,9 +10,11 @@ use yii\db\Transaction;
 
 final class YiiTransactionAdapter implements TransactionInterface
 {
-    // TODO: адаптер хранит состояние ($transaction).
-    // В long-running процессах (Swoole/RoadRunner) убедитесь, что сервис не Singleton,
-    // или корректно сбрасывайте стейт.
+    /*
+     * TODO: адаптер хранит состояние ($transaction).
+     * В long-running процессах (Swoole/RoadRunner) убедитесь, что сервис не Singleton,
+     * или корректно сбрасывайте стейт.
+     */
     private Transaction|null $transaction = null;
 
     public function __construct(

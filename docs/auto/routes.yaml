@@ -1,7 +1,7 @@
 meta:
   title: "HTTP Routes"
   source: "generated"
-  updated_at: "2025-12-27T13:16:46+00:00"
+  updated_at: "2025-12-28T02:16:25+00:00"
 
 routes:
   - path: "/"
@@ -84,7 +84,6 @@ routes:
     controller: "SiteController"
     methods:
       - "GET"
-    view: "presentation/views/site/api.php"
   - path: "/site/login"
     action: "site/login"
     controller: "SiteController"
