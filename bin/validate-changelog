@@ -105,7 +105,7 @@ final class ChangelogValidator
     {
         echo "🔍 Проверка наличия коммитов...\n";
 
-        exec('git log --format="%h|%s" -n 30', $gitLog);
+        exec('git log --format="%h|%s" -n 100', $gitLog);
         $missingCommits = [];
 
         foreach ($gitLog as $logLine) {
@@ -124,7 +124,7 @@ final class ChangelogValidator
         }
 
         if (!empty($missingCommits)) {
-            $this->warnings[] = "Найдены недавние коммиты, которых НЕТ в CHANGELOG (последние 30):\n   - " . implode("\n   - ", $missingCommits);
+            $this->warnings[] = "Найдены недавние коммиты, которых НЕТ в CHANGELOG (последние 100):\n   - " . implode("\n   - ", $missingCommits);
         }
     }
 
