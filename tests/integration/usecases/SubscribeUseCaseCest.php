@@ -10,12 +10,12 @@ use app\infrastructure\persistence\Subscription;
 
 final class SubscribeUseCaseCest
 {
-    public function _before(\IntegrationTester $I): void
+    public function _before(IntegrationTester $I): void
     {
-        \Yii::$app->db->createCommand()->delete('subscriptions')->execute();
+        Yii::$app->db->createCommand()->delete('subscriptions')->execute();
     }
 
-    public function testCreatesSubscription(\IntegrationTester $I): void
+    public function testCreatesSubscription(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
 
@@ -24,7 +24,7 @@ final class SubscribeUseCaseCest
             authorId: $authorId
         );
 
-        $useCase = \Yii::$container->get(SubscribeUseCase::class);
+        $useCase = Yii::$container->get(SubscribeUseCase::class);
         $useCase->execute($command);
 
         $I->seeRecord(Subscription::class, [
@@ -33,7 +33,7 @@ final class SubscribeUseCaseCest
         ]);
     }
 
-    public function testPreventsDuplicateSubscription(\IntegrationTester $I): void
+    public function testPreventsDuplicateSubscription(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
         $I->haveRecord(Subscription::class, [
@@ -46,7 +46,7 @@ final class SubscribeUseCaseCest
             authorId: $authorId
         );
 
-        $useCase = \Yii::$container->get(SubscribeUseCase::class);
+        $useCase = Yii::$container->get(SubscribeUseCase::class);
 
         $I->expectThrowable(DomainException::class, function () use ($useCase, $command): void {
             $useCase->execute($command);
@@ -59,7 +59,7 @@ final class SubscribeUseCaseCest
         $I->assertEquals(1, $subscriptions, 'Should not create duplicate subscription');
     }
 
-    public function testAllowsSubscriptionToDifferentAuthors(\IntegrationTester $I): void
+    public function testAllowsSubscriptionToDifferentAuthors(IntegrationTester $I): void
     {
         $author1Id = $I->haveRecord(Author::class, ['fio' => 'Author 1']);
         $author2Id = $I->haveRecord(Author::class, ['fio' => 'Author 2']);
@@ -74,7 +74,7 @@ final class SubscribeUseCaseCest
             authorId: $author2Id
         );
 
-        $useCase = \Yii::$container->get(SubscribeUseCase::class);
+        $useCase = Yii::$container->get(SubscribeUseCase::class);
         $useCase->execute($command);
 
         $I->seeRecord(Subscription::class, [
@@ -83,4 +83,3 @@ final class SubscribeUseCaseCest
         ]);
     }
 }
-

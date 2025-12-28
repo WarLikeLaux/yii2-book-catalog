@@ -1,5 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
+use _generated\UnitTesterActions;
+use Codeception\Actor;
 
 /**
  * Inherited Methods
@@ -16,7 +20,7 @@
  *
  * @SuppressWarnings(PHPMD)
 */
-class UnitTester extends \Codeception\Actor
+class UnitTester extends Actor
 {
-    use _generated\UnitTesterActions;
+    use UnitTesterActions;
 }

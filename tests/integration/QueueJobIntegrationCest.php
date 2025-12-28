@@ -10,12 +10,12 @@ use app\infrastructure\persistence\User;
 
 final class QueueJobIntegrationCest
 {
-    public function _before(\IntegrationTester $I): void
+    public function _before(IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testSubscriptionRepositoryGetPhones(\IntegrationTester $I): void
+    public function testSubscriptionRepositoryGetPhones(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
         $I->haveRecord(Subscription::class, [
@@ -34,11 +34,11 @@ final class QueueJobIntegrationCest
             'description' => 'Test',
         ]);
 
-        \Yii::$app->db->createCommand()
+        Yii::$app->db->createCommand()
             ->insert('book_authors', ['book_id' => $bookId, 'author_id' => $authorId])
             ->execute();
 
-        $queryService = \Yii::$container->get(SubscriptionQueryService::class);
+        $queryService = Yii::$container->get(SubscriptionQueryService::class);
 
         $phones = iterator_to_array($queryService->getSubscriberPhonesForBook($bookId));
 

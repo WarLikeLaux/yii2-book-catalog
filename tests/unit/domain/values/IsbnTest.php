@@ -32,7 +32,7 @@ final class IsbnTest extends Unit
     public function testThrowsExceptionOnIsbn13WithPrefixGarbage(): void
     {
         $this->expectException(DomainException::class);
-        new Isbn('abc9783161484100'); 
+        new Isbn('abc9783161484100');
     }
 
     public function testThrowsExceptionOnIsbn13WithSuffixGarbage(): void

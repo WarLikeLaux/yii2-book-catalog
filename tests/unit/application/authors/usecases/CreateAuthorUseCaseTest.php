@@ -15,6 +15,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class CreateAuthorUseCaseTest extends Unit
 {
     private AuthorRepositoryInterface&MockObject $authorRepository;
+
     private CreateAuthorUseCase $useCase;
 
     protected function _before(): void

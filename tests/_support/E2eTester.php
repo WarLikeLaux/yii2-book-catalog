@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use _generated\E2eTesterActions;
+use Codeception\Actor;
+
 /**
  * @method void wantToTest($text)
  * @method void wantTo($text)
@@ -16,7 +19,7 @@ declare(strict_types=1);
  *
  * @SuppressWarnings(PHPMD)
  */
-class E2eTester extends \Codeception\Actor
+class E2eTester extends Actor
 {
-    use _generated\E2eTesterActions;
+    use E2eTesterActions;
 }

@@ -49,9 +49,9 @@ final class IdempotencyRepositoryTest extends Unit
     {
         $key = 'duplicate-key';
         $this->repository->saveResponse($key, 200, 'first', 3600);
-        
+
         $this->repository->saveResponse($key, 200, 'second', 3600);
-        
+
         $response = $this->repository->getResponse($key);
         $this->assertSame('first', $response['body']);
     }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
-use app\application\books\queries\BookReadDto;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\CacheInterface;
@@ -20,8 +19,11 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class UpdateBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
+
     private TransactionInterface&MockObject $transaction;
+
     private CacheInterface&MockObject $cache;
+
     private UpdateBookUseCase $useCase;
 
     protected function _before(): void
@@ -65,10 +67,8 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(function (Book $book) {
-                return $book->getTitle() === 'Updated Title'
-                    && $book->getAuthorIds() === [1, 2];
-            }));
+            ->with($this->callback(fn (Book $book) => $book->getTitle() === 'Updated Title'
+                    && $book->getAuthorIds() === [1, 2]));
 
         $this->useCase->execute($command);
     }

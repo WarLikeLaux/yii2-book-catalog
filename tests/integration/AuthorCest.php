@@ -42,12 +42,12 @@ final class AuthorCest
     public function testCreateDuplicateAuthor(IntegrationTester $I): void
     {
         $I->haveRecord(Author::class, ['fio' => 'Existing Author']);
-        
+
         $I->amOnRoute('author/create');
         $I->submitForm('.author-create form', [
             'AuthorForm[fio]' => 'Existing Author',
         ]);
-        
+
         $I->see('Автор с таким ФИО уже существует');
         $I->see('Создать автора');
     }

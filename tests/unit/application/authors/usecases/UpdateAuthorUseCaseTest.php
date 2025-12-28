@@ -16,6 +16,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class UpdateAuthorUseCaseTest extends Unit
 {
     private AuthorRepositoryInterface&MockObject $authorRepository;
+
     private UpdateAuthorUseCase $useCase;
 
     protected function _before(): void
@@ -37,9 +38,7 @@ final class UpdateAuthorUseCaseTest extends Unit
 
         $this->authorRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(function (Author $author) {
-                return $author->getId() === 42 && $author->getFio() === 'Новое ФИО';
-            }));
+            ->with($this->callback(fn (Author $author) => $author->getId() === 42 && $author->getFio() === 'Новое ФИО'));
 
         $this->useCase->execute($command);
     }

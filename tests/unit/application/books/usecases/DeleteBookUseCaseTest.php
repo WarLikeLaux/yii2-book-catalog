@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\DeleteBookCommand;
-use app\application\books\queries\BookReadDto;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\CacheInterface;
@@ -19,7 +18,9 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class DeleteBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
+
     private CacheInterface&MockObject $cache;
+
     private DeleteBookUseCase $useCase;
 
     protected function _before(): void

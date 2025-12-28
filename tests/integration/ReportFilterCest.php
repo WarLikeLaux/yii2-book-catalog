@@ -8,12 +8,12 @@ use app\infrastructure\persistence\User;
 
 final class ReportFilterCest
 {
-    public function _before(\IntegrationTester $I): void
+    public function _before(IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testReportWithYearFilter(\IntegrationTester $I): void
+    public function testReportWithYearFilter(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Report Author']);
         $bookId = $I->haveRecord(Book::class, [
@@ -22,7 +22,7 @@ final class ReportFilterCest
             'isbn' => '9783161484100',
             'description' => 'Test',
         ]);
-        \Yii::$app->db->createCommand()
+        Yii::$app->db->createCommand()
             ->insert('book_authors', ['book_id' => $bookId, 'author_id' => $authorId])
             ->execute();
 
@@ -31,7 +31,7 @@ final class ReportFilterCest
         $I->see('Report Author');
     }
 
-    public function testReportWithoutFilter(\IntegrationTester $I): void
+    public function testReportWithoutFilter(IntegrationTester $I): void
     {
         $I->amOnRoute('report/index');
         $I->seeResponseCodeIs(200);

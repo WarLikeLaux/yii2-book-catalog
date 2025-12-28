@@ -13,6 +13,7 @@ use yii\db\Transaction;
 final class YiiTransactionAdapterTest extends Unit
 {
     private Connection&MockObject $db;
+
     private YiiTransactionAdapter $adapter;
 
     protected function _before(): void
@@ -33,7 +34,7 @@ final class YiiTransactionAdapterTest extends Unit
 
     public function testCommitThrowsExceptionWhenNotStarted(): void
     {
-        $this->expectException("RuntimeException"::class);
+        $this->expectException('RuntimeException'::class);
         $this->expectExceptionMessage('Transaction not started');
 
         $this->adapter->commit();
@@ -41,7 +42,7 @@ final class YiiTransactionAdapterTest extends Unit
 
     public function testRollbackThrowsExceptionWhenNotStarted(): void
     {
-        $this->expectException("RuntimeException"::class);
+        $this->expectException('RuntimeException'::class);
         $this->expectExceptionMessage('Transaction not started');
 
         $this->adapter->rollback();
@@ -51,7 +52,7 @@ final class YiiTransactionAdapterTest extends Unit
     {
         $transaction = $this->createMock(Transaction::class);
         $transaction->expects($this->once())->method('commit');
-        
+
         $this->db->method('beginTransaction')->willReturn($transaction);
 
         $this->adapter->begin();
@@ -62,7 +63,7 @@ final class YiiTransactionAdapterTest extends Unit
     {
         $transaction = $this->createMock(Transaction::class);
         $transaction->expects($this->once())->method('rollBack');
-        
+
         $this->db->method('beginTransaction')->willReturn($transaction);
 
         $this->adapter->begin();

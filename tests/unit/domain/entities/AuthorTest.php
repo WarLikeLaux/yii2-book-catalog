@@ -13,10 +13,10 @@ final class AuthorTest extends Unit
     public function testCreateAndGetters(): void
     {
         $author = Author::create('Test FIO');
-        
+
         $this->assertNull($author->getId());
         $this->assertSame('Test FIO', $author->getFio());
-        
+
         $author->setId(123);
         $this->assertSame(123, $author->getId());
     }

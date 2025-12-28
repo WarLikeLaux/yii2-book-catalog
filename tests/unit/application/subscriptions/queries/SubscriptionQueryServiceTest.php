@@ -12,6 +12,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class SubscriptionQueryServiceTest extends Unit
 {
     private SubscriptionRepositoryInterface&MockObject $repository;
+
     private SubscriptionQueryService $service;
 
     protected function _before(): void

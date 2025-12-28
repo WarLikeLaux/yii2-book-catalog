@@ -14,9 +14,9 @@ final class QueryResultTest extends Unit
     {
         $models = [['id' => 1], ['id' => 2]];
         $pagination = new PaginationDto(1, 10, 2, 1);
-        
+
         $result = new QueryResult($models, 2, $pagination);
-        
+
         $this->assertSame($models, $result->getModels());
     }
 
@@ -24,7 +24,7 @@ final class QueryResultTest extends Unit
     {
         $pagination = new PaginationDto(1, 10, 42, 5);
         $result = new QueryResult([], 42, $pagination);
-        
+
         $this->assertSame(42, $result->getTotalCount());
     }
 
@@ -32,14 +32,14 @@ final class QueryResultTest extends Unit
     {
         $pagination = new PaginationDto(2, 15, 100, 7);
         $result = new QueryResult([], 100, $pagination);
-        
+
         $this->assertSame($pagination, $result->getPagination());
     }
 
     public function testGetPaginationNull(): void
     {
         $result = new QueryResult([], 0);
-        
+
         $this->assertNull($result->getPagination());
     }
 }

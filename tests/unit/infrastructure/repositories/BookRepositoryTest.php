@@ -17,6 +17,7 @@ use Codeception\Test\Unit;
 final class BookRepositoryTest extends Unit
 {
     protected \UnitTester $tester;
+
     private BookRepository $repository;
 
     protected function _before(): void
@@ -76,7 +77,7 @@ final class BookRepositoryTest extends Unit
 
         $this->repository->save($book);
         $bookId = $book->getId();
-        
+
         $dto = $this->repository->findByIdWithAuthors($bookId);
         $this->assertContains($authorId, $dto->authorIds);
     }

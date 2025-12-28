@@ -15,6 +15,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class AuthorRepositoryTest extends Unit
 {
     private AuthorRepository $repository;
+
     private TranslatorInterface&MockObject $translator;
 
     protected function _before(): void
@@ -31,13 +32,13 @@ final class AuthorRepositoryTest extends Unit
     {
         $author = AuthorEntity::create('Test Author');
         $this->repository->save($author);
-        
+
         $this->assertNotNull($author->getId());
 
         $fetched = $this->repository->get($author->getId());
         $this->assertNotNull($fetched);
         $this->assertSame('Test Author', $fetched->getFio());
-        
+
         $dto = $this->repository->findById($author->getId());
         $this->assertNotNull($dto);
         $this->assertSame('Test Author', $dto->fio);
@@ -59,7 +60,7 @@ final class AuthorRepositoryTest extends Unit
     {
         $author = AuthorEntity::create('To Delete');
         $this->repository->save($author);
-        
+
         $this->repository->delete($author);
 
         $this->expectException(EntityNotFoundException::class);
@@ -70,7 +71,7 @@ final class AuthorRepositoryTest extends Unit
     {
         $author = AuthorEntity::create('Existing');
         $this->repository->save($author);
-        
+
         $this->assertTrue($this->repository->existsByFio('Existing'));
         $this->assertFalse($this->repository->existsByFio('Non Existent'));
     }

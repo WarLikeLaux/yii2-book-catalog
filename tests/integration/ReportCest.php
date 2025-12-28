@@ -8,17 +8,17 @@ use app\infrastructure\persistence\User;
 
 final class ReportCest
 {
-    public function _before(\IntegrationTester $I): void
+    public function _before(IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
-        \Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
-        \Yii::$app->db->createCommand()->delete('book_authors')->execute();
-        \Yii::$app->db->createCommand()->delete('books')->execute();
-        \Yii::$app->db->createCommand()->delete('authors')->execute();
-        \Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
+        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
+        Yii::$app->db->createCommand()->delete('book_authors')->execute();
+        Yii::$app->db->createCommand()->delete('books')->execute();
+        Yii::$app->db->createCommand()->delete('authors')->execute();
+        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
     }
 
-    public function testCanViewReportPage(\IntegrationTester $I): void
+    public function testCanViewReportPage(IntegrationTester $I): void
     {
         $I->amOnRoute('report/index');
         $I->seeResponseCodeIs(200);
@@ -27,7 +27,7 @@ final class ReportCest
         $I->seeElement('input[name="year"]');
     }
 
-    public function testReportShowsAuthorsWithBooks(\IntegrationTester $I): void
+    public function testReportShowsAuthorsWithBooks(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Report Test Author']);
         $currentYear = (int)date('Y');
@@ -38,7 +38,7 @@ final class ReportCest
             'description' => 'Test',
         ]);
 
-        \Yii::$app->db->createCommand()->insert('book_authors', [
+        Yii::$app->db->createCommand()->insert('book_authors', [
             'book_id' => $bookId,
             'author_id' => $authorId,
         ])->execute();
@@ -49,7 +49,7 @@ final class ReportCest
         $I->see('1');
     }
 
-    public function testReportFiltersByYear(\IntegrationTester $I): void
+    public function testReportFiltersByYear(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Year Filter Author']);
         $book2023 = $I->haveRecord(Book::class, [
@@ -65,11 +65,11 @@ final class ReportCest
             'description' => 'Test',
         ]);
 
-        \Yii::$app->db->createCommand()->insert('book_authors', [
+        Yii::$app->db->createCommand()->insert('book_authors', [
             'book_id' => $book2023,
             'author_id' => $authorId,
         ])->execute();
-        \Yii::$app->db->createCommand()->insert('book_authors', [
+        Yii::$app->db->createCommand()->insert('book_authors', [
             'book_id' => $book2024,
             'author_id' => $authorId,
         ])->execute();
@@ -85,7 +85,7 @@ final class ReportCest
         $I->see('1');
     }
 
-    public function testReportShowsMultipleBooksCount(\IntegrationTester $I): void
+    public function testReportShowsMultipleBooksCount(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Multiple Books Author']);
         $currentYear = (int)date('Y');
@@ -109,15 +109,15 @@ final class ReportCest
             'description' => 'Test',
         ]);
 
-        \Yii::$app->db->createCommand()->insert('book_authors', [
+        Yii::$app->db->createCommand()->insert('book_authors', [
             'book_id' => $book1,
             'author_id' => $authorId,
         ])->execute();
-        \Yii::$app->db->createCommand()->insert('book_authors', [
+        Yii::$app->db->createCommand()->insert('book_authors', [
             'book_id' => $book2,
             'author_id' => $authorId,
         ])->execute();
-        \Yii::$app->db->createCommand()->insert('book_authors', [
+        Yii::$app->db->createCommand()->insert('book_authors', [
             'book_id' => $book3,
             'author_id' => $authorId,
         ])->execute();
@@ -128,17 +128,17 @@ final class ReportCest
         $I->see('3');
     }
 
-    public function testReportShowsEmptyMessageWhenNoData(\IntegrationTester $I): void
+    public function testReportShowsEmptyMessageWhenNoData(IntegrationTester $I): void
     {
         $I->amOnRoute('report/index', ['year' => 1999]);
         $I->seeResponseCodeIs(200);
         $I->see('Нет данных о книгах за 1999 год');
     }
 
-    public function testReportLimitsToTenAuthors(\IntegrationTester $I): void
+    public function testReportLimitsToTenAuthors(IntegrationTester $I): void
     {
         $currentYear = (int)date('Y');
-        
+
         for ($i = 1; $i <= 11; $i++) {
             $authorId = $I->haveRecord(Author::class, ['fio' => "Author Rank $i"]);
             $bookId = $I->haveRecord(Book::class, [
@@ -147,7 +147,7 @@ final class ReportCest
                 'isbn' => '978316148' . str_pad((string)$i, 4, '0', STR_PAD_LEFT),
                 'description' => 'Test',
             ]);
-            \Yii::$app->db->createCommand()->insert('book_authors', [
+            Yii::$app->db->createCommand()->insert('book_authors', [
                 'book_id' => $bookId,
                 'author_id' => $authorId,
             ])->execute();

@@ -4,25 +4,24 @@ declare(strict_types=1);
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
-use app\domain\exceptions\DomainException;
-use app\infrastructure\queue\NotifySubscribersJob;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
+use app\infrastructure\queue\NotifySubscribersJob;
 use yii\db\Query;
 use yii\queue\db\Queue;
 
 final class CreateBookUseCaseCest
 {
-    public function _before(\IntegrationTester $I): void
+    public function _before(IntegrationTester $I): void
     {
-        \Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
-        \Yii::$app->db->createCommand()->delete('book_authors')->execute();
-        \Yii::$app->db->createCommand()->delete('books')->execute();
-        \Yii::$app->db->createCommand()->delete('queue')->execute();
-        \Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
+        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
+        Yii::$app->db->createCommand()->delete('book_authors')->execute();
+        Yii::$app->db->createCommand()->delete('books')->execute();
+        Yii::$app->db->createCommand()->delete('queue')->execute();
+        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
     }
 
-    public function testCreatesBookWithAuthors(\IntegrationTester $I): void
+    public function testCreatesBookWithAuthors(IntegrationTester $I): void
     {
         $author1Id = $I->haveRecord(Author::class, ['fio' => 'Test Author 1']);
         $author2Id = $I->haveRecord(Author::class, ['fio' => 'Test Author 2']);
@@ -36,7 +35,7 @@ final class CreateBookUseCaseCest
             cover: null
         );
 
-        $useCase = \Yii::$container->get(CreateBookUseCase::class);
+        $useCase = Yii::$container->get(CreateBookUseCase::class);
         $bookId = $useCase->execute($command);
 
         $I->seeRecord(Book::class, [
@@ -52,7 +51,7 @@ final class CreateBookUseCaseCest
         $I->assertContains($author2Id, array_column($book->authors, 'id'));
     }
 
-    public function testPublishesBookCreatedEvent(\IntegrationTester $I): void
+    public function testPublishesBookCreatedEvent(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
 
@@ -65,16 +64,16 @@ final class CreateBookUseCaseCest
             cover: null
         );
 
-        $useCase = \Yii::$container->get(CreateBookUseCase::class);
+        $useCase = Yii::$container->get(CreateBookUseCase::class);
         $bookId = $useCase->execute($command);
 
-        $queue = \Yii::$app->get('queue');
+        $queue = Yii::$app->get('queue');
         assert($queue instanceof Queue);
 
         $jobCount = (new Query())
             ->from('queue')
             ->where(['channel' => $queue->channel])
-            ->count('*', \Yii::$app->db);
+            ->count('*', Yii::$app->db);
 
         $I->assertGreaterThan(0, $jobCount, 'Job should be published to queue');
 
@@ -83,7 +82,7 @@ final class CreateBookUseCaseCest
             ->where(['channel' => $queue->channel])
             ->orderBy(['id' => SORT_DESC])
             ->limit(1)
-            ->one(\Yii::$app->db);
+            ->one(Yii::$app->db);
 
         $I->assertNotNull($job, 'Job record should exist');
         $I->assertArrayHasKey('job', $job, 'Job should have job field');
@@ -100,7 +99,7 @@ final class CreateBookUseCaseCest
         $I->assertEquals('Event Test Book', $jobData->title);
     }
 
-    public function testValidatesUniqueIsbn(\IntegrationTester $I): void
+    public function testValidatesUniqueIsbn(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
         $existingBookId = $I->haveRecord(Book::class, [
@@ -119,14 +118,14 @@ final class CreateBookUseCaseCest
             cover: null
         );
 
-        $useCase = \Yii::$container->get(CreateBookUseCase::class);
+        $useCase = Yii::$container->get(CreateBookUseCase::class);
 
-        $I->expectThrowable(\RuntimeException::class, function () use ($useCase, $command): void {
+        $I->expectThrowable(RuntimeException::class, function () use ($useCase, $command): void {
             $useCase->execute($command);
         });
     }
 
-    public function testRollbackOnError(\IntegrationTester $I): void
+    public function testRollbackOnError(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
 
@@ -141,12 +140,12 @@ final class CreateBookUseCaseCest
             cover: null
         );
 
-        $useCase = \Yii::$container->get(CreateBookUseCase::class);
+        $useCase = Yii::$container->get(CreateBookUseCase::class);
 
         try {
             $useCase->execute($command);
             $I->fail('Expected exception was not thrown');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
         }
 
         $finalCount = Book::find()->count();

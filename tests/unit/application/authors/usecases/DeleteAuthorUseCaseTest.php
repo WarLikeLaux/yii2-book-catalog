@@ -8,7 +8,6 @@ use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
-use app\domain\exceptions\DomainException;
 use app\domain\exceptions\EntityNotFoundException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -16,6 +15,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class DeleteAuthorUseCaseTest extends Unit
 {
     private AuthorRepositoryInterface&MockObject $authorRepository;
+
     private DeleteAuthorUseCase $useCase;
 
     protected function _before(): void

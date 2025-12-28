@@ -30,8 +30,8 @@ final class ApiBookCest
         $I->seeResponseIsJson();
         $I->seeResponseContainsJson([
             [
-                'title' => 'Test API Book'
-            ]
+                'title' => 'Test API Book',
+            ],
         ]);
     }
 
@@ -40,7 +40,7 @@ final class ApiBookCest
         $I->sendGet('/index-test.php?r=api/book/index', ['pageSize' => 1]);
         $I->seeResponseCodeIs(200);
         $I->seeResponseIsJson();
-        
+
         $response = json_decode($I->grabResponse(), true);
         $I->assertCount(1, $response);
     }

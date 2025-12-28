@@ -9,12 +9,12 @@ use app\infrastructure\persistence\User;
 
 final class DeleteBookUseCaseCest
 {
-    public function _before(\IntegrationTester $I): void
+    public function _before(IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testDeletesBook(\IntegrationTester $I): void
+    public function testDeletesBook(IntegrationTester $I): void
     {
         $bookId = $I->haveRecord(Book::class, [
             'title' => 'Book To Delete Via UseCase',
@@ -25,7 +25,7 @@ final class DeleteBookUseCaseCest
 
         $command = new DeleteBookCommand(id: $bookId);
 
-        $useCase = \Yii::$container->get(DeleteBookUseCase::class);
+        $useCase = Yii::$container->get(DeleteBookUseCase::class);
         $useCase->execute($command);
 
         $I->dontSeeRecord(Book::class, ['id' => $bookId]);

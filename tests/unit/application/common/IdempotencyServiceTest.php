@@ -12,6 +12,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class IdempotencyServiceTest extends Unit
 {
     private IdempotencyInterface&MockObject $repository;
+
     private IdempotencyService $service;
 
     protected function _before(): void

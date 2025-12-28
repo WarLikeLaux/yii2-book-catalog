@@ -10,12 +10,12 @@ use app\infrastructure\persistence\User;
 
 final class UpdateBookUseCaseCest
 {
-    public function _before(\IntegrationTester $I): void
+    public function _before(IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testUpdatesBook(\IntegrationTester $I): void
+    public function testUpdatesBook(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Update Test Author']);
         $bookId = $I->haveRecord(Book::class, [
@@ -24,7 +24,7 @@ final class UpdateBookUseCaseCest
             'isbn' => '9783161484100',
             'description' => 'Original description',
         ]);
-        \Yii::$app->db->createCommand()
+        Yii::$app->db->createCommand()
             ->insert('book_authors', ['book_id' => $bookId, 'author_id' => $authorId])
             ->execute();
 
@@ -38,7 +38,7 @@ final class UpdateBookUseCaseCest
             cover: null
         );
 
-        $useCase = \Yii::$container->get(UpdateBookUseCase::class);
+        $useCase = Yii::$container->get(UpdateBookUseCase::class);
         $useCase->execute($command);
 
         $I->seeRecord(Book::class, [

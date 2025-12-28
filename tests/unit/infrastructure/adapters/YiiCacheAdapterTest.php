@@ -14,6 +14,7 @@ use yii\redis\Connection as RedisConnection;
 final class YiiCacheAdapterTest extends Unit
 {
     private YiiCache&MockObject $yiiCache;
+
     private YiiCacheAdapter $adapter;
 
     protected function _before(): void
@@ -165,4 +166,3 @@ final class YiiCacheAdapterTest extends Unit
         $this->assertSame(2, $scanCount);
     }
 }
-

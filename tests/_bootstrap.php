@@ -1,11 +1,16 @@
 <?php
+
+declare(strict_types=1);
+
+use Dotenv\Dotenv;
+
 define('YII_ENV', 'test');
 defined('YII_DEBUG') or define('YII_DEBUG', true);
 
-require __DIR__ .'/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 if (file_exists(__DIR__ . '/../.env')) {
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+    $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
     $dotenv->load();
 }
 

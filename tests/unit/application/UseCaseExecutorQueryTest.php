@@ -15,8 +15,11 @@ use RuntimeException;
 final class UseCaseExecutorQueryTest extends Unit
 {
     private NotificationInterface $notifier;
+
     private LoggerInterface $logger;
+
     private TranslatorInterface $translator;
+
     private UseCaseExecutor $executor;
 
     protected function _before(): void
@@ -96,4 +99,3 @@ final class UseCaseExecutorQueryTest extends Unit
         $this->assertSame('unexpected error', $result['message']);
     }
 }
-
