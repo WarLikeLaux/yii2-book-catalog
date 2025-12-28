@@ -12,7 +12,7 @@ final class SubscriptionFormMapper
     public function toCommand(SubscriptionForm $form): SubscribeCommand
     {
         return new SubscribeCommand(
-            phone: $form->phone,
+            phone: (string)$form->phone,
             authorId: (int)$form->authorId
         );
     }

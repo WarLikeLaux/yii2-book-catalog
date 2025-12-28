@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace app\tests\unit\infrastructure\repositories;
 
+use app\domain\entities\Book as BookEntity;
+use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
@@ -25,7 +27,7 @@ final class BookRepositoryTest extends Unit
 
     public function testCreateAndFindById(): void
     {
-        $id = $this->repository->create(
+        $book = BookEntity::create(
             'Test Book',
             new BookYear(2025),
             new Isbn('9783161484100'),
@@ -33,25 +35,44 @@ final class BookRepositoryTest extends Unit
             null
         );
 
-        $dto = $this->repository->findById($id);
+        $this->repository->save($book);
+        $this->assertNotNull($book->getId());
+
+        $dto = $this->repository->findById($book->getId());
         $this->assertNotNull($dto);
         $this->assertSame('Test Book', $dto->title);
     }
 
     public function testDeleteThrowsExceptionOnNotFound(): void
     {
-        $this->expectException(\RuntimeException::class);
-        $this->repository->delete(999);
+        $book = new BookEntity(
+            999,
+            'Title',
+            new BookYear(2025),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+
+        $this->expectException(EntityNotFoundException::class);
+        $this->repository->delete($book);
     }
 
     public function testSyncAuthors(): void
     {
-        $bookId = $this->repository->create(
-            'Book', new BookYear(2025), new Isbn('9783161484100'), null, null
-        );
         $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'Author']);
 
-        $this->repository->syncAuthors($bookId, [$authorId]);
+        $book = BookEntity::create(
+            'Book',
+            new BookYear(2025),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $book->syncAuthors([$authorId]);
+
+        $this->repository->save($book);
+        $bookId = $book->getId();
         
         $dto = $this->repository->findByIdWithAuthors($bookId);
         $this->assertContains($authorId, $dto->authorIds);

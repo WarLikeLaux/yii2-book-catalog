@@ -26,13 +26,13 @@ final class BookForm extends Model
     /** @var string|null */
     public $description;
 
-    /** @var string */
+    /** @var string|int|null */
     public $isbn = '';
 
-    /** @var array<int> */
+    /** @var array<int>|string|null */
     public $authorIds = [];
 
-    /** @var UploadedFile|string|null */
+    /** @var \yii\web\UploadedFile|string|null */
     public $cover;
 
     /** @codeCoverageIgnore Работает с Yii UploadedFile::getInstance */

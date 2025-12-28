@@ -9,7 +9,10 @@ use app\application\books\queries\BookReadDto;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\CacheInterface;
-use app\domain\exceptions\DomainException;
+use app\domain\entities\Book;
+use app\domain\exceptions\EntityNotFoundException;
+use app\domain\values\BookYear;
+use app\domain\values\Isbn;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -30,25 +33,24 @@ final class DeleteBookUseCaseTest extends Unit
     {
         $command = new DeleteBookCommand(id: 42);
 
-        $existingBook = new BookReadDto(
+        $existingBook = new Book(
             id: 42,
             title: 'Book to Delete',
-            year: 2020,
+            year: new BookYear(2020),
+            isbn: new Isbn('9780132350884'),
             description: 'Description',
-            isbn: '9780132350884',
+            coverUrl: null,
             authorIds: [],
-            authorNames: [],
-            coverUrl: null
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('findById')
+            ->method('get')
             ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
             ->method('delete')
-            ->with(42);
+            ->with($existingBook);
 
         $this->useCase->execute($command);
     }
@@ -58,13 +60,13 @@ final class DeleteBookUseCaseTest extends Unit
         $command = new DeleteBookCommand(id: 999);
 
         $this->bookRepository->expects($this->once())
-            ->method('findById')
+            ->method('get')
             ->with(999)
-            ->willReturn(null);
+            ->willThrowException(new EntityNotFoundException('Book not found'));
 
         $this->bookRepository->expects($this->never())->method('delete');
 
-        $this->expectException(DomainException::class);
+        $this->expectException(EntityNotFoundException::class);
         $this->expectExceptionMessage('Book not found');
 
         $this->useCase->execute($command);

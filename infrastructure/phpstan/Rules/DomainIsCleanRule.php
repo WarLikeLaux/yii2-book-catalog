@@ -12,7 +12,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 
 /**
  * @implements Rule<StaticPropertyFetch>
- * @codeCoverageIgnore
+ * @codeCoverageIgnore Логика статического анализа проверяется тестами PHPStan
  */
 final readonly class DomainIsCleanRule implements Rule
 {

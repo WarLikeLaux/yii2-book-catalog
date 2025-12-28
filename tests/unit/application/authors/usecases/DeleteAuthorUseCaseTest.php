@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace tests\unit\application\authors\usecases;
 
 use app\application\authors\commands\DeleteAuthorCommand;
-use app\application\authors\queries\AuthorReadDto;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\ports\AuthorRepositoryInterface;
+use app\domain\entities\Author;
 use app\domain\exceptions\DomainException;
+use app\domain\exceptions\EntityNotFoundException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -27,16 +28,16 @@ final class DeleteAuthorUseCaseTest extends Unit
     {
         $command = new DeleteAuthorCommand(id: 42);
 
-        $existingAuthor = new AuthorReadDto(id: 42, fio: 'Test Author');
+        $existingAuthor = new Author(id: 42, fio: 'Test Author');
 
         $this->authorRepository->expects($this->once())
-            ->method('findById')
+            ->method('get')
             ->with(42)
             ->willReturn($existingAuthor);
 
         $this->authorRepository->expects($this->once())
             ->method('delete')
-            ->with(42);
+            ->with($existingAuthor);
 
         $this->useCase->execute($command);
     }
@@ -46,13 +47,13 @@ final class DeleteAuthorUseCaseTest extends Unit
         $command = new DeleteAuthorCommand(id: 999);
 
         $this->authorRepository->expects($this->once())
-            ->method('findById')
+            ->method('get')
             ->with(999)
-            ->willReturn(null);
+            ->willThrowException(new EntityNotFoundException('Author not found'));
 
         $this->authorRepository->expects($this->never())->method('delete');
 
-        $this->expectException(DomainException::class);
+        $this->expectException(EntityNotFoundException::class);
         $this->expectExceptionMessage('Author not found');
 
         $this->useCase->execute($command);

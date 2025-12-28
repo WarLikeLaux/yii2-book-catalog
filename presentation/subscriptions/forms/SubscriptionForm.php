@@ -13,7 +13,7 @@ use yii\base\Model;
 
 final class SubscriptionForm extends Model
 {
-    /** @var string */
+    /** @var string|int|null */
     public $phone = '';
 
     /** @var int|string */

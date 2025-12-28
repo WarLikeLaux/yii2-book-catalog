@@ -204,6 +204,9 @@ test-acceptance: _test-init
 test-coverage: _test-init
 	@echo "📊 Анализ покрытия кода..."
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --coverage --coverage-html --coverage-text
+	@echo "----------------------------------------------------------------------"
+	@$(COMPOSE) exec $(PHP_CONTAINER) head -n 10 tests/_output/coverage.txt
+	@echo "----------------------------------------------------------------------"
 	@echo "Отчет: tests/_output/coverage/index.html"
 
 infection: _test-init

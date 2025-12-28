@@ -17,8 +17,8 @@ final class BookFormMapper
             title: $form->title,
             year: (int)$form->year,
             description: $form->description,
-            isbn: $form->isbn,
-            authorIds: $form->authorIds,
+            isbn: (string)$form->isbn,
+            authorIds: array_map(intval(...), (array)$form->authorIds),
             cover: $coverPath,
         );
     }
@@ -30,8 +30,8 @@ final class BookFormMapper
             title: $form->title,
             year: (int)$form->year,
             description: $form->description,
-            isbn: $form->isbn,
-            authorIds: $form->authorIds,
+            isbn: (string)$form->isbn,
+            authorIds: array_map(intval(...), (array)$form->authorIds),
             cover: $coverPath,
         );
     }

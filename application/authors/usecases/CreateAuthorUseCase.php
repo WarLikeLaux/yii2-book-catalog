@@ -6,6 +6,7 @@ namespace app\application\authors\usecases;
 
 use app\application\authors\commands\CreateAuthorCommand;
 use app\application\ports\AuthorRepositoryInterface;
+use app\domain\entities\Author;
 use app\domain\exceptions\DomainException;
 
 final readonly class CreateAuthorUseCase
@@ -18,7 +19,9 @@ final readonly class CreateAuthorUseCase
     public function execute(CreateAuthorCommand $command): int
     {
         try {
-            return $this->authorRepository->create($command->fio);
+            $author = Author::create($command->fio);
+            $this->authorRepository->save($author);
+            return (int)$author->getId();
         } catch (\RuntimeException) {
             throw new DomainException('Failed to create author');
         }

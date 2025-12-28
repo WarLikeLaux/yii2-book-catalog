@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace app\application\ports;
 
 use app\application\authors\queries\AuthorReadDto;
+use app\domain\entities\Author;
 
 interface AuthorRepositoryInterface
 {
-    public function create(string $fio): int;
+    public function save(Author $author): void;
 
-    public function update(int $id, string $fio): void;
+    public function get(int $id): Author;
 
     public function findById(int $id): ?AuthorReadDto;
 
-    public function delete(int $id): void;
+    public function delete(Author $author): void;
 
     /**
      * @return AuthorReadDto[]

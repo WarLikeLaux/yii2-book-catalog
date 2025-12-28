@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace app\application\ports;
 
+use app\domain\entities\Subscription;
+
 interface SubscriptionRepositoryInterface
 {
-    public function create(string $phone, int $authorId): void;
+    public function save(Subscription $subscription): void;
 
     public function exists(string $phone, int $authorId): bool;
 

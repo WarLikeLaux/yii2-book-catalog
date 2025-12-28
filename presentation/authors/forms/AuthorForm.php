@@ -13,7 +13,7 @@ final class AuthorForm extends Model
     /** @var int|string|null */
     public $id;
 
-    /** @var string */
+    /** @var string|int|null */
     public $fio = '';
 
     #[\Override]

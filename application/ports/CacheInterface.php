@@ -7,12 +7,12 @@ namespace app\application\ports;
 interface CacheInterface
 {
     /**
-     * Get cached value or compute and store it.
+     * Возвращает значение из кэша или вычисляет и сохраняет его.
      *
      * @template T
-     * @param string $key cache key
-     * @param callable(): T $callback function to compute value if not cached
-     * @param int $ttl time to live in seconds
+     * @param string $key ключ кэша
+     * @param callable(): T $callback функция для вычисления значения
+     * @param int $ttl время жизни в секундах
      * @return T
      */
     public function getOrSet(string $key, callable $callback, int $ttl = 3600): mixed;

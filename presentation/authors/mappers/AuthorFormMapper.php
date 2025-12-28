@@ -14,7 +14,7 @@ final class AuthorFormMapper
     public function toCreateCommand(AuthorForm $form): CreateAuthorCommand
     {
         return new CreateAuthorCommand(
-            fio: $form->fio,
+            fio: (string)$form->fio,
         );
     }
 
@@ -22,7 +22,7 @@ final class AuthorFormMapper
     {
         return new UpdateAuthorCommand(
             id: $id,
-            fio: $form->fio,
+            fio: (string)$form->fio,
         );
     }
 

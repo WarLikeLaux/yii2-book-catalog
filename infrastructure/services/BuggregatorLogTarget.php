@@ -10,6 +10,7 @@ use yii\log\Target;
 
 /**
  * Отправляет логи Yii2 в Buggregator в формате Monolog (JSON).
+ * @codeCoverageIgnore Дебаг-утилита, не требующая юнит-тестирования
  */
 final class BuggregatorLogTarget extends Target
 {
@@ -18,7 +19,7 @@ final class BuggregatorLogTarget extends Target
     public int $port = 9913;
 
     /**
-     * @codeCoverageIgnore Сетевой запрос
+     * @codeCoverageIgnore Реализует сетевой запрос к внешнему сервису
      */
     #[\Override]
     public function export(): void
