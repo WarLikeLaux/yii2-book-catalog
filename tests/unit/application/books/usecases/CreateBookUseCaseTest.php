@@ -164,7 +164,6 @@ final class CreateBookUseCaseTest extends Unit
             ->method('save')
             ->with($this->isInstanceOf(Book::class))
             ->willReturnCallback(function (Book $book) {
-                // Do NOT set ID
             });
             
         $this->expectException(\RuntimeException::class);

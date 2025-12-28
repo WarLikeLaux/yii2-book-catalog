@@ -10,7 +10,6 @@ use Codeception\Test\Unit;
 
 final class IdempotencyRepositoryTest extends Unit
 {
-    protected \UnitTester $tester;
     private IdempotencyRepository $repository;
 
     protected function _before(): void
@@ -51,7 +50,6 @@ final class IdempotencyRepositoryTest extends Unit
         $key = 'duplicate-key';
         $this->repository->saveResponse($key, 200, 'first', 3600);
         
-        // This should log an error but not throw exception
         $this->repository->saveResponse($key, 200, 'second', 3600);
         
         $response = $this->repository->getResponse($key);

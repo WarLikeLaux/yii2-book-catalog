@@ -18,7 +18,7 @@ final class UniqueFioValidatorTest extends Unit
         
         $validator = new UniqueFioValidator($repository);
         
-        $form = new \app\presentation\authors\forms\AuthorForm();
+        $form = new AuthorForm();
         $form->fio = 'Unique Author Name';
         
         $validator->validateAttribute($form, 'fio');
@@ -33,7 +33,7 @@ final class UniqueFioValidatorTest extends Unit
         
         $validator = new UniqueFioValidator($repository);
         
-        $form = new \app\presentation\authors\forms\AuthorForm();
+        $form = new AuthorForm();
         $form->fio = 'Existing Author';
         
         $validator->validateAttribute($form, 'fio');
@@ -48,7 +48,7 @@ final class UniqueFioValidatorTest extends Unit
         
         $validator = new UniqueFioValidator($repository);
         
-        $form = new \app\presentation\authors\forms\AuthorForm();
+        $form = new AuthorForm();
         $form->fio = 123;
         
         $validator->validateAttribute($form, 'fio');
@@ -63,7 +63,7 @@ final class UniqueFioValidatorTest extends Unit
         
         $validator = new UniqueFioValidator($repository);
         
-        $form = new \app\presentation\authors\forms\AuthorForm();
+        $form = new AuthorForm();
         $form->id = 42;
         $form->fio = 'Author Name';
         
@@ -81,7 +81,7 @@ final class UniqueFioValidatorTest extends Unit
 
         $validator = new UniqueFioValidator($repository);
 
-        $form = new \app\presentation\authors\forms\AuthorForm();
+        $form = new AuthorForm();
         $form->id = '42';
         $form->fio = 'Author Name';
 

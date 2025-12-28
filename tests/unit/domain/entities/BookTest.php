@@ -39,7 +39,7 @@ final class BookTest extends Unit
         );
 
         $newYear = new BookYear(2024);
-        $newIsbn = new Isbn('978-3-16-148410-0'); // Same valid ISBN
+        $newIsbn = new Isbn('978-3-16-148410-0');
         
         $book->update('New Title', $newYear, $newIsbn, 'New Desc', 'http://new.com');
         
@@ -48,7 +48,6 @@ final class BookTest extends Unit
         $this->assertSame('New Desc', $book->getDescription());
         $this->assertSame('http://new.com', $book->getCoverUrl());
 
-        // Test update without cover update (null)
         $book->update('Title 2', $newYear, $newIsbn, 'Desc 2', null);
         $this->assertSame('http://new.com', $book->getCoverUrl(), 'Cover URL should not change if null passed');
     }
@@ -69,10 +68,8 @@ final class BookTest extends Unit
         $book->setId(100);
         $this->assertSame(100, $book->getId());
         
-        // Setting same ID is fine
         $book->setId(100);
         
-        // Changing ID throws exception
         $this->expectException(\RuntimeException::class);
         $book->setId(200);
     }

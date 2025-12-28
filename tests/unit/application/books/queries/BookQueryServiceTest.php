@@ -9,6 +9,7 @@ use app\application\books\queries\BookReadDto;
 use app\application\books\queries\BookSearchCriteria;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
+use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -52,7 +53,7 @@ final class BookQueryServiceTest extends Unit
             ->with(999)
             ->willReturn(null);
 
-        $this->expectException(\app\domain\exceptions\DomainException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Book not found');
 
         $this->service->getById(999);

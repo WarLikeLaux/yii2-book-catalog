@@ -13,15 +13,12 @@ final class ReportFilterFormTest extends Unit
     {
         $form = new ReportFilterForm();
         
-        // Valid
         $form->year = 2023;
         $this->assertTrue($form->validate());
         
-        // Invalid Min
         $form->year = 1800;
         $this->assertFalse($form->validate());
         
-        // Invalid Max
         $form->year = 2200;
         $this->assertFalse($form->validate());
     }

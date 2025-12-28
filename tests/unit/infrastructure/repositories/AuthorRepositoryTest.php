@@ -12,7 +12,6 @@ use Codeception\Test\Unit;
 
 final class AuthorRepositoryTest extends Unit
 {
-    protected \UnitTester $tester;
     private AuthorRepository $repository;
 
     protected function _before(): void
@@ -32,7 +31,6 @@ final class AuthorRepositoryTest extends Unit
         $this->assertNotNull($fetched);
         $this->assertSame('Test Author', $fetched->getFio());
         
-        // Also check read side
         $dto = $this->repository->findById($author->getId());
         $this->assertNotNull($dto);
         $this->assertSame('Test Author', $dto->fio);

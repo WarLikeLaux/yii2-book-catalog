@@ -648,6 +648,158 @@ Yii::$app->queue->push(new NotifySubscribersJob($bookId));
 
 ---
 
+### 9. Entity (Rich Domain Model)
+
+**Было:**
+```php
+// ActiveRecord = данные + логика + persistence
+class Book extends ActiveRecord
+{
+    public function publish(): void
+    {
+        $this->status = 'published';
+        $this->save();  // Persistence внутри модели
+    }
+}
+```
+❌ **Проблема:** AR смешивает бизнес-логику и работу с БД. Нельзя тестировать без базы.
+
+**Стало:**
+```php
+// domain/entities/Book.php — чистый PHP, без Yii
+final class Book
+{
+    public function __construct(
+        private ?int $id,
+        private string $title,
+        private BookYear $year,    // Value Object
+        private Isbn $isbn,        // Value Object
+        private ?string $description,
+        private ?string $coverUrl
+    ) {}
+
+    public static function create(
+        string $title,
+        BookYear $year,
+        Isbn $isbn,
+        ?string $description,
+        ?string $coverUrl
+    ): self {
+        return new self(null, $title, $year, $isbn, $description, $coverUrl);
+    }
+
+    public function update(string $title, BookYear $year, Isbn $isbn, ...): void
+    {
+        $this->title = $title;
+        $this->year = $year;
+        // Бизнес-логика без persistence
+    }
+}
+```
+✅ **Результат:** Entity не знает о БД. Тестируется без инфраструктуры. Value Objects гарантируют валидность.
+
+---
+
+### 10. Ports & Adapters (Hexagonal)
+
+**Было:**
+```php
+// UseCase напрямую использует Yii
+class CreateBookUseCase
+{
+    public function execute($data): int
+    {
+        Yii::$app->queue->push(new NotifyJob(...));  // Зависимость от Yii
+    }
+}
+```
+❌ **Проблема:** UseCase привязан к Yii. Нельзя заменить очередь.
+
+**Стало:**
+```php
+// application/ports/EventPublisherInterface.php — контракт
+interface EventPublisherInterface
+{
+    public function publishEvent(DomainEvent $event): void;
+}
+
+// infrastructure/adapters/YiiEventPublisherAdapter.php — реализация
+final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
+{
+    public function __construct(private QueueInterface $queue) {}
+
+    public function publishEvent(DomainEvent $event): void
+    {
+        if ($event instanceof BookCreatedEvent) {
+            $this->queue->push(new NotifySubscribersJob($event->bookId));
+        }
+    }
+}
+
+// UseCase зависит от интерфейса
+class CreateBookUseCase
+{
+    public function __construct(
+        private EventPublisherInterface $eventPublisher
+    ) {}
+}
+```
+✅ **Результат:** UseCase не знает о Yii. Легко подменить реализацию (Redis, RabbitMQ, mock).
+
+---
+
+### 11. Handlers (Presentation Layer)
+
+**Было:**
+```php
+// Контроллер делает всё
+public function actionCreate()
+{
+    $form = new BookForm();
+    if ($form->load($request) && $form->validate()) {
+        $file = UploadedFile::getInstance($form, 'cover');
+        $path = $this->uploadFile($file);
+        $command = new CreateBookCommand(...);
+        $this->useCase->execute($command);
+    }
+}
+```
+❌ **Проблема:** Контроллер знает о файлах, маппинге, Use Case. Сложно тестировать.
+
+**Стало:**
+```php
+// presentation/books/handlers/BookCommandHandler.php
+final readonly class BookCommandHandler
+{
+    public function createBook(BookForm $form): ?int
+    {
+        $coverPath = $this->uploadCover($form);
+        $command = $this->mapper->toCreateCommand($form, $coverPath);
+
+        $bookId = null;
+        $this->useCaseExecutor->execute(function () use ($command, &$bookId): void {
+            $bookId = $this->createBookUseCase->execute($command);
+        }, Yii::t('app', 'Book has been created'));
+
+        return $bookId;
+    }
+}
+
+// Контроллер — тонкий координатор
+public function actionCreate(): string|Response|array
+{
+    $form = new BookForm();
+    if ($form->validate()) {
+        $bookId = $this->commandHandler->createBook($form);  // Делегирует
+        if ($bookId) return $this->redirect(['view', 'id' => $bookId]);
+    }
+    return $this->render('create', ['model' => $form]);
+}
+```
+✅ **Результат:** Handler инкапсулирует логику. Контроллер только координирует HTTP.
+
+---
+
 ## 🎯 Когда какой подход
 
 | Ситуация | Рекомендация |

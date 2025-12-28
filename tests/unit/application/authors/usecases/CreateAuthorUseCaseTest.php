@@ -33,7 +33,6 @@ final class CreateAuthorUseCaseTest extends Unit
                 if ($author->getFio() !== 'Иванов Иван Иванович') {
                     return false;
                 }
-                // Simulate ID assignment
                 $author->setId(42);
                 return true;
             }));
