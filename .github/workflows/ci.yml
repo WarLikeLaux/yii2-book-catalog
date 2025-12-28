@@ -101,7 +101,20 @@ jobs:
           composer dump-autoload -o
           mkdir -p runtime web/assets
           chmod -R 777 runtime web/assets
-          YII_ENV=test php -S 0.0.0.0:8080 -t web > /dev/null 2>&1 &
+          YII_ENV=test php -S 0.0.0.0:8080 -t web > /tmp/php-server.log 2>&1 &
+          sleep 2
+          for i in {1..10}; do
+            if curl -s http://127.0.0.1:8080/site/index > /tmp/server-response.html 2>&1; then
+              echo "Server is ready"
+              break
+            fi
+            echo "Waiting for server... attempt $i"
+            sleep 1
+          done
+          echo "=== Server Response Preview ==="
+          head -50 /tmp/server-response.html || true
+          echo "=== PHP Server Log ==="
+          cat /tmp/php-server.log || true
 
       - name: Run Acceptance Tests
         run: |
@@ -126,3 +139,13 @@ jobs:
             --min-msi=70 \
             --min-covered-msi=80 \
             --test-framework-options="functional,unit"
+
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: |
+            tests/_output/
+            /tmp/php-server.log
+            /tmp/server-response.html
