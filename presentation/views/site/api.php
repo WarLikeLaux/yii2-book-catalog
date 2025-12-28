@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 /** @var yii\web\View $this */
+/** @var int $swaggerPort */
+/** @var int $appPort */
+/** @var string $host */
 
 use yii\helpers\Html;
 
@@ -21,7 +24,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         Интерактивная документация нашего API в формате OpenAPI 3.0. 
                         Здесь вы можете протестировать эндпоинты в реальном времени.
                     </p>
-                    <a href="http://localhost:8081" target="_blank" class="btn btn-primary">
+                    <a href="http://<?= $host ?>:<?= $swaggerPort ?>" target="_blank" class="btn btn-primary">
                         Открыть Swagger UI
                     </a>
                 </div>
@@ -33,7 +36,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <div class="card-body">
                     <h5 class="card-title">Base URL</h5>
                     <p class="card-text text-muted">Используйте этот базовый адрес для всех API-запросов:</p>
-                    <code class="d-block p-3 bg-light rounded mb-3">http://localhost:8000/api</code>
+                    <code class="d-block p-3 bg-light rounded mb-3">http://<?= $host ?>:<?= $appPort ?>/api</code>
                     <p class="card-text small text-muted">Доступные эндпоинты:</p>
                     <ul class="small text-muted">
                         <li><code>GET /books</code> — Список книг (с пагинацией)</li>

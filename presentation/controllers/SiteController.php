@@ -94,6 +94,10 @@ final class SiteController extends Controller
 
     public function actionApi(): string
     {
-        return $this->render('api');
+        return $this->render('api', [
+            'swaggerPort' => Yii::$app->params['swaggerPort'],
+            'appPort' => Yii::$app->params['appPort'],
+            'host' => $this->request->serverName,
+        ]);
     }
 }
