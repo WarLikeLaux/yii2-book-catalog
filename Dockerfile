@@ -11,3 +11,8 @@ RUN docker-php-ext-install sockets
 
 # Фикс ошибки git ownership в Docker
 RUN git config --global --add safe.directory /app
+
+# Создаем пользователя с ID, переданным через аргументы сборки
+ARG UID=1000
+ARG GID=1000
+RUN groupadd -g $GID appuser && useradd -u $UID -g appuser -m -s /bin/bash appuser
