@@ -179,6 +179,7 @@ clean:
 composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer install
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
 
 # =================================================================================================
 # 🛡️ КОНТРОЛЬ КАЧЕСТВА (QA)
