@@ -1,0 +1,191 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Интерактивная настройка окружения.
+ */
+
+final class EnvSetup
+{
+    private const string COLOR_RESET = "\033[0m";
+    private const string COLOR_GREEN = "\033[32m";
+    private const string COLOR_YELLOW = "\033[33m";
+    private const string COLOR_CYAN = "\033[36m";
+    private const string COLOR_BOLD = "\033[1m";
+
+    public function __construct(
+        private readonly string $rootPath
+    ) {
+    }
+
+    public function run(array $argv): void
+    {
+        $autoYes = in_array('-y', $argv, true) || in_array('--yes', $argv, true);
+        $examplePath = $this->rootPath . '/.env.example';
+        $targetPath = $this->rootPath . '/.env';
+
+        if (!file_exists($examplePath)) {
+            $this->error("Файл .env.example не найден!");
+            exit(1);
+        }
+
+        $this->header("🚀 Настройка окружения");
+
+        $isTty = stream_isatty(fopen('php://stdin', 'r'));
+        if (!$autoYes && $isTty) {
+            echo "Использовать значения по умолчанию для всех параметров? (кроме APP_PORT) [y/N]: ";
+            $input = $this->readInput();
+            if (strtolower($input) === 'y') {
+                $autoYes = true;
+            }
+            echo "\n";
+        }
+
+        $currentValues = $this->loadCurrentEnv($targetPath);
+        $lines = file($examplePath, FILE_IGNORE_NEW_LINES);
+        $newContent = [];
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+
+            if ($this->isCommentOrEmpty($trimmed)) {
+                $newContent[] = $line;
+                if (str_contains($line, '==')) {
+                    $this->section($line);
+                }
+                continue;
+            }
+
+            if (!str_contains($line, '=')) {
+                $newContent[] = $line;
+                continue;
+            }
+
+            [$key, $defaultRaw] = explode('=', $line, 2);
+            $key = trim($key);
+            
+            $default = trim(explode('#', $defaultRaw)[0]);
+
+            $current = $currentValues[$key] ?? $default;
+
+            $forceAsk = $key === 'APP_PORT' && $isTty;
+
+            if ($autoYes && !$forceAsk) {
+                if ($key === 'APP_PORT') {
+                     echo sprintf("⚠️  APP_PORT=%s (default)\n", $current);
+                } else {
+                     echo sprintf("✅ %s=%s\n", $key, $current);
+                }
+                $value = $current;
+            } else {
+                if ($key === 'APP_PORT') {
+                    echo self::COLOR_YELLOW . "👉 Внимание: выберите свободный порт для приложения!" . self::COLOR_RESET . "\n";
+                }
+                $value = $this->prompt($key, $current);
+            }
+            
+            $newContent[] = "{$key}={$value}";
+        }
+
+        if ($autoYes || $this->shouldSave($targetPath)) {
+            file_put_contents($targetPath, implode("\n", $newContent) . "\n");
+            $this->success("Файл .env успешно обновлен!");
+        } else {
+            $this->warning("Отменено. Файл не изменен.");
+        }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function loadCurrentEnv(string $path): array
+    {
+        if (!file_exists($path)) {
+            return [];
+        }
+
+        $this->warning("⚠️  Найден существующий .env");
+        $values = [];
+        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (str_starts_with($line, '#') || !str_contains($line, '=')) {
+                continue;
+            }
+            [$key, $val] = explode('=', $line, 2);
+            $values[trim($key)] = trim($val);
+        }
+
+        return $values;
+    }
+
+    private function prompt(string $key, string $default): string
+    {
+        echo sprintf(
+            "📝 %s [%s]: ",
+            $key,
+            self::COLOR_GREEN . $default . self::COLOR_RESET
+        );
+
+        $input = $this->readInput();
+        return $input === '' ? $default : $input;
+    }
+
+    private function readInput(): string
+    {
+        $handle = fopen("php://stdin", "r");
+        $input = fgets($handle);
+        fclose($handle);
+
+        return $input === false ? '' : trim($input);
+    }
+
+    private function shouldSave(string $path): bool
+    {
+        echo "\n------------------------------------------------\n";
+        if (!file_exists($path)) {
+            return true;
+        }
+
+        echo "Перезаписать .env? [y/N]: ";
+        $input = $this->readInput();
+
+        return strtolower($input) === 'y';
+    }
+
+    private function isCommentOrEmpty(string $line): bool
+    {
+        return $line === '' || str_starts_with($line, '#');
+    }
+
+    private function header(string $text): void
+    {
+        echo "\n" . self::COLOR_BOLD . $text . self::COLOR_RESET . "\n";
+        echo "------------------------------------------------\n";
+    }
+
+    private function section(string $text): void
+    {
+        echo "\n" . self::COLOR_CYAN . $text . self::COLOR_RESET . "\n";
+    }
+
+    private function success(string $text): void
+    {
+        echo "\n" . self::COLOR_GREEN . "✅ " . $text . self::COLOR_RESET . "\n";
+    }
+
+    private function warning(string $text): void
+    {
+        echo self::COLOR_YELLOW . $text . self::COLOR_RESET . "\n";
+    }
+
+    private function error(string $text): void
+    {
+        echo "\n❌ " . $text . "\n";
+    }
+}
+
+(new EnvSetup(__DIR__ . '/..'))->run($argv);

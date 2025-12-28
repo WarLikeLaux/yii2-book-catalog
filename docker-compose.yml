@@ -5,7 +5,7 @@ services:
     volumes:
       - ./:/app:delegated
     ports:
-      - '8000:80'
+      - '${APP_PORT:-8000}:80'
     depends_on:
       db:
         condition: service_healthy
@@ -21,7 +21,7 @@ services:
       MYSQL_USER: ${DB_USER:-yii2}
       MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
     ports:
-      - '33060:3306'
+      - '${DB_PUBLIC_PORT:-33060}:3306'
     volumes:
       - ./db-data:/var/lib/mysql
     env_file: .env
@@ -34,7 +34,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - '6379:6379'
+      - '${REDIS_PUBLIC_PORT:-6379}:6379'
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -66,7 +66,7 @@ services:
   swagger-ui:
     image: swaggerapi/swagger-ui
     ports:
-      - "8081:8080"
+      - "${SWAGGER_PORT:-8081}:8080"
     volumes:
       - ./docs/api/openapi.yaml:/app/openapi.yaml
     environment:
@@ -76,3 +76,11 @@ services:
     image: grafana/k6:latest
     volumes:
       - ./tests/load:/scripts
+
+  buggregator:
+    image: ghcr.io/buggregator/server:latest
+    ports:
+      - "${BUGGREGATOR_UI_PORT:-8090}:8000"
+      - "${BUGGREGATOR_SMTP_PORT:-1025}:1025"
+      - "${BUGGREGATOR_TRAP_PORT:-9912}:9912"
+      - "${BUGGREGATOR_LOG_PORT:-9913}:9913"

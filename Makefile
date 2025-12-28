@@ -1,107 +1,146 @@
-.PHONY: init up down restart composer lint lint-fix migrate seed shell perms copy-env sms-logs queue-info logs test test-coverage test-unit test-functional docs repomix analyze deptrac rector rector-fix infection ci pr dev fix audit swagger load-test
+.PHONY: help init up down restart logs shell sms-logs setup env configure composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-coverage infection load-test migrate seed queue-info comments docs swagger repomix
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
-QUEUE_CONTAINER=queue
 DB_TEST_NAME=yii2basic_test
+.DEFAULT_GOAL := help
 
-include .env
-export
+# Загружаем переменные из .env, если он существует, чтобы Makefile видел их
+ifneq (,$(wildcard .env))
+    include .env
+    export
+endif
 
-init: perms copy-env up composer migrate seed
-	@echo "🚀 Project initialized and running at http://localhost:8000"
+# =================================================================================================
+# 🚀 ГЛАВНОЕ МЕНЮ И УПРАВЛЕНИЕ
+# =================================================================================================
+
+help:
+	@echo "Использование: make [команда]"
+	@echo ""
+	@echo "Основные команды:"
+	@echo "  \033[32minit\033[0m         Полная инициализация (настройка, запуск, миграции)"
+	@echo "  \033[32mconfigure\033[0m    Ручная настройка окружения (.env)"
+	@echo "  \033[32mup\033[0m           Запустить контейнеры"
+	@echo "  \033[32mdown\033[0m         Остановить контейнеры"
+	@echo "  \033[32mrestart\033[0m      Перезапустить контейнеры"
+	@echo "  \033[32mlogs\033[0m         Смотреть логи"
+	@echo "  \033[32mshell\033[0m        Зайти в консоль контейнера PHP"
+	@echo ""
+	@echo "Разработка:"
+	@echo "  \033[33mdev\033[0m          Проверка кода (стандартный набор: fix + test)"
+	@echo "  \033[33mfix\033[0m          Авто-исправление стиля кода"
+	@echo "  \033[33mtest\033[0m         Запуск тестов"
+	@echo "  \033[33mcomments\033[0m     Показать TODO и заметки в коде"
+	@echo "  \033[33mpr\033[0m           Полная проверка перед пушем (CI + мутации)"
+	@echo ""
+	@echo "База данных:"
+	@echo "  \033[34mmigrate\033[0m      Применить миграции"
+	@echo "  \033[34mseed\033[0m         Залить тестовые данные"
+	@echo ""
+	@echo "Документация и Утилиты:"
+	@echo "  \033[36mdocs\033[0m         Генерация API документации (Yii)"
+	@echo "  \033[36mswagger\033[0m      Генерация Swagger/OpenAPI спеки"
+	@echo "  \033[36mrepomix\033[0m      Сборка всего кода в один файл (для LLM)"
+	@echo "  \033[36mqueue-info\033[0m   Инфо о состоянии очередей"
+
+# =================================================================================================
+# 🐳 DOCKER И ОКРУЖЕНИЕ
+# =================================================================================================
+
+init: _init_confirm setup up composer migrate seed
+	@APP_PORT=$$(grep '^APP_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000); \
+	BUG_PORT=$$(grep '^BUGGREGATOR_UI_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 9913); \
+	echo ""; \
+	echo "🚀 Проект запущен: http://localhost:$$APP_PORT"; \
+	echo "📄 API Docs:       http://localhost:$$APP_PORT/api"; \
+	echo "🐞 Buggregator:    http://localhost:$$BUG_PORT"
+
+_init_confirm:
+	@echo ""
+	@echo "======================================================================"
+	@echo "🚨  ВНИМАНИЕ: ПОЛНАЯ ИНИЦИАЛИЗАЦИЯ ПРОЕКТА"
+	@echo "======================================================================"
+	@echo "Будут выполнены следующие действия:"
+	@echo "  1. 🛠  Настройка окружения (права, папки, .env)"
+	@echo "  2. 🐳 Пересоздание и запуск контейнеров (docker compose up)"
+	@echo "  3. 📦 Установка зависимостей (composer install)"
+	@echo "  4. 🗄  Применение миграций и заливка тестовых данных (seed)"
+	@echo ""
+	@read -p "   Вы готовы продолжить? [y/N] " ans; \
+	if [ "$$ans" != "y" ] && [ "$$ans" != "Y" ]; then \
+		echo "❌ Отменено пользователем."; \
+		exit 1; \
+	fi
 
 up:
-	$(COMPOSE) up -d
+	$(COMPOSE) up -d --remove-orphans
 
 down:
 	$(COMPOSE) down
 
 restart: down up
 
+logs:
+	$(COMPOSE) logs -f
+
+shell:
+	$(COMPOSE) exec $(PHP_CONTAINER) sh
+
+sms-logs:
+	$(COMPOSE) exec $(PHP_CONTAINER) tail -f runtime/logs/sms.log
+
+# =================================================================================================
+# 🛠 НАСТРОЙКА (SETUP)
+# =================================================================================================
+
+setup: _mkdirs
+	@chmod +x bin/setup-env
+	@chmod +x bin/list-comments
+	@if [ -f .env ]; then \
+		echo "❓ Файл .env найден."; \
+		read -p "   Перезаписать его (сбросить настройки)? [y/N] " ans; \
+		if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
+			./bin/setup-env; \
+		else \
+			echo "✅ .env оставлен без изменений."; \
+		fi \
+	else \
+		./bin/setup-env -y; \
+	fi
+
+configure: _mkdirs
+	@echo "⚠️  Вы запускаете полную перенастройку окружения."
+	@echo "   Это обновит файл .env и может изменить порты."
+	@read -p "   Вы уверены? [y/N] " ans; \
+	if [ "$$ans" != "y" ] && [ "$$ans" != "Y" ]; then \
+		echo "❌ Отменено."; \
+		exit 1; \
+	fi
+	@chmod +x bin/setup-env
+	@./bin/setup-env
+
+_mkdirs:
+	mkdir -p web/uploads runtime/debug runtime/logs runtime/cache
+	$(COMPOSE) exec -T -u root $(PHP_CONTAINER) chmod -R 777 /app/runtime /app/web/uploads 2>/dev/null || true
+
 composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer install
+
+# =================================================================================================
+# 🛡️ КОНТРОЛЬ КАЧЕСТВА (QA)
+# =================================================================================================
+
+dev: fix ci
+fix: lint-fix rector-fix
+ci: lint analyze test
+pr: ci deptrac infection
 
 lint:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs
 
 lint-fix:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf
-
-analyze:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan analyse --memory-limit=2G
-
-deptrac:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/deptrac analyze
-
-migrate:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./yii migrate --interactive=0
-
-seed:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./yii seed
-
-shell:
-	$(COMPOSE) exec $(PHP_CONTAINER) sh
-
-perms:
-	mkdir -p web/uploads runtime/debug runtime/logs runtime/cache
-	$(COMPOSE) exec -T -u root $(PHP_CONTAINER) chmod -R 777 /app/runtime /app/web/uploads
-
-copy-env:
-	@if [ ! -f .env ]; then cp .env.example .env; echo "✅ .env created"; fi
-
-sms-logs:
-	$(COMPOSE) exec $(PHP_CONTAINER) tail -f runtime/logs/sms.log
-
-queue-info:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./yii queue/info
-
-logs:
-	$(COMPOSE) logs -f
-
-_test-init:
-	@echo "🔧 Preparing test database..."
-	@$(COMPOSE) exec -T db sh -c 'mysql -uroot -p"$${MYSQL_ROOT_PASSWORD}" -h127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS $(DB_TEST_NAME); GRANT ALL PRIVILEGES ON $(DB_TEST_NAME).* TO \"$${MYSQL_USER}\"@\"%\"; FLUSH PRIVILEGES;"' 2>&1 | grep -v "Using a password" || true
-	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "DB_NAME=$(DB_TEST_NAME) ./yii migrate --interactive=0 --migrationPath=@app/migrations" > /dev/null
-
-test: _test-init
-	@echo "🚀 Running all tests..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors
-
-test-coverage: _test-init
-	@echo "📊 Running tests with coverage..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --coverage --coverage-html --coverage-text
-	@echo ""
-	@echo "═══════════════════════════════════════"
-	@$(COMPOSE) exec $(PHP_CONTAINER) cat tests/_output/coverage.txt 2>/dev/null | head -12 | tail -8 || echo "See HTML report: tests/_output/coverage/index.html"
-	@echo "═══════════════════════════════════════"
-
-test-unit:
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit
-
-test-functional: _test-init
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional
-
-docs:
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/all
-
-repomix:
-	@command -v npx >/dev/null 2>&1 || { echo "❌ npx not found. Install Node.js first"; exit 1; }
-	@echo "📦 Generating repomix output..."
-	@npx -y repomix --style markdown --output repomix-output.md
-	@echo "✅ Created repomix-output.md"
-
-infection: _test-init
-	$(COMPOSE) exec $(PHP_CONTAINER) mkdir -p runtime/coverage
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage"
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=1 --test-framework-options="functional,unit"
-
-swagger:
-	$(COMPOSE) exec $(PHP_CONTAINER) php docs/api/generate.php
-
-load-test:
-	@echo "🚀 Running k6 load test..."
-	$(COMPOSE) run --rm k6 run /scripts/smoke.js
+	-$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf
 
 rector:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process --dry-run
@@ -109,13 +148,67 @@ rector:
 rector-fix:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process
 
+analyze:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan analyse --memory-limit=2G
+
+deptrac:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/deptrac analyze
+
 audit:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer audit
 
-fix: lint-fix rector-fix
+# =================================================================================================
+# 🧪 ТЕСТЫ
+# =================================================================================================
 
-ci: lint analyze test
+_test-init:
+	@echo "🔧 Подготовка тестовой базы..."
+	@$(COMPOSE) exec -T db sh -c 'mysql -uroot -p"$${MYSQL_ROOT_PASSWORD}" -h127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS $(DB_TEST_NAME); GRANT ALL PRIVILEGES ON $(DB_TEST_NAME).* TO \"$${MYSQL_USER}\"@\"%\"; FLUSH PRIVILEGES;"' 2>&1 | grep -v "Using a password" || true
+	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "DB_NAME=$(DB_TEST_NAME) ./yii migrate --interactive=0 --migrationPath=@app/migrations" > /dev/null
 
-dev: fix ci
+test: _test-init
+	@echo "🚀 Запуск всех тестов..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors
 
-pr: ci deptrac infection audit
+test-coverage: _test-init
+	@echo "📊 Анализ покрытия кода..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --coverage --coverage-html --coverage-text
+	@echo "Отчет: tests/_output/coverage/index.html"
+
+infection: _test-init
+	$(COMPOSE) exec $(PHP_CONTAINER) mkdir -p runtime/coverage
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage"
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=1 --test-framework-options="functional,unit"
+
+load-test:
+	@echo "🚀 Load Testing (K6)..."
+	$(COMPOSE) run --rm k6 run /scripts/smoke.js
+
+# =================================================================================================
+# 📦 БАЗА ДАННЫХ
+# =================================================================================================
+
+migrate:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./yii migrate --interactive=0
+
+seed:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./yii seed
+
+# =================================================================================================
+# 📚 ДОКУМЕНТАЦИЯ И УТИЛИТЫ
+# =================================================================================================
+
+queue-info:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./yii queue/info
+
+comments:
+	@./bin/list-comments
+
+docs:
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/all
+
+swagger:
+	$(COMPOSE) exec $(PHP_CONTAINER) php docs/api/generate.php
+
+repomix:
+	@npx -y repomix --style markdown --output repomix-output.md
