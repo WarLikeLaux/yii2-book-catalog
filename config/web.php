@@ -57,11 +57,17 @@ $config = [
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
             'viewPath' => '@app/presentation/mail',
-            'useFileTransport' => true,
+            'useFileTransport' => env('MAILER_USE_FILE_TRANSPORT', true),
+            'transport' => [
+                'scheme' => 'smtp',
+                'host' => env('MAILER_HOST', '127.0.0.1'),
+                'port' => (int)env('MAILER_PORT', 1025),
+                'dsn' => 'native://default',
+            ],
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
-            'targets' => [
+            'targets' => array_filter([
                 [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
@@ -73,7 +79,23 @@ $config = [
                     'logFile' => '@runtime/logs/sms.log',
                     'logVars' => [],
                 ],
-            ],
+                YII_ENV_DEV ? [
+                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
+                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
+                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'levels' => ['error', 'warning'],
+                    'except' => ['yii\web\HttpException:404'],
+                ] : null,
+                YII_ENV_DEV ? [
+                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
+                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
+                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'levels' => ['info'],
+                    'categories' => ['sms', 'application'],
+                    // Не дампить $_SERVER и прочее в инфо-логах
+                    'logVars' => [],
+                ] : null,
+            ]),
         ],
         'db' => $db,
         'mutex' => [

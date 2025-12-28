@@ -28,7 +28,7 @@ $config = [
             'class' => 'yii\redis\Cache',
         ],
         'log' => [
-            'targets' => [
+            'targets' => array_filter([
                 [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
@@ -40,7 +40,22 @@ $config = [
                     'logFile' => '@runtime/logs/sms.log',
                     'logVars' => [],
                 ],
-            ],
+                YII_ENV_DEV ? [
+                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
+                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
+                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'levels' => ['error', 'warning'],
+                ] : null,
+                YII_ENV_DEV ? [
+                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
+                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
+                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'levels' => ['info'],
+                    'categories' => ['sms', 'application'],
+                    // Не дампить $_SERVER и прочее в инфо-логах
+                    'logVars' => [],
+                ] : null,
+            ]),
         ],
         'db' => $db,
         'mutex' => [
@@ -70,7 +85,6 @@ if (YII_ENV_DEV) {
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug'] = [
         'class' => 'yii\debug\Module',
-        //'allowedIPs' => ['127.0.0.1', '::1'],
     ];
 }
 
