@@ -12,9 +12,9 @@ use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
-use app\application\common\validators\IsbnValidator;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\BookRepositoryInterface;
+use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\FileStorageInterface;
 use app\application\ports\IdempotencyInterface;
@@ -28,6 +28,7 @@ use app\application\ports\TranslatorInterface;
 use app\application\reports\queries\ReportQueryService;
 use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\application\subscriptions\usecases\SubscribeUseCase;
+use app\infrastructure\adapters\YiiCacheAdapter;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\adapters\YiiQueueAdapter;
 use app\infrastructure\adapters\YiiTransactionAdapter;
@@ -43,6 +44,7 @@ use app\infrastructure\services\storage\LocalFileStorage;
 use app\infrastructure\services\YiiPsrLogger;
 use app\presentation\adapters\PagedResultDataProviderFactory;
 use app\presentation\validators\AuthorExistsValidator;
+use app\presentation\validators\IsbnValidator;
 use app\presentation\validators\UniqueFioValidator;
 use app\presentation\validators\UniqueIsbnValidator;
 use Psr\Log\LoggerInterface;
@@ -72,6 +74,7 @@ return [
         ReportRepositoryInterface::class => static fn() => new ReportRepository(Yii::$app->get('db')),
         TransactionInterface::class => static fn() => new YiiTransactionAdapter(Yii::$app->get('db')),
         QueueInterface::class => static fn() => new YiiQueueAdapter(Yii::$app->get('queue')),
+        CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
         EventPublisherInterface::class => YiiEventPublisherAdapter::class,
 
         // Валидаторы (автоматически получают зависимости через конструктор)

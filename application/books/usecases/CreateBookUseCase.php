@@ -6,6 +6,7 @@ namespace app\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\ports\BookRepositoryInterface;
+use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookCreatedEvent;
@@ -18,6 +19,7 @@ final readonly class CreateBookUseCase
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
         private EventPublisherInterface $eventPublisher,
+        private CacheInterface $cache,
     ) {
     }
 
@@ -37,6 +39,8 @@ final readonly class CreateBookUseCase
             $this->bookRepository->syncAuthors($bookId, $command->authorIds);
 
             $this->transaction->commit();
+
+            $this->cache->delete(sprintf('report:top_authors:%d', $command->year));
 
             $event = new BookCreatedEvent(
                 bookId: $bookId,

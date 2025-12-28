@@ -8,6 +8,7 @@ use app\application\books\commands\UpdateBookCommand;
 use app\application\books\queries\BookReadDto;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
+use app\application\ports\CacheInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
@@ -17,13 +18,15 @@ final class UpdateBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
     private TransactionInterface&MockObject $transaction;
+    private CacheInterface&MockObject $cache;
     private UpdateBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
-        $this->useCase = new UpdateBookUseCase($this->bookRepository, $this->transaction);
+        $this->cache = $this->createMock(CacheInterface::class);
+        $this->useCase = new UpdateBookUseCase($this->bookRepository, $this->transaction, $this->cache);
     }
 
     public function testExecuteUpdatesBookSuccessfully(): void

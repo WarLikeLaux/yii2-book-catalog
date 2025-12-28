@@ -27,7 +27,8 @@
         "vlucas/phpdotenv": "^5.5",
         "psr/log": "^3.0",
         "kartik-v/yii2-widget-select2": "^2.2",
-        "giggsey/libphonenumber-for-php": "^9.0"
+        "giggsey/libphonenumber-for-php": "^9.0",
+        "yiisoft/yii2-redis": "^2.1"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

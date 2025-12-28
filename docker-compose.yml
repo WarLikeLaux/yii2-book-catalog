@@ -9,6 +9,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     env_file: .env
 
   db:
@@ -29,6 +31,16 @@ services:
       retries: 10
       interval: 5s
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   queue:
     build: .
     image: yii2-app-custom
@@ -41,6 +53,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     env_file: .env
 
   selenium:

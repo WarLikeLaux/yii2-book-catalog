@@ -8,6 +8,7 @@ use app\application\books\commands\DeleteBookCommand;
 use app\application\books\queries\BookReadDto;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\ports\BookRepositoryInterface;
+use app\application\ports\CacheInterface;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -15,12 +16,14 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class DeleteBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
+    private CacheInterface&MockObject $cache;
     private DeleteBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
-        $this->useCase = new DeleteBookUseCase($this->bookRepository);
+        $this->cache = $this->createMock(CacheInterface::class);
+        $this->useCase = new DeleteBookUseCase($this->bookRepository, $this->cache);
     }
 
     public function testExecuteDeletesBookSuccessfully(): void

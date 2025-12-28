@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\application\common\validators;
+namespace app\presentation\validators;
 
 use app\application\ports\TranslatorInterface;
 use app\domain\values\Isbn;

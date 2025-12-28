@@ -30,11 +30,16 @@ deptrac:
         - type: directory
           value: presentation/.*
     
+    - name: Framework
+      collectors:
+        - type: classLike
+          value: ^(Yii|yii\\).*  
+
     - name: Vendor
       collectors:
         - type: classLike
-          value: ^(Yii|yii\\|Ramsey\\|Psr\\|Symfony\\|Doctrine\\).*
-  
+          value: ^(Ramsey\\|Psr\\|Symfony\\|Doctrine\\).*  
+
   ruleset:
     Domain:
       - Vendor
@@ -47,11 +52,13 @@ deptrac:
       - Domain
       - Application
       - Vendor
+      - Framework
     
     Presentation:
       - Domain
       - Application
       - Vendor
+      - Framework
 
   skip_violations:
     app\presentation\forms\SubscriptionForm:

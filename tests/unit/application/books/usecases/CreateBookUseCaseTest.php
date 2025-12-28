@@ -7,6 +7,7 @@ namespace tests\unit\application\books\usecases;
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
+use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookCreatedEvent;
@@ -19,6 +20,7 @@ final class CreateBookUseCaseTest extends Unit
     private BookRepositoryInterface&MockObject $bookRepository;
     private TransactionInterface&MockObject $transaction;
     private EventPublisherInterface&MockObject $eventPublisher;
+    private CacheInterface&MockObject $cache;
     private CreateBookUseCase $useCase;
 
     protected function _before(): void
@@ -26,10 +28,12 @@ final class CreateBookUseCaseTest extends Unit
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
         $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
+        $this->cache = $this->createMock(CacheInterface::class);
         $this->useCase = new CreateBookUseCase(
             $this->bookRepository,
             $this->transaction,
-            $this->eventPublisher
+            $this->eventPublisher,
+            $this->cache
         );
     }
 

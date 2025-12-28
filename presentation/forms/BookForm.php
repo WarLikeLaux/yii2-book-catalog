@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\presentation\forms;
 
-use app\application\common\validators\IsbnValidator;
 use app\presentation\validators\AuthorExistsValidator;
+use app\presentation\validators\IsbnValidator;
 use app\presentation\validators\UniqueIsbnValidator;
 use Yii;
 use yii\base\Model;

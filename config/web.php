@@ -22,7 +22,6 @@ $config = [
     ],
     'components' => [
         'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => env('COOKIE_VALIDATION_KEY', ''),
         ],
         'response' => [
@@ -33,8 +32,14 @@ $config = [
                 $event->sender->headers->add('Referrer-Policy', 'strict-origin-when-cross-origin');
             },
         ],
+        'redis' => [
+            'class' => 'yii\redis\Connection',
+            'hostname' => env('REDIS_HOST', 'redis'),
+            'port' => (int)env('REDIS_PORT', '6379'),
+            'database' => 0,
+        ],
         'cache' => [
-            'class' => 'yii\caching\FileCache',
+            'class' => 'yii\redis\Cache',
         ],
         'assetManager' => [
             'bundles' => [
@@ -52,7 +57,6 @@ $config = [
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
             'viewPath' => '@app/presentation/mail',
-            // send all mails to a file by default.
             'useFileTransport' => true,
         ],
         'log' => [

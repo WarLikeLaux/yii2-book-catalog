@@ -67,7 +67,7 @@ final readonly class BookCommandService
     private function uploadCover(BookForm $form): ?string
     {
         if ($form->cover instanceof UploadedFile) {
-            return $this->fileStorage->save($form->cover);
+            return $this->fileStorage->save($form->cover->tempName, $form->cover->extension);
         }
         return null;
     }
