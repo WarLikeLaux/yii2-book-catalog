@@ -8,9 +8,9 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-252_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-276_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![Mutation Score](https://img.shields.io/badge/MSI-94%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Mutation Score](https://img.shields.io/badge/MSI-95%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
 ---
 
@@ -41,7 +41,7 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **252 теста** (549 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **276 тестов** (610 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Custom Architecture Rules | 🛠 **Makefile**<br>Автоматизация рутины |
 | ✅ **Mutation Testing**<br>Infection PHP (MSI > 94%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
@@ -221,7 +221,8 @@ yii2-book-catalog/
 │   └── ports/               # ВСЕ порты (EventPublisher, Notification, SMS, FileStorage, Translator)
 ├── domain/                  # Domain Layer
 │   ├── events/             # Domain Events (BookCreatedEvent, DomainEvent interface)
-│   ├── exceptions/         # Domain Exceptions (DomainException)
+│   ├── exceptions/         # Domain Exceptions (DomainException, EntityNotFoundException)
+│   ├── entities/           # Rich Domain Entities (Author, Book, Subscription)
 │   └── values/             # Value Objects (Isbn, BookYear)
 ├── infrastructure/          # Infrastructure Layer
 │   ├── adapters/           # Адаптеры портов (YiiEventPublisher, YiiTranslator, etc.)
@@ -254,23 +255,11 @@ yii2-book-catalog/
 
 
 
-### 13. Компромиссы Clean-ish архитектуры
+### 13. Прагматизм и компромиссы
 
-Проект следует принципам **Clean Architecture**, но с осознанными компромиссами для Yii2, что делает его **Clean-ish** (не строго Clean, но близко к идеалу). Все компромиссы приняты намеренно для баланса между чистотой архитектуры и практичностью работы с Yii2.
+Проект следует принципам **Clean Architecture**, сохраняя баланс между чистотой кода и удобством работы с Yii2. Все архитектурные отступления приняты осознанно для эффективного использования возможностей фреймворка.
 
-#### 13.1. Domain Layer (Rich Model)
-
-**Решение:** Использование полноценных **Rich Domain Entities** (`Book`), которые не зависят от фреймворка.
-
-**Почему:** Это позволяет изолировать бизнес-логику от инфраструктуры (ActiveRecord). `Book` — это чистый PHP класс, который можно тестировать unit-тестами без базы данных.
-
-**Что получили:** 
-* Use Cases работают с чистыми сущностями
-* ActiveRecord используется только в Infrastructure layer (Repository implementation)
-* Полная изоляция домена от фреймворка
-* Возможность смены ORM без изменения бизнес-логики (теоретически)
-
-#### 13.2. Репозитории используют ActiveRecord для запросов
+#### 13.1. Репозитории используют ActiveRecord для запросов
 
 **Компромисс:** репозитории используют `ActiveDataProvider` и ActiveRecord для выполнения запросов (сохранение eager loading через `with()`), но возвращают чистые DTO вместо моделей.
 
@@ -282,7 +271,7 @@ yii2-book-catalog/
 * Репозитории создают чистый `PaginationDto` вместо передачи framework-объектов
 * В presentation layer адаптер преобразует `PaginationDto` обратно в `yii\data\Pagination` для виджетов
 
-#### 13.3. Использование Yii2 компонентов в слое Presentation
+#### 13.2. Использование Yii2 компонентов в слое Presentation
 
 **Компромисс:** слой Presentation использует Yii2 компоненты (`ActiveForm`, `DataProvider`, `Response`). Контроллеры содержат HTTP-логику и AJAX-валидацию (`ActiveForm::validate`), а Presentation Services — подготовку данных и вызов Use Cases.
 
@@ -294,7 +283,7 @@ yii2-book-catalog/
 * Use Cases не знают о формах, HTTP, валидации форм
 * Бизнес-логика полностью независима от способа представления
 
-#### 13.4. Итоговый баланс
+#### 13.3. Итоговый баланс
 
 Все компромиссы приняты осознанно и документированы. Результат:
 * ✅ Application layer полностью независим от фреймворка
@@ -346,10 +335,10 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>252</b><br>Tests</td>
-<td align="center"><b>549</b><br>Assertions</td>
+<td align="center"><b>276</b><br>Tests</td>
+<td align="center"><b>610</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~2s</b><br>Runtime</td>
+<td align="center"><b>~4s</b><br>Runtime</td>
 </tr>
 </table>
 
@@ -431,10 +420,10 @@ open http://localhost:8000
 
 ### 📊 Статистика проекта
 
-![Source Code](https://img.shields.io/badge/Source_Code-4.5k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-5.5k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-135-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-74-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Code](https://img.shields.io/badge/Source_Code-4.8k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-6.0k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-139-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-80-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
