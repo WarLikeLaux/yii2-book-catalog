@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace app\infrastructure\persistence;
 
-use app\application\common\validators\IsbnValidator;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
@@ -82,7 +81,6 @@ final class Book extends ActiveRecord
             [['description'], 'string'],
             [['title'], 'string', 'max' => 255],
             [['isbn'], 'string', 'max' => 20],
-            [['isbn'], IsbnValidator::class],
             [['isbn'], 'unique'],
             [['cover_url'], 'string', 'max' => 500],
         ];

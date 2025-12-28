@@ -27,9 +27,11 @@
         "vlucas/phpdotenv": "^5.5",
         "psr/log": "^3.0",
         "kartik-v/yii2-widget-select2": "^2.2",
-        "giggsey/libphonenumber-for-php": "^9.0"
+        "giggsey/libphonenumber-for-php": "^9.0",
+        "yiisoft/yii2-redis": "^2.1"
     },
     "require-dev": {
+        "symfony/var-dumper": "^6.0 || ^7.0",
         "yiisoft/yii2-debug": "~2.1.0",
         "yiisoft/yii2-gii": "~2.2.0",
         "yiisoft/yii2-faker": "~2.0.0",
@@ -52,7 +54,8 @@
         "codeception/module-rest": "^3.4",
         "roave/security-advisories": "dev-latest",
         "phpstan/phpstan-strict-rules": "^2.0",
-        "phpstan/phpstan-deprecation-rules": "^2.0"
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "buggregator/trap": "^1.15"
     },
     "autoload": {
         "psr-4": {

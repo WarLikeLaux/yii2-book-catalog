@@ -2,7 +2,7 @@ actor: AcceptanceTester
 modules:
     enabled:
         - WebDriver:
-            url: http://php:80/
+            url: http://nginx/
             browser: chrome
             host: selenium
             port: 4444

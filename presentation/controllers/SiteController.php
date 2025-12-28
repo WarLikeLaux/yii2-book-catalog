@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\presentation\services\BookSearchPresentationService;
-use app\presentation\services\LoginPresentationService;
+use app\presentation\auth\handlers\LoginHandler;
+use app\presentation\books\handlers\BookSearchHandler;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -18,8 +18,8 @@ final class SiteController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly BookSearchPresentationService $bookSearchPresentationService,
-        private readonly LoginPresentationService $loginPresentationService,
+        private readonly BookSearchHandler $bookSearchHandler,
+        private readonly LoginHandler $loginHandler,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -61,7 +61,7 @@ final class SiteController extends Controller
 
     public function actionIndex(): string
     {
-        $viewData = $this->bookSearchPresentationService->prepareIndexViewData($this->request);
+        $viewData = $this->bookSearchHandler->prepareIndexViewData($this->request);
         return $this->render('index', $viewData);
     }
 
@@ -72,11 +72,11 @@ final class SiteController extends Controller
         }
 
         if (!$this->request->isPost) {
-            $viewData = $this->loginPresentationService->prepareLoginViewData();
+            $viewData = $this->loginHandler->prepareLoginViewData();
             return $this->render('login', $viewData);
         }
 
-        $result = $this->loginPresentationService->processLoginRequest($this->request);
+        $result = $this->loginHandler->processLoginRequest($this->request);
 
         if ($result['success']) {
             return $this->goBack();
@@ -94,6 +94,10 @@ final class SiteController extends Controller
 
     public function actionApi(): string
     {
-        return $this->render('api');
+        return $this->render('api', [
+            'swaggerPort' => Yii::$app->params['swaggerPort'],
+            'appPort' => Yii::$app->params['appPort'],
+            'host' => $this->request->serverName,
+        ]);
     }
 }

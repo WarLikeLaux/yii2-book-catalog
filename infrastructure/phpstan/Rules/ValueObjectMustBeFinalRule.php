@@ -12,7 +12,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 
 /**
  * @implements Rule<Class_>
- * @codeCoverageIgnore
+ * @codeCoverageIgnore Логика статического анализа проверяется тестами PHPStan
  */
 final readonly class ValueObjectMustBeFinalRule implements Rule
 {

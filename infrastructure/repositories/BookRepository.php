@@ -9,68 +9,84 @@ use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
+use app\domain\entities\Book as BookEntity;
+use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
+use RuntimeException;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
 use yii\db\Expression;
+use yii\db\Query;
 
 /**
  * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
  */
 final class BookRepository implements BookRepositoryInterface
 {
-    public function create(
-        string $title,
-        BookYear $year,
-        Isbn $isbn,
-        ?string $description,
-        ?string $coverUrl
-    ): int {
-        $book = Book::create(
-            title: $title,
-            year: $year->value,
-            isbn: $isbn->value,
-            description: $description,
-            coverUrl: $coverUrl
-        );
-
-        if (!$book->save()) {
-            $errors = $book->getFirstErrors();
-            $message = $errors !== [] ? array_shift($errors) : 'Failed to save book';
-            throw new \RuntimeException($message);
+    public function save(BookEntity $book): void
+    {
+        if ($book->getId() === null) {
+            $ar = new Book();
+        } else {
+            $ar = Book::findOne($book->getId());
+            if ($ar === null) {
+                throw new RuntimeException('Book record not found for update');
+            }
         }
 
-        return $book->id;
+        $ar->title = $book->getTitle();
+        $ar->year = $book->getYear()->value;
+        $ar->isbn = $book->getIsbn()->value;
+        $ar->description = $book->getDescription();
+        $ar->cover_url = $book->getCoverUrl();
+
+        if (!$ar->save()) {
+            $errors = $ar->getFirstErrors();
+            $message = $errors !== [] ? array_shift($errors) : 'Failed to save book';
+            throw new RuntimeException($message);
+        }
+
+        if ($book->getId() === null) {
+            $book->setId($ar->id);
+        }
+
+        $this->syncAuthorsInternal($ar->id, $book->getAuthorIds());
     }
 
-    public function update(
-        int $id,
-        string $title,
-        BookYear $year,
-        Isbn $isbn,
-        ?string $description,
-        ?string $coverUrl
-    ): void {
-        $book = Book::findOne($id);
-        if ($book === null) {
-            throw new \RuntimeException('Book not found');
+    public function get(int $id): BookEntity
+    {
+        $ar = Book::find()->where(['id' => $id])->with('authors')->one();
+        if ($ar === null) {
+            throw new EntityNotFoundException('Book not found');
         }
 
-        $book->edit(
-            title: $title,
-            year: $year->value,
-            isbn: $isbn->value,
-            description: $description,
-            coverUrl: $coverUrl
-        );
+        /** @var Author[] $authors */
+        $authors = $ar->authors;
+        $authorIds = array_map(fn(Author $a) => $a->id, $authors);
 
-        if (!$book->save()) {
-            $errors = $book->getFirstErrors();
-            $message = $errors !== [] ? array_shift($errors) : 'Failed to update book';
-            throw new \RuntimeException($message);
+        return new BookEntity(
+            id: $ar->id,
+            title: $ar->title,
+            year: new BookYear($ar->year),
+            isbn: new Isbn($ar->isbn),
+            description: $ar->description,
+            coverUrl: $ar->cover_url,
+            authorIds: $authorIds
+        );
+    }
+
+    public function delete(BookEntity $book): void
+    {
+        $ar = Book::findOne($book->getId());
+        if ($ar === null) {
+            throw new EntityNotFoundException('Book not found');
+        }
+
+        if ($ar->delete() === false) {
+            throw new RuntimeException('Failed to delete book');
         }
     }
 
@@ -82,58 +98,6 @@ final class BookRepository implements BookRepositoryInterface
         }
 
         return $this->mapToDto($book);
-    }
-
-    public function delete(int $id): void
-    {
-        $book = Book::findOne($id);
-        if ($book === null) {
-            throw new \RuntimeException('Book not found');
-        }
-
-        if ($book->delete() === false) {
-            throw new \RuntimeException('Failed to delete book');
-        }
-    }
-
-    /**
-     * @param array<int> $newAuthorIds
-     */
-    public function syncAuthors(int $bookId, array $newAuthorIds): void
-    {
-        $book = Book::findOne($bookId);
-        if ($book === null) {
-            return;
-        }
-
-        $existingAuthorIds = $book->getAuthors()->select('id')->column();
-        $existingAuthorIds = array_map(intval(...), $existingAuthorIds);
-        $newAuthorIds = array_map(intval(...), $newAuthorIds);
-
-        $toDelete = array_diff($existingAuthorIds, $newAuthorIds);
-        $toAdd = array_diff($newAuthorIds, $existingAuthorIds);
-
-        if ($toDelete !== []) {
-            \Yii::$app->db->createCommand()->delete('book_authors', [
-                'and',
-                ['book_id' => $bookId],
-                ['in', 'author_id', $toDelete],
-            ])->execute();
-        }
-
-        if ($toAdd === []) {
-            return;
-        }
-
-        $rows = array_map(
-            fn($authorId): array => [$bookId, $authorId],
-            $toAdd
-        );
-        \Yii::$app->db->createCommand()->batchInsert(
-            'book_authors',
-            ['book_id', 'author_id'],
-            $rows
-        )->execute();
     }
 
     public function findByIdWithAuthors(int $id): ?BookReadDto
@@ -193,6 +157,46 @@ final class BookRepository implements BookRepositoryInterface
         }
 
         return $query->exists();
+    }
+
+    /**
+     * @param int[] $newAuthorIds
+     */
+    private function syncAuthorsInternal(int $bookId, array $newAuthorIds): void
+    {
+        $existingAuthorIds = (new Query())
+            ->select('author_id')
+            ->from('book_authors')
+            ->where(['book_id' => $bookId])
+            ->column();
+
+        $existingAuthorIds = array_map(intval(...), $existingAuthorIds);
+        $newAuthorIds = array_map(intval(...), $newAuthorIds);
+
+        $toDelete = array_diff($existingAuthorIds, $newAuthorIds);
+        $toAdd = array_diff($newAuthorIds, $existingAuthorIds);
+
+        if ($toDelete !== []) {
+            \Yii::$app->db->createCommand()->delete('book_authors', [
+                'and',
+                ['book_id' => $bookId],
+                ['in', 'author_id', $toDelete],
+            ])->execute();
+        }
+
+        if ($toAdd === []) {
+            return;
+        }
+
+        $rows = array_map(
+            fn($authorId): array => [$bookId, $authorId],
+            $toAdd
+        );
+        \Yii::$app->db->createCommand()->batchInsert(
+            'book_authors',
+            ['book_id', 'author_id'],
+            $rows
+        )->execute();
     }
 
     private function mapToDto(Book $book): BookReadDto

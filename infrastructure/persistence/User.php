@@ -61,8 +61,6 @@ final class User extends BaseObject implements IdentityInterface
     }
 
     /**
-     * Finds user by username
-     *
      * @param string $username
      * @return static|null
      */
@@ -105,8 +103,6 @@ final class User extends BaseObject implements IdentityInterface
     }
 
     /**
-     * Validates password
-     *
      * @param string $password password to validate
      * @return bool if password provided is valid for current user
      */

@@ -6,6 +6,7 @@ namespace app\application\subscriptions\usecases;
 
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
+use app\domain\entities\Subscription;
 use app\domain\exceptions\DomainException;
 use Throwable;
 
@@ -23,7 +24,8 @@ final readonly class SubscribeUseCase
         }
 
         try {
-            $this->subscriptionRepository->create($command->phone, $command->authorId);
+            $subscription = Subscription::create($command->phone, $command->authorId);
+            $this->subscriptionRepository->save($subscription);
         } catch (Throwable) {
             throw new DomainException('Could not create subscription. Please try again later.');
         }

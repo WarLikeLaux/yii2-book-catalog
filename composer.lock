@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8a00f572b949ef8a17452ec98599f220",
+    "content-hash": "e3dfb2ce27a41b5ce63002adc59e6186",
     "packages": [
         {
             "name": "bower-asset/inputmask",
@@ -741,6 +741,69 @@
             "time": "2025-08-21T11:53:16+00:00"
         },
         {
+            "name": "predis/predis",
+            "version": "v3.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/predis/predis.git",
+                "reference": "153097374b39a2f737fe700ebcd725642526cdec"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/predis/predis/zipball/153097374b39a2f737fe700ebcd725642526cdec",
+                "reference": "153097374b39a2f737fe700ebcd725642526cdec",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2 || ^8.0",
+                "psr/http-message": "^1.0|^2.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.3",
+                "phpstan/phpstan": "^1.9",
+                "phpunit/phpcov": "^6.0 || ^8.0",
+                "phpunit/phpunit": "^8.0 || ~9.4.4"
+            },
+            "suggest": {
+                "ext-relay": "Faster connection with in-memory caching (>=0.6.2)"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Predis\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Till Krüss",
+                    "homepage": "https://till.im",
+                    "role": "Maintainer"
+                }
+            ],
+            "description": "A flexible and feature-complete Redis/Valkey client for PHP.",
+            "homepage": "http://github.com/predis/predis",
+            "keywords": [
+                "nosql",
+                "predis",
+                "redis"
+            ],
+            "support": {
+                "issues": "https://github.com/predis/predis/issues",
+                "source": "https://github.com/predis/predis/tree/v3.3.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/tillkruss",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-11-24T17:48:50+00:00"
+        },
+        {
             "name": "psr/container",
             "version": "2.0.2",
             "source": {
@@ -842,6 +905,59 @@
                 "source": "https://github.com/php-fig/event-dispatcher/tree/1.0.0"
             },
             "time": "2019-01-08T18:20:26+00:00"
+        },
+        {
+            "name": "psr/http-message",
+            "version": "2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-message.git",
+                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-message/zipball/402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2 || ^8.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Message\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for HTTP messages",
+            "homepage": "https://github.com/php-fig/http-message",
+            "keywords": [
+                "http",
+                "http-message",
+                "psr",
+                "psr-7",
+                "request",
+                "response"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/http-message/tree/2.0"
+            },
+            "time": "2023-04-04T09:54:51+00:00"
         },
         {
             "name": "psr/log",
@@ -2436,6 +2552,82 @@
             "time": "2024-04-29T09:40:52+00:00"
         },
         {
+            "name": "yiisoft/yii2-redis",
+            "version": "2.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/yiisoft/yii2-redis.git",
+                "reference": "689c6492641c2dbe561924be4d8ca5da9ae33637"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/yiisoft/yii2-redis/zipball/689c6492641c2dbe561924be4d8ca5da9ae33637",
+                "reference": "689c6492641c2dbe561924be4d8ca5da9ae33637",
+                "shasum": ""
+            },
+            "require": {
+                "ext-openssl": "*",
+                "php": "^7.3 || ^8.0",
+                "predis/predis": "^v2.3.0|^3.0",
+                "yiisoft/yii2": "~2.0.39"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "9.*",
+                "yiisoft/yii2-dev": "~2.0.39"
+            },
+            "type": "yii2-extension",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "yii\\redis\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Carsten Brandt",
+                    "email": "mail@cebe.cc"
+                }
+            ],
+            "description": "Redis Cache, Session and ActiveRecord for the Yii framework",
+            "keywords": [
+                "active-record",
+                "cache",
+                "redis",
+                "session",
+                "yii2"
+            ],
+            "support": {
+                "forum": "https://www.yiiframework.com/forum/",
+                "irc": "ircs://irc.libera.chat:6697/yii",
+                "issues": "https://github.com/yiisoft/yii2-redis/issues",
+                "source": "https://github.com/yiisoft/yii2-redis",
+                "wiki": "https://www.yiiframework.com/wiki/"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/yiisoft",
+                    "type": "github"
+                },
+                {
+                    "url": "https://opencollective.com/yiisoft",
+                    "type": "open_collective"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/yiisoft/yii2-redis",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2025-12-25T10:15:00+00:00"
+        },
+        {
             "name": "yiisoft/yii2-symfonymailer",
             "version": "2.0.4",
             "source": {
@@ -2594,6 +2786,171 @@
                 }
             ],
             "time": "2025-12-08T16:12:58+00:00"
+        },
+        {
+            "name": "buggregator/trap",
+            "version": "1.15.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/buggregator/trap.git",
+                "reference": "2530255bee5e1c5fa9b251018376f97ea7e54e64"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/buggregator/trap/zipball/2530255bee5e1c5fa9b251018376f97ea7e54e64",
+                "reference": "2530255bee5e1c5fa9b251018376f97ea7e54e64",
+                "shasum": ""
+            },
+            "require": {
+                "clue/stream-filter": "^1.6",
+                "ext-filter": "*",
+                "ext-sockets": "*",
+                "internal/destroy": "^1.0",
+                "nyholm/psr7": "^1.8",
+                "php": ">=8.1",
+                "php-64bit": "*",
+                "php-http/message": "^1.15",
+                "psr/container": "^1.1 || ^2.0",
+                "psr/http-message": "^1.1 || ^2",
+                "symfony/console": "^6.4 || ^7 || ^8",
+                "symfony/var-dumper": "^6.3 || ^7 || ^8",
+                "yiisoft/injector": "^1.2"
+            },
+            "require-dev": {
+                "dereuromark/composer-prefer-lowest": "^0.1.10",
+                "ergebnis/phpunit-slow-test-detector": "^2.14",
+                "google/protobuf": "^3.25 || ^4.30",
+                "phpunit/phpunit": "^10.5.10",
+                "rector/rector": "^1.1",
+                "roxblnfk/unpoly": "^1.8.1",
+                "spiral/code-style": "^2.2.2",
+                "ta-tikoma/phpunit-architecture-test": "^0.8.5",
+                "vimeo/psalm": "^6.5"
+            },
+            "suggest": {
+                "ext-simplexml": "To load trap.xml",
+                "roxblnfk/unpoly": "If you want to remove unnecessary PHP polyfills depend on PHP version."
+            },
+            "bin": [
+                "bin/trap"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions.php"
+                ],
+                "psr-4": {
+                    "Buggregator\\Trap\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Aleksei Gagarin (roxblnfk)",
+                    "homepage": "https://github.com/roxblnfk"
+                },
+                {
+                    "name": "Pavel Buchnev (butschster)",
+                    "homepage": "https://github.com/butschster"
+                }
+            ],
+            "description": "A simple and powerful tool for debugging PHP applications.",
+            "homepage": "https://buggregator.dev/",
+            "keywords": [
+                "Fibers",
+                "WebSockets",
+                "binary dump",
+                "cli",
+                "console",
+                "debug",
+                "dev",
+                "dump",
+                "dumper",
+                "helper",
+                "sentry",
+                "server",
+                "smtp"
+            ],
+            "support": {
+                "issues": "https://github.com/buggregator/trap/issues",
+                "source": "https://github.com/buggregator/trap/tree/1.15.1"
+            },
+            "funding": [
+                {
+                    "url": "https://boosty.to/roxblnfk",
+                    "type": "boosty"
+                }
+            ],
+            "time": "2025-12-27T20:39:37+00:00"
+        },
+        {
+            "name": "clue/stream-filter",
+            "version": "v1.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/clue/stream-filter.git",
+                "reference": "049509fef80032cb3f051595029ab75b49a3c2f7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/clue/stream-filter/zipball/049509fef80032cb3f051595029ab75b49a3c2f7",
+                "reference": "049509fef80032cb3f051595029ab75b49a3c2f7",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions_include.php"
+                ],
+                "psr-4": {
+                    "Clue\\StreamFilter\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering"
+                }
+            ],
+            "description": "A simple and modern approach to stream filtering in PHP",
+            "homepage": "https://github.com/clue/stream-filter",
+            "keywords": [
+                "bucket brigade",
+                "callback",
+                "filter",
+                "php_user_filter",
+                "stream",
+                "stream_filter_append",
+                "stream_filter_register"
+            ],
+            "support": {
+                "issues": "https://github.com/clue/stream-filter/issues",
+                "source": "https://github.com/clue/stream-filter/tree/v1.7.0"
+            },
+            "funding": [
+                {
+                    "url": "https://clue.engineering/support",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/clue",
+                    "type": "github"
+                }
+            ],
+            "time": "2023-12-20T15:40:13+00:00"
         },
         {
             "name": "codeception/codeception",
@@ -4365,6 +4722,65 @@
             "time": "2025-04-29T08:19:52+00:00"
         },
         {
+            "name": "internal/destroy",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-internal/destroy.git",
+                "reference": "93068c4f7da218034f5373e31407f564b74b4a06"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-internal/destroy/zipball/93068c4f7da218034f5373e31407f564b74b4a06",
+                "reference": "93068c4f7da218034f5373e31407f564b74b4a06",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "buggregator/trap": "^1.10",
+                "phpunit/phpunit": "^10.5",
+                "spiral/code-style": "^2.2.2",
+                "ta-tikoma/phpunit-architecture-test": "^0.8.4",
+                "vimeo/psalm": "^6.10"
+            },
+            "suggest": {
+                "ext-simplexml": "to support XML configs parsing"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Internal\\Destroy\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Aleksei Gagarin (roxblnfk)",
+                    "homepage": "https://github.com/roxblnfk"
+                }
+            ],
+            "keywords": [
+                "download binaries",
+                "memory"
+            ],
+            "support": {
+                "issues": "https://github.com/php-internal/destroy/issues",
+                "source": "https://github.com/php-internal/destroy/tree/1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://patreon.com/roxblnfk",
+                    "type": "patreon"
+                }
+            ],
+            "time": "2025-09-08T14:29:16+00:00"
+        },
+        {
             "name": "justinrainbow/json-schema",
             "version": "6.6.3",
             "source": {
@@ -4631,6 +5047,84 @@
             "time": "2025-12-06T11:56:16+00:00"
         },
         {
+            "name": "nyholm/psr7",
+            "version": "1.8.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Nyholm/psr7.git",
+                "reference": "a71f2b11690f4b24d099d6b16690a90ae14fc6f3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Nyholm/psr7/zipball/a71f2b11690f4b24d099d6b16690a90ae14fc6f3",
+                "reference": "a71f2b11690f4b24d099d6b16690a90ae14fc6f3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2",
+                "psr/http-factory": "^1.0",
+                "psr/http-message": "^1.1 || ^2.0"
+            },
+            "provide": {
+                "php-http/message-factory-implementation": "1.0",
+                "psr/http-factory-implementation": "1.0",
+                "psr/http-message-implementation": "1.0"
+            },
+            "require-dev": {
+                "http-interop/http-factory-tests": "^0.9",
+                "php-http/message-factory": "^1.0",
+                "php-http/psr7-integration-tests": "^1.0",
+                "phpunit/phpunit": "^7.5 || ^8.5 || ^9.4",
+                "symfony/error-handler": "^4.4"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.8-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Nyholm\\Psr7\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Tobias Nyholm",
+                    "email": "tobias.nyholm@gmail.com"
+                },
+                {
+                    "name": "Martijn van der Ven",
+                    "email": "martijn@vanderven.se"
+                }
+            ],
+            "description": "A fast PHP7 implementation of PSR-7",
+            "homepage": "https://tnyholm.se",
+            "keywords": [
+                "psr-17",
+                "psr-7"
+            ],
+            "support": {
+                "issues": "https://github.com/Nyholm/psr7/issues",
+                "source": "https://github.com/Nyholm/psr7/tree/1.8.2"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/Zegnat",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nyholm",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-09-09T07:06:30+00:00"
+        },
+        {
             "name": "ondram/ci-detector",
             "version": "4.2.0",
             "source": {
@@ -4825,6 +5319,75 @@
                 "source": "https://github.com/phar-io/version/tree/3.2.1"
             },
             "time": "2022-02-21T01:04:05+00:00"
+        },
+        {
+            "name": "php-http/message",
+            "version": "1.16.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-http/message.git",
+                "reference": "06dd5e8562f84e641bf929bfe699ee0f5ce8080a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-http/message/zipball/06dd5e8562f84e641bf929bfe699ee0f5ce8080a",
+                "reference": "06dd5e8562f84e641bf929bfe699ee0f5ce8080a",
+                "shasum": ""
+            },
+            "require": {
+                "clue/stream-filter": "^1.5",
+                "php": "^7.2 || ^8.0",
+                "psr/http-message": "^1.1 || ^2.0"
+            },
+            "provide": {
+                "php-http/message-factory-implementation": "1.0"
+            },
+            "require-dev": {
+                "ergebnis/composer-normalize": "^2.6",
+                "ext-zlib": "*",
+                "guzzlehttp/psr7": "^1.0 || ^2.0",
+                "laminas/laminas-diactoros": "^2.0 || ^3.0",
+                "php-http/message-factory": "^1.0.2",
+                "phpspec/phpspec": "^5.1 || ^6.3 || ^7.1",
+                "slim/slim": "^3.0"
+            },
+            "suggest": {
+                "ext-zlib": "Used with compressor/decompressor streams",
+                "guzzlehttp/psr7": "Used with Guzzle PSR-7 Factories",
+                "laminas/laminas-diactoros": "Used with Diactoros Factories",
+                "slim/slim": "Used with Slim Framework PSR-7 implementation"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/filters.php"
+                ],
+                "psr-4": {
+                    "Http\\Message\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Márk Sági-Kazár",
+                    "email": "mark.sagikazar@gmail.com"
+                }
+            ],
+            "description": "HTTP Message related tools",
+            "homepage": "http://php-http.org",
+            "keywords": [
+                "http",
+                "message",
+                "psr-7"
+            ],
+            "support": {
+                "issues": "https://github.com/php-http/message/issues",
+                "source": "https://github.com/php-http/message/tree/1.16.2"
+            },
+            "time": "2024-10-02T11:34:13+00:00"
         },
         {
             "name": "php-webdriver/webdriver",
@@ -5669,59 +6232,6 @@
                 "source": "https://github.com/php-fig/http-factory"
             },
             "time": "2024-04-15T12:06:14+00:00"
-        },
-        {
-            "name": "psr/http-message",
-            "version": "2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-fig/http-message.git",
-                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-message/zipball/402d35bcb92c70c026d1a6a9883f06b2ead23d71",
-                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.2 || ^8.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Psr\\Http\\Message\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "https://www.php-fig.org/"
-                }
-            ],
-            "description": "Common interface for HTTP messages",
-            "homepage": "https://github.com/php-fig/http-message",
-            "keywords": [
-                "http",
-                "http-message",
-                "psr",
-                "psr-7",
-                "request",
-                "response"
-            ],
-            "support": {
-                "source": "https://github.com/php-fig/http-message/tree/2.0"
-            },
-            "time": "2023-04-04T09:54:51+00:00"
         },
         {
             "name": "psy/psysh",
@@ -9037,31 +9547,31 @@
         },
         {
             "name": "symfony/var-dumper",
-            "version": "v8.0.0",
+            "version": "v7.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "d2a2476c93b58ac5292145e9fac1ff76a21d1ce2"
+                "reference": "41fd6c4ae28c38b294b42af6db61446594a0dece"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/d2a2476c93b58ac5292145e9fac1ff76a21d1ce2",
-                "reference": "d2a2476c93b58ac5292145e9fac1ff76a21d1ce2",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/41fd6c4ae28c38b294b42af6db61446594a0dece",
+                "reference": "41fd6c4ae28c38b294b42af6db61446594a0dece",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.4",
-                "symfony/polyfill-mbstring": "^1.0"
+                "php": ">=8.2",
+                "symfony/deprecation-contracts": "^2.5|^3",
+                "symfony/polyfill-mbstring": "~1.0"
             },
             "conflict": {
-                "symfony/console": "<7.4",
-                "symfony/error-handler": "<7.4"
+                "symfony/console": "<6.4"
             },
             "require-dev": {
-                "symfony/console": "^7.4|^8.0",
-                "symfony/http-kernel": "^7.4|^8.0",
-                "symfony/process": "^7.4|^8.0",
-                "symfony/uid": "^7.4|^8.0",
+                "symfony/console": "^6.4|^7.0|^8.0",
+                "symfony/http-kernel": "^6.4|^7.0|^8.0",
+                "symfony/process": "^6.4|^7.0|^8.0",
+                "symfony/uid": "^6.4|^7.0|^8.0",
                 "twig/twig": "^3.12"
             },
             "bin": [
@@ -9100,7 +9610,7 @@
                 "dump"
             ],
             "support": {
-                "source": "https://github.com/symfony/var-dumper/tree/v8.0.0"
+                "source": "https://github.com/symfony/var-dumper/tree/v7.4.0"
             },
             "funding": [
                 {
@@ -9120,7 +9630,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-10-28T09:34:19+00:00"
+            "time": "2025-10-27T20:36:44+00:00"
         },
         {
             "name": "symfony/yaml",
@@ -9448,6 +9958,82 @@
                 "source": "https://github.com/webmozarts/assert/tree/2.0.0"
             },
             "time": "2025-12-16T21:36:00+00:00"
+        },
+        {
+            "name": "yiisoft/injector",
+            "version": "1.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/yiisoft/injector.git",
+                "reference": "d3f718256b734933670ad11143cca724d340fc90"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/yiisoft/injector/zipball/d3f718256b734933670ad11143cca724d340fc90",
+                "reference": "d3f718256b734933670ad11143cca724d340fc90",
+                "shasum": ""
+            },
+            "require": {
+                "php": "7.4 - 8.5"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "^1.8.3",
+                "maglnet/composer-require-checker": "^3.8 || ^4.2",
+                "phpbench/phpbench": "^1.1",
+                "phpunit/phpunit": "^9.5",
+                "psr/container": "^1.0 || ^2.0",
+                "rector/rector": "^2.0.10",
+                "spatie/phpunit-watcher": "^1.23",
+                "yiisoft/test-support": "^1.4 || ^3.1"
+            },
+            "suggest": {
+                "psr/container": "For automatic resolving of dependencies"
+            },
+            "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": true,
+                    "forward-command": true,
+                    "target-directory": "tools"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Yiisoft\\Injector\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "PSR-11 compatible injector. Executes a callable and makes an instances by injecting dependencies from a given DI container.",
+            "homepage": "https://www.yiiframework.com/",
+            "keywords": [
+                "PSR-11",
+                "dependency injection",
+                "di",
+                "injector",
+                "reflection"
+            ],
+            "support": {
+                "chat": "https://t.me/yii3en",
+                "forum": "https://www.yiiframework.com/forum/",
+                "irc": "ircs://irc.libera.chat:6697/yii",
+                "issues": "https://github.com/yiisoft/injector/issues?state=open",
+                "source": "https://github.com/yiisoft/injector",
+                "wiki": "https://www.yiiframework.com/wiki/"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/yiisoft",
+                    "type": "github"
+                },
+                {
+                    "url": "https://opencollective.com/yiisoft",
+                    "type": "opencollective"
+                }
+            ],
+            "time": "2025-12-01T11:14:17+00:00"
         },
         {
             "name": "yiisoft/yii2-coding-standards",

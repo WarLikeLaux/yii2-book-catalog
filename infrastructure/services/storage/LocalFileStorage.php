@@ -8,7 +8,6 @@ use app\application\ports\FileStorageInterface;
 use RuntimeException;
 use Yii;
 use yii\helpers\FileHelper;
-use yii\web\UploadedFile;
 
 final readonly class LocalFileStorage implements FileStorageInterface
 {
@@ -21,15 +20,17 @@ final readonly class LocalFileStorage implements FileStorageInterface
     /**
      * @codeCoverageIgnore Зависит от Yii::getAlias и файловой системы
      */
-    public function save(UploadedFile $file): string
+    public function save(string $tempPath, string $extension): string
     {
         $dir = Yii::getAlias($this->basePath);
         FileHelper::createDirectory($dir);
 
-        $filename = uniqid('', true) . '.' . $file->extension;
+        $filename = uniqid('', true) . '.' . $extension;
         $path = $dir . DIRECTORY_SEPARATOR . $filename;
 
-        if (!$file->saveAs($path)) {
+        $result = is_uploaded_file($tempPath) ? move_uploaded_file($tempPath, $path) : copy($tempPath, $path);
+
+        if (!$result) {
             throw new RuntimeException('File save failed');
         }
 

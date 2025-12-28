@@ -12,7 +12,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 
 /**
  * @implements Rule<StaticCall>
- * @codeCoverageIgnore
+ * @codeCoverageIgnore Логика статического анализа проверяется тестами PHPStan
  */
 final readonly class DisallowYiiTOutsideAdaptersRule implements Rule
 {

@@ -22,8 +22,11 @@ $config = [
     ],
     'components' => [
         'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => env('COOKIE_VALIDATION_KEY', ''),
+        ],
+        'session' => [
+            'class' => 'yii\web\Session',
+            'savePath' => '@runtime/sessions',
         ],
         'response' => [
             'on beforeSend' => function ($event) {
@@ -33,8 +36,14 @@ $config = [
                 $event->sender->headers->add('Referrer-Policy', 'strict-origin-when-cross-origin');
             },
         ],
+        'redis' => [
+            'class' => 'yii\redis\Connection',
+            'hostname' => env('REDIS_HOST', 'redis'),
+            'port' => (int)env('REDIS_PORT', '6379'),
+            'database' => 0,
+        ],
         'cache' => [
-            'class' => 'yii\caching\FileCache',
+            'class' => 'yii\redis\Cache',
         ],
         'assetManager' => [
             'bundles' => [
@@ -52,12 +61,17 @@ $config = [
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
             'viewPath' => '@app/presentation/mail',
-            // send all mails to a file by default.
-            'useFileTransport' => true,
+            'useFileTransport' => env('MAILER_USE_FILE_TRANSPORT', true),
+            'transport' => [
+                'scheme' => 'smtp',
+                'host' => env('MAILER_HOST', '127.0.0.1'),
+                'port' => (int)env('MAILER_PORT', 1025),
+                'dsn' => 'native://default',
+            ],
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
-            'targets' => [
+            'targets' => array_filter([
                 [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
@@ -69,7 +83,23 @@ $config = [
                     'logFile' => '@runtime/logs/sms.log',
                     'logVars' => [],
                 ],
-            ],
+                YII_ENV_DEV ? [
+                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
+                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
+                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'levels' => ['error', 'warning'],
+                    'except' => ['yii\web\HttpException:404'],
+                ] : null,
+                YII_ENV_DEV ? [
+                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
+                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
+                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'levels' => ['info'],
+                    'categories' => ['sms', 'application'],
+                    // Не дампить $_SERVER и прочее в инфо-логах
+                    'logVars' => [],
+                ] : null,
+            ]),
         ],
         'db' => $db,
         'mutex' => [

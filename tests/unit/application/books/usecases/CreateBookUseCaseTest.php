@@ -7,8 +7,10 @@ namespace tests\unit\application\books\usecases;
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
+use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
+use app\domain\entities\Book;
 use app\domain\events\BookCreatedEvent;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
@@ -19,6 +21,7 @@ final class CreateBookUseCaseTest extends Unit
     private BookRepositoryInterface&MockObject $bookRepository;
     private TransactionInterface&MockObject $transaction;
     private EventPublisherInterface&MockObject $eventPublisher;
+    private CacheInterface&MockObject $cache;
     private CreateBookUseCase $useCase;
 
     protected function _before(): void
@@ -26,10 +29,12 @@ final class CreateBookUseCaseTest extends Unit
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
         $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
+        $this->cache = $this->createMock(CacheInterface::class);
         $this->useCase = new CreateBookUseCase(
             $this->bookRepository,
             $this->transaction,
-            $this->eventPublisher
+            $this->eventPublisher,
+            $this->cache
         );
     }
 
@@ -49,12 +54,14 @@ final class CreateBookUseCaseTest extends Unit
         $this->transaction->expects($this->never())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
-            ->method('create')
-            ->willReturn(42);
-
-        $this->bookRepository->expects($this->once())
-            ->method('syncAuthors')
-            ->with(42, [1, 2]);
+            ->method('save')
+            ->with($this->callback(function (Book $book) {
+                return $book->getTitle() === 'Clean Code'
+                    && $book->getAuthorIds() === [1, 2];
+            }))
+            ->willReturnCallback(function (Book $book) {
+                $book->setId(42);
+            });
 
         $this->eventPublisher->expects($this->once())
             ->method('publishEvent')
@@ -82,7 +89,7 @@ final class CreateBookUseCaseTest extends Unit
         $this->transaction->expects($this->once())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
-            ->method('create')
+            ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
 
         $this->eventPublisher->expects($this->never())->method('publishEvent');
@@ -128,17 +135,41 @@ final class CreateBookUseCaseTest extends Unit
         $this->transaction->expects($this->once())->method('commit');
 
         $this->bookRepository->expects($this->once())
-            ->method('create')
-            ->willReturn(1);
-
-        $this->bookRepository->expects($this->once())
-            ->method('syncAuthors')
-            ->with(1, []);
+            ->method('save')
+            ->willReturnCallback(function (Book $book) {
+                $book->setId(1);
+            });
 
         $this->eventPublisher->expects($this->once())->method('publishEvent');
 
         $result = $this->useCase->execute($command);
 
         $this->assertSame(1, $result);
+    }
+    public function testExecuteThrowsExceptionWhenIdNotReturned(): void
+    {
+        $command = new CreateBookCommand(
+            title: 'Title',
+            year: 2023,
+            isbn: '978-3-16-148410-0',
+            description: 'Desc',
+            cover: 'http://cover.com',
+            authorIds: [1, 2]
+        );
+
+        $this->transaction->expects($this->once())->method('begin');
+        $this->transaction->expects($this->once())->method('rollBack');
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
+            ->with($this->isInstanceOf(Book::class))
+            ->willReturnCallback(function (Book $book) {
+                // Do NOT set ID
+            });
+            
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failed to retrieve book ID after save');
+
+        $this->useCase->execute($command);
     }
 }

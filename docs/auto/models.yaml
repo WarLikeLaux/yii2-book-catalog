@@ -1,7 +1,7 @@
 meta:
   title: "ActiveRecord Models"
   source: "generated"
-  updated_at: "2025-12-27T13:16:46+00:00"
+  updated_at: "2025-12-28T02:16:25+00:00"
 
 models:
   Author:
@@ -24,6 +24,13 @@ models:
         type: "hasMany"
         target: "Author"
         via: "book_authors"
+  IdempotencyKey:
+    class: "app\\infrastructure\\persistence\\IdempotencyKey"
+    table: "{{%idempotency_keys}}"
+    behaviors:
+      []
+    relations:
+      []
   Subscription:
     class: "app\\infrastructure\\persistence\\Subscription"
     table: "subscriptions"

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\infrastructure\repositories;
 
 use app\application\ports\SubscriptionRepositoryInterface;
+use app\domain\entities\Subscription as SubscriptionEntity;
 use app\infrastructure\persistence\Subscription;
 use yii\db\Query;
 
@@ -13,15 +14,17 @@ use yii\db\Query;
  */
 final class SubscriptionRepository implements SubscriptionRepositoryInterface
 {
-    public function create(string $phone, int $authorId): void
+    public function save(SubscriptionEntity $subscription): void
     {
-        $subscription = Subscription::create($phone, $authorId);
+        $ar = Subscription::create($subscription->getPhone(), $subscription->getAuthorId());
 
-        if (!$subscription->save()) {
-            $errors = $subscription->getFirstErrors();
+        if (!$ar->save()) {
+            $errors = $ar->getFirstErrors();
             $message = $errors !== [] ? array_shift($errors) : 'Failed to create subscription';
             throw new \RuntimeException($message);
         }
+
+        $subscription->setId($ar->id);
     }
 
     public function exists(string $phone, int $authorId): bool

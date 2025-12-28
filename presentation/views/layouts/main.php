@@ -6,7 +6,7 @@ declare(strict_types=1);
 /** @var string $content */
 
 use app\assets\AppAsset;
-use app\presentation\widgets\Alert;
+use app\presentation\common\widgets\Alert;
 use yii\bootstrap5\Breadcrumbs;
 use yii\bootstrap5\Html;
 use yii\bootstrap5\Nav;
@@ -49,6 +49,13 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         if (!Yii::$app->user->isGuest) {
             $menuItems[] = ['label' => 'Книги', 'url' => ['/book/index']];
             $menuItems[] = ['label' => 'Авторы', 'url' => ['/author/index']];
+            if (YII_ENV_DEV) {
+                $menuItems[] = [
+                    'label' => 'Логи',
+                    'url' => 'http://' . Yii::$app->request->serverName . ':' . Yii::$app->params['buggregatorUiPort'],
+                    'linkOptions' => ['target' => '_blank'],
+                ];
+            }
         }
 
         $menuItems[] = Yii::$app->user->isGuest

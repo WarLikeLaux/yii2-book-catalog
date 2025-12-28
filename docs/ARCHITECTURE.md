@@ -31,7 +31,7 @@
 ┌────────────────────────────────────────────────────────────┐
 │  APPLICATION    │ UseCases, Commands, Queries, Ports      │
 ├────────────────────────────────────────────────────────────┤
-│  DOMAIN         │ Value Objects, Events, Exceptions       │
+│  DOMAIN         │ Entities, Value Objects, Events          │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -53,9 +53,11 @@ graph TD
     end
 
     subgraph Domain ["Domain Layer (Pure PHP)"]
+        Entities[Rich Entities]
         VO[Value Objects]
         Events[Domain Events]
         Exceptions[Domain Exceptions]
+        Entities --> VO
     end
 
     subgraph Infrastructure ["Infrastructure Layer"]
@@ -69,6 +71,7 @@ graph TD
     Controllers --> UseCases
     Controllers --> Forms
     UseCases --> Domain
+    UseCases -- Uses Entities --> Entities
     UseCases --> Repositories
     Repositories --> ActiveRecord
     Infrastructure -- Implements --> Ports[Interfaces in Application]
@@ -277,42 +280,41 @@ class BookService
 public function actionCreate(): string|Response|array
 {
     $form = new BookForm();
-    
-    if ($this->request->isPost && $form->load($this->request->post())) {
+
+    if ($this->request->isPost && $form->loadFromRequest($this->request)) {
         if ($this->request->isAjax) {
             $this->response->format = Response::FORMAT_JSON;
             return ActiveForm::validate($form);
         }
-        
+
         if ($form->validate()) {
-            $bookId = $this->commandService->createBook($form);
+            $bookId = $this->commandHandler->createBook($form);
             if ($bookId !== null) {
                 return $this->redirect(['view', 'id' => $bookId]);
             }
         }
     }
-    
+
     return $this->render('create', [
         'model' => $form,
-        'authors' => $this->viewService->getAuthorsList(),
+        'authors' => $this->viewDataFactory->getAuthorsList(),
     ]);
 }
 ```
 
 ```php
-// presentation/services/books/BookCommandService.php
+// presentation/books/handlers/BookCommandHandler.php
 public function createBook(BookForm $form): ?int
 {
-    $coverUrl = $form->coverFile 
-        ? $this->fileStorage->save($form->coverFile) 
-        : null;
-    
-    $command = $this->mapper->toCreateCommand($form, $coverUrl);
-    
-    return $this->executor->execute(
-        fn() => $this->createBookUseCase->execute($command),
-        successMessage: Yii::t('app', 'Книга успешно создана')
-    );
+    $coverPath = $this->uploadCover($form);
+    $command = $this->mapper->toCreateCommand($form, $coverPath);
+
+    $bookId = null;
+    $success = $this->useCaseExecutor->execute(function () use ($command, &$bookId): void {
+        $bookId = $this->createBookUseCase->execute($command);
+    }, Yii::t('app', 'Book has been created'));
+
+    return $success ? $bookId : null;
 }
 ```
 
@@ -323,7 +325,7 @@ public function execute(CreateBookCommand $command): int
     $this->transaction->begin();
     
     try {
-        $bookId = $this->bookRepository->create(
+        $book = Book::create(
             title: $command->title,
             year: new BookYear($command->year),
             isbn: new Isbn($command->isbn),
@@ -331,7 +333,10 @@ public function execute(CreateBookCommand $command): int
             coverUrl: $command->cover
         );
         
-        $this->bookRepository->syncAuthors($bookId, $command->authorIds);
+        $book->syncAuthors($command->authorIds);
+        $this->bookRepository->save($book);
+        $bookId = $book->getId();
+        
         $this->transaction->commit();
         
         $this->eventPublisher->publishEvent(
@@ -550,11 +555,13 @@ interface BookRepositoryInterface
 // Реализация (infrastructure/repositories/)
 class BookRepository implements BookRepositoryInterface
 {
-    public function create(...): int
+    public function save(BookEntity $book): void
     {
-        $book = Book::create(...);  // ActiveRecord только тут
-        $book->save();
-        return $book->id;
+        $ar = Book::findOne($book->getId()) ?? new Book();
+        $ar->title = $book->getTitle();
+        // ... mapping properties
+        $ar->save();
+        $book->setId($ar->id);
     }
 }
 ```
@@ -659,15 +666,19 @@ Yii::$app->queue->push(new NotifySubscribersJob($bookId));
 
 ```
 ├── application/           # 🧠 Мозг (чистый PHP, БЕЗ Yii)
-│   ├── books/
+│   ├── books/            # Модуль Книги
 │   │   ├── commands/     # CreateBookCommand, UpdateBookCommand
 │   │   ├── queries/      # BookQueryService, BookReadDto
 │   │   └── usecases/     # CreateBookUseCase, DeleteBookUseCase
+│   ├── authors/          # Модуль Авторы (аналогичная структура)
+│   ├── subscriptions/    # Модуль Подписки
+│   ├── common/           # UseCaseExecutor, общие DTO
 │   └── ports/            # Интерфейсы (контракты)
 │
 ├── domain/               # 💎 Ядро (чистый PHP, БЕЗ Yii)
-│   ├── events/           # BookCreatedEvent
-│   ├── exceptions/       # DomainException
+│   ├── entities/         # Rich Entities: Book, Author, Subscription
+│   ├── events/           # BookCreatedEvent, DomainEvent
+│   ├── exceptions/       # DomainException, EntityNotFoundException
 │   └── values/           # Isbn, BookYear
 │
 ├── infrastructure/       # 🔧 Реализации (ЗАВИСИТ от Yii)
@@ -675,14 +686,21 @@ Yii::$app->queue->push(new NotifySubscribersJob($bookId));
 │   ├── persistence/      # ActiveRecord: Book, Author
 │   ├── repositories/     # BookRepository implements BookRepositoryInterface
 │   ├── queue/            # NotifySubscribersJob
-│   └── services/         # SmsService, FileStorage
+│   ├── services/         # SmsService, FileStorage
+│   └── phpstan/          # Custom правила статического анализа
 │
-└── presentation/         # 🖥 UI (ЗАВИСИТ от Yii: контроллеры, формы, виджеты)
-    ├── controllers/      # Тонкие контроллеры (ActiveForm, Response)
-    ├── forms/            # BookForm extends yii\base\Model
-    ├── mappers/          # BookFormMapper
-    ├── services/         # BookCommandService, BookViewService
-    └── validators/       # IsbnValidator extends yii\validators\Validator
+└── presentation/         # 🖥 UI (ЗАВИСИТ от Yii) — модульная структура
+    ├── controllers/      # Тонкие контроллеры (HTTP-логика)
+    ├── books/            # Модуль Книги
+    │   ├── forms/        # BookForm extends yii\base\Model
+    │   ├── handlers/     # BookCommandHandler, BookViewFactory
+    │   ├── mappers/      # BookFormMapper
+    │   └── validators/   # IsbnValidator
+    ├── authors/          # Модуль Авторы (аналогичная структура)
+    ├── subscriptions/    # Модуль Подписки
+    ├── common/           # Базовые виджеты, адаптеры
+    ├── views/            # Шаблоны
+    └── dto/              # DTO слоя представления
 ```
 
 **Независимы от Yii:** `application/` + `domain/` — можно перенести в Symfony/Laravel без изменений.

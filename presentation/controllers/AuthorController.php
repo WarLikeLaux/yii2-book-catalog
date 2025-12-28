@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\presentation\filters\IdempotencyFilter;
-use app\presentation\forms\AuthorForm;
-use app\presentation\services\authors\AuthorCommandService;
-use app\presentation\services\authors\AuthorViewService;
-use app\presentation\services\AuthorSearchPresentationService;
+use app\presentation\authors\forms\AuthorForm;
+use app\presentation\authors\handlers\AuthorCommandHandler;
+use app\presentation\authors\handlers\AuthorSearchHandler;
+use app\presentation\authors\handlers\AuthorViewDataFactory;
+use app\presentation\common\filters\IdempotencyFilter;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -19,9 +19,9 @@ final class AuthorController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly AuthorCommandService $commandService,
-        private readonly AuthorViewService $viewService,
-        private readonly AuthorSearchPresentationService $authorSearchPresentationService,
+        private readonly AuthorCommandHandler $commandHandler,
+        private readonly AuthorViewDataFactory $viewDataFactory,
+        private readonly AuthorSearchHandler $authorSearchHandler,
         $config = []
     ) {
         parent::__construct($id, $module, $config);
@@ -65,7 +65,7 @@ final class AuthorController extends Controller
         $page = max(1, is_numeric($p) ? (int)$p : 1);
         $pageSize = max(1, is_numeric($ps) ? (int)$ps : 20);
 
-        $dataProvider = $this->viewService->getIndexDataProvider($page, $pageSize);
+        $dataProvider = $this->viewDataFactory->getIndexDataProvider($page, $pageSize);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -74,7 +74,7 @@ final class AuthorController extends Controller
 
     public function actionView(int $id): string
     {
-        $viewData = $this->viewService->getAuthorView($id);
+        $viewData = $this->viewDataFactory->getAuthorView($id);
         return $this->render('view', ['model' => $viewData]);
     }
 
@@ -83,7 +83,7 @@ final class AuthorController extends Controller
         $form = new AuthorForm();
 
         if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
-            $authorId = $this->commandService->createAuthor($form);
+            $authorId = $this->commandHandler->createAuthor($form);
             if ($authorId !== null) {
                 return $this->redirect(['view', 'id' => $authorId]);
             }
@@ -94,10 +94,10 @@ final class AuthorController extends Controller
 
     public function actionUpdate(int $id): string|Response
     {
-        $form = $this->viewService->getAuthorForUpdate($id);
+        $form = $this->viewDataFactory->getAuthorForUpdate($id);
 
         if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
-            $success = $this->commandService->updateAuthor($id, $form);
+            $success = $this->commandHandler->updateAuthor($id, $form);
             if ($success) {
                 return $this->redirect(['view', 'id' => $id]);
             }
@@ -108,7 +108,7 @@ final class AuthorController extends Controller
 
     public function actionDelete(int $id): Response
     {
-        $this->commandService->deleteAuthor($id);
+        $this->commandHandler->deleteAuthor($id);
         return $this->redirect(['index']);
     }
 
@@ -117,6 +117,6 @@ final class AuthorController extends Controller
      */
     public function actionSearch(): array
     {
-        return $this->authorSearchPresentationService->search($this->request, $this->response);
+        return $this->authorSearchHandler->search($this->request, $this->response);
     }
 }

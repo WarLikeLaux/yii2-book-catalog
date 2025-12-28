@@ -10,10 +10,15 @@ deptrac:
     - '#.*bootstrap.*#'
 
   layers:
-    - name: Domain
+    - name: DomainEntities
       collectors:
         - type: directory
-          value: domain/.*
+          value: domain/entities/.*
+
+    - name: DomainShared
+      collectors:
+        - type: directory
+          value: domain/(values|events|exceptions)/.*
     
     - name: Application
       collectors:
@@ -30,31 +35,44 @@ deptrac:
         - type: directory
           value: presentation/.*
     
+    - name: Framework
+      collectors:
+        - type: classLike
+          value: ^(Yii|yii\\).*  
+
     - name: Vendor
       collectors:
         - type: classLike
-          value: ^(Yii|yii\\|Ramsey\\|Psr\\|Symfony\\|Doctrine\\).*
-  
+          value: ^(Ramsey\\|Psr\\|Symfony\\|Doctrine\\).*  
+
   ruleset:
-    Domain:
+    DomainEntities:
+      - DomainShared
+      - Vendor
+
+    DomainShared:
       - Vendor
     
     Application:
-      - Domain
+      - DomainEntities
+      - DomainShared
       - Vendor
     
     Infrastructure:
-      - Domain
+      - DomainEntities
+      - DomainShared
       - Application
       - Vendor
+      - Framework
     
     Presentation:
-      - Domain
+      - DomainShared
       - Application
       - Vendor
+      - Framework
 
   skip_violations:
-    app\presentation\forms\SubscriptionForm:
+    app\presentation\subscriptions\forms\SubscriptionForm:
       - app\infrastructure\persistence\Author
-    app\presentation\forms\LoginForm:
+    app\presentation\auth\forms\LoginForm:
       - app\infrastructure\persistence\User

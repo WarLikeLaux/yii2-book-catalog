@@ -18,11 +18,17 @@ $config = [
         '@tests' => '@app/tests',
     ],
     'components' => [
+        'redis' => [
+            'class' => 'yii\redis\Connection',
+            'hostname' => env('REDIS_HOST', 'redis'),
+            'port' => (int)env('REDIS_PORT', '6379'),
+            'database' => 0,
+        ],
         'cache' => [
-            'class' => 'yii\caching\FileCache',
+            'class' => 'yii\redis\Cache',
         ],
         'log' => [
-            'targets' => [
+            'targets' => array_filter([
                 [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
@@ -34,7 +40,22 @@ $config = [
                     'logFile' => '@runtime/logs/sms.log',
                     'logVars' => [],
                 ],
-            ],
+                YII_ENV_DEV ? [
+                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
+                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
+                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'levels' => ['error', 'warning'],
+                ] : null,
+                YII_ENV_DEV ? [
+                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
+                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
+                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'levels' => ['info'],
+                    'categories' => ['sms', 'application'],
+                    // Не дампить $_SERVER и прочее в инфо-логах
+                    'logVars' => [],
+                ] : null,
+            ]),
         ],
         'db' => $db,
         'mutex' => [
@@ -53,28 +74,17 @@ $config = [
     ],
     'container' => require __DIR__ . '/container.php',
     'params' => $params,
-    /*
-    'controllerMap' => [
-        'fixture' => [ // Fixture generation command line.
-            'class' => 'yii\faker\FixtureController',
-        ],
-    ],
-    */
 ];
 
 if (YII_ENV_DEV) {
-    // configuration adjustments for 'dev' environment
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
     ];
-    // configuration adjustments for 'dev' environment
-    // requires version `2.1.21` of yii2-debug module
+
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug'] = [
         'class' => 'yii\debug\Module',
-        // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
     ];
 }
 

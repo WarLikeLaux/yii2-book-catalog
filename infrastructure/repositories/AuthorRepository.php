@@ -9,6 +9,8 @@ use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\PagedResultInterface;
+use app\domain\entities\Author as AuthorEntity;
+use app\domain\exceptions\EntityNotFoundException;
 use app\infrastructure\persistence\Author;
 use yii\data\ActiveDataProvider;
 
@@ -17,35 +19,6 @@ use yii\data\ActiveDataProvider;
  */
 final class AuthorRepository implements AuthorRepositoryInterface
 {
-    public function create(string $fio): int
-    {
-        $author = Author::create($fio);
-
-        if (!$author->save()) {
-            $errors = $author->getFirstErrors();
-            $message = $errors !== [] ? array_shift($errors) : 'Failed to create author';
-            throw new \RuntimeException($message);
-        }
-
-        return $author->id;
-    }
-
-    public function update(int $id, string $fio): void
-    {
-        $author = Author::findOne($id);
-        if ($author === null) {
-            throw new \RuntimeException('Author not found');
-        }
-
-        $author->edit($fio);
-
-        if (!$author->save()) {
-            $errors = $author->getFirstErrors();
-            $message = $errors !== [] ? array_shift($errors) : 'Failed to save author';
-            throw new \RuntimeException($message);
-        }
-    }
-
     public function findById(int $id): ?AuthorReadDto
     {
         $author = Author::findOne($id);
@@ -59,14 +32,52 @@ final class AuthorRepository implements AuthorRepositoryInterface
         );
     }
 
-    public function delete(int $id): void
+    public function save(AuthorEntity $author): void
     {
-        $author = Author::findOne($id);
-        if ($author === null) {
-            throw new \RuntimeException('Author not found');
+        if ($author->getId() === null) {
+            $ar = Author::create($author->getFio());
+        } else {
+            $ar = Author::findOne($author->getId());
+            if ($ar === null) {
+                throw new EntityNotFoundException('Author not found');
+            }
+            $ar->edit($author->getFio());
         }
 
-        if ($author->delete() === false) {
+        if (!$ar->save()) {
+            $errors = $ar->getFirstErrors();
+            $message = $errors !== [] ? array_shift($errors) : 'Failed to save author';
+            throw new \RuntimeException($message);
+        }
+
+        if ($author->getId() !== null) {
+            return;
+        }
+
+        $author->setId($ar->id);
+    }
+
+    public function get(int $id): AuthorEntity
+    {
+        $ar = Author::findOne($id);
+        if ($ar === null) {
+            throw new EntityNotFoundException('Author not found');
+        }
+
+        return new AuthorEntity(
+            $ar->id,
+            $ar->fio
+        );
+    }
+
+    public function delete(AuthorEntity $author): void
+    {
+        $ar = Author::findOne($author->getId());
+        if ($ar === null) {
+            throw new EntityNotFoundException('Author not found');
+        }
+
+        if ($ar->delete() === false) {
             throw new \RuntimeException('Failed to delete author');
         }
     }

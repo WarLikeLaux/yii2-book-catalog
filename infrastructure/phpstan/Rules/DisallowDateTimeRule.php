@@ -12,7 +12,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 
 /**
  * @implements Rule<New_>
- * @codeCoverageIgnore
+ * @codeCoverageIgnore Логика статического анализа проверяется тестами PHPStan
  */
 final readonly class DisallowDateTimeRule implements Rule
 {

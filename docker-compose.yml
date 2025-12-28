@@ -1,15 +1,35 @@
 services:
   php:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
     image: yii2-app-custom
+    user: "${UID:-1000}:${GID:-1000}"
     volumes:
-      - ./:/app:delegated
-    ports:
-      - '8000:80'
+      - ./:/app
+    environment:
+      PHP_ENABLE_XDEBUG: 0
+      XDEBUG_CONFIG: client_host=host.docker.internal client_port=9003
+      PHP_IDE_CONFIG: serverName=yii2-book-catalog
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     env_file: .env
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - '${APP_PORT:-8000}:80'
+    volumes:
+      - ./:/app
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
 
   db:
     image: mysql:8.0
@@ -19,7 +39,7 @@ services:
       MYSQL_USER: ${DB_USER:-yii2}
       MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
     ports:
-      - '33060:3306'
+      - '${DB_PUBLIC_PORT:-33060}:3306'
     volumes:
       - ./db-data:/var/lib/mysql
     env_file: .env
@@ -29,18 +49,35 @@ services:
       retries: 10
       interval: 5s
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '${REDIS_PUBLIC_PORT:-6379}:6379'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   queue:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
     image: yii2-app-custom
+    user: "${UID:-1000}:${GID:-1000}"
     volumes:
-      - ./:/app:delegated
+      - ./:/app
     restart: on-failure
     environment:
       - SMS_API_KEY=${SMS_API_KEY:-MOCK_KEY}
-    command: ["php", "-d", "opcache.enable_cli=0", "yii", "queue/listen", "--verbose=1", "--color=0"]
+    command: php yii queue/listen --verbose
     depends_on:
-      db:
-        condition: service_healthy
+      - db
+      - redis
+      - php
     env_file: .env
 
   selenium:
@@ -52,7 +89,7 @@ services:
   swagger-ui:
     image: swaggerapi/swagger-ui
     ports:
-      - "8081:8080"
+      - "${SWAGGER_PORT:-8081}:8080"
     volumes:
       - ./docs/api/openapi.yaml:/app/openapi.yaml
     environment:
@@ -62,3 +99,11 @@ services:
     image: grafana/k6:latest
     volumes:
       - ./tests/load:/scripts
+
+  buggregator:
+    image: ghcr.io/buggregator/server:latest
+    ports:
+      - "${BUGGREGATOR_UI_PORT:-8090}:8000"
+      - "${BUGGREGATOR_SMTP_PORT:-1025}:1025"
+      - "${BUGGREGATOR_TRAP_PORT:-9912}:9912"
+      - "${BUGGREGATOR_LOG_PORT:-9913}:9913"

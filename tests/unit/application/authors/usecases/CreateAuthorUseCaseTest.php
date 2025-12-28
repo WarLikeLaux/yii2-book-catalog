@@ -7,6 +7,7 @@ namespace tests\unit\application\authors\usecases;
 use app\application\authors\commands\CreateAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\ports\AuthorRepositoryInterface;
+use app\domain\entities\Author;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -27,9 +28,15 @@ final class CreateAuthorUseCaseTest extends Unit
         $command = new CreateAuthorCommand(fio: 'Иванов Иван Иванович');
 
         $this->authorRepository->expects($this->once())
-            ->method('create')
-            ->with('Иванов Иван Иванович')
-            ->willReturn(42);
+            ->method('save')
+            ->with($this->callback(function (Author $author) {
+                if ($author->getFio() !== 'Иванов Иван Иванович') {
+                    return false;
+                }
+                // Simulate ID assignment
+                $author->setId(42);
+                return true;
+            }));
 
         $result = $this->useCase->execute($command);
 
@@ -41,7 +48,7 @@ final class CreateAuthorUseCaseTest extends Unit
         $command = new CreateAuthorCommand(fio: 'Test Author');
 
         $this->authorRepository->expects($this->once())
-            ->method('create')
+            ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
 
         $this->expectException(DomainException::class);

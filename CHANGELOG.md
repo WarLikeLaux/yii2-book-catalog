@@ -6,6 +6,49 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.10.0] - 2025-12-28
+
+### 🚀 Новые функции и возможности
+- **#22** - реализованы полноценные доменные сущности (**Rich Domain Entities**) для `Book`, `Author` и `Subscription` ([c0fd755](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c0fd755))
+- **#20** - реализовано **Redis-кеширование** для отчетов с автоматической инвалидацией при CRUD операциях с книгами ([dcee520](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dcee520))
+
+### 🛠 Рефакторинг и архитектура
+- **#22** - добавлено PHPStan правило `DomainEntitiesMustBePureRule` для проверки чистоты доменных сущностей ([3d698b5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3d698b5))
+- **#22** - слой представления реорганизован в модульную структуру (**feature-based**) на основе Handlers и Factories ([6c7c253](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6c7c253))
+- **#22** - исправлены стандарты кодирования и устаревшие пространства имен в конфигурации контейнеров ([5b8dddd](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5b8dddd), [98ba179](https://github.com/WarLikeLaux/yii2-book-catalog/commit/98ba179))
+- **#21** - рефакторинг CLI инструментов в строго типизированные классы ([a6e4236](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a6e4236))
+- **#21** - доработаны комментарии и применен единый стиль кода согласно стандартам ([7568f5a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7568f5a))
+
+### 🧪 Тестирование
+- **#22** - достигнуто **100% покрытие кода тестами** (277 тестов, 613 assertions) ([c0fd755](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c0fd755))
+- **#21** - добавлены unit-тесты для доменных сущностей и форм: `AuthorTest`, `BookTest`, `SubscriptionTest`, `LoginFormTest`, `ReportFilterFormTest`, `SubscriptionFormTest` ([c0fd755](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c0fd755))
+- **#19** - ограничено количество потоков Infection до одного процесса для предотвращения segmentation faults ([5379f6d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5379f6d))
+
+### 🐛 Исправления
+- **#22** - исправлена загрузка файлов в `BookController` ([66b0a52](https://github.com/WarLikeLaux/yii2-book-catalog/commit/66b0a52))
+- **#22** - исправлена логика определения переменных окружения и работа CI ([d036a80](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d036a80), [71bb8c9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/71bb8c9))
+- **#21** - исправлена инициализация Redis в GitHub Actions CI ([dd5f3e8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dd5f3e8))
+
+### ⚙️ Инфраструктура
+- **#21** - интегрирован Buggregator Trap и улучшены цели логирования ([28ae489](https://github.com/WarLikeLaux/yii2-book-catalog/commit/28ae489))
+- **#21** - обновлена конфигурация приложения для использования динамических портов окружения ([ee8c2a8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ee8c2a8))
+- **#21** - обновлено окружение разработки (интерактивный лейаут и докер-сервисы) ([eb75684](https://github.com/WarLikeLaux/yii2-book-catalog/commit/eb75684))
+- **#22** - добавлено создание пользователя с настраиваемым UID в Docker-образ и маппинг пользователей ([249f93d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/249f93d), [d983da4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d983da4))
+- **#22** - добавлен реверс-прокси Nginx для контейнеризированного окружения ([d983da4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d983da4))
+- **#22** - нормализованы права доступа к файлам (755 -> 644 для PHP файлов) ([1316967](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1316967))
+- **#22** - CI переключен на тестовое окружение и оптимизирован (удален debug-код) ([82a0263](https://github.com/WarLikeLaux/yii2-book-catalog/commit/82a0263), [ec758b1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ec758b1))
+- **#22** - добавлен отладочный вывод в CI для приемочных тестов ([3034248](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3034248))
+- **#22** - обновлены Makefile и конфигурация CI для обеспечения надежного тестирования ([b58301d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b58301d))
+
+### 📝 Документация
+- **#22** - синхронизирована документация с актуальным кодом и структурой проекта ([ff70c60](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ff70c60))
+- **#22** - обновлен `ARCHITECTURE.md` для отражения реализации Rich Domain Entities ([34ae98f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/34ae98f))
+- **#22** - README приведен в соответствие с модульной структурой проекта (секция 12) ([654ae42](https://github.com/WarLikeLaux/yii2-book-catalog/commit/654ae42))
+- **#22** - Rich Domain Model исключен из раздела архитектурных компромиссов ([d611f91](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d611f91))
+- **#21** - обновлена документация проекта и метрики покрытия ([cf44dc6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cf44dc6))
+- **#19** - синхронизированы недостающие хеши в списке изменений ([9e707de](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9e707de))
+
+
 ## [0.9.0] - 2025-12-28
 
 ### 🛡️ Безопасность

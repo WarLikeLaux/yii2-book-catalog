@@ -6,8 +6,10 @@ namespace app\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\ports\BookRepositoryInterface;
+use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
+use app\domain\entities\Book;
 use app\domain\events\BookCreatedEvent;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
@@ -18,6 +20,7 @@ final readonly class CreateBookUseCase
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
         private EventPublisherInterface $eventPublisher,
+        private CacheInterface $cache,
     ) {
     }
 
@@ -26,17 +29,25 @@ final readonly class CreateBookUseCase
         $this->transaction->begin();
 
         try {
-            $bookId = $this->bookRepository->create(
+            $book = Book::create(
                 title: $command->title,
                 year: new BookYear($command->year),
                 isbn: new Isbn($command->isbn),
                 description: $command->description,
                 coverUrl: $command->cover
             );
+            $book->syncAuthors($command->authorIds);
 
-            $this->bookRepository->syncAuthors($bookId, $command->authorIds);
+            $this->bookRepository->save($book);
+            $bookId = $book->getId();
+
+            if ($bookId === null) {
+                throw new \RuntimeException('Failed to retrieve book ID after save');
+            }
 
             $this->transaction->commit();
+
+            $this->cache->delete(sprintf('report:top_authors:%d', $command->year));
 
             $event = new BookCreatedEvent(
                 bookId: $bookId,
