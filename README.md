@@ -8,7 +8,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-277_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-315_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-95%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -41,9 +41,9 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **277 тестов** (613 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **315 тестов** (673 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Custom Architecture Rules | 🛠 **Makefile**<br>Автоматизация рутины |
-| ✅ **Mutation Testing**<br>Infection PHP (MSI > 94%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
+| ✅ **Mutation Testing**<br>Infection PHP (MSI > 95%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
 ## 🛠 Технический стек
@@ -332,10 +332,10 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>277</b><br>Tests</td>
-<td align="center"><b>613</b><br>Assertions</td>
+<td align="center"><b>315</b><br>Tests</td>
+<td align="center"><b>673</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~7s</b><br>Runtime</td>
+<td align="center"><b>~25s</b><br>Runtime</td>
 </tr>
 </table>
 
@@ -362,9 +362,9 @@ open http://localhost:8000
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 222 | Чистая бизнес-логика без БД и фреймворка |
-| **Integration** | 54 | CRUD, API, Use Cases, HTTP-сценарии с БД |
-| **E2E** | 1 | Приемочные тесты (Acceptance) |
+| **Unit** | 242 | Чистая бизнес-логика без БД и фреймворка |
+| **Integration** | 56 | CRUD, API, Use Cases, HTTP-сценарии с БД |
+| **E2E** | 17 | Приемочные тесты (Acceptance) |
 
 **Unit Tests покрывают:**
 - **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult, PaginationRequest, IdempotencyService
@@ -408,8 +408,11 @@ open http://localhost:8000
 | | `make comments` | Показать TODO и заметки |
 | | `make sms-logs` | Логи отправки SMS (Mock-сервис) |
 | | `make shell` | Доступ в консоль PHP-контейнера |
-| **📜 API** | `make swagger` | Генерация OpenAPI документации |
+| **📜 API & Docs** | `make swagger` | Генерация OpenAPI документации |
+| | `make docs` | Генерация документации (схемы БД, модели, роуты) |
+| | `make repomix` | Генерация контекста для LLM (repomix.txt) |
 | **🚀 Performance** | `make load-test` | Запуск нагрузочного теста (k6) |
+| **📟 Queue** | `make queue-info` | Статус очередей и ковокеров |
 
 ## ⚙️ Конфигурация
 
@@ -423,9 +426,9 @@ open http://localhost:8000
 ### 📊 Статистика проекта
 
 ![Source Code](https://img.shields.io/badge/Source_Code-4.8k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-6.0k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-139-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-80-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-6.5k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-130-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-78-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
