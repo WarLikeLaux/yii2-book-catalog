@@ -195,7 +195,11 @@ _test-init:
 
 test: _test-init
 	@echo "🚀 Запуск всех тестов..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit,acceptance --no-colors
+
+test-acceptance: _test-init
+	@echo "🚀 Запуск Acceptance тестов..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run acceptance --no-colors
 
 test-coverage: _test-init
 	@echo "📊 Анализ покрытия кода..."
