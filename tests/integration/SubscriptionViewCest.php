@@ -8,12 +8,12 @@ use app\presentation\subscriptions\handlers\SubscriptionViewDataFactory;
 
 final class SubscriptionViewCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testGetAuthor(\FunctionalTester $I): void
+    public function testGetAuthor(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'View Service Author']);
 

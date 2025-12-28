@@ -6,7 +6,7 @@ use app\infrastructure\persistence\Author;
 
 final class SubscriptionFormCest
 {
-    public function testSubscribeValidationError(\FunctionalTester $I): void
+    public function testSubscribeValidationError(\IntegrationTester $I): void
     {
         $I->haveHttpHeader('X-Requested-With', 'XMLHttpRequest');
         $I->sendAjaxPostRequest('/index-test.php?r=subscription/subscribe', [
@@ -20,7 +20,7 @@ final class SubscriptionFormCest
         $I->assertArrayHasKey('errors', $response);
     }
 
-    public function testSubscribeWithInvalidPhone(\FunctionalTester $I): void
+    public function testSubscribeWithInvalidPhone(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
 

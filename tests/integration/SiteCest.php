@@ -6,13 +6,13 @@ use app\infrastructure\persistence\User;
 
 final class SiteCest
 {
-    public function testHomepageWorks(\FunctionalTester $I): void
+    public function testHomepageWorks(\IntegrationTester $I): void
     {
         $I->amOnRoute('site/index');
         $I->seeResponseCodeIs(200);
     }
 
-    public function testLogoutRedirectsToLogin(\FunctionalTester $I): void
+    public function testLogoutRedirectsToLogin(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
         $I->amOnRoute('site/index');

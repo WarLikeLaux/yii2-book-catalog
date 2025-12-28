@@ -13,7 +13,7 @@ use yii\queue\db\Queue;
 
 final class CreateBookUseCaseCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         \Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
         \Yii::$app->db->createCommand()->delete('book_authors')->execute();
@@ -22,7 +22,7 @@ final class CreateBookUseCaseCest
         \Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
     }
 
-    public function testCreatesBookWithAuthors(\FunctionalTester $I): void
+    public function testCreatesBookWithAuthors(\IntegrationTester $I): void
     {
         $author1Id = $I->haveRecord(Author::class, ['fio' => 'Test Author 1']);
         $author2Id = $I->haveRecord(Author::class, ['fio' => 'Test Author 2']);
@@ -52,7 +52,7 @@ final class CreateBookUseCaseCest
         $I->assertContains($author2Id, array_column($book->authors, 'id'));
     }
 
-    public function testPublishesBookCreatedEvent(\FunctionalTester $I): void
+    public function testPublishesBookCreatedEvent(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
 
@@ -100,7 +100,7 @@ final class CreateBookUseCaseCest
         $I->assertEquals('Event Test Book', $jobData->title);
     }
 
-    public function testValidatesUniqueIsbn(\FunctionalTester $I): void
+    public function testValidatesUniqueIsbn(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
         $existingBookId = $I->haveRecord(Book::class, [
@@ -126,7 +126,7 @@ final class CreateBookUseCaseCest
         });
     }
 
-    public function testRollbackOnError(\FunctionalTester $I): void
+    public function testRollbackOnError(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
 

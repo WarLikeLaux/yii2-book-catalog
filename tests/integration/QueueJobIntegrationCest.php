@@ -10,12 +10,12 @@ use app\infrastructure\persistence\User;
 
 final class QueueJobIntegrationCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testSubscriptionRepositoryGetPhones(\FunctionalTester $I): void
+    public function testSubscriptionRepositoryGetPhones(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
         $I->haveRecord(Subscription::class, [

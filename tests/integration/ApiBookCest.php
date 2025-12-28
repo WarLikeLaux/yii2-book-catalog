@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace tests\functional;
+namespace tests\integration;
 
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
-use FunctionalTester;
+use IntegrationTester;
 
 final class ApiBookCest
 {
-    public function _before(FunctionalTester $I): void
+    public function _before(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, [
             'fio' => 'Test API Author',
@@ -23,7 +23,7 @@ final class ApiBookCest
         ]);
     }
 
-    public function testGetBooksList(FunctionalTester $I): void
+    public function testGetBooksList(IntegrationTester $I): void
     {
         $I->sendGet('/index-test.php?r=api/book/index');
         $I->seeResponseCodeIs(200);
@@ -35,7 +35,7 @@ final class ApiBookCest
         ]);
     }
 
-    public function testPagination(FunctionalTester $I): void
+    public function testPagination(IntegrationTester $I): void
     {
         $I->sendGet('/index-test.php?r=api/book/index', ['pageSize' => 1]);
         $I->seeResponseCodeIs(200);

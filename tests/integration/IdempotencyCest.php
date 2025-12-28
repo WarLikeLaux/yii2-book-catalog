@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace tests\functional;
+namespace tests\integration;
 
 use app\infrastructure\persistence\Author;
-use FunctionalTester;
+use IntegrationTester;
 
 final class IdempotencyCest
 {
     private int $authorId;
 
-    public function _before(FunctionalTester $I): void
+    public function _before(IntegrationTester $I): void
     {
         $this->authorId = (int)$I->haveRecord(Author::class, [
             'fio' => 'Idempotency Author',
         ]);
     }
 
-    public function testApiIdempotency(FunctionalTester $I): void
+    public function testApiIdempotency(IntegrationTester $I): void
     {
         $key = 'test-idempotency-api-' . uniqid();
         $I->haveHttpHeader('Idempotency-Key', $key);
@@ -33,7 +33,7 @@ final class IdempotencyCest
         $I->seeHttpHeader('X-Idempotency-Cache', 'HIT');
     }
 
-    public function testWebFormIdempotency(FunctionalTester $I): void
+    public function testWebFormIdempotency(IntegrationTester $I): void
     {
         $I->amOnPage('/index-test.php?r=site/login');
         $I->fillField('LoginForm[username]', 'admin');

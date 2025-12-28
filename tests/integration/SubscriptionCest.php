@@ -7,7 +7,7 @@ use app\infrastructure\persistence\Subscription;
 
 final class SubscriptionCest
 {
-    public function testCanSubscribeToAuthor(\FunctionalTester $I): void
+    public function testCanSubscribeToAuthor(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Author for Subscription']);
 

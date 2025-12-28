@@ -10,12 +10,12 @@ use app\infrastructure\persistence\Subscription;
 
 final class SubscribeUseCaseCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         \Yii::$app->db->createCommand()->delete('subscriptions')->execute();
     }
 
-    public function testCreatesSubscription(\FunctionalTester $I): void
+    public function testCreatesSubscription(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
 
@@ -33,7 +33,7 @@ final class SubscribeUseCaseCest
         ]);
     }
 
-    public function testPreventsDuplicateSubscription(\FunctionalTester $I): void
+    public function testPreventsDuplicateSubscription(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
         $I->haveRecord(Subscription::class, [
@@ -59,7 +59,7 @@ final class SubscribeUseCaseCest
         $I->assertEquals(1, $subscriptions, 'Should not create duplicate subscription');
     }
 
-    public function testAllowsSubscriptionToDifferentAuthors(\FunctionalTester $I): void
+    public function testAllowsSubscriptionToDifferentAuthors(\IntegrationTester $I): void
     {
         $author1Id = $I->haveRecord(Author::class, ['fio' => 'Author 1']);
         $author2Id = $I->haveRecord(Author::class, ['fio' => 'Author 2']);

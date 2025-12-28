@@ -292,15 +292,17 @@ yii2-book-catalog/
 ## 🚀 Установка и запуск
 
 <details open>
-<summary><b>⚡ Quick Start (3 команды)</b></summary>
+<summary><b>⚡ Быстрый старт (3 команды)</b></summary>
 
 ```bash
 # 1. Клонируем проект
 git clone https://github.com/WarLikeLaux/yii2-book-catalog.git
 cd yii2-book-catalog
 
-# 2. Поднимаем всё одной командой
-make init
+# 2. Установка (интерактивно)
+make install
+# или принудительно (без вопросов):
+# make install-force
 
 # 3. Готово! 🎉
 open http://localhost:8000
@@ -308,7 +310,7 @@ open http://localhost:8000
 
 </details>
 
-> 💡 **Что делает `make init`:**
+> 💡 **Что делает `make install`:**
 > - 🐳 Поднимает Docker контейнеры (PHP 8.4 + MySQL 8 + Queue Worker)
 > - 📦 Устанавливает Composer зависимости
 > - 🗄 Применяет миграции БД
@@ -341,15 +343,19 @@ open http://localhost:8000
 
 | Команда | Описание | Назначение |
 |---|---|---|
-| `make test` | 🧪 Запуск всех тестов | **Testing** (Unit + Func) |
-| `make test-coverage` | 📊 Отчет о покрытии (HTML) | **Testing** (Metric) |
+| **Стандартный контроль** | | |
+| `make test` | 🧪 Запуск всех тестов | **Testing** (Unit + Integration + E2E) |
 | `make test-unit` | ⚡ Unit-тесты (без БД) | **Testing** (Speed) |
-| `make test-functional` | 🌐 Functional-тесты (с БД) | **Testing** (Integration) |
-| `make analyze` | 🔍 PHPStan (Level 9 + Strict) | **Quality** (Static Analysis) |
-| `make deptrac` | 🏗 Архитектурный контроль | **Quality** (Architecture) |
-| `make rector` | ♻️ Автоматический рефакторинг | **Quality** (Refactoring) |
+| `make test-integration` | 🌐 Integration-тесты (с БД) | **Testing** (Integration) |
+| `make test-e2e` | 🎭 E2E-тесты (Acceptance) | **Testing** (E2E) |
+| `make test-coverage` | 📊 Отчет о покрытии (HTML) | **Testing** (Metric) |
 | `make lint-fix` | 🧹 PHPCS (Auto-fix) | **Quality** (Style) |
-| `make audit` | 🛡 Проверка зависимостей | **Security** (Vulnerabilities) |
+| **Продвинутый контроль (Advanced QA)** | | |
+| `make infection` | 🧟 **Mutation Testing** (Infection) | **Quality** (Надежность тестов) |
+| `make deptrac` | 🏗 **Архитектурный контроль** | **Quality** (Чистота слоев) |
+| `make analyze` | 🔍 **Статический анализ** (PHPStan 9) | **Quality** (Строгая типизация) |
+| `make audit` | 🛡 **Аудит безопасности** | **Security** (Проверка CVE) |
+| `make rector` | ♻️ **Авто-рефакторинг** | **Quality** (Modern PHP) |
 
 <details>
 <summary><b>📋 Структура тестов</b></summary>
@@ -357,7 +363,8 @@ open http://localhost:8000
 | Тип | Количество | Описание |
 |-----|------------|----------|
 | **Unit** | 222 | Чистая бизнес-логика без БД и фреймворка |
-| **Functional** | 54 | CRUD, API, Use Cases, HTTP-сценарии с БД |
+| **Integration** | 54 | CRUD, API, Use Cases, HTTP-сценарии с БД |
+| **E2E** | 1 | Приемочные тесты (Acceptance) |
 
 **Unit Tests покрывают:**
 - **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult, PaginationRequest, IdempotencyService
@@ -365,7 +372,7 @@ open http://localhost:8000
 - **Infrastructure**: Queue jobs (retry logic), Logger, Notifications
 - **Presentation**: Validators, Mappers, DataProvider adapters
 
-**Functional Tests покрывают:**
+**Integration Tests покрывают:**
 - API Идемпотентность (Idempotency-Key)
 - Web-формы Идемпотентность
 - REST API (Книги)
@@ -378,7 +385,7 @@ open http://localhost:8000
 - ✅ Не тестируем функции фреймворка (`rules()`, `attributeLabels()`, `tableName()`)
 - ✅ Unit-тесты изолированы от БД и внешних сервисов (mocking)
 - ✅ `@codeCoverageIgnore` на методах требующих integration тестов
-- ✅ Исключены из coverage: controllers, forms, views, AR models (покрыты functional тестами)
+- ✅ Исключены из coverage: controllers, forms, views, AR models (покрыты интеграционными тестами)
 
 </details>
 

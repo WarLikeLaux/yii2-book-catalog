@@ -13,12 +13,12 @@ use app\infrastructure\persistence\User;
 
 final class AuthorUseCasesCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testCreateAuthorUseCase(\FunctionalTester $I): void
+    public function testCreateAuthorUseCase(\IntegrationTester $I): void
     {
         $command = new CreateAuthorCommand(fio: 'New UseCase Author');
 
@@ -28,7 +28,7 @@ final class AuthorUseCasesCest
         $I->seeRecord(Author::class, ['id' => $authorId, 'fio' => 'New UseCase Author']);
     }
 
-    public function testUpdateAuthorUseCase(\FunctionalTester $I): void
+    public function testUpdateAuthorUseCase(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Original Author']);
 
@@ -40,7 +40,7 @@ final class AuthorUseCasesCest
         $I->seeRecord(Author::class, ['id' => $authorId, 'fio' => 'Updated Author']);
     }
 
-    public function testDeleteAuthorUseCase(\FunctionalTester $I): void
+    public function testDeleteAuthorUseCase(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Author To Delete']);
 

@@ -1,8 +1,8 @@
 <?php
 
+declare(strict_types=1);
 
 /**
- * Inherited Methods
  * @method void wantToTest($text)
  * @method void wantTo($text)
  * @method void execute($callable)
@@ -15,9 +15,8 @@
  * @method \Codeception\Lib\Friend haveFriend($name, $actorClass = NULL)
  *
  * @SuppressWarnings(PHPMD)
-*/
-class FunctionalTester extends \Codeception\Actor
+ */
+class IntegrationTester extends \Codeception\Actor
 {
-    use _generated\FunctionalTesterActions;
-
+    use _generated\IntegrationTesterActions;
 }

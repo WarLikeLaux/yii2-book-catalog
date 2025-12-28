@@ -7,12 +7,12 @@ use app\infrastructure\persistence\User;
 
 final class AuthorDeleteCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testCanDeleteAuthor(\FunctionalTester $I): void
+    public function testCanDeleteAuthor(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Author To Delete']);
 

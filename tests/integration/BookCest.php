@@ -7,19 +7,19 @@ use app\infrastructure\persistence\User;
 
 final class BookCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testCanViewBooksIndex(\FunctionalTester $I): void
+    public function testCanViewBooksIndex(\IntegrationTester $I): void
     {
         $I->amOnRoute('book/index');
         $I->seeResponseCodeIs(200);
         $I->see('Книги', 'h1');
     }
 
-    public function testCanViewBookCreatePage(\FunctionalTester $I): void
+    public function testCanViewBookCreatePage(\IntegrationTester $I): void
     {
         $I->amOnRoute('book/create');
         $I->seeResponseCodeIs(200);
@@ -28,7 +28,7 @@ final class BookCest
         $I->seeElement('input[name="BookForm[title]"]');
     }
 
-    public function testCanViewBookDetails(\FunctionalTester $I): void
+    public function testCanViewBookDetails(\IntegrationTester $I): void
     {
         $bookId = $I->haveRecord(Book::class, [
             'title' => 'Test Book',

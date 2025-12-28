@@ -1,4 +1,4 @@
-.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-coverage infection load-test migrate seed queue-info comments docs swagger repomix
+.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-e2e test-coverage infection load-test migrate seed queue-info comments docs swagger repomix
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -18,45 +18,70 @@ endif
 help:
 	@echo "Использование: make [команда]"
 	@echo ""
-	@echo "Основные команды:"
-	@echo "  \033[32minit\033[0m         Полная инициализация (настройка, запуск, миграции)"
-	@echo "  \033[32mperms\033[0m        Исправить права доступа (через Docker)"
-	@echo "  \033[32mconfigure\033[0m    Ручная настройка окружения (.env)"
-	@echo "  \033[32mup\033[0m           Запустить контейнеры"
-	@echo "  \033[32mdown\033[0m         Остановить контейнеры"
-	@echo "  \033[32mrestart\033[0m      Перезапустить контейнеры"
-	@echo "  \033[32mlogs\033[0m         Смотреть логи"
-	@echo "  \033[32mshell\033[0m        Зайти в консоль контейнера PHP"
-	@echo "  \033[32mclean\033[0m        Очистить кэш и логи (безопасно)"
+	@echo "🚀 \033[1;32mБЫСТРЫЙ СТАРТ:\033[0m"
+	@echo "  \033[32minstall\033[0m          📥 Установить и запустить проект (рекомендуется)"
+	@echo "  \033[32minstall-force\033[0m    📥 Принудительная установка без вопросов (CI/CD)"
+	@echo "  \033[32minit\033[0m             ⚙️  Интерактивная инициализация"
 	@echo ""
-	@echo "Разработка:"
-	@echo "  \033[33mdev\033[0m          Проверка кода (стандартный набор: fix + test)"
-	@echo "  \033[33mfix\033[0m          Авто-исправление стиля кода"
-	@echo "  \033[33mtest\033[0m         Запуск тестов"
-	@echo "  \033[33mcomments\033[0m     Показать TODO и заметки в коде"
-	@echo "  \033[33mpr\033[0m           Полная проверка перед пушем (CI + мутации)"
+	@echo "🛡️  \033[1;35mКОНТРОЛЬ КАЧЕСТВА (ADVANCED QA):\033[0m"
+	@echo "  \033[35mtest\033[0m             ✅ Запуск всех тестов (Unit + Integration + E2E)"
+	@echo "  \033[35mtest-unit\033[0m        ⚡ Только Unit-тесты (Быстрые)"
+	@echo "  \033[35mtest-integration\033[0m 🌐 Только Integration-тесты (С БД)"
+	@echo "  \033[35mtest-e2e\033[0m         🎭 Только E2E-тесты (Acceptance)"
+	@echo "  \033[35minfection\033[0m        🧟 \033[1mМутационное тестирование\033[0m"
+	@echo "  \033[35mdeptrac\033[0m          🏗️  Архитектурный анализ"
+	@echo "  \033[35manalyze\033[0m          🔍 Статический анализ (PHPStan Level 9)"
+	@echo "  \033[35maudit\033[0m            🛡️  Аудит безопасности зависимостей"
+	@echo "  \033[35mpr\033[0m               🚀 Полная проверка перед Pull Request (All of the above)"
 	@echo ""
-	@echo "База данных:"
-	@echo "  \033[34mmigrate\033[0m      Применить миграции"
-	@echo "  \033[34mseed\033[0m         Залить тестовые данные"
+	@echo "💻 \033[1;33mРАЗРАБОТКА:\033[0m"
+	@echo "  \033[33mdev\033[0m              🛠️  Стандартный цикл (fix + test)"
+	@echo "  \033[33mfix\033[0m              🧹 Авто-исправление стиля кода (CS-Fixer + Rector)"
+	@echo "  \033[33mcomments\033[0m         📝 Показать TODO и заметки"
 	@echo ""
-	@echo "Документация и Утилиты:"
-	@echo "  \033[36mdocs\033[0m         Генерация API документации (Yii)"
-	@echo "  \033[36mswagger\033[0m      Генерация Swagger/OpenAPI спеки"
-	@echo "  \033[36mrepomix\033[0m      Сборка всего кода в один файл (для LLM)"
-	@echo "  \033[36mqueue-info\033[0m   Инфо о состоянии очередей"
+	@echo "🐳 \033[1;34mDOCKER & OPS:\033[0m"
+	@echo "  \033[34mup\033[0m               ▶️  Запустить контейнеры"
+	@echo "  \033[34mdown\033[0m             ⏹️  Остановить контейнеры"
+	@echo "  \033[34mlogs\033[0m             📄 Смотреть логи"
+	@echo "  \033[34mshell\033[0m            🐚 Зайти в контейнер PHP"
+	@echo ""
+	@echo "📚 \033[1;36mДОКУМЕНТАЦИЯ:\033[0m"
+	@echo "  \033[36mdocs\033[0m             📑 Генерация Yii2 API Docs"
+	@echo "  \033[36mswagger\033[0m          🌐 Генерация OpenAPI/Swagger"
+	@echo "  \033[36mrepomix\033[0m          🤖 Сборка контекста для LLM"
 
 # =================================================================================================
 # 🐳 DOCKER И ОКРУЖЕНИЕ
 # =================================================================================================
 
+install: init
+install-force: init-force
+
+init-force: _mkdirs
+	@echo "🚀 Принудительная установка (Без вопросов)..."
+	@chmod +x bin/setup-env
+	@./bin/setup-env -y
+	@$(MAKE) up
+	@echo "⏳ Ожидание запуска базы данных..."
+	@sleep 5
+	@$(MAKE) composer
+	@$(MAKE) migrate
+	@$(MAKE) seed
+	@APP_PORT=$$(grep '^APP_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000); \
+	echo ""; \
+	echo "✅ Проект установлен: http://localhost:$$APP_PORT"
+
 init: _init_confirm setup up composer migrate seed
 	@APP_PORT=$$(grep '^APP_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000); \
 	BUG_PORT=$$(grep '^BUGGREGATOR_UI_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 9913); \
 	echo ""; \
-	echo "🚀 Проект запущен: http://localhost:$$APP_PORT"; \
-	echo "📄 API Docs:       http://localhost:$$APP_PORT/api"; \
-	echo "🐞 Buggregator:    http://localhost:$$BUG_PORT"
+	echo "======================================================================"; \
+	echo "🚀 ПРОЕКТ ГОТОВ К РАБОТЕ"; \
+	echo "======================================================================"; \
+	echo "🌍 Сайт:        http://localhost:$$APP_PORT"; \
+	echo "📄 API Docs:    http://localhost:$$APP_PORT/api"; \
+	echo "🐞 Buggregator: http://localhost:$$BUG_PORT"; \
+	echo "======================================================================"
 
 _init_confirm:
 	@echo ""
@@ -153,6 +178,7 @@ clean:
 
 composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer install
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
 
 # =================================================================================================
 # 🛡️ КОНТРОЛЬ КАЧЕСТВА (QA)
@@ -195,15 +221,15 @@ _test-init:
 
 test: _test-init
 	@echo "🚀 Запуск всех тестов..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit,acceptance --no-colors
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit,e2e --no-colors
 
-test-acceptance: _test-init
-	@echo "🚀 Запуск Acceptance тестов..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run acceptance --no-colors
+test-e2e: _test-init
+	@echo "🚀 Запуск E2E тестов..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run e2e --no-colors
 
 test-coverage: _test-init
 	@echo "📊 Анализ покрытия кода..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --coverage --coverage-html --coverage-text
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit --coverage --coverage-html --coverage-text
 	@echo "----------------------------------------------------------------------"
 	@$(COMPOSE) exec $(PHP_CONTAINER) head -n 10 tests/_output/coverage.txt
 	@echo "----------------------------------------------------------------------"
@@ -211,8 +237,8 @@ test-coverage: _test-init
 
 infection: _test-init
 	$(COMPOSE) exec $(PHP_CONTAINER) mkdir -p runtime/coverage
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run functional,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage"
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=1 --test-framework-options="functional,unit"
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage"
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=1 --test-framework-options="integration,unit"
 
 load-test:
 	@echo "🚀 Load Testing (K6)..."

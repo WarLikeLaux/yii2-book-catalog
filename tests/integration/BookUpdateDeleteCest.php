@@ -8,12 +8,12 @@ use app\infrastructure\persistence\User;
 
 final class BookCrudCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testUpdateBookPage(\FunctionalTester $I): void
+    public function testUpdateBookPage(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
         $bookId = $I->haveRecord(Book::class, [
@@ -32,7 +32,7 @@ final class BookCrudCest
         $I->seeInField('BookForm[title]', 'Book To Update');
     }
 
-    public function testUpdateBookSuccess(\FunctionalTester $I): void
+    public function testUpdateBookSuccess(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Update Author']);
         $bookId = $I->haveRecord(Book::class, [
@@ -60,7 +60,7 @@ final class BookCrudCest
         $I->seeRecord(Book::class, ['id' => $bookId, 'title' => 'Updated Title', 'year' => 2025]);
     }
 
-    public function testDeleteBook(\FunctionalTester $I): void
+    public function testDeleteBook(\IntegrationTester $I): void
     {
         $bookId = $I->haveRecord(Book::class, [
             'title' => 'Book To Delete',

@@ -9,12 +9,12 @@ use app\infrastructure\persistence\User;
 
 final class DeleteBookUseCaseCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testDeletesBook(\FunctionalTester $I): void
+    public function testDeletesBook(\IntegrationTester $I): void
     {
         $bookId = $I->haveRecord(Book::class, [
             'title' => 'Book To Delete Via UseCase',

@@ -8,12 +8,12 @@ use app\infrastructure\persistence\User;
 
 final class ReportFilterCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testReportWithYearFilter(\FunctionalTester $I): void
+    public function testReportWithYearFilter(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Report Author']);
         $bookId = $I->haveRecord(Book::class, [
@@ -31,7 +31,7 @@ final class ReportFilterCest
         $I->see('Report Author');
     }
 
-    public function testReportWithoutFilter(\FunctionalTester $I): void
+    public function testReportWithoutFilter(\IntegrationTester $I): void
     {
         $I->amOnRoute('report/index');
         $I->seeResponseCodeIs(200);

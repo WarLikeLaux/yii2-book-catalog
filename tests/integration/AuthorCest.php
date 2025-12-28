@@ -7,19 +7,19 @@ use app\infrastructure\persistence\User;
 
 final class AuthorCest
 {
-    public function _before(FunctionalTester $I): void
+    public function _before(IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testCanViewAuthorsIndex(FunctionalTester $I): void
+    public function testCanViewAuthorsIndex(IntegrationTester $I): void
     {
         $I->amOnRoute('author/index');
         $I->seeResponseCodeIs(200);
         $I->see('Авторы', 'h1');
     }
 
-    public function testCanViewAuthorCreatePage(FunctionalTester $I): void
+    public function testCanViewAuthorCreatePage(IntegrationTester $I): void
     {
         $I->amOnRoute('author/create');
         $I->seeResponseCodeIs(200);
@@ -28,7 +28,7 @@ final class AuthorCest
         $I->seeElement('input[name="AuthorForm[fio]"]');
     }
 
-    public function testCanCreateAuthor(FunctionalTester $I): void
+    public function testCanCreateAuthor(IntegrationTester $I): void
     {
         $I->amOnRoute('author/create');
         $I->submitForm('.author-create form', [
@@ -39,7 +39,7 @@ final class AuthorCest
         $I->seeRecord(Author::class, ['fio' => 'New Unique Author']);
     }
 
-    public function testCreateDuplicateAuthor(FunctionalTester $I): void
+    public function testCreateDuplicateAuthor(IntegrationTester $I): void
     {
         $I->haveRecord(Author::class, ['fio' => 'Existing Author']);
         
@@ -52,7 +52,7 @@ final class AuthorCest
         $I->see('Создать автора');
     }
 
-    public function testCanViewAuthorDetails(FunctionalTester $I): void
+    public function testCanViewAuthorDetails(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
 
@@ -61,7 +61,7 @@ final class AuthorCest
         $I->see('Test Author');
     }
 
-    public function testCanViewAuthorUpdatePage(FunctionalTester $I): void
+    public function testCanViewAuthorUpdatePage(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
 
@@ -71,7 +71,7 @@ final class AuthorCest
         $I->seeElement('form');
     }
 
-    public function testCanUpdateAuthor(FunctionalTester $I): void
+    public function testCanUpdateAuthor(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Author To Update']);
 
@@ -85,7 +85,7 @@ final class AuthorCest
         $I->seeRecord(Author::class, ['id' => $authorId, 'fio' => 'Updated Author Name']);
     }
 
-    public function testCanSearchAuthors(FunctionalTester $I): void
+    public function testCanSearchAuthors(IntegrationTester $I): void
     {
         $I->haveRecord(Author::class, ['fio' => 'Test Author 1']);
         $I->haveRecord(Author::class, ['fio' => 'Test Author 2']);

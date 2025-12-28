@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace tests\functional;
+namespace tests\integration;
 
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
-use FunctionalTester;
+use IntegrationTester;
 
 class SearchBookCest
 {
-    public function _before(FunctionalTester $I): void
+    public function _before(IntegrationTester $I): void
     {
     }
 
-    public function testSearchByAuthor(FunctionalTester $I): void
+    public function testSearchByAuthor(IntegrationTester $I): void
     {
         $I->wantTo('search books by author via global search');
 
@@ -33,7 +33,7 @@ class SearchBookCest
         $I->dontSee('Another Java Book');
     }
 
-    public function testSearchByIsbn(FunctionalTester $I): void
+    public function testSearchByIsbn(IntegrationTester $I): void
     {
         $I->wantTo('search books by ISBN prefix via global search');
 
@@ -63,7 +63,7 @@ class SearchBookCest
     }
 
     private function createBookWithAuthor(
-        FunctionalTester $I,
+        IntegrationTester $I,
         string $isbn,
         string $authorName,
         string $title

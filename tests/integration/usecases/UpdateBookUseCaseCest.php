@@ -10,12 +10,12 @@ use app\infrastructure\persistence\User;
 
 final class UpdateBookUseCaseCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
-    public function testUpdatesBook(\FunctionalTester $I): void
+    public function testUpdatesBook(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Update Test Author']);
         $bookId = $I->haveRecord(Book::class, [

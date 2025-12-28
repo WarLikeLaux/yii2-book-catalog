@@ -8,7 +8,7 @@ use app\infrastructure\persistence\User;
 
 final class ReportCest
 {
-    public function _before(\FunctionalTester $I): void
+    public function _before(\IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
         \Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
@@ -18,7 +18,7 @@ final class ReportCest
         \Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
     }
 
-    public function testCanViewReportPage(\FunctionalTester $I): void
+    public function testCanViewReportPage(\IntegrationTester $I): void
     {
         $I->amOnRoute('report/index');
         $I->seeResponseCodeIs(200);
@@ -27,7 +27,7 @@ final class ReportCest
         $I->seeElement('input[name="year"]');
     }
 
-    public function testReportShowsAuthorsWithBooks(\FunctionalTester $I): void
+    public function testReportShowsAuthorsWithBooks(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Report Test Author']);
         $currentYear = (int)date('Y');
@@ -49,7 +49,7 @@ final class ReportCest
         $I->see('1');
     }
 
-    public function testReportFiltersByYear(\FunctionalTester $I): void
+    public function testReportFiltersByYear(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Year Filter Author']);
         $book2023 = $I->haveRecord(Book::class, [
@@ -85,7 +85,7 @@ final class ReportCest
         $I->see('1');
     }
 
-    public function testReportShowsMultipleBooksCount(\FunctionalTester $I): void
+    public function testReportShowsMultipleBooksCount(\IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Multiple Books Author']);
         $currentYear = (int)date('Y');
@@ -128,14 +128,14 @@ final class ReportCest
         $I->see('3');
     }
 
-    public function testReportShowsEmptyMessageWhenNoData(\FunctionalTester $I): void
+    public function testReportShowsEmptyMessageWhenNoData(\IntegrationTester $I): void
     {
         $I->amOnRoute('report/index', ['year' => 1999]);
         $I->seeResponseCodeIs(200);
         $I->see('Нет данных о книгах за 1999 год');
     }
 
-    public function testReportLimitsToTenAuthors(\FunctionalTester $I): void
+    public function testReportLimitsToTenAuthors(\IntegrationTester $I): void
     {
         $currentYear = (int)date('Y');
         
