@@ -54,7 +54,6 @@ final class BookCrudCest
             ]
         ]);
 
-        // Flexible check for view page URL (accounting for encoding)
         $I->seeInCurrentUrl('book');
         $I->seeInCurrentUrl('view');
         $I->see('Updated Title');

@@ -159,9 +159,6 @@ final class IsbnTest extends Unit
     public function testThrowsExceptionOnIsbn10WithLetterYAtPosition8(): void
     {
         $this->expectException(DomainException::class);
-        // substr(0,9) is 00000000Y -> exception.
-        // substr(0,8) is 00000000 -> valid.
-        // 00000000Y0. Total 10 chars.
         new Isbn('00000000Y0');
     }
 }

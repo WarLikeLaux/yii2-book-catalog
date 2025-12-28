@@ -55,7 +55,7 @@ final class IsbnValidatorTest extends Unit
 
     public function testValidateAttributeWithValidIsbnFromForm(): void
     {
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->isbn = '9783161484100';
         
         $this->validator->validateAttribute($form, 'isbn');
@@ -65,7 +65,7 @@ final class IsbnValidatorTest extends Unit
 
     public function testValidateAttributeExistingError(): void
     {
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->isbn = '';
         $form->addError('isbn', 'Required');
         

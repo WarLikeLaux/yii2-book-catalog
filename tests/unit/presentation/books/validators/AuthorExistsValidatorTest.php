@@ -19,7 +19,7 @@ final class AuthorExistsValidatorTest extends Unit
         
         $validator = new AuthorExistsValidator($repository);
         
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->authorIds = [1, 2, 3];
         
         $validator->validateAttribute($form, 'authorIds');
@@ -34,7 +34,7 @@ final class AuthorExistsValidatorTest extends Unit
         
         $validator = new AuthorExistsValidator($repository);
         
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->authorIds = [999];
         
         $validator->validateAttribute($form, 'authorIds');
@@ -49,7 +49,7 @@ final class AuthorExistsValidatorTest extends Unit
         
         $validator = new AuthorExistsValidator($repository);
         
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->authorIds = 'not-an-array';
         
         $validator->validateAttribute($form, 'authorIds');
@@ -64,7 +64,7 @@ final class AuthorExistsValidatorTest extends Unit
         
         $validator = new AuthorExistsValidator($repository);
         
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->authorIds = ['1'];
         
         $validator->validateAttribute($form, 'authorIds');

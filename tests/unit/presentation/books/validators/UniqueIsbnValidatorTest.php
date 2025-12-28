@@ -18,7 +18,7 @@ final class UniqueIsbnValidatorTest extends Unit
         
         $validator = new UniqueIsbnValidator($repository);
         
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->isbn = '9783161484100';
         
         $validator->validateAttribute($form, 'isbn');
@@ -33,7 +33,7 @@ final class UniqueIsbnValidatorTest extends Unit
         
         $validator = new UniqueIsbnValidator($repository);
         
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->isbn = '9783161484100';
         
         $validator->validateAttribute($form, 'isbn');
@@ -48,7 +48,7 @@ final class UniqueIsbnValidatorTest extends Unit
         
         $validator = new UniqueIsbnValidator($repository);
         
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->isbn = 123;
         
         $validator->validateAttribute($form, 'isbn');
@@ -63,7 +63,7 @@ final class UniqueIsbnValidatorTest extends Unit
         
         $validator = new UniqueIsbnValidator($repository);
         
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->id = 42;
         $form->isbn = '9783161484100';
         
@@ -81,7 +81,7 @@ final class UniqueIsbnValidatorTest extends Unit
 
         $validator = new UniqueIsbnValidator($repository);
 
-        $form = new \app\presentation\books\forms\BookForm();
+        $form = new BookForm();
         $form->id = '42';
         $form->isbn = '9783161484100';
 

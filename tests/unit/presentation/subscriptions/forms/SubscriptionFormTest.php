@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\subscriptions\forms;
 
+use app\infrastructure\persistence\Author;
 use app\presentation\subscriptions\forms\SubscriptionForm;
 use Codeception\Test\Unit;
 
@@ -11,9 +12,7 @@ final class SubscriptionFormTest extends Unit
 {
     protected function _before(): void
     {
-        // Ensure we have an author for validation
-        // We use Author ActiveRecord directly as validation uses it
-        $author = new \app\infrastructure\persistence\Author();
+        $author = new Author();
         $author->id = 1;
         $author->fio = 'Test Author';
         $author->save();
@@ -51,12 +50,8 @@ final class SubscriptionFormTest extends Unit
     public function testValidateFormatting(): void
     {
         $form = new SubscriptionForm();
-        $form->phone = '8 (900) 111-22-33'; // RU format
-        $form->authorId = 1;
-
-        // Note: libphonenumber needs region if + is missing, but here we test if it handles what passed
-        // without region it might fail or rely on default. Let's send international.
         $form->phone = '+7 900 111 22 33';
+        $form->authorId = 1;
 
         $form->validatePhone('phone');
 
@@ -73,15 +68,12 @@ final class SubscriptionFormTest extends Unit
         $form->validatePhone('phone');
 
         $this->assertTrue($form->hasErrors('phone'));
-        // We don't check exact message text to avoid fragility with translations
         $this->assertNotEmpty($form->getFirstError('phone'));
     }
 
     public function testValidateParseableButInvalidNumber(): void
     {
         $form = new SubscriptionForm();
-        // +999 is unassigned country code, might parse but be invalid?
-        // Or +1 000 000 0000 (invalid US number)
         $form->phone = '+10000000000';
         $form->authorId = 1;
         

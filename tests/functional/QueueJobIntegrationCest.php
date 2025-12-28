@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use app\infrastructure\persistence\Subscription;
@@ -37,9 +38,7 @@ final class QueueJobIntegrationCest
             ->insert('book_authors', ['book_id' => $bookId, 'author_id' => $authorId])
             ->execute();
 
-        $queryService = \Yii::$container->get(
-            \app\application\subscriptions\queries\SubscriptionQueryService::class
-        );
+        $queryService = \Yii::$container->get(SubscriptionQueryService::class);
 
         $phones = iterator_to_array($queryService->getSubscriberPhonesForBook($bookId));
 

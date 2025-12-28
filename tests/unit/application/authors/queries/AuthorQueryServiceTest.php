@@ -10,6 +10,7 @@ use app\application\authors\queries\AuthorSearchCriteria;
 use app\application\authors\queries\AuthorSearchResponse;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\PagedResultInterface;
+use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -66,7 +67,7 @@ final class AuthorQueryServiceTest extends Unit
             ->with(999)
             ->willReturn(null);
 
-        $this->expectException(\app\domain\exceptions\DomainException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Author not found');
 
         $this->service->getById(999);
