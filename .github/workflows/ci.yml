@@ -99,7 +99,7 @@ jobs:
       - name: Start PHP Server
         run: |
           composer dump-autoload -o
-          mkdir -p runtime web/assets
+          mkdir -p runtime/sessions web/assets
           chmod -R 777 runtime web/assets
           YII_ENV=test php -S 0.0.0.0:8080 -t web > /tmp/php-server.log 2>&1 &
           sleep 2
