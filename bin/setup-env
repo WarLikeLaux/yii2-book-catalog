@@ -15,6 +15,8 @@ final class EnvSetup
     private const string COLOR_CYAN = "\033[36m";
     private const string COLOR_BOLD = "\033[1m";
 
+    private const array FORCED_KEYS = ['APP_PORT', 'UID', 'GID'];
+
     public function __construct(
         private readonly string $rootPath
     ) {
@@ -35,7 +37,7 @@ final class EnvSetup
 
         $isTty = stream_isatty(fopen('php://stdin', 'r'));
         if (!$autoYes && $isTty) {
-            echo "Использовать значения по умолчанию для всех параметров? (кроме APP_PORT) [y/N]: ";
+            echo "Использовать значения по умолчанию для всех параметров? (кроме критичных) [y/N]: ";
             $input = $this->readInput();
             if (strtolower($input) === 'y') {
                 $autoYes = true;
@@ -65,27 +67,20 @@ final class EnvSetup
 
             [$key, $defaultRaw] = explode('=', $line, 2);
             $key = trim($key);
-            
-            $default = trim(explode('#', $defaultRaw)[0]);
 
+            $default = $this->getEffectiveDefault($key, $defaultRaw);
             $current = $currentValues[$key] ?? $default;
 
-            $forceAsk = $key === 'APP_PORT' && $isTty;
+            $forceAsk = in_array($key, self::FORCED_KEYS, true) && $isTty;
 
             if ($autoYes && !$forceAsk) {
-                if ($key === 'APP_PORT') {
-                     echo sprintf("⚠️  APP_PORT=%s (default)\n", $current);
-                } else {
-                     echo sprintf("✅ %s=%s\n", $key, $current);
-                }
+                echo sprintf("✅ %s=%s\n", $key, $current);
                 $value = $current;
             } else {
-                if ($key === 'APP_PORT') {
-                    echo self::COLOR_YELLOW . "👉 Внимание: выберите свободный порт для приложения!" . self::COLOR_RESET . "\n";
-                }
+                $this->printKeyHint($key);
                 $value = $this->prompt($key, $current);
             }
-            
+
             $newContent[] = "{$key}={$value}";
         }
 
@@ -95,6 +90,41 @@ final class EnvSetup
         } else {
             $this->warning("Отменено. Файл не изменен.");
         }
+    }
+
+    private function getEffectiveDefault(string $key, string $defaultRaw): string
+    {
+        $hostDefault = $this->getHostDefault($key);
+        if ($hostDefault !== null) {
+            return $hostDefault;
+        }
+
+        return trim(explode('#', $defaultRaw)[0]);
+    }
+
+    private function getHostDefault(string $key): string|null
+    {
+        return match ($key) {
+            'UID' => trim((string) shell_exec('id -u')) ?: '1000',
+            'GID' => trim((string) shell_exec('id -g')) ?: '1000',
+            default => null,
+        };
+    }
+
+    private function printKeyHint(string $key): void
+    {
+        $hint = match ($key) {
+            'APP_PORT' => '👉 Внимание: выберите свободный порт для приложения!',
+            'UID' => '👉 Docker user ID (автоопределён из хоста)',
+            'GID' => '👉 Docker group ID (автоопределён из хоста)',
+            default => null,
+        };
+
+        if ($hint === null) {
+            return;
+        }
+
+        echo self::COLOR_YELLOW . $hint . self::COLOR_RESET . "\n";
     }
 
     /**

@@ -1,4 +1,4 @@
-FROM yiisoftware/yii2-php:8.4-fpm-nginx
+FROM yiisoftware/yii2-php:8.4-fpm
 
 # PCOV для покрытия кода тестами
 RUN pecl install pcov && docker-php-ext-enable pcov

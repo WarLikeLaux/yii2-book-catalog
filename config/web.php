@@ -24,6 +24,10 @@ $config = [
         'request' => [
             'cookieValidationKey' => env('COOKIE_VALIDATION_KEY', ''),
         ],
+        'session' => [
+            'class' => 'yii\web\Session',
+            'savePath' => '@runtime/sessions',
+        ],
         'response' => [
             'on beforeSend' => function ($event) {
                 $event->sender->headers->add('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;");

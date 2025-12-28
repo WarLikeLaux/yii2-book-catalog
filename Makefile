@@ -1,4 +1,4 @@
-.PHONY: help init up down restart logs shell sms-logs setup env configure composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-coverage infection load-test migrate seed queue-info comments docs swagger repomix
+.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-coverage infection load-test migrate seed queue-info comments docs swagger repomix
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -20,12 +20,14 @@ help:
 	@echo ""
 	@echo "Основные команды:"
 	@echo "  \033[32minit\033[0m         Полная инициализация (настройка, запуск, миграции)"
+	@echo "  \033[32mperms\033[0m        Исправить права доступа (через Docker)"
 	@echo "  \033[32mconfigure\033[0m    Ручная настройка окружения (.env)"
 	@echo "  \033[32mup\033[0m           Запустить контейнеры"
 	@echo "  \033[32mdown\033[0m         Остановить контейнеры"
 	@echo "  \033[32mrestart\033[0m      Перезапустить контейнеры"
 	@echo "  \033[32mlogs\033[0m         Смотреть логи"
 	@echo "  \033[32mshell\033[0m        Зайти в консоль контейнера PHP"
+	@echo "  \033[32mclean\033[0m        Очистить кэш и логи (безопасно)"
 	@echo ""
 	@echo "Разработка:"
 	@echo "  \033[33mdev\033[0m          Проверка кода (стандартный набор: fix + test)"
@@ -94,7 +96,15 @@ sms-logs:
 # 🛠 НАСТРОЙКА (SETUP)
 # =================================================================================================
 
-setup: _mkdirs
+perms:
+	@echo "🔧 Исправление прав..."
+	@HOST_UID=$$(id -u) HOST_GID=$$(id -g); \
+	$(COMPOSE) run --rm -u root $(PHP_CONTAINER) chown -R $$HOST_UID:$$HOST_GID /app 2>/dev/null || \
+	echo "⚠️  Docker chown недоступен (rootless?), только chmod"
+	@$(MAKE) _fix_code_perms
+	@echo "✅ Права доступа восстановлены."
+
+setup: perms _mkdirs
 	@chmod +x bin/setup-env
 	@chmod +x bin/list-comments
 	@if [ -f .env ]; then \
@@ -109,7 +119,7 @@ setup: _mkdirs
 		./bin/setup-env -y; \
 	fi
 
-configure: _mkdirs
+configure: perms _mkdirs
 	@echo "⚠️  Вы запускаете полную перенастройку окружения."
 	@echo "   Это обновит файл .env и может изменить порты."
 	@read -p "   Вы уверены? [y/N] " ans; \
@@ -120,9 +130,26 @@ configure: _mkdirs
 	@chmod +x bin/setup-env
 	@./bin/setup-env
 
+env:
+	@chmod +x bin/setup-env
+	@./bin/setup-env
+
+_fix_code_perms:
+	@echo "🔒 Нормализация прав (dirs=755, files=644)..."
+	@find . -maxdepth 1 -type f \( -name "*.php" -o -name "*.json" -o -name "*.lock" -o -name "*.xml" -o -name "*.dist" -o -name "*.yaml" -o -name "*.yml" -o -name "*.md" -o -name "*.neon" -o -name ".env*" -o -name ".git*" -o -name "Makefile" -o -name "Dockerfile" \) -exec chmod 644 {} + 2>/dev/null || true
+	@find application domain infrastructure presentation config tests migrations docs web -type d -exec chmod 755 {} + 2>/dev/null || true
+	@find application domain infrastructure presentation config tests migrations docs -type f -exec chmod 644 {} + 2>/dev/null || true
+	@find web -type f \( -name "*.php" -o -name "*.css" -o -name "*.js" -o -name "*.html" -o -name "*.ico" -o -name "*.txt" \) -exec chmod 644 {} + 2>/dev/null || true
+	@chmod -R 755 bin 2>/dev/null || true
+	@chmod 755 yii 2>/dev/null || true
+
 _mkdirs:
-	mkdir -p web/uploads runtime/debug runtime/logs runtime/cache
-	$(COMPOSE) exec -T -u root $(PHP_CONTAINER) chmod -R 777 /app/runtime /app/web/uploads 2>/dev/null || true
+	mkdir -p web/uploads runtime/debug runtime/logs runtime/cache runtime/sessions
+
+clean:
+	@echo "🧹 Очистка кэша и логов..."
+	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "rm -rf /app/runtime/debug/* /app/runtime/logs/* /app/runtime/cache/*"
+	@echo "✅ Очищено (runtime)."
 
 composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer install
