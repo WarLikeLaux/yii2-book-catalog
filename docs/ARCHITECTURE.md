@@ -31,7 +31,7 @@
 ┌────────────────────────────────────────────────────────────┐
 │  APPLICATION    │ UseCases, Commands, Queries, Ports      │
 ├────────────────────────────────────────────────────────────┤
-│  DOMAIN         │ Value Objects, Events, Exceptions       │
+│  DOMAIN         │ Entities, Value Objects, Events          │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -53,9 +53,11 @@ graph TD
     end
 
     subgraph Domain ["Domain Layer (Pure PHP)"]
+        Entities[Rich Entities]
         VO[Value Objects]
         Events[Domain Events]
         Exceptions[Domain Exceptions]
+        Entities --> VO
     end
 
     subgraph Infrastructure ["Infrastructure Layer"]
@@ -69,6 +71,7 @@ graph TD
     Controllers --> UseCases
     Controllers --> Forms
     UseCases --> Domain
+    UseCases -- Uses Entities --> Entities
     UseCases --> Repositories
     Repositories --> ActiveRecord
     Infrastructure -- Implements --> Ports[Interfaces in Application]
@@ -323,7 +326,7 @@ public function execute(CreateBookCommand $command): int
     $this->transaction->begin();
     
     try {
-        $bookId = $this->bookRepository->create(
+        $book = Book::create(
             title: $command->title,
             year: new BookYear($command->year),
             isbn: new Isbn($command->isbn),
@@ -331,7 +334,10 @@ public function execute(CreateBookCommand $command): int
             coverUrl: $command->cover
         );
         
-        $this->bookRepository->syncAuthors($bookId, $command->authorIds);
+        $book->syncAuthors($command->authorIds);
+        $this->bookRepository->save($book);
+        $bookId = $book->getId();
+        
         $this->transaction->commit();
         
         $this->eventPublisher->publishEvent(
@@ -550,11 +556,13 @@ interface BookRepositoryInterface
 // Реализация (infrastructure/repositories/)
 class BookRepository implements BookRepositoryInterface
 {
-    public function create(...): int
+    public function save(BookEntity $book): void
     {
-        $book = Book::create(...);  // ActiveRecord только тут
-        $book->save();
-        return $book->id;
+        $ar = Book::findOne($book->getId()) ?? new Book();
+        $ar->title = $book->getTitle();
+        // ... mapping properties
+        $ar->save();
+        $book->setId($ar->id);
     }
 }
 ```
@@ -666,6 +674,7 @@ Yii::$app->queue->push(new NotifySubscribersJob($bookId));
 │   └── ports/            # Интерфейсы (контракты)
 │
 ├── domain/               # 💎 Ядро (чистый PHP, БЕЗ Yii)
+│   ├── entities/         # Rich Entities: Book, Author, Subscription
 │   ├── events/           # BookCreatedEvent
 │   ├── exceptions/       # DomainException
 │   └── values/           # Isbn, BookYear
