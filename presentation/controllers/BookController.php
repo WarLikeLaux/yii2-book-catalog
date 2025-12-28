@@ -83,7 +83,7 @@ final class BookController extends Controller
     {
         $form = new BookForm();
 
-        if ($this->request->isPost && $form->load((array) $this->request->post())) {
+        if ($this->request->isPost && $form->loadFromRequest($this->request)) {
             if ($this->request->isAjax) {
                 $this->response->format = Response::FORMAT_JSON;
                 return ActiveForm::validate($form);
@@ -112,7 +112,7 @@ final class BookController extends Controller
     {
         $form = $this->viewService->getBookForUpdate($id);
 
-        if ($this->request->isPost && $form->load((array) $this->request->post())) {
+        if ($this->request->isPost && $form->loadFromRequest($this->request)) {
             if ($this->request->isAjax) {
                 $this->response->format = Response::FORMAT_JSON;
                 return ActiveForm::validate($form);
