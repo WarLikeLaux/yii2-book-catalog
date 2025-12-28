@@ -8,7 +8,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-276_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-277_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-95%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -41,7 +41,7 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **276 тестов** (610 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **277 тестов** (613 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Custom Architecture Rules | 🛠 **Makefile**<br>Автоматизация рутины |
 | ✅ **Mutation Testing**<br>Infection PHP (MSI > 94%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
@@ -67,7 +67,7 @@
 *   **Ports:** интерфейсы репозиториев и внешних сервисов находятся в `application/ports` (namespace: `app\application\ports`). Use Cases зависят только от портов, не от конкретных реализаций фреймворка.
 *   **Event Publisher:** Use Cases публикуют доменные события через `EventPublisherInterface`, а не создают job напрямую. Это изолирует application layer от инфраструктуры.
 *   **UseCaseExecutor:** сквозной функционал (Cross-cutting concern) для выполнения use cases с обработкой ошибок, логированием и уведомлениями. Находится в `application/common`. Использует нативные средства локализации фреймворка (`Yii::t`) для упрощения.
-*   **Контроллеры:** выступают оркестраторами. Загружают данные в формы и запускают валидацию, но делегируют выполнение бизнес-операций в Command Services, а выборку данных — в View Services. Не содержат самой бизнес-логики.
+*   **Контроллеры:** выступают оркестраторами. Загружают данные в формы и запускают валидацию, но делегируют выполнение бизнес-операций в Command Handlers, а выборку данных — в View Data Factories. Не содержат самой бизнес-логики.
 
 ### 2. Domain Layer (Rich Domain Model)
 Доменный слой содержит **Rich Entities** (`Book`) и **Value Objects** (`Isbn`, `BookYear`). 
@@ -79,7 +79,7 @@
 
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
-*   **Controllers:** отвечают за валидацию входных данных (через Forms) и управление потоком выполнения. Вызывают Command Services для изменения состояния и View Services для получения данных.
+*   **Controllers:** отвечают за валидацию входных данных (через Forms) и управление потоком выполнения. Вызывают Command Handlers для изменения состояния и View Data Factories для получения данных.
 *   **Forms (`presentation/{feature}/forms`):** валидация входных данных через `FormModel`.
 *   **Mappers (`presentation/{feature}/mappers`):** перевод форм в команды/criteria и обратно (DTO ↔ Form).
 *   **Handlers (`presentation/{feature}/handlers`):** реализуют разделение ответственности (CQRS):
@@ -104,42 +104,45 @@
 **Пример разделения:**
 
 ```php
-// Контроллер - только HTTP логика
-public function actionCreate(): string|Response
+// BookController.php
+public function actionCreate(): string|Response|array
 {
     $form = new BookForm();
-    
-    // HTTP: загрузка и валидация
-    if ($this->request->isPost && $form->load($this->request->post()) && $form->validate()) {
-    // Command Handler: бизнес-операция
-        $bookId = $this->commandHandler->createBook($form);
-        if ($bookId) {
-            return $this->redirect(['view', 'id' => $bookId]);
+
+    if ($this->request->isPost && $form->loadFromRequest($this->request)) {
+        if ($this->request->isAjax) {
+            $this->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($form);
+        }
+
+        if ($form->validate()) {
+            $bookId = $this->commandHandler->createBook($form);
+            if ($bookId !== null) {
+                return $this->redirect(['view', 'id' => $bookId]);
+            }
         }
     }
 
-    // View Data Factory: данные для формы
     return $this->render('create', [
         'model' => $form,
-        'authors' => $this->viewFactory->getAuthorsList(),
+        'authors' => $this->viewDataFactory->getAuthorsList(),
     ]);
 }
 
-// Command Handler - чистая логика без HTTP зависимостей
-class BookCommandHandler 
+// BookCommandHandler.php
+final readonly class BookCommandHandler
 {
-    public function createBook(BookForm $form): ?int 
+    public function createBook(BookForm $form): ?int
     {
-        $coverPath = $this->fileStorage->save($form->cover);
-        $command = $this->mapper->toCreateCommand($form, $coverPath); 
-        
-        // Выполняем Use Case через экзекутор (транзакции, логи, уведомления)
+        $coverPath = $this->uploadCover($form);
+        $command = $this->mapper->toCreateCommand($form, $coverPath);
+
         $bookId = null;
-        $this->useCaseExecutor->execute(function() use ($command, &$bookId) {
-            $bookId = $this->useCase->execute($command);
-        });
-        
-        return $bookId;
+        $success = $this->useCaseExecutor->execute(function () use ($command, &$bookId): void {
+            $bookId = $this->createBookUseCase->execute($command);
+        }, Yii::t('app', 'Book has been created'));
+
+        return $success ? $bookId : null;
     }
 }
 ```
@@ -327,10 +330,10 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>276</b><br>Tests</td>
-<td align="center"><b>610</b><br>Assertions</td>
+<td align="center"><b>277</b><br>Tests</td>
+<td align="center"><b>613</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~4s</b><br>Runtime</td>
+<td align="center"><b>~7s</b><br>Runtime</td>
 </tr>
 </table>
 
@@ -353,8 +356,8 @@ open http://localhost:8000
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 194 | Чистая бизнес-логика без БД и фреймворка |
-| **Functional** | 55 | CRUD, API, Use Cases, HTTP-сценарии с БД |
+| **Unit** | 222 | Чистая бизнес-логика без БД и фреймворка |
+| **Functional** | 54 | CRUD, API, Use Cases, HTTP-сценарии с БД |
 
 **Unit Tests покрывают:**
 - **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult, PaginationRequest, IdempotencyService
