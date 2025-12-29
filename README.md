@@ -8,7 +8,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-304_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-299_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -216,7 +216,7 @@ yii2-book-catalog/
 │   ├── subscriptions/        # Модуль Подписки
 │   ├── reports/              # Модуль Отчеты
 │   ├── common/               # Общие компоненты (UseCaseExecutor, Shared DTOs)
-│   └── ports/                # Интерфейсы (EventPublisher, Notification, SMS, FileStorage, etc.)
+│   └── ports/                # Интерфейсы (EventPublisher, Notification, Tracer, SMS, etc.)
 ├── domain/                  # Domain Layer (Чистый PHP)
 │   ├── entities/           # Rich Entities (Book, Author, Subscription)
 │   ├── events/             # Domain Events (BookCreatedEvent)
@@ -226,8 +226,8 @@ yii2-book-catalog/
 │   ├── adapters/           # Адаптеры (YiiEventPublisher, YiiTranslator)
 │   ├── persistence/        # ActiveRecord модели (Persistence Models)
 │   ├── queue/              # Queue Jobs (Асинхронные задачи)
-│   ├── repositories/       # Реализации репозиториев (SQL логика)
-│   ├── services/           # Внешние сервисы (SMS, Storage, Logger)
+│   ├── repositories/       # Реализации репозиториев (SQL логика + Tracing Decorators)
+│   ├── services/           # Внешние сервисы (SMS, Storage, Logger, Observability)
 │   └── phpstan/            # Правила статического анализа
 ├── presentation/            # Presentation Layer (Yii2 & Web)
 │   ├── controllers/        # Тонкие контроллеры
@@ -247,8 +247,6 @@ yii2-book-catalog/
 ```
 
 **Примечание:** В коде используется namespace `app\`, что соответствует стандартному Yii2 алиасу `@app`. Структура директорий в корне проекта соответствует namespace-ам (например, `application/` → `app\application\*`).
-
-
 
 ### 13. Прагматизм и компромиссы
 
@@ -288,6 +286,37 @@ yii2-book-catalog/
 * ✅ Код остается читаемым и поддерживаемым
 
 Это **Clean-ish** архитектура: не строго Clean, но максимально близко к идеалу с учетом практических ограничений Yii2.
+
+### 14. Observability & Tracing
+Реализована полноценная система распределенной трассировки (Distributed Tracing) для мониторинга производительности и отладки SQL-запросов.
+
+#### 🛠 Инструменты и Стек
+*   **Protocol:** [Inspector APM](https://inspector.dev) — используется как протокол обмена данными.
+*   **Visualization:** [Buggregator](https://buggregator.dev) — All-in-one сервер для локальной разработки. Собирает трейсы, логи и письма.
+*   **UI:** Доступен по адресу **[http://localhost:8090](http://localhost:8090)**.
+
+#### 🏗 Архитектура (Zero-Invasive)
+Трейсинг внедрен без вмешательства в бизнес-логику (Domain/UseCases) через паттерны **Decorator** и **Bootstrap**:
+
+1.  **Repository Decorators:**
+    *   Все репозитории обернуты в декораторы (например, `AuthorRepositoryTracingDecorator`).
+    *   Автоматически создают spans для методов `save()`, `delete()`, `findById()`.
+    *   Добавляют в контекст SQL-запросы, параметры и время выполнения.
+
+2.  **Web Request Tracing (`TracerBootstrap`):**
+    *   Перехватывает входящие HTTP-запросы (`BEFORE_REQUEST`).
+    *   Создает **Root Span** с метаданными (URL, Method, Headers, IP).
+    *   Автоматически закрывает транзакцию после отправки ответа (`AFTER_REQUEST`), фиксируя HTTP Status Code и Memory Peak.
+
+3.  **Ports & Adapters:**
+    *   `TracerInterface` и `SpanInterface` (Application Layer) скрывают конкретную реализацию.
+    *   Это позволяет легко переключиться на OpenTelemetry, Jaeger или Datadog, просто заменив адаптер в DI-контейнере.
+
+#### 🚀 Что можно увидеть в Buggregator?
+*   Полный **Waterfall** выполнения запроса.
+*   Все **SQL-запросы** с подсветкой синтаксиса и временем выполнения.
+*   **HTTP заголовки**, Query Params и JSON Payload.
+*   Иерархию вызовов (Controller -> UseCase -> Repository).
 
 ## 🚀 Установка и запуск
 
@@ -332,8 +361,8 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>304</b><br>Tests</td>
-<td align="center"><b>672</b><br>Assertions</td>
+<td align="center"><b>299</b><br>Tests</td>
+<td align="center"><b>646</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~26s</b><br>Runtime</td>
 </tr>
@@ -391,7 +420,6 @@ open http://localhost:8000
 
 > 📈 **Отчет о покрытии:** `make test-coverage` → `tests/_output/coverage/index.html`
 
-
 ### 🛠 Основные команды
 
 | Группа | Команда | Описание |
@@ -401,8 +429,8 @@ open http://localhost:8000
 | **🐳 Docker** | `make up` / `make down` | Запуск и остановка окружения |
 | **📦 Data** | `make seed` | Наполнение базы демо-данными |
 | **🧪 Quality** | `make dev` | **Автофикс + проверка (разработка)** |
-| | `make ci` | Быстрая проверка (lint, analyze, test) |
-| | `make pr` | Полная проверка перед PR (+ deptrac, infection, audit) |
+| | `make ci` | Быстрая проверка (lint, analyze) |
+| | `make pr` | Полная проверка перед PR (+ test, deptrac, infection) |
 | | `make fix` | Автоисправление (lint-fix + rector-fix) |
 | **🔍 Debug** | `make logs` | Просмотр логов всех сервисов |
 | | `make comments` | Показать TODO и заметки |
@@ -427,8 +455,8 @@ open http://localhost:8000
 
 ![Source Code](https://img.shields.io/badge/Source_Code-5.0k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
 ![Test Code](https://img.shields.io/badge/Test_Code-6.5k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-145-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-76-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-156-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-85-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
