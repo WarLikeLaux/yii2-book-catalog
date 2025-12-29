@@ -1,0 +1,42 @@
+<?php
+
+declare(strict_types=1);
+
+namespace app\infrastructure\repositories;
+
+use app\application\ports\SubscriptionRepositoryInterface;
+use app\application\ports\TracerInterface;
+use app\domain\entities\Subscription;
+
+final readonly class SubscriptionRepositoryTracingDecorator implements SubscriptionRepositoryInterface
+{
+    public function __construct(
+        private SubscriptionRepositoryInterface $repository,
+        private TracerInterface $tracer
+    ) {
+    }
+
+    #[\Override]
+    public function save(Subscription $subscription): void
+    {
+        $this->tracer->trace('SubRepo::' . __FUNCTION__, fn() => $this->repository->save($subscription));
+    }
+
+    #[\Override]
+    public function exists(string $phone, int $authorId): bool
+    {
+        return $this->tracer->trace('SubRepo::' . __FUNCTION__, fn(): bool => $this->repository->exists($phone, $authorId));
+    }
+
+    /**
+     * @return iterable<string>
+     */
+    #[\Override]
+    public function getSubscriberPhonesForBook(int $bookId, int $batchSize): iterable
+    {
+        return $this->tracer->trace(
+            'SubRepo::' . __FUNCTION__,
+            fn(): iterable => $this->repository->getSubscriberPhonesForBook($bookId, $batchSize)
+        );
+    }
+}

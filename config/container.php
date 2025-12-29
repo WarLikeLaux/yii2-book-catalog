@@ -23,6 +23,7 @@ use app\application\ports\QueueInterface;
 use app\application\ports\ReportRepositoryInterface;
 use app\application\ports\SmsSenderInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
+use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
 use app\application\reports\queries\ReportQueryService;
@@ -34,15 +35,22 @@ use app\infrastructure\adapters\YiiQueueAdapter;
 use app\infrastructure\adapters\YiiTransactionAdapter;
 use app\infrastructure\adapters\YiiTranslatorAdapter;
 use app\infrastructure\repositories\AuthorRepository;
+use app\infrastructure\repositories\AuthorRepositoryTracingDecorator;
 use app\infrastructure\repositories\BookRepository;
+use app\infrastructure\repositories\BookRepositoryTracingDecorator;
 use app\infrastructure\repositories\IdempotencyRepository;
 use app\infrastructure\repositories\ReportRepository;
+use app\infrastructure\repositories\ReportRepositoryTracingDecorator;
 use app\infrastructure\repositories\SubscriptionRepository;
+use app\infrastructure\repositories\SubscriptionRepositoryTracingDecorator;
 use app\infrastructure\services\notifications\FlashNotificationService;
+use app\infrastructure\services\observability\InspectorTracer;
+use app\infrastructure\services\observability\NullTracer;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\storage\LocalFileStorage;
 use app\infrastructure\services\YiiPsrLogger;
 use Psr\Log\LoggerInterface;
+use yii\di\Container;
 
 return [
     'definitions' => [
@@ -57,16 +65,40 @@ return [
             '/uploads'
         ),
 
-        // Простые маппинги (Autowiring справится сам)
+        // Репозитории
         NotificationInterface::class => FlashNotificationService::class,
         TranslatorInterface::class => YiiTranslatorAdapter::class,
         IdempotencyInterface::class => IdempotencyRepository::class,
-        BookRepositoryInterface::class => BookRepository::class,
-        AuthorRepositoryInterface::class => AuthorRepository::class,
-        SubscriptionRepositoryInterface::class => SubscriptionRepository::class,
+        BookRepositoryInterface::class => static function (Container $c): BookRepositoryInterface {
+            $repo = $c->get(BookRepository::class);
+            if ($c->has(TracerInterface::class)) {
+                return new BookRepositoryTracingDecorator($repo, $c->get(TracerInterface::class));
+            }
+            return $repo;
+        },
+        AuthorRepositoryInterface::class => static function (Container $c): AuthorRepositoryInterface {
+            $repo = $c->get(AuthorRepository::class);
+            if ($c->has(TracerInterface::class)) {
+                return new AuthorRepositoryTracingDecorator($repo, $c->get(TracerInterface::class));
+            }
+            return $repo;
+        },
+        SubscriptionRepositoryInterface::class => static function (Container $c): SubscriptionRepositoryInterface {
+            $repo = $c->get(SubscriptionRepository::class);
+            if ($c->has(TracerInterface::class)) {
+                return new SubscriptionRepositoryTracingDecorator($repo, $c->get(TracerInterface::class));
+            }
+            return $repo;
+        },
 
         // Адаптеры, требующие доступа к компонентам Yii::$app
-        ReportRepositoryInterface::class => static fn() => new ReportRepository(Yii::$app->get('db')),
+        ReportRepositoryInterface::class => static function (Container $c): ReportRepositoryInterface {
+            $repo = new ReportRepository(Yii::$app->get('db'));
+            if ($c->has(TracerInterface::class)) {
+                return new ReportRepositoryTracingDecorator($repo, $c->get(TracerInterface::class));
+            }
+            return $repo;
+        },
         TransactionInterface::class => static fn() => new YiiTransactionAdapter(Yii::$app->get('db')),
         QueueInterface::class => static fn() => new YiiQueueAdapter(Yii::$app->get('queue')),
         CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
@@ -86,5 +118,15 @@ return [
         SubscriptionQueryService::class,
         ReportQueryService::class,
         IdempotencyServiceInterface::class => IdempotencyService::class,
+        TracerInterface::class => static function (Container $c): TracerInterface {
+            if (!env('INSPECTOR_INGESTION_KEY')) {
+                return new NullTracer();
+            }
+
+            return new InspectorTracer(
+                (string)env('INSPECTOR_INGESTION_KEY'),
+                (string)env('INSPECTOR_URL', 'http://buggregator:8000')
+            );
+        },
     ],
 ];

@@ -15,7 +15,7 @@ $config = [
     'viewPath' => '@app/presentation/views',
     'language' => 'ru-RU',
     'sourceLanguage' => 'en-US',
-    'bootstrap' => ['log'],
+    'bootstrap' => ['log', 'tracer'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -121,6 +121,13 @@ $config = [
             'rules' => [
                 'api/books' => 'api/book/index',
             ],
+        ],
+        'tracer' => [
+            'class' => \app\infrastructure\services\observability\TracerBootstrap::class,
+            'enabled' => YII_ENV_DEV,
+            'endpoint' => env('INSPECTOR_URL', 'http://buggregator:8000'),
+            'ingestionKey' => env('INSPECTOR_INGESTION_KEY', 'buggregator'),
+            'serviceName' => 'yii2-book-catalog',
         ],
     ],
     'container' => require __DIR__ . '/container.php',

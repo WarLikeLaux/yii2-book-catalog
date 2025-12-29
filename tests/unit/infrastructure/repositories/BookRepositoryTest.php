@@ -4,27 +4,25 @@ declare(strict_types=1);
 
 namespace app\tests\unit\infrastructure\repositories;
 
-use app\application\ports\TranslatorInterface;
+use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
-use app\infrastructure\repositories\BookRepository;
 use Codeception\Test\Unit;
+use Yii;
 
 final class BookRepositoryTest extends Unit
 {
     protected \UnitTester $tester;
 
-    private BookRepository $repository;
+    private BookRepositoryInterface $repository;
 
     protected function _before(): void
     {
-        $translator = $this->createMock(TranslatorInterface::class);
-        $translator->method('translate')->willReturnArgument(1);
-        $this->repository = new BookRepository($translator);
+        $this->repository = Yii::$container->get(BookRepositoryInterface::class);
         Book::deleteAll();
         Author::deleteAll();
     }

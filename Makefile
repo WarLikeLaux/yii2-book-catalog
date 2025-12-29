@@ -187,8 +187,8 @@ composer:
 
 dev: fix ci
 fix: lint-fix rector-fix
-ci: lint analyze test
-pr: ci deptrac infection
+ci: lint analyze
+pr: ci test deptrac infection
 
 lint:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs
