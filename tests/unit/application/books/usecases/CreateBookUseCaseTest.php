@@ -19,9 +19,13 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class CreateBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
+
     private TransactionInterface&MockObject $transaction;
+
     private EventPublisherInterface&MockObject $eventPublisher;
+
     private CacheInterface&MockObject $cache;
+
     private CreateBookUseCase $useCase;
 
     protected function _before(): void
@@ -55,19 +59,15 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(function (Book $book) {
-                return $book->getTitle() === 'Clean Code'
-                    && $book->getAuthorIds() === [1, 2];
-            }))
+            ->with($this->callback(fn (Book $book) => $book->getTitle() === 'Clean Code'
+                    && $book->getAuthorIds() === [1, 2]))
             ->willReturnCallback(function (Book $book) {
                 $book->setId(42);
             });
 
         $this->eventPublisher->expects($this->once())
             ->method('publishEvent')
-            ->with($this->callback(function (BookCreatedEvent $event): bool {
-                return $event->bookId === 42 && $event->title === 'Clean Code';
-            }));
+            ->with($this->callback(fn (BookCreatedEvent $event): bool => $event->bookId === 42 && $event->title === 'Clean Code'));
 
         $result = $this->useCase->execute($command);
 
@@ -146,6 +146,7 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->assertSame(1, $result);
     }
+
     public function testExecuteThrowsExceptionWhenIdNotReturned(): void
     {
         $command = new CreateBookCommand(
@@ -165,7 +166,7 @@ final class CreateBookUseCaseTest extends Unit
             ->with($this->isInstanceOf(Book::class))
             ->willReturnCallback(function (Book $book) {
             });
-            
+
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Failed to retrieve book ID after save');
 

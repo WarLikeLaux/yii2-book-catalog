@@ -96,24 +96,9 @@ jobs:
       - name: Prepare Database
         run: php yii migrate --interactive=0
 
-      - name: Start PHP Server
+      - name: Run Unit & Integration Tests (with Coverage)
         run: |
-          composer dump-autoload -o
-          mkdir -p runtime/sessions web/assets
-          chmod -R 777 runtime web/assets
-          YII_ENV=test php -S 0.0.0.0:8080 -t web > /dev/null 2>&1 &
-          sleep 2
-
-      - name: Run Acceptance Tests
-        run: |
-          ./vendor/bin/codecept run acceptance --no-colors -vvv \
-            -o "modules: config: WebDriver: url: http://172.17.0.1:8080" \
-            -o "modules: config: WebDriver: host: 127.0.0.1" \
-            -o "modules: config: WebDriver: browser: chrome"
-
-      - name: Run Unit & Functional Tests (with Coverage)
-        run: |
-          ./vendor/bin/codecept run functional,unit --no-colors \
+          ./vendor/bin/codecept run integration,unit --no-colors \
             --coverage-xml=coverage.xml \
             --coverage-phpunit=coverage-phpunit.xml \
             --xml=junit.xml \
@@ -126,4 +111,22 @@ jobs:
             --threads=4 \
             --min-msi=70 \
             --min-covered-msi=80 \
-            --test-framework-options="functional,unit"
+            --test-framework-options="integration,unit"
+
+      - name: Seed Database for E2E
+        run: php yii seed --interactive=0
+
+      - name: Start PHP Server
+        run: |
+          composer dump-autoload -o
+          mkdir -p runtime/sessions web/assets
+          chmod -R 777 runtime web/assets
+          YII_ENV=test php -S 0.0.0.0:8080 -t web > /dev/null 2>&1 &
+          sleep 2
+
+      - name: Run E2E Tests
+        run: |
+          ./vendor/bin/codecept run e2e --no-colors -vvv \
+            -o "modules: config: WebDriver: url: http://172.17.0.1:8080" \
+            -o "modules: config: WebDriver: host: 127.0.0.1" \
+            -o "modules: config: WebDriver: browser: chrome"

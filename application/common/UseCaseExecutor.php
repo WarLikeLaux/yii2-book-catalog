@@ -28,7 +28,7 @@ final readonly class UseCaseExecutor
             $this->notifier->success($successMessage);
             return true;
         } catch (DomainException $e) {
-            $this->notifier->error($e->getMessage());
+            $this->notifier->error($this->translator->translate('domain', $e->getMessage()));
             return false;
         } catch (\Throwable $e) {
             $this->logger->error($e->getMessage(), array_merge($logContext, ['exception' => $e]));
@@ -47,7 +47,7 @@ final readonly class UseCaseExecutor
             $useCase();
             return ['success' => true, 'message' => $successMessage];
         } catch (DomainException $e) {
-            return ['success' => false, 'message' => $e->getMessage()];
+            return ['success' => false, 'message' => $this->translator->translate('domain', $e->getMessage())];
         } catch (\Throwable $e) {
             $this->logger->error($e->getMessage(), array_merge($logContext, ['exception' => $e]));
             return ['success' => false, 'message' => $this->translator->translate('app', 'error.unexpected')];
@@ -62,7 +62,7 @@ final readonly class UseCaseExecutor
         try {
             return $query();
         } catch (DomainException $e) {
-            $this->notifier->error($e->getMessage());
+            $this->notifier->error($this->translator->translate('domain', $e->getMessage()));
             return $fallback;
         } catch (\Throwable $e) {
             $this->logger->error($e->getMessage(), array_merge($logContext, ['exception' => $e]));

@@ -4,25 +4,18 @@ declare(strict_types=1);
 
 namespace app\presentation\books\validators;
 
-use app\application\ports\TranslatorInterface;
 use app\domain\values\Isbn;
 use Exception;
+use Yii;
 use yii\validators\Validator;
 
-/**
- * Validates ISBN-10 and ISBN-13 format by delegating to Domain Value Object.
- */
 final class IsbnValidator extends Validator
 {
     public $message;
 
-    public function __construct(
-        private readonly TranslatorInterface $translator,
-        array $config = []
-    ) {
-        parent::__construct($config);
-    }
-
+    /**
+     * @codeCoverageIgnore Yii2 framework инициализация валидатора
+     */
     #[\Override]
     public function init(): void
     {
@@ -31,7 +24,7 @@ final class IsbnValidator extends Validator
             return;
         }
 
-        $this->message = $this->translator->translate('app', 'Invalid ISBN. Use ISBN-10 or ISBN-13 format.');
+        $this->message = Yii::t('app', 'Invalid ISBN. Use ISBN-10 or ISBN-13 format.');
     }
 
     #[\Override]

@@ -1,0 +1,13 @@
+# Конфигурация Codeception Test Suite
+#
+# Интеграционные тесты.
+# Тестирование взаимодействия компонентов с реальной БД и веб-слоем.
+
+actor: IntegrationTester
+modules:
+    enabled:
+        - Filesystem
+        - Yii2
+        - Asserts
+        - REST:
+            depends: Yii2

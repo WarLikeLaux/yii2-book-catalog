@@ -1,0 +1,14 @@
+grumphp:
+  hooks_dir: ~
+  hooks_preset: local
+  git_hook_variables:
+    VAGRANT_HOST_DIR: .
+    VAGRANT_PROJECT_DIR: /app
+    EXEC_GRUMPHP_COMMAND: docker compose exec -T php
+  tasks:
+    phpcs:
+      standard: [phpcs.xml.dist]
+    jsonlint: ~
+    xmllint: ~
+  testsuites: []
+  extensions: []

@@ -16,6 +16,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class BookQueryServiceTest extends Unit
 {
     private BookRepositoryInterface&MockObject $repository;
+
     private BookQueryService $service;
 
     protected function _before(): void

@@ -41,4 +41,3 @@ final class NotifySingleSubscriberJobTest extends Unit
         $this->assertFalse($job->canRetry(3, new Exception()));
     }
 }
-

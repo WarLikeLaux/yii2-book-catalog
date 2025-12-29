@@ -8,9 +8,9 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-277_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-299_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![Mutation Score](https://img.shields.io/badge/MSI-95%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
 ---
 
@@ -41,9 +41,9 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **277 тестов** (613 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **304 теста** (672 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Custom Architecture Rules | 🛠 **Makefile**<br>Автоматизация рутины |
-| ✅ **Mutation Testing**<br>Infection PHP (MSI > 94%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
+| ✅ **Mutation Testing**<br>Infection PHP (MSI > 95%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
 ## 🛠 Технический стек
@@ -216,7 +216,7 @@ yii2-book-catalog/
 │   ├── subscriptions/        # Модуль Подписки
 │   ├── reports/              # Модуль Отчеты
 │   ├── common/               # Общие компоненты (UseCaseExecutor, Shared DTOs)
-│   └── ports/                # Интерфейсы (EventPublisher, Notification, SMS, FileStorage, etc.)
+│   └── ports/                # Интерфейсы (EventPublisher, Notification, Tracer, SMS, etc.)
 ├── domain/                  # Domain Layer (Чистый PHP)
 │   ├── entities/           # Rich Entities (Book, Author, Subscription)
 │   ├── events/             # Domain Events (BookCreatedEvent)
@@ -226,8 +226,8 @@ yii2-book-catalog/
 │   ├── adapters/           # Адаптеры (YiiEventPublisher, YiiTranslator)
 │   ├── persistence/        # ActiveRecord модели (Persistence Models)
 │   ├── queue/              # Queue Jobs (Асинхронные задачи)
-│   ├── repositories/       # Реализации репозиториев (SQL логика)
-│   ├── services/           # Внешние сервисы (SMS, Storage, Logger)
+│   ├── repositories/       # Реализации репозиториев (SQL логика + Tracing Decorators)
+│   ├── services/           # Внешние сервисы (SMS, Storage, Logger, Observability)
 │   └── phpstan/            # Правила статического анализа
 ├── presentation/            # Presentation Layer (Yii2 & Web)
 │   ├── controllers/        # Тонкие контроллеры
@@ -247,8 +247,6 @@ yii2-book-catalog/
 ```
 
 **Примечание:** В коде используется namespace `app\`, что соответствует стандартному Yii2 алиасу `@app`. Структура директорий в корне проекта соответствует namespace-ам (например, `application/` → `app\application\*`).
-
-
 
 ### 13. Прагматизм и компромиссы
 
@@ -289,18 +287,51 @@ yii2-book-catalog/
 
 Это **Clean-ish** архитектура: не строго Clean, но максимально близко к идеалу с учетом практических ограничений Yii2.
 
+### 14. Observability & Tracing
+Реализована полноценная система распределенной трассировки (Distributed Tracing) для мониторинга производительности и отладки SQL-запросов.
+
+#### 🛠 Инструменты и Стек
+*   **Protocol:** [Inspector APM](https://inspector.dev) — используется как протокол обмена данными.
+*   **Visualization:** [Buggregator](https://buggregator.dev) — All-in-one сервер для локальной разработки. Собирает трейсы, логи и письма.
+*   **UI:** Доступен по адресу **[http://localhost:8090](http://localhost:8090)**.
+
+#### 🏗 Архитектура (Zero-Invasive)
+Трейсинг внедрен без вмешательства в бизнес-логику (Domain/UseCases) через паттерны **Decorator** и **Bootstrap**:
+
+1.  **Repository Decorators:**
+    *   Все репозитории обернуты в декораторы (например, `AuthorRepositoryTracingDecorator`).
+    *   Автоматически создают spans для методов `save()`, `delete()`, `findById()`.
+    *   Добавляют в контекст SQL-запросы, параметры и время выполнения.
+
+2.  **Web Request Tracing (`TracerBootstrap`):**
+    *   Перехватывает входящие HTTP-запросы (`BEFORE_REQUEST`).
+    *   Создает **Root Span** с метаданными (URL, Method, Headers, IP).
+    *   Автоматически закрывает транзакцию после отправки ответа (`AFTER_REQUEST`), фиксируя HTTP Status Code и Memory Peak.
+
+3.  **Ports & Adapters:**
+    *   `TracerInterface` и `SpanInterface` (Application Layer) скрывают конкретную реализацию.
+    *   Это позволяет легко переключиться на OpenTelemetry, Jaeger или Datadog, просто заменив адаптер в DI-контейнере.
+
+#### 🚀 Что можно увидеть в Buggregator?
+*   Полный **Waterfall** выполнения запроса.
+*   Все **SQL-запросы** с подсветкой синтаксиса и временем выполнения.
+*   **HTTP заголовки**, Query Params и JSON Payload.
+*   Иерархию вызовов (Controller -> UseCase -> Repository).
+
 ## 🚀 Установка и запуск
 
 <details open>
-<summary><b>⚡ Quick Start (3 команды)</b></summary>
+<summary><b>⚡ Быстрый старт (3 команды)</b></summary>
 
 ```bash
 # 1. Клонируем проект
 git clone https://github.com/WarLikeLaux/yii2-book-catalog.git
 cd yii2-book-catalog
 
-# 2. Поднимаем всё одной командой
-make init
+# 2. Установка (интерактивно)
+make install
+# или принудительно (без вопросов):
+# make install-force
 
 # 3. Готово! 🎉
 open http://localhost:8000
@@ -308,7 +339,7 @@ open http://localhost:8000
 
 </details>
 
-> 💡 **Что делает `make init`:**
+> 💡 **Что делает `make install`:**
 > - 🐳 Поднимает Docker контейнеры (PHP 8.4 + MySQL 8 + Queue Worker)
 > - 📦 Устанавливает Composer зависимости
 > - 🗄 Применяет миграции БД
@@ -330,10 +361,10 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>277</b><br>Tests</td>
-<td align="center"><b>613</b><br>Assertions</td>
+<td align="center"><b>299</b><br>Tests</td>
+<td align="center"><b>646</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~7s</b><br>Runtime</td>
+<td align="center"><b>~26s</b><br>Runtime</td>
 </tr>
 </table>
 
@@ -341,23 +372,28 @@ open http://localhost:8000
 
 | Команда | Описание | Назначение |
 |---|---|---|
-| `make test` | 🧪 Запуск всех тестов | **Testing** (Unit + Func) |
-| `make test-coverage` | 📊 Отчет о покрытии (HTML) | **Testing** (Metric) |
+| **Стандартный контроль** | | |
+| `make test` | 🧪 Запуск всех тестов | **Testing** (Unit + Integration + E2E) |
 | `make test-unit` | ⚡ Unit-тесты (без БД) | **Testing** (Speed) |
-| `make test-functional` | 🌐 Functional-тесты (с БД) | **Testing** (Integration) |
-| `make analyze` | 🔍 PHPStan (Level 9 + Strict) | **Quality** (Static Analysis) |
-| `make deptrac` | 🏗 Архитектурный контроль | **Quality** (Architecture) |
-| `make rector` | ♻️ Автоматический рефакторинг | **Quality** (Refactoring) |
+| `make test-integration` | 🌐 Integration-тесты (с БД) | **Testing** (Integration) |
+| `make test-e2e` | 🎭 E2E-тесты (Acceptance) | **Testing** (E2E) |
+| `make test-coverage` | 📊 Отчет о покрытии (HTML) | **Testing** (Metric) |
 | `make lint-fix` | 🧹 PHPCS (Auto-fix) | **Quality** (Style) |
-| `make audit` | 🛡 Проверка зависимостей | **Security** (Vulnerabilities) |
+| **Продвинутый контроль (Advanced QA)** | | |
+| `make infection` | 🧟 **Mutation Testing** (Infection) | **Quality** (Надежность тестов) |
+| `make deptrac` | 🏗 **Архитектурный контроль** | **Quality** (Чистота слоев) |
+| `make analyze` | 🔍 **Статический анализ** (PHPStan 9) | **Quality** (Строгая типизация) |
+| `make audit` | 🛡 **Аудит безопасности** | **Security** (Проверка CVE) |
+| `make rector` | ♻️ **Авто-рефакторинг** | **Quality** (Modern PHP) |
 
 <details>
 <summary><b>📋 Структура тестов</b></summary>
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 222 | Чистая бизнес-логика без БД и фреймворка |
-| **Functional** | 54 | CRUD, API, Use Cases, HTTP-сценарии с БД |
+| **Unit** | 215 | Чистая бизнес-логика без БД и фреймворка |
+| **Integration** | 72 | CRUD, API, Use Cases, HTTP-сценарии с БД |
+| **E2E** | 17 | Приемочные тесты (Acceptance) |
 
 **Unit Tests покрывают:**
 - **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult, PaginationRequest, IdempotencyService
@@ -365,7 +401,7 @@ open http://localhost:8000
 - **Infrastructure**: Queue jobs (retry logic), Logger, Notifications
 - **Presentation**: Validators, Mappers, DataProvider adapters
 
-**Functional Tests покрывают:**
+**Integration Tests покрывают:**
 - API Идемпотентность (Idempotency-Key)
 - Web-формы Идемпотентность
 - REST API (Книги)
@@ -378,12 +414,11 @@ open http://localhost:8000
 - ✅ Не тестируем функции фреймворка (`rules()`, `attributeLabels()`, `tableName()`)
 - ✅ Unit-тесты изолированы от БД и внешних сервисов (mocking)
 - ✅ `@codeCoverageIgnore` на методах требующих integration тестов
-- ✅ Исключены из coverage: controllers, forms, views, AR models (покрыты functional тестами)
+- ✅ Исключены из coverage: controllers, forms, views, AR models (покрыты интеграционными тестами)
 
 </details>
 
 > 📈 **Отчет о покрытии:** `make test-coverage` → `tests/_output/coverage/index.html`
-
 
 ### 🛠 Основные команды
 
@@ -394,15 +429,18 @@ open http://localhost:8000
 | **🐳 Docker** | `make up` / `make down` | Запуск и остановка окружения |
 | **📦 Data** | `make seed` | Наполнение базы демо-данными |
 | **🧪 Quality** | `make dev` | **Автофикс + проверка (разработка)** |
-| | `make ci` | Быстрая проверка (lint, analyze, test) |
-| | `make pr` | Полная проверка перед PR (+ deptrac, infection, audit) |
+| | `make ci` | Быстрая проверка (lint, analyze) |
+| | `make pr` | Полная проверка перед PR (+ test, deptrac, infection) |
 | | `make fix` | Автоисправление (lint-fix + rector-fix) |
 | **🔍 Debug** | `make logs` | Просмотр логов всех сервисов |
 | | `make comments` | Показать TODO и заметки |
 | | `make sms-logs` | Логи отправки SMS (Mock-сервис) |
 | | `make shell` | Доступ в консоль PHP-контейнера |
-| **📜 API** | `make swagger` | Генерация OpenAPI документации |
+| **📜 API & Docs** | `make swagger` | Генерация OpenAPI документации |
+| | `make docs` | Генерация документации (схемы БД, модели, роуты) |
+| | `make repomix` | Генерация контекста для LLM (repomix.txt) |
 | **🚀 Performance** | `make load-test` | Запуск нагрузочного теста (k6) |
+| **📟 Queue** | `make queue-info` | Статус очередей и ковокеров |
 
 ## ⚙️ Конфигурация
 
@@ -415,10 +453,10 @@ open http://localhost:8000
 
 ### 📊 Статистика проекта
 
-![Source Code](https://img.shields.io/badge/Source_Code-4.8k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-6.0k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-139-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-80-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Code](https://img.shields.io/badge/Source_Code-5.0k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-6.5k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-156-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-85-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 

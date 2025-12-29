@@ -28,7 +28,9 @@
         "psr/log": "^3.0",
         "kartik-v/yii2-widget-select2": "^2.2",
         "giggsey/libphonenumber-for-php": "^9.0",
-        "yiisoft/yii2-redis": "^2.1"
+        "yiisoft/yii2-redis": "^2.1",
+        "guzzlehttp/guzzle": "^7.10",
+        "inspector-apm/inspector-php": "^3.16"
     },
     "require-dev": {
         "symfony/var-dumper": "^6.0 || ^7.0",
@@ -55,7 +57,8 @@
         "roave/security-advisories": "dev-latest",
         "phpstan/phpstan-strict-rules": "^2.0",
         "phpstan/phpstan-deprecation-rules": "^2.0",
-        "buggregator/trap": "^1.15"
+        "buggregator/trap": "^1.15",
+        "phpro/grumphp": "^2.18"
     },
     "autoload": {
         "psr-4": {
@@ -66,7 +69,8 @@
         "allow-plugins": {
             "yiisoft/yii2-composer": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
-            "infection/extension-installer": true
+            "infection/extension-installer": true,
+            "phpro/grumphp": true
         },
         "process-timeout": 1800,
         "default-socket-timeout": 120,

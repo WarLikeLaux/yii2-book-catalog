@@ -4,23 +4,25 @@ declare(strict_types=1);
 
 namespace app\tests\unit\infrastructure\repositories;
 
+use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
-use app\infrastructure\repositories\BookRepository;
 use Codeception\Test\Unit;
+use Yii;
 
 final class BookRepositoryTest extends Unit
 {
     protected \UnitTester $tester;
-    private BookRepository $repository;
+
+    private BookRepositoryInterface $repository;
 
     protected function _before(): void
     {
-        $this->repository = new BookRepository();
+        $this->repository = Yii::$container->get(BookRepositoryInterface::class);
         Book::deleteAll();
         Author::deleteAll();
     }
@@ -73,7 +75,7 @@ final class BookRepositoryTest extends Unit
 
         $this->repository->save($book);
         $bookId = $book->getId();
-        
+
         $dto = $this->repository->findByIdWithAuthors($bookId);
         $this->assertContains($authorId, $dto->authorIds);
     }

@@ -1,8 +1,0 @@
-actor: AcceptanceTester
-modules:
-    enabled:
-        - WebDriver:
-            url: http://nginx/
-            browser: chrome
-            host: selenium
-            port: 4444

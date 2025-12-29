@@ -35,46 +35,117 @@
 └────────────────────────────────────────────────────────────┘
 ```
 
-### 🗺 Визуализация слоев (Mermaid)
+### 🏗 Архитектура C4 Model
+
+Мы используем модель C4 для визуализации архитектуры на разных уровнях абстракции.
+
+#### Level 1: System Context
+**Схема взаимодействия системы с внешним миром.**
+
+```mermaid
+graph TD
+    User((User/Admin))
+    System[Book Catalog System]
+    SMS["SMS Provider (External)"]
+    Buggregator["Buggregator (Dev Tools)"]
+
+    User -- "Browses & Manages Books" --> System
+    System -- "Sends Notifications" --> SMS
+    System -- "Sends Logs/Emails" --> Buggregator
+    
+    style System fill:#1168bd,stroke:#0b4884,color:#ffffff
+    style SMS fill:#999999,stroke:#666666,color:#ffffff
+    style Buggregator fill:#999999,stroke:#666666,color:#ffffff
+```
+
+#### Level 2: Containers
+**Инфраструктура и контейнеры (Docker).**
+
+```mermaid
+graph TD
+    User((User))
+    
+    subgraph DockerHost ["Docker Host"]
+        Nginx["Nginx (Web Server)"]
+        PHP["PHP-FPM (Application)"]
+        Worker["Queue Worker (PHP CLI)"]
+        DB[("MySQL 8.0 (Database)")]
+        Redis[("Redis (Cache/Queue)")]
+    end
+    
+    SMS["SMS Provider"]
+
+    User -- HTTPS --> Nginx
+    Nginx -- FastCGI --> PHP
+    
+    PHP -- Read/Write --> DB
+    PHP -- Push Jobs --> Redis
+    PHP -- Cache --> Redis
+    
+    Worker -- Pop Jobs --> Redis
+    Worker -- Read/Write --> DB
+    Worker -- API Calls --> SMS
+    
+    style PHP fill:#1168bd,stroke:#0b4884,color:#ffffff
+    style Worker fill:#1168bd,stroke:#0b4884,color:#ffffff
+    style DB fill:#2f95c4,stroke:#206a8c,color:#ffffff
+    style Redis fill:#2f95c4,stroke:#206a8c,color:#ffffff
+```
+
+#### Level 3: Components (Application Layer)
+**Внутреннее устройство Application Layer (Clean Architecture).**
 
 ```mermaid
 graph TD
     subgraph Presentation ["Presentation Layer (Yii2)"]
-        Controllers[Controllers]
-        Views[Views]
-        Forms[Forms]
+        Controller[Web Controller]
+        Handler[Command Handler]
+        Mapper[Mapper]
     end
 
-    subgraph Application ["Application Layer"]
-        UseCases[UseCases]
-        Commands[Commands]
-        Queries[Queries/DTO]
-        UseCases --> Commands
+    subgraph Application ["Application Layer (Pure PHP)"]
+        UseCase[Use Case]
+        Port["Outbound Port (Interface)"]
     end
 
     subgraph Domain ["Domain Layer (Pure PHP)"]
-        Entities[Rich Entities]
-        VO[Value Objects]
-        Events[Domain Events]
-        Exceptions[Domain Exceptions]
-        Entities --> VO
+        Entity[Domain Entity]
+        VO[Value Object]
+        Event[Domain Event]
     end
 
     subgraph Infrastructure ["Infrastructure Layer"]
-        Repositories[Repositories]
-        ActiveRecord[ActiveRecord Models]
-        ExternalAPI[External APIs]
-        Queue[Queue Jobs]
+        RepoImpl[Repository Impl]
+        Adapter[Adapter Impl]
+        AR[ActiveRecord]
+        Job[Queue Job]
     end
 
-    %% Dependencies
-    Controllers --> UseCases
-    Controllers --> Forms
-    UseCases --> Domain
-    UseCases -- Uses Entities --> Entities
-    UseCases --> Repositories
-    Repositories --> ActiveRecord
-    Infrastructure -- Implements --> Ports[Interfaces in Application]
+    DB[(Database)]
+
+    %% Request Flow
+    Controller -- "1. Form DTO" --> Handler
+    Handler -- "2. Map to Command" --> Mapper
+    Handler -- "3. Execute Command" --> UseCase
+    
+    %% Logic Flow
+    UseCase -- "4. Business Logic" --> Entity
+    Entity -- "5. Rules" --> VO
+    UseCase -- "6. Publish Event" --> Port
+    UseCase -- "7. Save" --> Port
+    
+    %% Infra Implementation
+    RepoImpl -.->|"Implements"| Port
+    Adapter -.->|"Implements"| Port
+    
+    RepoImpl -- "8. Map to AR" --> AR
+    AR -- "9. SQL" --> DB
+    
+    Adapter -- "Async" --> Job
+    
+    style UseCase fill:#1168bd,stroke:#0b4884,color:#ffffff
+    style Entity fill:#1168bd,stroke:#0b4884,color:#ffffff
+    style VO fill:#1168bd,stroke:#0b4884,color:#ffffff
 ```
 
 ### 🎯 Основные принципы реализации

@@ -15,8 +15,11 @@ use Psr\Log\LoggerInterface;
 final class UseCaseExecutorTest extends Unit
 {
     private NotificationInterface&MockObject $notifier;
+
     private LoggerInterface&MockObject $logger;
+
     private TranslatorInterface&MockObject $translator;
+
     private UseCaseExecutor $executor;
 
     protected function _before(): void
@@ -49,16 +52,20 @@ final class UseCaseExecutorTest extends Unit
 
     public function testExecuteHandlesDomainException(): void
     {
+        $this->translator->expects($this->once())
+            ->method('translate')
+            ->with('domain', 'domain.error.key')
+            ->willReturn('Translated error');
         $this->notifier->expects($this->once())
             ->method('error')
-            ->with('fail');
+            ->with('Translated error');
         $this->notifier->expects($this->never())
             ->method('success');
         $this->logger->expects($this->never())
             ->method('error');
 
         $result = $this->executor->execute(function (): void {
-            throw new DomainException('fail');
+            throw new DomainException('domain.error.key');
         }, 'ok');
 
         $this->assertFalse($result);
@@ -75,11 +82,11 @@ final class UseCaseExecutorTest extends Unit
             ->with('unexpected');
         $this->notifier->expects($this->never())
             ->method('success');
-            
+
         $this->logger->expects($this->once())
             ->method('error')
             ->with(
-                'boom', 
+                'boom',
                 $this->callback(function (array $context): bool {
                     if (!isset($context['foo']) || !isset($context['exception'])) {
                         return false;
@@ -100,7 +107,8 @@ final class UseCaseExecutorTest extends Unit
         $this->logger->expects($this->never())
             ->method('error');
 
-        $result = $this->executor->executeForApi(function (): void {}, 'done');
+        $result = $this->executor->executeForApi(function (): void {
+        }, 'done');
 
         $this->assertSame(['success' => true, 'message' => 'done'], $result);
     }
@@ -108,10 +116,10 @@ final class UseCaseExecutorTest extends Unit
     public function testExecuteForApiHandlesUnexpectedExceptionWithLogging(): void
     {
         $this->translator->method('translate')->willReturn('error');
-        
+
         $exception = new \RuntimeException('api boom');
         $logContext = ['requestId' => '123'];
-        
+
         $this->logger->expects($this->once())
             ->method('error')
             ->with('api boom', $this->callback(function (array $context) use ($exception): bool {

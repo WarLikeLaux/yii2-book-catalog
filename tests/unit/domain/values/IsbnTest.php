@@ -25,14 +25,14 @@ final class IsbnTest extends Unit
     public function testThrowsExceptionOnInvalidFormat(): void
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Invalid ISBN format');
+        $this->expectExceptionMessage('isbn.error.invalid_format');
         new Isbn('invalid-isbn');
     }
 
     public function testThrowsExceptionOnIsbn13WithPrefixGarbage(): void
     {
         $this->expectException(DomainException::class);
-        new Isbn('abc9783161484100'); 
+        new Isbn('abc9783161484100');
     }
 
     public function testThrowsExceptionOnIsbn13WithSuffixGarbage(): void
@@ -62,7 +62,7 @@ final class IsbnTest extends Unit
     public function testThrowsExceptionOnInvalidChecksum(): void
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Invalid ISBN format');
+        $this->expectExceptionMessage('isbn.error.invalid_format');
         new Isbn('978-3-16-148410-1');
     }
 
@@ -160,5 +160,21 @@ final class IsbnTest extends Unit
     {
         $this->expectException(DomainException::class);
         new Isbn('00000000Y0');
+    }
+
+    public function testEqualsReturnsTrueForSameIsbn(): void
+    {
+        $isbn1 = new Isbn('978-3-16-148410-0');
+        $isbn2 = new Isbn('9783161484100');
+
+        $this->assertTrue($isbn1->equals($isbn2));
+    }
+
+    public function testEqualsReturnsFalseForDifferentIsbn(): void
+    {
+        $isbn1 = new Isbn('978-3-16-148410-0');
+        $isbn2 = new Isbn('979-10-90636-07-1');
+
+        $this->assertFalse($isbn1->equals($isbn2));
     }
 }

@@ -17,6 +17,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class AuthorQueryServiceTest extends Unit
 {
     private AuthorRepositoryInterface&MockObject $repository;
+
     private AuthorQueryService $service;
 
     protected function _before(): void

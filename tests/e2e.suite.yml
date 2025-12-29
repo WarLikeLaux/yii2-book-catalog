@@ -1,0 +1,11 @@
+# E2E (End-to-End) тесты.
+# Полное тестирование через браузер (Selenium).
+
+actor: E2eTester
+modules:
+    enabled:
+        - WebDriver:
+            url: http://nginx/
+            browser: chrome
+            host: selenium
+            port: 4444

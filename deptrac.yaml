@@ -72,7 +72,5 @@ deptrac:
       - Framework
 
   skip_violations:
-    app\presentation\subscriptions\forms\SubscriptionForm:
-      - app\infrastructure\persistence\Author
     app\presentation\auth\forms\LoginForm:
       - app\infrastructure\persistence\User

@@ -13,7 +13,6 @@
     <exclude-pattern>web/assets/*</exclude-pattern>
     <exclude-pattern>web/uploads/*</exclude-pattern>
     <exclude-pattern>_output/*</exclude-pattern>
-    <exclude-pattern>tests/*</exclude-pattern>
 
     <rule ref="vendor/yiisoft/yii2-coding-standards/Yii2"/>
     
@@ -76,7 +75,9 @@
     <rule ref="SlevomatCodingStandard.Classes.ClassConstantVisibility"/>
 
     <!-- Clean Code (удаление мертвого кода и неиспользуемых переменных) -->
-    <rule ref="SlevomatCodingStandard.Variables.UnusedVariable"/>
+    <rule ref="SlevomatCodingStandard.Variables.UnusedVariable">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
     <rule ref="SlevomatCodingStandard.Exceptions.DeadCatch"/>
 
     <!-- Отключаем требование underscore для приватных свойств (используем camelCase) -->
@@ -95,6 +96,7 @@
         <exclude-pattern>migrations/*</exclude-pattern>
         <exclude-pattern>config/*</exclude-pattern>
         <exclude-pattern>views/*</exclude-pattern>
+        <exclude-pattern>tests/*</exclude-pattern>
     </rule>
     <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
         <exclude-pattern>config/__autocomplete.php</exclude-pattern>

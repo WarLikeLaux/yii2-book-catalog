@@ -6,15 +6,20 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.10.0] - 2025-12-28 — "Полноценный домен"
+## [0.10.0] - 2025-12-29 — "Полноценный домен"
 
-> Наконец-то доменные сущности стали по-настоящему богатыми — валидация, бизнес-логика, всё внутри. Плюс Redis-кеширование для отчётов и куча инфраструктурных улучшений. Docker теперь с правильным маппингом пользователей.
+> Наконец-то доменные сущности стали по-настоящему богатыми. Внедрен полноценный Distributed Tracing (Inspector APM) и наблюдаемость. Инфраструктура тестов переведена на современные сьюты (Integration/E2E), покрытие — честные 100%. Плюс Redis-кеширование и правильный Docker-маппинг.
 
 ### 🚀 Новые функции и возможности
+- **#24** - реализована трассировка **Inspector APM** для мониторинга SQL и HTTP запросов ([a5c4843](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a5c4843))
+- **#23** - реализована система наблюдаемости (**Observability**) и воркфлоу для AI-агентов ([884d32e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/884d32e))
 - **#22** - реализованы полноценные доменные сущности (**Rich Domain Entities**) для `Book`, `Author` и `Subscription` ([c0fd755](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c0fd755))
 - **#20** - реализовано **Redis-кеширование** для отчетов с автоматической инвалидацией при CRUD операциях с книгами ([dcee520](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dcee520))
 
 ### 🛠 Рефакторинг и архитектура
+- **#23** - рефакторинг валидации доменных сущностей и расширение возможностей `BookYear` ([4543354](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4543354))
+- **#23** - рефакторинг `SubscriptionForm` с внедрением `AuthorExistsValidator` для исключения зависимости от инфраструктуры ([7654eeb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7654eeb))
+- **#23** - унифицирована обработка ошибок базы данных в репозиториях ([884d32e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/884d32e))
 - **#22** - добавлено PHPStan правило `DomainEntitiesMustBePureRule` для проверки чистоты доменных сущностей ([3d698b5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3d698b5))
 - **#22** - слой представления реорганизован в модульную структуру (**feature-based**) на основе Handlers и Factories ([6c7c253](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6c7c253))
 - **#22** - исправлены стандарты кодирования и устаревшие пространства имен в конфигурации контейнеров ([5b8dddd](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5b8dddd), [98ba179](https://github.com/WarLikeLaux/yii2-book-catalog/commit/98ba179))
@@ -23,6 +28,10 @@
 - **#22** - удалены инлайн-комментарии и неиспользуемые свойства в тестах ([d50d239](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d50d239))
 
 ### 🧪 Тестирование
+- **#23** - рефакторинг структуры тестов и расширение покрытия интеграционными тестами ([31c07fa](https://github.com/WarLikeLaux/yii2-book-catalog/commit/31c07fa))
+- **#23** - добавлен `@codeCoverageIgnore` для инициализации `IsbnValidator` ([4d2b5bb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4d2b5bb))
+- **#23** - рефакторинг инфраструктуры тестирования: разделение на интеграционные (Integration) и приемочные (E2E) сьюты ([8c6ebb8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8c6ebb8))
+- **#23** - достигнуто **100% покрытие кода тестами** (315 тестов, 673 assertions) ([8513992](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8513992))
 - **#22** - достигнуто **100% покрытие кода тестами** (277 тестов, 613 assertions) ([c0fd755](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c0fd755))
 - **#21** - добавлены unit-тесты для доменных сущностей и форм: `AuthorTest`, `BookTest`, `SubscriptionTest`, `LoginFormTest`, `ReportFilterFormTest`, `SubscriptionFormTest` ([c0fd755](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c0fd755))
 - **#19** - ограничено количество потоков Infection до одного процесса для предотвращения segmentation faults ([5379f6d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5379f6d))
@@ -42,9 +51,16 @@
 - **#22** - CI переключен на тестовое окружение и оптимизирован (удален debug-код) ([82a0263](https://github.com/WarLikeLaux/yii2-book-catalog/commit/82a0263), [ec758b1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ec758b1))
 - **#22** - добавлен отладочный вывод в CI для приемочных тестов ([3034248](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3034248))
 - **#22** - обновлены Makefile и конфигурация CI для обеспечения надежного тестирования ([b58301d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b58301d))
+- **#23** - внедрен **GrumPHP** и обновлена инфраструктура сборки ([cbadd4c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cbadd4c))
+- **#23** - исправлена конфигурация GitHub CI пайплайна ([2615c0a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2615c0a), [0335a5e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0335a5e))
 - **#22** - увеличен лимит коммитов в истории changelog до 100 ([a538ec5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a538ec5))
 
 ### 📝 Документация
+- **#24** - добавлен раздел **Observability & Tracing** в `README.md` ([3a2dde1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3a2dde1))
+- **#23** - актуализировано описание команд Makefile в `README.md` ([4d1357a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4d1357a))
+- **#23** - добавлены диаграммы **C4 Model** в `ARCHITECTURE.md` ([7783db5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7783db5))
+- **#23** - обновлен `README.md` с актуальными метриками и списком команд ([8513992](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8513992))
+- **#22** - обновлен `CHANGELOG.md` (добавлены кодовые имена версий и пропущенные коммиты) ([5535e17](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5535e17))
 - **#22** - добавлена документация паттерна Rich Domain Entity ([c0610a1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c0610a1))
 - **#22** - синхронизирована документация с актуальным кодом и структурой проекта ([ff70c60](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ff70c60))
 - **#22** - обновлен `ARCHITECTURE.md` для отражения реализации Rich Domain Entities ([34ae98f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/34ae98f))
