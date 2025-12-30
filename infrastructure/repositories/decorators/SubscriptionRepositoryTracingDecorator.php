@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\infrastructure\repositories;
+namespace app\infrastructure\repositories\decorators;
 
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\TracerInterface;
