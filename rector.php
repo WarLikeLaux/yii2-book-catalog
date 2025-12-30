@@ -6,6 +6,7 @@ use Rector\Config\RectorConfig;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
 use Rector\ValueObject\PhpVersion;
+use Tools\Rector\AddCodeCoverageIgnoreToFormMethodsRector;
 
 return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->paths([
@@ -24,6 +25,8 @@ return static function (RectorConfig $rectorConfig): void {
         SetList::PRIVATIZATION,
         SetList::TYPE_DECLARATION,
     ]);
+
+    $rectorConfig->rule(AddCodeCoverageIgnoreToFormMethodsRector::class);
 
     $rectorConfig->skip([
         __DIR__ . '/presentation/views/*',

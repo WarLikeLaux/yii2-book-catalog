@@ -108,9 +108,9 @@ jobs:
         run: |
           ./vendor/bin/infection \
             --coverage=runtime/coverage \
-            --threads=4 \
-            --min-msi=70 \
-            --min-covered-msi=80 \
+            --threads=max \
+            --min-msi=90 \
+            --min-covered-msi=90 \
             --test-framework-options="integration,unit"
 
       - name: Seed Database for E2E

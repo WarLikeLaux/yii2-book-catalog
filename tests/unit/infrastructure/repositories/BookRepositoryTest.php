@@ -6,6 +6,7 @@ namespace app\tests\unit\infrastructure\repositories;
 
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
+use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
@@ -22,6 +23,7 @@ final class BookRepositoryTest extends Unit
 
     protected function _before(): void
     {
+        Yii::$app->language = 'en-US';
         $this->repository = Yii::$container->get(BookRepositoryInterface::class);
         Book::deleteAll();
         Author::deleteAll();
@@ -78,5 +80,261 @@ final class BookRepositoryTest extends Unit
 
         $dto = $this->repository->findByIdWithAuthors($bookId);
         $this->assertContains($authorId, $dto->authorIds);
+    }
+
+    public function testGetReturnsBookEntity(): void
+    {
+        $book = BookEntity::create(
+            'Get Test',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            'Description',
+            null
+        );
+        $this->repository->save($book);
+
+        $retrieved = $this->repository->get($book->getId());
+
+        $this->assertSame('Get Test', $retrieved->getTitle());
+        $this->assertSame(2024, $retrieved->getYear()->value);
+    }
+
+    public function testGetThrowsExceptionOnNotFound(): void
+    {
+        $this->expectException(EntityNotFoundException::class);
+        $this->repository->get(99999);
+    }
+
+    public function testUpdateExistingBook(): void
+    {
+        $book = BookEntity::create(
+            'Original Title',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $this->repository->save($book);
+
+        $updated = $this->repository->get($book->getId());
+        $updated->update('Updated Title', new BookYear(2025), new Isbn('9783161484100'), 'New desc', null);
+        $this->repository->save($updated);
+
+        $dto = $this->repository->findById($book->getId());
+        $this->assertSame('Updated Title', $dto->title);
+        $this->assertSame(2025, $dto->year);
+    }
+
+    public function testDeleteSuccessfully(): void
+    {
+        $book = BookEntity::create(
+            'To Delete',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $this->repository->save($book);
+        $bookId = $book->getId();
+
+        $this->repository->delete($book);
+
+        $this->assertNull($this->repository->findById($bookId));
+    }
+
+    public function testExistsByIsbnReturnsTrue(): void
+    {
+        $book = BookEntity::create(
+            'ISBN Test',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $this->repository->save($book);
+
+        $this->assertTrue($this->repository->existsByIsbn('9783161484100'));
+    }
+
+    public function testExistsByIsbnReturnsFalse(): void
+    {
+        $this->assertFalse($this->repository->existsByIsbn('9783161484100'));
+    }
+
+    public function testExistsByIsbnWithExcludeId(): void
+    {
+        $book = BookEntity::create(
+            'ISBN Exclude Test',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $this->repository->save($book);
+
+        $this->assertFalse($this->repository->existsByIsbn('9783161484100', $book->getId()));
+        $this->assertTrue($this->repository->existsByIsbn('9783161484100', 99999));
+    }
+
+    public function testSearchByAuthorName(): void
+    {
+        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'Unique Author Name']);
+
+        $book = BookEntity::create(
+            'Author Search Book',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $book->syncAuthors([$authorId]);
+        $this->repository->save($book);
+
+        $result = $this->repository->search('Unique Author', 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchByIsbnPrefix(): void
+    {
+        $book = BookEntity::create(
+            'ISBN Search',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $this->repository->save($book);
+
+        $result = $this->repository->search('978316', 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchByYear(): void
+    {
+        $book = BookEntity::create(
+            'Year Search',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $this->repository->save($book);
+
+        $result = $this->repository->search('2024', 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchEmptyTerm(): void
+    {
+        $book = BookEntity::create(
+            'Empty Search',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $this->repository->save($book);
+
+        $result = $this->repository->search('', 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchByTitle(): void
+    {
+        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'SearchTestAuthor']);
+
+        $book = BookEntity::create(
+            'SearchableBookTitle',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            'Some description',
+            null
+        );
+        $book->syncAuthors([$authorId]);
+        $this->repository->save($book);
+
+        $result = $this->repository->search('SearchTestAuthor', 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testUpdateNonExistentBookThrowsException(): void
+    {
+        $book = BookEntity::create(
+            'Non-existent',
+            new BookYear(2023),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null
+        );
+        $book->setId(99999);
+
+        $this->expectException(EntityNotFoundException::class);
+        $this->repository->save($book);
+    }
+
+    public function testFindByIdReturnsNullOnNotFound(): void
+    {
+        $result = $this->repository->findById(99999);
+        $this->assertNull($result);
+    }
+
+    public function testUpdateBookRemovesAuthor(): void
+    {
+        $author1 = $this->tester->haveRecord(Author::class, ['fio' => 'Author One']);
+        $author2 = $this->tester->haveRecord(Author::class, ['fio' => 'Author Two']);
+
+        $book = BookEntity::create(
+            'Book with Authors',
+            new BookYear(2023),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null
+        );
+        $book->syncAuthors([$author1, $author2]);
+        $this->repository->save($book);
+
+        // Remove author 2
+        $book->syncAuthors([$author1]);
+        $this->repository->save($book);
+
+        $storedBook = $this->repository->get($book->getId());
+        $this->assertCount(1, $storedBook->getAuthorIds());
+        $this->assertEquals([$author1], $storedBook->getAuthorIds());
+    }
+
+    public function testFindByIdWithAuthorsReturnsNullOnNotFound(): void
+    {
+        $result = $this->repository->findByIdWithAuthors(99999);
+        $this->assertNull($result);
+    }
+
+    public function testSaveDuplicateIsbnThrowsAlreadyExistsException(): void
+    {
+        $isbn = '9783161484100';
+        $book1 = BookEntity::create(
+            'First Book',
+            new BookYear(2024),
+            new Isbn($isbn),
+            null,
+            null
+        );
+        $this->repository->save($book1);
+
+        $book2 = BookEntity::create(
+            'Duplicate ISBN Book',
+            new BookYear(2025),
+            new Isbn($isbn),
+            null,
+            null
+        );
+
+        $this->expectException(AlreadyExistsException::class);
+        $this->expectExceptionMessage("Book with ISBN $isbn already exists");
+        $this->repository->save($book2);
     }
 }

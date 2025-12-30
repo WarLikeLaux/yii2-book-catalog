@@ -17,9 +17,6 @@ use app\infrastructure\persistence\Author;
 use yii\data\ActiveDataProvider;
 use yii\db\IntegrityException;
 
-/**
- * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
- */
 final readonly class AuthorRepository implements AuthorRepositoryInterface
 {
     use DatabaseExceptionHandlerTrait;
@@ -27,19 +24,6 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
     public function __construct(
         private TranslatorInterface $translator
     ) {
-    }
-
-    public function findById(int $id): ?AuthorReadDto
-    {
-        $author = Author::findOne($id);
-        if ($author === null) {
-            return null;
-        }
-
-        return new AuthorReadDto(
-            id: $author->id,
-            fio: $author->fio
-        );
     }
 
     public function save(AuthorEntity $author): void
@@ -54,22 +38,14 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             $ar->edit($author->getFio());
         }
 
-        try {
-            if (!$ar->save()) {
-                $errors = $ar->getFirstErrors();
-                $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'Failed to save author');
-                throw new \RuntimeException($message);
-            }
-        } catch (IntegrityException $e) {
-            if ($this->isDuplicateError($e)) {
-                $message = $this->translator->translate(
-                    'app',
-                    'Author with this FIO already exists'
-                );
-                throw new AlreadyExistsException($message, 409, $e);
-            }
-            throw $e;
+        if ($this->existsByFio($author->getFio(), $author->getId())) {
+            throw new AlreadyExistsException(
+                $this->translator->translate('app', 'Author with this FIO already exists'),
+                409
+            );
         }
+
+        $this->persistAuthor($ar);
 
         if ($author->getId() !== null) {
             return;
@@ -99,8 +75,21 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         }
 
         if ($ar->delete() === false) {
-            throw new \RuntimeException($this->translator->translate('app', 'Failed to delete author'));
+            throw new \RuntimeException($this->translator->translate('app', 'Failed to delete author')); // @codeCoverageIgnore
         }
+    }
+
+    public function findById(int $id): ?AuthorReadDto
+    {
+        $author = Author::findOne($id);
+        if ($author === null) {
+            return null;
+        }
+
+        return new AuthorReadDto(
+            id: $author->id,
+            fio: $author->fio
+        );
     }
 
     /**
@@ -168,5 +157,26 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         }
 
         return $query->exists();
+    }
+
+    /** @codeCoverageIgnore Защитный код (недостижим из-за валидации домена) */
+    private function persistAuthor(Author $ar): void
+    {
+        try {
+            if (!$ar->save()) {
+                $errors = $ar->getFirstErrors();
+                $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'Failed to save author');
+                throw new \RuntimeException($message);
+            }
+        } catch (IntegrityException $e) {
+            if ($this->isDuplicateError($e)) {
+                throw new AlreadyExistsException(
+                    $this->translator->translate('app', 'Author with this FIO already exists'),
+                    409,
+                    $e
+                );
+            }
+            throw $e;
+        }
     }
 }

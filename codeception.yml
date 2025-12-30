@@ -32,5 +32,4 @@ coverage:
         - presentation/mail/*
         # Покрыты функциональными тестами
         - presentation/controllers/*
-        - presentation/forms/*
         - infrastructure/persistence/*

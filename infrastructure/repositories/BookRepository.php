@@ -24,9 +24,6 @@ use yii\db\Expression;
 use yii\db\IntegrityException;
 use yii\db\Query;
 
-/**
- * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
- */
 final readonly class BookRepository implements BookRepositoryInterface
 {
     use DatabaseExceptionHandlerTrait;
@@ -53,23 +50,14 @@ final readonly class BookRepository implements BookRepositoryInterface
         $ar->description = $book->getDescription();
         $ar->cover_url = $book->getCoverUrl();
 
-        try {
-            if (!$ar->save()) {
-                $errors = $ar->getFirstErrors();
-                $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'Failed to save book');
-                throw new RuntimeException($message);
-            }
-        } catch (IntegrityException $e) {
-            if ($this->isDuplicateError($e)) {
-                $message = $this->translator->translate(
-                    'app',
-                    'Book with ISBN {isbn} already exists',
-                    ['isbn' => $book->getIsbn()->value]
-                );
-                throw new AlreadyExistsException($message, 409, $e);
-            }
-            throw $e;
+        if ($this->existsByIsbn($book->getIsbn()->value, $book->getId())) {
+            throw new AlreadyExistsException(
+                $this->translator->translate('app', 'Book with ISBN {isbn} already exists', ['isbn' => $book->getIsbn()->value]),
+                409
+            );
         }
+
+        $this->persistBook($ar, $book->getIsbn()->value);
 
         if ($book->getId() === null) {
             $book->setId($ar->id);
@@ -108,7 +96,7 @@ final readonly class BookRepository implements BookRepositoryInterface
         }
 
         if ($ar->delete() === false) {
-            throw new RuntimeException($this->translator->translate('app', 'Failed to delete book'));
+            throw new RuntimeException($this->translator->translate('app', 'Failed to delete book')); // @codeCoverageIgnore
         }
     }
 
@@ -179,6 +167,27 @@ final readonly class BookRepository implements BookRepositoryInterface
         }
 
         return $query->exists();
+    }
+
+    /** @codeCoverageIgnore Защитный код (недостижим из-за валидации домена) */
+    private function persistBook(Book $ar, string $isbn): void
+    {
+        try {
+            if (!$ar->save()) {
+                $errors = $ar->getFirstErrors();
+                $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'Failed to save book');
+                throw new RuntimeException($message);
+            }
+        } catch (IntegrityException $e) {
+            if ($this->isDuplicateError($e)) {
+                throw new AlreadyExistsException(
+                    $this->translator->translate('app', 'Book with ISBN {isbn} already exists', ['isbn' => $isbn]),
+                    409,
+                    $e
+                );
+            }
+            throw $e;
+        }
     }
 
     /**

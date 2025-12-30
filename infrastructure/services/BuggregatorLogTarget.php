@@ -19,9 +19,6 @@ final class BuggregatorLogTarget extends Target
 
     public int $port = 9913;
 
-    /**
-     * @codeCoverageIgnore Реализует сетевой запрос к внешнему сервису
-     */
     #[\Override]
     public function export(): void
     {

@@ -8,9 +8,6 @@ use app\application\ports\IdempotencyInterface;
 use app\infrastructure\persistence\IdempotencyKey;
 use Yii;
 
-/**
- * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
- */
 final class IdempotencyRepository implements IdempotencyInterface
 {
     /** @return array{status_code: int, body: string}|null */

@@ -62,8 +62,12 @@
     },
     "autoload": {
         "psr-4": {
-            "app\\": ""
-        }
+            "app\\": "",
+            "Tools\\": "tools/"
+        },
+        "files": [
+            "tools/PHPUnit/Framework/Attributes/CodeCoverageIgnore.php"
+        ]
     },
     "config": {
         "allow-plugins": {
