@@ -239,7 +239,7 @@ test-coverage: _test-init
 infection: _test-init
 	$(COMPOSE) exec $(PHP_CONTAINER) mkdir -p runtime/coverage
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage"
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=1 --test-framework-options="integration,unit"
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=max --test-framework-options="integration,unit"
 
 load-test:
 	@echo "🚀 Load Testing (K6)..."
