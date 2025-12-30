@@ -15,7 +15,12 @@
 - **#25** - рефакторинг расположения декораторов трассировки ([cf1f985](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cf1f985))
 
 ### ⚙️ Инфраструктура
+- **#25** - оптимизирована конфигурация infection в CI пайплайне ([cf9427e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cf9427e))
 - **#25** - обновлена конфигурация проекта и тесты ([03d8a29](https://github.com/WarLikeLaux/yii2-book-catalog/commit/03d8a29))
+
+### 📝 Документация
+- **#25** - обновлен `README.md` ([642117c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/642117c))
+- **#25** - обновлен `CHANGELOG.md` ([0b2f1d4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0b2f1d4))
 
 ## [0.10.0] - 2025-12-30 — "Полноценный домен"
 
