@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\reports\forms;
 
+use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
 use yii\base\Model;
 use yii\web\Request;
@@ -13,15 +14,14 @@ final class ReportFilterForm extends Model
     /** @var int|string|null */
     public $year;
 
-    /**
-     * @codeCoverageIgnore Делегирует загрузку данных из запроса в стандартный метод Yii2
-     */
+    #[CodeCoverageIgnore]
     public function loadFromRequest(Request $request): bool
     {
         return $this->load((array)$request->get());
     }
 
     #[\Override]
+    #[CodeCoverageIgnore]
     public function rules(): array
     {
         return [
@@ -30,6 +30,7 @@ final class ReportFilterForm extends Model
     }
 
     #[\Override]
+    #[CodeCoverageIgnore]
     public function attributeLabels(): array
     {
         return [
@@ -37,10 +38,8 @@ final class ReportFilterForm extends Model
         ];
     }
 
-    /**
-     * @codeCoverageIgnore Убирает префикс формы для работы с плоскими параметрами запроса
-     */
     #[\Override]
+    #[CodeCoverageIgnore]
     public function formName(): string
     {
         return '';

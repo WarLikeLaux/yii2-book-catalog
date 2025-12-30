@@ -100,4 +100,20 @@ final class PagedResultDataProviderTest extends Unit
 
         $this->assertFalse($provider->getPagination());
     }
+
+    public function testGetTotalCountDelegatesToResult(): void
+    {
+        $expectedCount = 42;
+        $result = $this->createMock(PagedResultInterface::class);
+        $result->method('getModels')->willReturn([]);
+        $result->method('getTotalCount')->willReturn($expectedCount);
+
+        $provider = new PagedResultDataProvider($result, [
+            'pagination' => [
+                'pageSize' => 10,
+            ],
+        ]);
+
+        $this->assertEquals($expectedCount, $provider->getTotalCount());
+    }
 }

@@ -9,9 +9,6 @@ use app\domain\entities\Subscription as SubscriptionEntity;
 use app\infrastructure\persistence\Subscription;
 use yii\db\Query;
 
-/**
- * @codeCoverageIgnore Инфраструктурный репозиторий: покрыт функциональными тестами
- */
 final class SubscriptionRepository implements SubscriptionRepositoryInterface
 {
     public function save(SubscriptionEntity $subscription): void
@@ -20,7 +17,7 @@ final class SubscriptionRepository implements SubscriptionRepositoryInterface
 
         if (!$ar->save()) {
             $errors = $ar->getFirstErrors();
-            $message = $errors !== [] ? array_shift($errors) : 'Failed to create subscription';
+            $message = $errors !== [] ? array_shift($errors) : 'Failed to create subscription'; // @codeCoverageIgnore
             throw new \RuntimeException($message);
         }
 
@@ -52,9 +49,11 @@ final class SubscriptionRepository implements SubscriptionRepositoryInterface
             /** @var array<string, mixed> $row */
             foreach ($batch as $row) {
                 $phone = $row['phone'];
+                // @codeCoverageIgnoreStart Защитный код для PHPStan: БД всегда возвращает string для VARCHAR
                 if (!is_string($phone)) {
                     continue;
                 }
+                // @codeCoverageIgnoreEnd
 
                 yield $phone;
             }

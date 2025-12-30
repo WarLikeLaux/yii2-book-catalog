@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\auth\forms;
 
 use app\infrastructure\persistence\User;
+use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
 use yii\base\Model;
 
@@ -19,6 +20,7 @@ final class LoginForm extends Model
     private User|false|null $_user = false;
 
     #[\Override]
+    #[CodeCoverageIgnore]
     public function rules(): array
     {
         return [
@@ -29,6 +31,7 @@ final class LoginForm extends Model
     }
 
     #[\Override]
+    #[CodeCoverageIgnore]
     public function attributeLabels(): array
     {
         return [
