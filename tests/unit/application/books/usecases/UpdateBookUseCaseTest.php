@@ -44,6 +44,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'New description',
             isbn: '9780132350884',
             authorIds: [1, 2],
+            version: 1,
             cover: '/uploads/new-cover.jpg'
         );
 
@@ -55,7 +56,8 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Old description',
             coverUrl: '/uploads/old-cover.jpg',
             authorIds: [1],
-            published: false
+            published: false,
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())
@@ -104,7 +106,8 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: []
+            authorIds: [],
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())
@@ -128,7 +131,8 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: []
+            authorIds: [],
+            version: 1
         );
 
         $existingBook = Book::reconstitute(
@@ -139,7 +143,8 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Description',
             coverUrl: null,
             authorIds: [],
-            published: false
+            published: false,
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())

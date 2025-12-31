@@ -38,7 +38,8 @@ final class BookTest extends Unit
             null,
             null,
             [],
-            false
+            false,
+            1
         );
 
         $newYear = new BookYear(2024);
@@ -143,7 +144,8 @@ final class BookTest extends Unit
             null,
             null,
             [1, 2],
-            false
+            false,
+            1
         );
 
         $book->removeAuthor(2);

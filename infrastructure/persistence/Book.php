@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\infrastructure\persistence;
 
+use yii\behaviors\OptimisticLockBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
@@ -16,6 +17,7 @@ use yii\db\ActiveRecord;
  * @property string|null $description
  * @property string|null $cover_url
  * @property int $is_published
+ * @property int $version
  * @property int $created_at
  * @property int $updated_at
  * @property Author[] $authors
@@ -71,7 +73,13 @@ final class Book extends ActiveRecord
     {
         return [
             TimestampBehavior::class,
+            OptimisticLockBehavior::class,
         ];
+    }
+
+    public function optimisticLock(): string
+    {
+        return 'version';
     }
 
     public function rules(): array

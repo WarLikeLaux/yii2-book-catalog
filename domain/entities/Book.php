@@ -31,6 +31,7 @@ final class Book
         private ?string $coverUrl,
         array $authorIds,
         private bool $published,
+        private int $version,
         bool $isReconstituted
     ) {
         $this->validateTitle($title);
@@ -72,6 +73,7 @@ final class Book
             coverUrl: $coverUrl,
             authorIds: [],
             published: false,
+            version: 1,
             isReconstituted: false
         );
     }
@@ -87,7 +89,8 @@ final class Book
         ?string $description,
         ?string $coverUrl,
         array $authorIds,
-        bool $published
+        bool $published,
+        int $version
     ): self {
         return new self(
             id: $id,
@@ -98,6 +101,7 @@ final class Book
             coverUrl: $coverUrl,
             authorIds: $authorIds,
             published: $published,
+            version: $version,
             isReconstituted: true
         );
     }
@@ -258,5 +262,18 @@ final class Book
     public function isPublished(): bool
     {
         return $this->published;
+    }
+
+    public function getVersion(): int
+    {
+        return $this->version;
+    }
+
+    /**
+     * @internal
+     */
+    public function incrementVersion(): void
+    {
+        $this->version++;
     }
 }

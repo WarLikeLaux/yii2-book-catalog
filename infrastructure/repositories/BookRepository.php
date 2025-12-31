@@ -13,6 +13,7 @@ use app\application\ports\TranslatorInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\exceptions\StaleDataException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
@@ -23,6 +24,7 @@ use yii\db\ActiveQuery;
 use yii\db\Connection;
 use yii\db\Expression;
 use yii\db\IntegrityException;
+use yii\db\StaleObjectException;
 
 final readonly class BookRepository implements BookRepositoryInterface
 {
@@ -43,6 +45,7 @@ final readonly class BookRepository implements BookRepositoryInterface
             if ($ar === null) {
                 throw new EntityNotFoundException($this->translator->translate('app', 'Book not found'));
             }
+            $ar->version = $book->getVersion();
         }
 
         $ar->title = $book->getTitle();
@@ -65,6 +68,7 @@ final readonly class BookRepository implements BookRepositoryInterface
             $book->setId($ar->id);
         }
 
+        $book->incrementVersion();
         $this->persistAuthorChanges($book);
         $book->markAuthorsPersisted();
     }
@@ -88,7 +92,8 @@ final readonly class BookRepository implements BookRepositoryInterface
             description: $ar->description,
             coverUrl: $ar->cover_url,
             authorIds: $authorIds,
-            published: (bool)$ar->is_published
+            published: (bool)$ar->is_published,
+            version: $ar->version
         );
     }
 
@@ -182,6 +187,8 @@ final readonly class BookRepository implements BookRepositoryInterface
                 $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'Failed to save book');
                 throw new RuntimeException($message);
             }
+        } catch (StaleObjectException) {
+            throw new StaleDataException();
         } catch (IntegrityException $e) {
             if ($this->isDuplicateError($e)) {
                 throw new AlreadyExistsException(
@@ -243,7 +250,8 @@ final readonly class BookRepository implements BookRepositoryInterface
             authorIds: array_keys($authorNames),
             authorNames: $authorNames,
             coverUrl: $book->cover_url,
-            isPublished: (bool)$book->is_published
+            isPublished: (bool)$book->is_published,
+            version: $book->version
         );
     }
 

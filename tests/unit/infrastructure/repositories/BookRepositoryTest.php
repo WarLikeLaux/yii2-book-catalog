@@ -67,7 +67,8 @@ final class BookRepositoryTest extends Unit
             null,
             null,
             [],
-            false
+            false,
+            1
         );
 
         $this->expectException(EntityNotFoundException::class);

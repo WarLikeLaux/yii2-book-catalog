@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\application\books\queries;
 
-final readonly class BookReadDto
+use JsonSerializable;
+
+final readonly class BookReadDto implements JsonSerializable
 {
     /**
      * @param int[] $authorIds
@@ -19,12 +21,30 @@ final readonly class BookReadDto
         public array $authorIds,
         public array $authorNames = [],
         public string|null $coverUrl = null,
-        public bool $isPublished = false
+        public bool $isPublished = false,
+        public int $version = 1
     ) {
     }
 
     public function getFullTitle(): string
     {
         return $this->year !== null ? "{$this->title} ({$this->year})" : $this->title;
+    }
+
+    /** @return array<string, mixed> */
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'year' => $this->year,
+            'description' => $this->description,
+            'isbn' => $this->isbn,
+            'authorIds' => $this->authorIds,
+            'authorNames' => $this->authorNames,
+            'coverUrl' => $this->coverUrl,
+            'isPublished' => $this->isPublished,
+            'version' => $this->version,
+        ];
     }
 }
