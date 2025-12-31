@@ -1,4 +1,4 @@
-.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-e2e test-coverage infection load-test migrate seed queue-info comments docs swagger repomix
+.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-e2e test-coverage infection load-test migrate seed queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -38,6 +38,8 @@ help:
 	@echo "  \033[33mdev\033[0m              🛠️  Стандартный цикл (fix + test)"
 	@echo "  \033[33mfix\033[0m              🧹 Авто-исправление стиля кода (CS-Fixer + Rector)"
 	@echo "  \033[33mcomments\033[0m         📝 Показать TODO и заметки"
+	@echo "  \033[33md\033[0m                🔎 Unstaged + новые файлы"
+	@echo "  \033[33mdc\033[0m               📌 Только staged"
 	@echo ""
 	@echo "🐳 \033[1;34mDOCKER & OPS:\033[0m"
 	@echo "  \033[34mup\033[0m               ▶️  Запустить контейнеры"
@@ -276,3 +278,10 @@ swagger:
 
 repomix:
 	@npx -y repomix --style markdown --output repomix-output.md
+
+diff d:
+	@git diff
+	@git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index /dev/null {}
+
+diff-staged diff-cached ds dc:
+	@git diff --staged
