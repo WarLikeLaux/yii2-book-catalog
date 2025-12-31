@@ -4,23 +4,22 @@ declare(strict_types=1);
 
 namespace app\infrastructure\adapters;
 
-// phpcs:ignore SlevomatCodingStandard.Namespaces.UnusedUses.UnusedUse
 use app\application\ports\EventListenerInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\QueueInterface;
-use app\domain\events\BookPublishedEvent;
 use app\domain\events\DomainEvent;
-use app\infrastructure\queue\NotifySubscribersJob;
+use app\domain\events\QueueableEvent;
 
 final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
 {
-    /**
-     * @param array<EventListenerInterface> $listeners
-     */
+    /** @var EventListenerInterface[] */
+    private array $listeners;
+
     public function __construct(
         private QueueInterface $queue,
-        private array $listeners = []
+        EventListenerInterface ...$listeners
     ) {
+        $this->listeners = $listeners;
     }
 
     public function publishEvent(DomainEvent $event): void
@@ -42,13 +41,15 @@ final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
 
     private function dispatchToQueue(DomainEvent $event): void
     {
-        if (!($event instanceof BookPublishedEvent)) {
+        if (!($event instanceof QueueableEvent)) {
             return;
         }
 
-        $this->queue->push(new NotifySubscribersJob(
-            $event->bookId,
-            $event->title,
-        ));
+        $jobClass = $event->getJobClass();
+        $payload = $event->getJobPayload();
+
+        /** @var \yii\queue\JobInterface $job */
+        $job = new $jobClass(...$payload);
+        $this->queue->push($job);
     }
 }

@@ -10,6 +10,7 @@ use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\FileStorageInterface;
 use app\application\ports\IdempotencyInterface;
+use app\application\ports\MutexInterface;
 use app\application\ports\NotificationInterface;
 use app\application\ports\QueueInterface;
 use app\application\ports\ReportRepositoryInterface;
@@ -20,6 +21,7 @@ use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
 use app\infrastructure\adapters\YiiCacheAdapter;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
+use app\infrastructure\adapters\YiiMutexAdapter;
 use app\infrastructure\adapters\YiiQueueAdapter;
 use app\infrastructure\adapters\YiiTransactionAdapter;
 use app\infrastructure\adapters\YiiTranslatorAdapter;
@@ -59,6 +61,7 @@ return [
         NotificationInterface::class => FlashNotificationService::class,
         TranslatorInterface::class => YiiTranslatorAdapter::class,
         IdempotencyInterface::class => IdempotencyRepository::class,
+        MutexInterface::class => static fn() => new YiiMutexAdapter(Yii::$app->get('mutex')),
 
         // Репозитории (с декораторами)
         BookRepository::class => static fn(Container $c): BookRepository => new BookRepository(
@@ -108,14 +111,15 @@ return [
         CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
         EventPublisherInterface::class => static fn(Container $c): EventPublisherInterface => new YiiEventPublisherAdapter(
             $c->get(QueueInterface::class),
-            [
-                $c->get(ReportCacheInvalidationListener::class),
-            ]
+            $c->get(ReportCacheInvalidationListener::class)
         ),
     ],
     'singletons' => [
         // Stateless сервисы
-        IdempotencyServiceInterface::class => IdempotencyService::class,
+        IdempotencyServiceInterface::class => static fn(Container $c): IdempotencyServiceInterface => new IdempotencyService(
+            $c->get(IdempotencyInterface::class),
+            $c->get(MutexInterface::class)
+        ),
         TracerInterface::class => static function (Container $c): TracerInterface {
             if (!env('INSPECTOR_INGESTION_KEY')) {
                 return new NullTracer();

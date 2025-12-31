@@ -8,6 +8,7 @@ use app\application\ports\EventListenerInterface;
 use app\application\ports\QueueInterface;
 use app\domain\events\BookCreatedEvent;
 use app\domain\events\BookPublishedEvent;
+use app\domain\events\QueueableEvent;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\queue\NotifySubscribersJob;
 use Codeception\Test\Unit;
@@ -22,7 +23,7 @@ final class YiiEventPublisherAdapterTest extends Unit
         $this->queue = $this->createMock(QueueInterface::class);
     }
 
-    public function testPublishBookPublishedEventPushesToQueue(): void
+    public function testPublishQueueableEventPushesToQueue(): void
     {
         $adapter = new YiiEventPublisherAdapter($this->queue);
         $event = new BookPublishedEvent(42, 'Test Book', 2024);
@@ -35,7 +36,7 @@ final class YiiEventPublisherAdapterTest extends Unit
         $adapter->publishEvent($event);
     }
 
-    public function testPublishOtherEventDoesNotPushToQueue(): void
+    public function testPublishNonQueueableEventDoesNotPushToQueue(): void
     {
         $adapter = new YiiEventPublisherAdapter($this->queue);
         $event = new BookCreatedEvent(42, 'Test Book', 2024);
@@ -53,7 +54,7 @@ final class YiiEventPublisherAdapterTest extends Unit
             ->method('handle')
             ->with($this->isInstanceOf(BookPublishedEvent::class));
 
-        $adapter = new YiiEventPublisherAdapter($this->queue, [$listener]);
+        $adapter = new YiiEventPublisherAdapter($this->queue, $listener);
         $event = new BookPublishedEvent(42, 'Test Book', 2024);
 
         $adapter->publishEvent($event);
@@ -65,9 +66,44 @@ final class YiiEventPublisherAdapterTest extends Unit
         $listener->method('subscribedEvents')->willReturn([BookCreatedEvent::class]);
         $listener->expects($this->never())->method('handle');
 
-        $adapter = new YiiEventPublisherAdapter($this->queue, [$listener]);
+        $adapter = new YiiEventPublisherAdapter($this->queue, $listener);
         $event = new BookPublishedEvent(42, 'Test Book', 2024);
 
+        $adapter->publishEvent($event);
+    }
+
+    public function testPublishCustomQueueableEventCreatesCorrectJob(): void
+    {
+        $event = new class implements QueueableEvent {
+            public function getEventType(): string
+            {
+                return 'test.event';
+            }
+
+            /** @return array<string, mixed> */
+            public function getPayload(): array
+            {
+                return ['id' => 1];
+            }
+
+            public function getJobClass(): string
+            {
+                return NotifySubscribersJob::class;
+            }
+
+            /** @return array<string, mixed> */
+            public function getJobPayload(): array
+            {
+                return ['bookId' => 99, 'title' => 'Custom Event Book'];
+            }
+        };
+
+        $this->queue->expects($this->once())
+            ->method('push')
+            ->with($this->callback(fn (NotifySubscribersJob $job) => $job->bookId === 99
+                && $job->title === 'Custom Event Book'));
+
+        $adapter = new YiiEventPublisherAdapter($this->queue);
         $adapter->publishEvent($event);
     }
 }

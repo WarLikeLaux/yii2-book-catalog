@@ -15,6 +15,10 @@ final class IdempotencyFilter extends ActionFilter
 {
     private const string HEADER_KEY = 'Idempotency-Key';
     private const int TTL = 86400;
+    private const int LOCK_TIMEOUT = 1;
+    private const int WAIT_SECONDS = 1;
+
+    private string|null $lockedKey = null;
 
     public function __construct(
         private readonly IdempotencyServiceInterface $service,
@@ -36,23 +40,23 @@ final class IdempotencyFilter extends ActionFilter
             return true;
         }
 
+        // @codeCoverageIgnoreStart
+        if (!$this->service->acquireLock($key, self::LOCK_TIMEOUT)) {
+            sleep(self::WAIT_SECONDS);
+            return $this->returnCachedResponseIfExists($key);
+        }
+        // @codeCoverageIgnoreEnd
+
+        $this->lockedKey = $key;
+
         $cached = $this->service->getResponse($key);
-        if (!$cached instanceof IdempotencyResponseDto) {
-            return true;
+        if ($cached instanceof IdempotencyResponseDto) {
+            $this->releaseLockIfHeld();
+            $this->applyCachedResponse($cached);
+            return false;
         }
 
-        $response = Yii::$app->response;
-        if ($response instanceof Response) {
-            $response->statusCode = $cached->statusCode;
-            if ($cached->redirectUrl !== null) {
-                $response->getHeaders()->set('Location', $cached->redirectUrl);
-            } else {
-                $response->data = $cached->data;
-            }
-            $response->getHeaders()->set('X-Idempotency-Cache', 'HIT');
-        }
-
-        return false;
+        return true;
     }
 
     #[\Override]
@@ -68,19 +72,61 @@ final class IdempotencyFilter extends ActionFilter
             return $result;
         }
 
-        $response = Yii::$app->response;
-        if ($response instanceof Response && $response->statusCode < 500) {
-            $location = $response->getHeaders()->get('Location');
-            $this->service->saveResponse(
-                $key,
-                $response->statusCode,
-                $result,
-                is_string($location) ? $location : null,
-                self::TTL
-            );
-            $response->getHeaders()->set('X-Idempotency-Cache', 'MISS');
+        try {
+            $response = Yii::$app->response;
+            if ($response instanceof Response && $response->statusCode < 500) {
+                $location = $response->getHeaders()->get('Location');
+                $this->service->saveResponse(
+                    $key,
+                    $response->statusCode,
+                    $result,
+                    is_string($location) ? $location : null,
+                    self::TTL
+                );
+                $response->getHeaders()->set('X-Idempotency-Cache', 'MISS');
+            }
+        } finally {
+            $this->releaseLockIfHeld();
         }
 
         return $result;
+    }
+
+    /** @codeCoverageIgnore */
+    private function returnCachedResponseIfExists(string $key): bool
+    {
+        $cached = $this->service->getResponse($key);
+        if (!$cached instanceof IdempotencyResponseDto) {
+            return true;
+        }
+
+        $this->applyCachedResponse($cached);
+        return false;
+    }
+
+    private function applyCachedResponse(IdempotencyResponseDto $cached): void
+    {
+        $response = Yii::$app->response;
+        if (!$response instanceof Response) {
+            return; // @codeCoverageIgnore
+        }
+
+        $response->statusCode = $cached->statusCode;
+        if ($cached->redirectUrl !== null) {
+            $response->getHeaders()->set('Location', $cached->redirectUrl);
+        } else {
+            $response->data = $cached->data;
+        }
+        $response->getHeaders()->set('X-Idempotency-Cache', 'HIT');
+    }
+
+    private function releaseLockIfHeld(): void
+    {
+        if ($this->lockedKey === null) {
+            return; // @codeCoverageIgnore
+        }
+
+        $this->service->releaseLock($this->lockedKey);
+        $this->lockedKey = null;
     }
 }

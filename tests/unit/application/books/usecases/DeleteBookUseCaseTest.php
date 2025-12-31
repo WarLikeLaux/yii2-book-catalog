@@ -51,7 +51,8 @@ final class DeleteBookUseCaseTest extends Unit
             description: 'Description',
             coverUrl: null,
             authorIds: [],
-            published: false
+            published: false,
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())
@@ -120,7 +121,8 @@ final class DeleteBookUseCaseTest extends Unit
             description: 'Description',
             coverUrl: null,
             authorIds: [],
-            published: true
+            published: true,
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())

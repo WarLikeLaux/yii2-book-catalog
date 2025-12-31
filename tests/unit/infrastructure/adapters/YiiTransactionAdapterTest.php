@@ -130,14 +130,11 @@ final class YiiTransactionAdapterTest extends Unit
         $transaction->method('getIsActive')->willReturn(true);
         $this->db->method('beginTransaction')->willReturn($transaction);
 
-        // Outer
         $this->adapter->begin();
 
-        // Inner
         $this->adapter->begin();
         $this->adapter->commit();
 
-        // Outer commit
         $this->adapter->commit();
     }
 
@@ -148,11 +145,10 @@ final class YiiTransactionAdapterTest extends Unit
 
         $this->db->method('getTransaction')->willReturn($activeTransaction);
 
-        // Adapter 1 thinks transaction is already active, so it joins
         $adapter1 = new YiiTransactionAdapter($this->db);
 
         $this->db->expects($this->never())->method('beginTransaction');
-        $activeTransaction->expects($this->never())->method('commit'); // Adapter 1 is NOT owner
+        $activeTransaction->expects($this->never())->method('commit');
 
         $adapter1->begin();
         $adapter1->commit();
@@ -166,14 +162,11 @@ final class YiiTransactionAdapterTest extends Unit
 
         $transaction->expects($this->once())->method('rollBack');
 
-        // Level 1
         $this->adapter->begin();
-        // Level 2
         $this->adapter->begin();
 
         $this->adapter->rollBack();
 
-        // Should throw because level was reset to 0
         $this->expectException('RuntimeException'::class);
         $this->expectExceptionMessage('Transaction not started');
         $this->adapter->commit();

@@ -49,7 +49,8 @@ final class PublishBookUseCaseTest extends Unit
             description: 'A Handbook',
             coverUrl: null,
             authorIds: [1, 2],
-            published: false
+            published: false,
+            version: 1
         );
 
         $command = new PublishBookCommand(bookId: 42);
@@ -100,7 +101,8 @@ final class PublishBookUseCaseTest extends Unit
             description: 'Test',
             coverUrl: null,
             authorIds: [],
-            published: false
+            published: false,
+            version: 1
         );
 
         $command = new PublishBookCommand(bookId: 42);
@@ -133,7 +135,8 @@ final class PublishBookUseCaseTest extends Unit
             description: 'Test',
             coverUrl: null,
             authorIds: [1],
-            published: false
+            published: false,
+            version: 1
         );
 
         $command = new PublishBookCommand(bookId: 42);
