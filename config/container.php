@@ -34,6 +34,7 @@ use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\adapters\YiiQueueAdapter;
 use app\infrastructure\adapters\YiiTransactionAdapter;
 use app\infrastructure\adapters\YiiTranslatorAdapter;
+use app\infrastructure\listeners\ReportCacheInvalidationListener;
 use app\infrastructure\repositories\AuthorRepository;
 use app\infrastructure\repositories\BookRepository;
 use app\infrastructure\repositories\decorators\AuthorRepositoryTracingDecorator;
@@ -102,21 +103,29 @@ return [
         TransactionInterface::class => static fn() => new YiiTransactionAdapter(Yii::$app->get('db')),
         QueueInterface::class => static fn() => new YiiQueueAdapter(Yii::$app->get('queue')),
         CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
-        EventPublisherInterface::class => YiiEventPublisherAdapter::class,
+        EventPublisherInterface::class => static fn(Container $c): EventPublisherInterface => new YiiEventPublisherAdapter(
+            $c->get(QueueInterface::class),
+            [
+                $c->get(ReportCacheInvalidationListener::class),
+            ]
+        ),
+
+        // UseCases (Transient, чтобы избежать захвата состояния транзакции)
+        CreateBookUseCase::class => CreateBookUseCase::class,
+        UpdateBookUseCase::class => UpdateBookUseCase::class,
+        DeleteBookUseCase::class => DeleteBookUseCase::class,
+        CreateAuthorUseCase::class => CreateAuthorUseCase::class,
+        UpdateAuthorUseCase::class => UpdateAuthorUseCase::class,
+        DeleteAuthorUseCase::class => DeleteAuthorUseCase::class,
+        SubscribeUseCase::class => SubscribeUseCase::class,
+
+        // Сервисы чтения данных (Query Services)
+        BookQueryService::class => BookQueryService::class,
+        AuthorQueryService::class => AuthorQueryService::class,
+        SubscriptionQueryService::class => SubscriptionQueryService::class,
+        ReportQueryService::class => ReportQueryService::class,
     ],
     'singletons' => [
-        // Все UseCases и QueryServices разрешаются автоматически через конструктор (Autowiring)
-        CreateBookUseCase::class,
-        UpdateBookUseCase::class,
-        DeleteBookUseCase::class,
-        CreateAuthorUseCase::class,
-        UpdateAuthorUseCase::class,
-        DeleteAuthorUseCase::class,
-        SubscribeUseCase::class,
-        BookQueryService::class,
-        AuthorQueryService::class,
-        SubscriptionQueryService::class,
-        ReportQueryService::class,
         IdempotencyServiceInterface::class => IdempotencyService::class,
         TracerInterface::class => static function (Container $c): TracerInterface {
             if (!env('INSPECTOR_INGESTION_KEY')) {

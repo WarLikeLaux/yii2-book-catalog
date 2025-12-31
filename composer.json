@@ -58,7 +58,8 @@
         "phpstan/phpstan-strict-rules": "^2.0",
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "buggregator/trap": "^1.15",
-        "phpro/grumphp": "^2.18"
+        "phpro/grumphp": "^2.18",
+        "dg/bypass-finals": "^1.9"
     },
     "autoload": {
         "psr-4": {

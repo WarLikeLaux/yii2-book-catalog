@@ -221,25 +221,28 @@ _test-init:
 	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "DB_NAME=$(DB_TEST_NAME) ./yii migrate --interactive=0 --migrationPath=@app/migrations" > /dev/null
 
 test: _test-init
-	@echo "🚀 Запуск всех тестов..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit,e2e --no-colors
+	@echo "🚀 Запуск всех тестов с генерацией отчетов..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit \
+		--coverage --coverage-xml --coverage-html --coverage-text \
+		--coverage-phpunit --xml=junit.xml --no-colors
+	@sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml
 
 test-e2e: _test-init
 	@echo "🚀 Запуск E2E тестов..."
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run e2e --no-colors
 
-test-coverage: _test-init
-	@echo "📊 Анализ покрытия кода..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit --coverage --coverage-html --coverage-text
+test-coverage coverage cov:
+	@if [ ! -f tests/_output/coverage.xml ]; then $(MAKE) test; fi
 	@echo "----------------------------------------------------------------------"
-	@$(COMPOSE) exec $(PHP_CONTAINER) head -n 10 tests/_output/coverage.txt
+	@$(COMPOSE) exec $(PHP_CONTAINER) head -n 9 tests/_output/coverage.txt
 	@echo "----------------------------------------------------------------------"
-	@echo "Отчет: tests/_output/coverage/index.html"
+	@php -r '$$xml = simplexml_load_file("tests/_output/coverage.xml"); $$out = ""; foreach ($$xml->project->xpath("//file") as $$file) { $$miss = []; foreach ($$file->line as $$line) { if ((string)$$line["count"] === "0" && (string)$$line["type"] === "stmt") { $$miss[] = (string)$$line["num"]; } } if (!empty($$miss)) { $$name = str_replace("$(CURDIR)/", "", (string)$$file["name"]); $$out .= "\033[1;31m✘ $$name\033[0m" . PHP_EOL . "   Lines: " . implode(", ", $$miss) . PHP_EOL; } } if ($$out !== "") { echo "🔍 Непокрытые строки:" . PHP_EOL . $$out . "----------------------------------------------------------------------" . PHP_EOL; }'
+	@echo "Полный отчет: tests/_output/coverage/index.html"
 
-infection: _test-init
-	$(COMPOSE) exec $(PHP_CONTAINER) mkdir -p runtime/coverage
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage"
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=max --test-framework-options="integration,unit"
+test-infection infection inf:
+	@if [ ! -f tests/_output/coverage-phpunit.xml ]; then $(MAKE) test; fi
+	@echo "🧟 Запуск мутационного тестирования..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=tests/_output --threads=max --test-framework-options="integration,unit"
 
 load-test:
 	@echo "🚀 Load Testing (K6)..."

@@ -1,0 +1,8 @@
+{
+	"coverage-gutters.coverageFileNames": [
+		"tests/_output/coverage.xml"
+	],
+	"coverage-gutters.showLineCoverage": true,
+	"coverage-gutters.showGutterCoverage": true,
+	"editor.formatOnSave": false
+}
