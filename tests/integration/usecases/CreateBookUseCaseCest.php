@@ -6,7 +6,6 @@ use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
-use app\infrastructure\queue\NotifySubscribersJob;
 use yii\db\Query;
 use yii\queue\db\Queue;
 
@@ -52,12 +51,12 @@ final class CreateBookUseCaseCest
         $I->assertContains($author2Id, array_column($book->authors, 'id'));
     }
 
-    public function testPublishesBookCreatedEvent(IntegrationTester $I): void
+    public function testDoesNotPublishEventOnCreate(IntegrationTester $I): void
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'Test Author']);
 
         $command = new CreateBookCommand(
-            title: 'Event Test Book',
+            title: 'Draft Book',
             year: 2024,
             isbn: '9780306406157',
             description: 'Test',
@@ -76,28 +75,10 @@ final class CreateBookUseCaseCest
             ->where(['channel' => $queue->channel])
             ->count('*', Yii::$app->db);
 
-        $I->assertGreaterThan(0, $jobCount, 'Job should be published to queue');
+        $I->assertEquals(0, $jobCount, 'No job should be published on book creation (draft)');
 
-        $job = (new Query())
-            ->from('queue')
-            ->where(['channel' => $queue->channel])
-            ->orderBy(['id' => SORT_DESC])
-            ->limit(1)
-            ->one(Yii::$app->db);
-
-        $I->assertNotNull($job, 'Job record should exist');
-        $I->assertArrayHasKey('job', $job, 'Job should have job field');
-
-        $jobData = unserialize($job['job'], ['allowed_classes' => [NotifySubscribersJob::class]]);
-
-        if ($jobData === false) {
-            $I->fail('Failed to unserialize job data');
-        }
-
-        $I->assertInstanceOf(NotifySubscribersJob::class, $jobData);
-        assert($jobData instanceof NotifySubscribersJob);
-        $I->assertEquals($bookId, $jobData->bookId);
-        $I->assertEquals('Event Test Book', $jobData->title);
+        $book = Book::findOne($bookId);
+        $I->assertEquals(0, $book->is_published, 'Book should be unpublished (draft)');
     }
 
     public function testValidatesUniqueIsbn(IntegrationTester $I): void

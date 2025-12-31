@@ -6,8 +6,9 @@ namespace app\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\CacheInterface;
+use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
+use app\domain\events\BookUpdatedEvent;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 
@@ -16,7 +17,7 @@ final readonly class UpdateBookUseCase
     public function __construct(
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
-        private CacheInterface $cache,
+        private EventPublisherInterface $eventPublisher,
     ) {
     }
 
@@ -25,6 +26,7 @@ final readonly class UpdateBookUseCase
         $book = $this->bookRepository->get($command->id);
 
         $oldYear = $book->getYear()->value;
+        $isPublished = $book->isPublished();
 
         $this->transaction->begin();
 
@@ -36,16 +38,17 @@ final readonly class UpdateBookUseCase
                 description: $command->description,
                 coverUrl: $command->cover
             );
-            $book->syncAuthors($command->authorIds);
+            $book->replaceAuthors($command->authorIds);
 
             $this->bookRepository->save($book);
 
-            $this->transaction->commit();
+            $this->transaction->afterCommit(function () use ($command, $oldYear, $isPublished): void {
+                $this->eventPublisher->publishEvent(
+                    new BookUpdatedEvent($command->id, $oldYear, $command->year, $isPublished)
+                );
+            });
 
-            $this->cache->delete(sprintf('report:top_authors:%d', $oldYear));
-            if ($command->year !== $oldYear) {
-                $this->cache->delete(sprintf('report:top_authors:%d', $command->year));
-            }
+            $this->transaction->commit();
         } catch (\Throwable $e) {
             $this->transaction->rollBack();
             throw $e;

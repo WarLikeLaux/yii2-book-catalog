@@ -7,9 +7,10 @@ namespace tests\unit\application\books\usecases;
 use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\CacheInterface;
+use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
+use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
@@ -22,7 +23,7 @@ final class UpdateBookUseCaseTest extends Unit
 
     private TransactionInterface&MockObject $transaction;
 
-    private CacheInterface&MockObject $cache;
+    private EventPublisherInterface&MockObject $eventPublisher;
 
     private UpdateBookUseCase $useCase;
 
@@ -30,8 +31,8 @@ final class UpdateBookUseCaseTest extends Unit
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
-        $this->cache = $this->createMock(CacheInterface::class);
-        $this->useCase = new UpdateBookUseCase($this->bookRepository, $this->transaction, $this->cache);
+        $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
+        $this->useCase = new UpdateBookUseCase($this->bookRepository, $this->transaction, $this->eventPublisher);
     }
 
     public function testExecuteUpdatesBookSuccessfully(): void
@@ -46,14 +47,15 @@ final class UpdateBookUseCaseTest extends Unit
             cover: '/uploads/new-cover.jpg'
         );
 
-        $existingBook = new Book(
+        $existingBook = Book::reconstitute(
             id: 42,
             title: 'Old Title',
             year: new BookYear(2020),
             isbn: new Isbn('9780132350884'),
             description: 'Old description',
             coverUrl: '/uploads/old-cover.jpg',
-            authorIds: [1]
+            authorIds: [1],
+            published: false
         );
 
         $this->bookRepository->expects($this->once())
@@ -61,14 +63,35 @@ final class UpdateBookUseCaseTest extends Unit
             ->with(42)
             ->willReturn($existingBook);
 
+        $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
+        $this->transaction->expects($this->once())
+            ->method('afterCommit')
+            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
+                $afterCommitCallback = $callback;
+            });
+        $this->transaction->expects($this->once())
+            ->method('commit')
+            ->willReturnCallback(function () use (&$afterCommitCallback): void {
+                if ($afterCommitCallback === null) {
+                    return;
+                }
+
+                $afterCommitCallback();
+            });
         $this->transaction->expects($this->never())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->callback(fn (Book $book) => $book->getTitle() === 'Updated Title'
                     && $book->getAuthorIds() === [1, 2]));
+
+        $this->eventPublisher->expects($this->once())
+            ->method('publishEvent')
+            ->with($this->callback(fn (BookUpdatedEvent $event) => $event->bookId === 42
+                && $event->oldYear === 2020
+                && $event->newYear === 2024
+                && $event->isPublished === false));
 
         $this->useCase->execute($command);
     }
@@ -108,7 +131,7 @@ final class UpdateBookUseCaseTest extends Unit
             authorIds: []
         );
 
-        $existingBook = new Book(
+        $existingBook = Book::reconstitute(
             id: 42,
             title: 'Old Title',
             year: new BookYear(2020),
@@ -116,6 +139,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Description',
             coverUrl: null,
             authorIds: [],
+            published: false
         );
 
         $this->bookRepository->expects($this->once())

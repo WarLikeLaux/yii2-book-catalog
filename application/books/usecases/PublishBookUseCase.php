@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace app\application\books\usecases;
 
-use app\application\books\commands\DeleteBookCommand;
+use app\application\books\commands\PublishBookCommand;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
-use app\domain\events\BookDeletedEvent;
+use app\domain\events\BookPublishedEvent;
 
-final readonly class DeleteBookUseCase
+final readonly class PublishBookUseCase
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
@@ -19,21 +19,23 @@ final readonly class DeleteBookUseCase
     ) {
     }
 
-    public function execute(DeleteBookCommand $command): void
+    public function execute(PublishBookCommand $command): void
     {
-        $book = $this->bookRepository->get($command->id);
-
-        $year = $book->getYear()->value;
-        $wasPublished = $book->isPublished();
-
         $this->transaction->begin();
 
         try {
-            $this->bookRepository->delete($book);
+            $book = $this->bookRepository->get($command->bookId);
 
-            $this->transaction->afterCommit(function () use ($command, $year, $wasPublished): void {
+            $book->publish();
+
+            $this->bookRepository->save($book);
+
+            $title = $book->getTitle();
+            $year = $book->getYear()->value;
+
+            $this->transaction->afterCommit(function () use ($command, $title, $year): void {
                 $this->eventPublisher->publishEvent(
-                    new BookDeletedEvent($command->id, $year, $wasPublished)
+                    new BookPublishedEvent($command->bookId, $title, $year)
                 );
             });
 

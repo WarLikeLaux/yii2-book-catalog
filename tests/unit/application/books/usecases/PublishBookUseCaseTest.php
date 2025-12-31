@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace tests\unit\application\books\usecases;
 
-use app\application\books\commands\DeleteBookCommand;
-use app\application\books\usecases\DeleteBookUseCase;
+use app\application\books\commands\PublishBookCommand;
+use app\application\books\usecases\PublishBookUseCase;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
-use app\domain\events\BookDeletedEvent;
-use app\domain\exceptions\EntityNotFoundException;
+use app\domain\events\BookPublishedEvent;
+use app\domain\exceptions\DomainException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class DeleteBookUseCaseTest extends Unit
+final class PublishBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
 
@@ -25,39 +25,34 @@ final class DeleteBookUseCaseTest extends Unit
 
     private EventPublisherInterface&MockObject $eventPublisher;
 
-    private DeleteBookUseCase $useCase;
+    private PublishBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
         $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
-        $this->useCase = new DeleteBookUseCase(
+        $this->useCase = new PublishBookUseCase(
             $this->bookRepository,
             $this->transaction,
             $this->eventPublisher
         );
     }
 
-    public function testExecuteDeletesBookSuccessfully(): void
+    public function testPublishesBookSuccessfully(): void
     {
-        $command = new DeleteBookCommand(id: 42);
-
-        $existingBook = Book::reconstitute(
+        $book = Book::reconstitute(
             id: 42,
-            title: 'Book to Delete',
-            year: new BookYear(2020),
+            title: 'Clean Code',
+            year: new BookYear(2008),
             isbn: new Isbn('9780132350884'),
-            description: 'Description',
+            description: 'A Handbook',
             coverUrl: null,
-            authorIds: [],
+            authorIds: [1, 2],
             published: false
         );
 
-        $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
-            ->willReturn($existingBook);
+        $command = new PublishBookCommand(bookId: 42);
 
         $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
@@ -78,64 +73,87 @@ final class DeleteBookUseCaseTest extends Unit
         $this->transaction->expects($this->never())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
-            ->method('delete')
-            ->with($existingBook);
+            ->method('get')
+            ->with(42)
+            ->willReturn($book);
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
+            ->with($this->callback(fn (Book $b) => $b->isPublished() === true));
 
         $this->eventPublisher->expects($this->once())
             ->method('publishEvent')
-            ->with($this->callback(fn (BookDeletedEvent $event) => $event->bookId === 42
-                && $event->year === 2020
-                && $event->wasPublished === false));
+            ->with($this->callback(fn (BookPublishedEvent $e) => $e->bookId === 42
+                    && $e->title === 'Clean Code'
+                    && $e->year === 2008));
 
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsExceptionWhenBookNotFound(): void
+    public function testThrowsDomainExceptionWithoutAuthors(): void
     {
-        $command = new DeleteBookCommand(id: 999);
-
-        $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(999)
-            ->willThrowException(new EntityNotFoundException('Book not found'));
-
-        $this->transaction->expects($this->never())->method('begin');
-        $this->bookRepository->expects($this->never())->method('delete');
-
-        $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage('Book not found');
-
-        $this->useCase->execute($command);
-    }
-
-    public function testExecuteRollsBackOnRepositoryException(): void
-    {
-        $command = new DeleteBookCommand(id: 42);
-
-        $existingBook = Book::reconstitute(
+        $book = Book::reconstitute(
             id: 42,
-            title: 'Book to Delete',
-            year: new BookYear(2020),
+            title: 'Book Without Authors',
+            year: new BookYear(2024),
             isbn: new Isbn('9780132350884'),
-            description: 'Description',
+            description: 'Test',
             coverUrl: null,
             authorIds: [],
-            published: true
+            published: false
         );
 
-        $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->willReturn($existingBook);
+        $command = new PublishBookCommand(bookId: 42);
 
         $this->transaction->expects($this->once())->method('begin');
         $this->transaction->expects($this->never())->method('commit');
         $this->transaction->expects($this->once())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
-            ->method('delete')
+            ->method('get')
+            ->with(42)
+            ->willReturn($book);
+
+        $this->bookRepository->expects($this->never())->method('save');
+        $this->eventPublisher->expects($this->never())->method('publishEvent');
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_authors');
+
+        $this->useCase->execute($command);
+    }
+
+    public function testRollsBackOnRepositoryException(): void
+    {
+        $book = Book::reconstitute(
+            id: 42,
+            title: 'Test Book',
+            year: new BookYear(2024),
+            isbn: new Isbn('9780132350884'),
+            description: 'Test',
+            coverUrl: null,
+            authorIds: [1],
+            published: false
+        );
+
+        $command = new PublishBookCommand(bookId: 42);
+
+        $this->transaction->expects($this->once())->method('begin');
+        $this->transaction->expects($this->never())->method('commit');
+        $this->transaction->expects($this->once())->method('rollBack');
+
+        $this->bookRepository->expects($this->once())
+            ->method('get')
+            ->willReturn($book);
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
 
+        $this->eventPublisher->expects($this->never())->method('publishEvent');
+
         $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('DB error');
 
         $this->useCase->execute($command);
     }
