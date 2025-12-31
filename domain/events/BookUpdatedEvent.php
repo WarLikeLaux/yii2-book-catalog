@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace app\domain\events;
 
-final readonly class BookCreatedEvent implements DomainEvent
+final readonly class BookUpdatedEvent implements DomainEvent
 {
     public function __construct(
         public int $bookId,
-        public string $title,
-        public int $year
+        public int $oldYear,
+        public int $newYear,
+        public bool $isPublished
     ) {
     }
 
     public function getEventType(): string
     {
-        return 'book.created';
+        return 'book.updated';
     }
 
     /**
@@ -25,8 +26,9 @@ final readonly class BookCreatedEvent implements DomainEvent
     {
         return [
             'bookId' => $this->bookId,
-            'title' => $this->title,
-            'year' => $this->year,
+            'oldYear' => $this->oldYear,
+            'newYear' => $this->newYear,
+            'isPublished' => $this->isPublished,
         ];
     }
 }

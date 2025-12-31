@@ -30,13 +30,15 @@ final class BookTest extends Unit
 
     public function testUpdate(): void
     {
-        $book = new Book(
+        $book = Book::reconstitute(
             1,
             'Old Title',
             new BookYear(2020),
             new Isbn('978-3-16-148410-0'),
             null,
-            null
+            null,
+            [],
+            false
         );
 
         $newYear = new BookYear(2024);
@@ -53,13 +55,115 @@ final class BookTest extends Unit
         $this->assertSame('http://new.com', $book->getCoverUrl(), 'Cover URL should not change if null passed');
     }
 
-    public function testAuthorSync(): void
+    public function testReplaceAuthors(): void
     {
         $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
 
-        $book->syncAuthors([1, '2', 3]);
+        $book->replaceAuthors([1, 2, 3]);
 
         $this->assertSame([1, 2, 3], $book->getAuthorIds());
+    }
+
+    public function testAddAuthor(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+
+        $book->addAuthor(1);
+        $book->addAuthor(2);
+
+        $this->assertSame([1, 2], $book->getAuthorIds());
+    }
+
+    public function testAddAuthorIsIdempotent(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+
+        $book->addAuthor(1);
+        $book->addAuthor(1);
+
+        $this->assertSame([1], $book->getAuthorIds());
+    }
+
+    public function testAddAuthorThrowsExceptionOnInvalidId(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.invalid_author_id');
+
+        $book->addAuthor(0);
+    }
+
+    public function testRemoveAuthor(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+        $book->replaceAuthors([1, 2, 3]);
+
+        $book->removeAuthor(2);
+
+        $this->assertSame([1, 3], $book->getAuthorIds());
+    }
+
+    public function testRemoveAuthorIsIdempotent(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+        $book->replaceAuthors([1, 2]);
+
+        $book->removeAuthor(3);
+
+        $this->assertSame([1, 2], $book->getAuthorIds());
+    }
+
+    public function testHasAuthor(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+        $book->addAuthor(1);
+
+        $this->assertTrue($book->hasAuthor(1));
+        $this->assertFalse($book->hasAuthor(2));
+    }
+
+    public function testChangeTrackingForNewBook(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+        $book->replaceAuthors([1, 2]);
+
+        $this->assertSame([1, 2], $book->getAddedAuthorIds());
+        $this->assertSame([], $book->getRemovedAuthorIds());
+        $this->assertTrue($book->hasAuthorChanges());
+    }
+
+    public function testChangeTrackingForReconstitutedBook(): void
+    {
+        $book = Book::reconstitute(
+            1,
+            'Title',
+            new BookYear(2023),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null,
+            [1, 2],
+            false
+        );
+
+        $book->removeAuthor(2);
+        $book->addAuthor(3);
+
+        $this->assertSame([3], $book->getAddedAuthorIds());
+        $this->assertSame([2], $book->getRemovedAuthorIds());
+        $this->assertTrue($book->hasAuthorChanges());
+    }
+
+    public function testMarkAuthorsPersistedResetsTracking(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+        $book->replaceAuthors([1, 2]);
+
+        $book->markAuthorsPersisted();
+
+        $this->assertSame([], $book->getAddedAuthorIds());
+        $this->assertSame([], $book->getRemovedAuthorIds());
+        $this->assertFalse($book->hasAuthorChanges());
     }
 
     public function testSetId(): void
@@ -85,7 +189,7 @@ final class BookTest extends Unit
     public function testPublishWithAuthorsSucceeds(): void
     {
         $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
-        $book->syncAuthors([1, 2]);
+        $book->replaceAuthors([1, 2]);
 
         $book->publish();
 
@@ -105,7 +209,7 @@ final class BookTest extends Unit
     public function testUpdateIsbnOnPublishedBookThrowsDomainException(): void
     {
         $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
-        $book->syncAuthors([1]);
+        $book->replaceAuthors([1]);
         $book->publish();
 
         $this->expectException(DomainException::class);
@@ -128,7 +232,7 @@ final class BookTest extends Unit
     {
         $isbn = new Isbn('978-3-16-148410-0');
         $book = Book::create('Title', new BookYear(2023), $isbn, null, null);
-        $book->syncAuthors([1]);
+        $book->replaceAuthors([1]);
         $book->publish();
 
         $book->update('New Title', new BookYear(2024), new Isbn('978-3-16-148410-0'), 'Desc', null);
