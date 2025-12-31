@@ -16,6 +16,15 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?= Html::a('Обновить', ['update', 'id' => $book->id], ['class' => 'btn btn-primary']) ?>
+        <?php if (!$book->isPublished): ?>
+            <?= Html::a('Опубликовать', ['publish', 'id' => $book->id], [
+                'class' => 'btn btn-success',
+                'data' => [
+                    'confirm' => 'Опубликовать книгу? Подписчики получат уведомления.',
+                    'method' => 'post',
+                ],
+            ]) ?>
+        <?php endif; ?>
         <?= Html::a('Удалить', ['delete', 'id' => $book->id], [
             'class' => 'btn btn-danger',
             'data' => [
@@ -26,6 +35,16 @@ $this->params['breadcrumbs'][] = $this->title;
     </p>
 
     <table class="table table-striped table-bordered">
+        <tr>
+            <th>Статус</th>
+            <td>
+                <?php if ($book->isPublished): ?>
+                    <span class="badge bg-success">Опубликовано</span>
+                <?php else: ?>
+                    <span class="badge bg-secondary">Черновик</span>
+                <?php endif; ?>
+            </td>
+        </tr>
         <tr>
             <th>Название</th>
             <td><?= Html::encode($book->title) ?></td>

@@ -8,9 +8,9 @@ use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
-use app\application\common\UseCaseExecutor;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\mappers\AuthorFormMapper;
+use app\presentation\common\services\WebUseCaseRunner;
 use Yii;
 
 final readonly class AuthorCommandHandler
@@ -20,7 +20,7 @@ final readonly class AuthorCommandHandler
         private CreateAuthorUseCase $createAuthorUseCase,
         private UpdateAuthorUseCase $updateAuthorUseCase,
         private DeleteAuthorUseCase $deleteAuthorUseCase,
-        private UseCaseExecutor $useCaseExecutor
+        private WebUseCaseRunner $useCaseRunner
     ) {
     }
 
@@ -29,7 +29,7 @@ final readonly class AuthorCommandHandler
         $command = $this->mapper->toCreateCommand($form);
 
         $authorId = null;
-        $success = $this->useCaseExecutor->execute(function () use ($command, &$authorId): void {
+        $success = $this->useCaseRunner->execute(function () use ($command, &$authorId): void {
             $authorId = $this->createAuthorUseCase->execute($command);
         }, Yii::t('app', 'Author has been created'));
 
@@ -40,7 +40,7 @@ final readonly class AuthorCommandHandler
     {
         $command = $this->mapper->toUpdateCommand($id, $form);
 
-        return $this->useCaseExecutor->execute(
+        return $this->useCaseRunner->execute(
             fn() => $this->updateAuthorUseCase->execute($command),
             Yii::t('app', 'Author has been updated'),
             ['author_id' => $id]
@@ -51,7 +51,7 @@ final readonly class AuthorCommandHandler
     {
         $command = new DeleteAuthorCommand($id);
 
-        return $this->useCaseExecutor->execute(
+        return $this->useCaseRunner->execute(
             fn() => $this->deleteAuthorUseCase->execute($command),
             Yii::t('app', 'Author has been deleted'),
             ['author_id' => $id]
