@@ -36,6 +36,7 @@ final class ReportCest
             'year' => $currentYear,
             'isbn' => '9783161484100',
             'description' => 'Test',
+            'is_published' => 1,
         ]);
 
         Yii::$app->db->createCommand()->insert('book_authors', [
@@ -57,12 +58,14 @@ final class ReportCest
             'year' => 2023,
             'isbn' => '9783161484101',
             'description' => 'Test',
+            'is_published' => 1,
         ]);
         $book2024 = $I->haveRecord(Book::class, [
             'title' => 'Book 2024',
             'year' => 2024,
             'isbn' => '9783161484102',
             'description' => 'Test',
+            'is_published' => 1,
         ]);
 
         Yii::$app->db->createCommand()->insert('book_authors', [
@@ -95,18 +98,21 @@ final class ReportCest
             'year' => $currentYear,
             'isbn' => '9783161484103',
             'description' => 'Test',
+            'is_published' => 1,
         ]);
         $book2 = $I->haveRecord(Book::class, [
             'title' => 'Book 2',
             'year' => $currentYear,
             'isbn' => '9783161484104',
             'description' => 'Test',
+            'is_published' => 1,
         ]);
         $book3 = $I->haveRecord(Book::class, [
             'title' => 'Book 3',
             'year' => $currentYear,
             'isbn' => '9783161484105',
             'description' => 'Test',
+            'is_published' => 1,
         ]);
 
         Yii::$app->db->createCommand()->insert('book_authors', [
@@ -146,6 +152,7 @@ final class ReportCest
                 'year' => $currentYear,
                 'isbn' => '978316148' . str_pad((string)$i, 4, '0', STR_PAD_LEFT),
                 'description' => 'Test',
+                'is_published' => 1,
             ]);
             Yii::$app->db->createCommand()->insert('book_authors', [
                 'book_id' => $bookId,

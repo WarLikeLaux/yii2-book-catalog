@@ -18,7 +18,8 @@ final readonly class BookReadDto
         public string $isbn,
         public array $authorIds,
         public array $authorNames = [],
-        public string|null $coverUrl = null
+        public string|null $coverUrl = null,
+        public bool $isPublished = false
     ) {
     }
 

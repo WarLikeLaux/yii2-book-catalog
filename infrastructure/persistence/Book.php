@@ -15,6 +15,7 @@ use yii\db\ActiveRecord;
  * @property string $isbn
  * @property string|null $description
  * @property string|null $cover_url
+ * @property int $is_published
  * @property int $created_at
  * @property int $updated_at
  * @property Author[] $authors
@@ -83,6 +84,7 @@ final class Book extends ActiveRecord
             [['isbn'], 'string', 'max' => 20],
             [['isbn'], 'unique'],
             [['cover_url'], 'string', 'max' => 500],
+            [['is_published'], 'boolean'],
         ];
     }
 

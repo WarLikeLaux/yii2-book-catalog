@@ -22,7 +22,6 @@ use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
 use yii\db\Expression;
 use yii\db\IntegrityException;
-use yii\db\Query;
 
 final readonly class BookRepository implements BookRepositoryInterface
 {
@@ -49,6 +48,7 @@ final readonly class BookRepository implements BookRepositoryInterface
         $ar->isbn = $book->getIsbn()->value;
         $ar->description = $book->getDescription();
         $ar->cover_url = $book->getCoverUrl();
+        $ar->is_published = (int)$book->isPublished();
 
         if ($this->existsByIsbn($book->getIsbn()->value, $book->getId())) {
             throw new AlreadyExistsException(
@@ -63,7 +63,8 @@ final readonly class BookRepository implements BookRepositoryInterface
             $book->setId($ar->id);
         }
 
-        $this->syncAuthorsInternal($ar->id, $book->getAuthorIds());
+        $this->persistAuthorChanges($book);
+        $book->markAuthorsPersisted();
     }
 
     public function get(int $id): BookEntity
@@ -77,14 +78,15 @@ final readonly class BookRepository implements BookRepositoryInterface
         $authors = $ar->authors;
         $authorIds = array_map(fn(Author $a) => $a->id, $authors);
 
-        return new BookEntity(
+        return BookEntity::reconstitute(
             id: $ar->id,
             title: $ar->title,
             year: new BookYear($ar->year),
             isbn: new Isbn($ar->isbn),
             description: $ar->description,
             coverUrl: $ar->cover_url,
-            authorIds: $authorIds
+            authorIds: $authorIds,
+            published: (bool)$ar->is_published
         );
     }
 
@@ -190,22 +192,15 @@ final readonly class BookRepository implements BookRepositoryInterface
         }
     }
 
-    /**
-     * @param int[] $newAuthorIds
-     */
-    private function syncAuthorsInternal(int $bookId, array $newAuthorIds): void
+    private function persistAuthorChanges(BookEntity $book): void
     {
-        $existingAuthorIds = (new Query())
-            ->select('author_id')
-            ->from('book_authors')
-            ->where(['book_id' => $bookId])
-            ->column();
+        $bookId = $book->getId();
+        if ($bookId === null) {
+            return; // @codeCoverageIgnore
+        }
 
-        $existingAuthorIds = array_map(intval(...), $existingAuthorIds);
-        $newAuthorIds = array_map(intval(...), $newAuthorIds);
-
-        $toDelete = array_diff($existingAuthorIds, $newAuthorIds);
-        $toAdd = array_diff($newAuthorIds, $existingAuthorIds);
+        $toDelete = $book->getRemovedAuthorIds();
+        $toAdd = $book->getAddedAuthorIds();
 
         if ($toDelete !== []) {
             \Yii::$app->db->createCommand()->delete('book_authors', [
@@ -220,7 +215,7 @@ final readonly class BookRepository implements BookRepositoryInterface
         }
 
         $rows = array_map(
-            fn($authorId): array => [$bookId, $authorId],
+            fn(int $authorId): array => [$bookId, $authorId],
             $toAdd
         );
         \Yii::$app->db->createCommand()->batchInsert(
@@ -245,7 +240,8 @@ final readonly class BookRepository implements BookRepositoryInterface
             isbn: $book->isbn,
             authorIds: array_keys($authorNames),
             authorNames: $authorNames,
-            coverUrl: $book->cover_url
+            coverUrl: $book->cover_url,
+            isPublished: (bool)$book->is_published
         );
     }
 
@@ -287,8 +283,15 @@ final readonly class BookRepository implements BookRepositoryInterface
         $subQuery = Author::find()
             ->select(new Expression('1'))
             ->innerJoin('book_authors ba', 'authors.id = ba.author_id')
-            ->where('ba.book_id = books.id')
-            ->andWhere(['like', 'authors.fio', $term]);
+            ->where('ba.book_id = books.id');
+
+        $fulltextQuery = $this->prepareFulltextQuery($term);
+        if ($fulltextQuery !== '' && $fulltextQuery !== '0') {
+            $subQuery->andWhere(new Expression(
+                'MATCH(authors.fio) AGAINST(:query IN BOOLEAN MODE)',
+                [':query' => $fulltextQuery]
+            ));
+        }
 
         return ['exists', $subQuery];
     }

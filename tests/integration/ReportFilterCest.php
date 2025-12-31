@@ -21,6 +21,7 @@ final class ReportFilterCest
             'year' => 2023,
             'isbn' => '9783161484100',
             'description' => 'Test',
+            'is_published' => 1,
         ]);
         Yii::$app->db->createCommand()
             ->insert('book_authors', ['book_id' => $bookId, 'author_id' => $authorId])

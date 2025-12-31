@@ -48,12 +48,8 @@ final class SubscriptionRepository implements SubscriptionRepositoryInterface
         foreach ($batches as $batch) {
             /** @var array<string, mixed> $row */
             foreach ($batch as $row) {
+                /** @var string $phone */
                 $phone = $row['phone'];
-                // @codeCoverageIgnoreStart Защитный код для PHPStan: БД всегда возвращает string для VARCHAR
-                if (!is_string($phone)) {
-                    continue;
-                }
-                // @codeCoverageIgnoreEnd
 
                 yield $phone;
             }
