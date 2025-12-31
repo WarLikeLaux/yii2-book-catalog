@@ -2,14 +2,6 @@
 
 declare(strict_types=1);
 
-use app\application\authors\queries\AuthorQueryService;
-use app\application\authors\usecases\CreateAuthorUseCase;
-use app\application\authors\usecases\DeleteAuthorUseCase;
-use app\application\authors\usecases\UpdateAuthorUseCase;
-use app\application\books\queries\BookQueryService;
-use app\application\books\usecases\CreateBookUseCase;
-use app\application\books\usecases\DeleteBookUseCase;
-use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
 use app\application\ports\AuthorRepositoryInterface;
@@ -26,9 +18,6 @@ use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
-use app\application\reports\queries\ReportQueryService;
-use app\application\subscriptions\queries\SubscriptionQueryService;
-use app\application\subscriptions\usecases\SubscribeUseCase;
 use app\infrastructure\adapters\YiiCacheAdapter;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\adapters\YiiQueueAdapter;
@@ -55,7 +44,7 @@ use yii\di\Container;
 
 return [
     'definitions' => [
-        // Инфраструктурные сервисы с явной конфигурацией
+        // Инфраструктурные сервисы
         SmsSenderInterface::class => static fn() => new SmsPilotSender(
             (string)env('SMS_API_KEY', 'MOCK_KEY'),
             new YiiPsrLogger('sms')
@@ -66,10 +55,16 @@ return [
             '/uploads'
         ),
 
-        // Репозитории
+        // Порты и адаптеры
         NotificationInterface::class => FlashNotificationService::class,
         TranslatorInterface::class => YiiTranslatorAdapter::class,
         IdempotencyInterface::class => IdempotencyRepository::class,
+
+        // Репозитории (с декораторами)
+        BookRepository::class => static fn(Container $c): BookRepository => new BookRepository(
+            Yii::$app->get('db'),
+            $c->get(TranslatorInterface::class)
+        ),
         BookRepositoryInterface::class => static function (Container $c): BookRepositoryInterface {
             $repo = $c->get(BookRepository::class);
             if ($c->has(TracerInterface::class)) {
@@ -77,6 +72,7 @@ return [
             }
             return $repo;
         },
+
         AuthorRepositoryInterface::class => static function (Container $c): AuthorRepositoryInterface {
             $repo = $c->get(AuthorRepository::class);
             if ($c->has(TracerInterface::class)) {
@@ -84,6 +80,10 @@ return [
             }
             return $repo;
         },
+
+        SubscriptionRepository::class => static fn(): SubscriptionRepository => new SubscriptionRepository(
+            Yii::$app->get('db')
+        ),
         SubscriptionRepositoryInterface::class => static function (Container $c): SubscriptionRepositoryInterface {
             $repo = $c->get(SubscriptionRepository::class);
             if ($c->has(TracerInterface::class)) {
@@ -92,7 +92,6 @@ return [
             return $repo;
         },
 
-        // Адаптеры, требующие доступа к компонентам Yii::$app
         ReportRepositoryInterface::class => static function (Container $c): ReportRepositoryInterface {
             $repo = new ReportRepository(Yii::$app->get('db'));
             if ($c->has(TracerInterface::class)) {
@@ -100,7 +99,11 @@ return [
             }
             return $repo;
         },
-        TransactionInterface::class => static fn() => new YiiTransactionAdapter(Yii::$app->get('db')),
+
+        // Инфраструктурные адаптеры
+        TransactionInterface::class => static fn(): TransactionInterface => new YiiTransactionAdapter(
+            Yii::$app->get('db')
+        ),
         QueueInterface::class => static fn() => new YiiQueueAdapter(Yii::$app->get('queue')),
         CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
         EventPublisherInterface::class => static fn(Container $c): EventPublisherInterface => new YiiEventPublisherAdapter(
@@ -109,23 +112,9 @@ return [
                 $c->get(ReportCacheInvalidationListener::class),
             ]
         ),
-
-        // UseCases (Transient, чтобы избежать захвата состояния транзакции)
-        CreateBookUseCase::class => CreateBookUseCase::class,
-        UpdateBookUseCase::class => UpdateBookUseCase::class,
-        DeleteBookUseCase::class => DeleteBookUseCase::class,
-        CreateAuthorUseCase::class => CreateAuthorUseCase::class,
-        UpdateAuthorUseCase::class => UpdateAuthorUseCase::class,
-        DeleteAuthorUseCase::class => DeleteAuthorUseCase::class,
-        SubscribeUseCase::class => SubscribeUseCase::class,
-
-        // Сервисы чтения данных (Query Services)
-        BookQueryService::class => BookQueryService::class,
-        AuthorQueryService::class => AuthorQueryService::class,
-        SubscriptionQueryService::class => SubscriptionQueryService::class,
-        ReportQueryService::class => ReportQueryService::class,
     ],
     'singletons' => [
+        // Stateless сервисы
         IdempotencyServiceInterface::class => IdempotencyService::class,
         TracerInterface::class => static function (Container $c): TracerInterface {
             if (!env('INSPECTOR_INGESTION_KEY')) {
