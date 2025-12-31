@@ -20,6 +20,7 @@ use app\infrastructure\persistence\Book;
 use RuntimeException;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
+use yii\db\Connection;
 use yii\db\Expression;
 use yii\db\IntegrityException;
 
@@ -28,6 +29,7 @@ final readonly class BookRepository implements BookRepositoryInterface
     use DatabaseExceptionHandlerTrait;
 
     public function __construct(
+        private Connection $db,
         private TranslatorInterface $translator
     ) {
     }
@@ -203,7 +205,7 @@ final readonly class BookRepository implements BookRepositoryInterface
         $toAdd = $book->getAddedAuthorIds();
 
         if ($toDelete !== []) {
-            \Yii::$app->db->createCommand()->delete('book_authors', [
+            $this->db->createCommand()->delete('book_authors', [
                 'and',
                 ['book_id' => $bookId],
                 ['in', 'author_id', $toDelete],
@@ -218,7 +220,7 @@ final readonly class BookRepository implements BookRepositoryInterface
             fn(int $authorId): array => [$bookId, $authorId],
             $toAdd
         );
-        \Yii::$app->db->createCommand()->batchInsert(
+        $this->db->createCommand()->batchInsert(
             'book_authors',
             ['book_id', 'author_id'],
             $rows
