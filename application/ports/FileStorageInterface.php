@@ -7,4 +7,6 @@ namespace app\application\ports;
 interface FileStorageInterface
 {
     public function save(string $tempPath, string $extension): string;
+
+    public function delete(string $url): void;
 }
