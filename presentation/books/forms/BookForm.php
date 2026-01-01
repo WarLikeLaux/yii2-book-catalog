@@ -77,12 +77,12 @@ final class BookForm extends RepositoryAwareForm
     public function attributeLabels(): array
     {
         return [
-            'title' => Yii::t('app', 'Title'),
-            'year' => Yii::t('app', 'Year'),
-            'description' => Yii::t('app', 'Description'),
-            'isbn' => Yii::t('app', 'ISBN'),
-            'cover' => Yii::t('app', 'Cover'),
-            'authorIds' => Yii::t('app', 'Authors'),
+            'title' => Yii::t('app', 'ui.title'),
+            'year' => Yii::t('app', 'ui.year'),
+            'description' => Yii::t('app', 'ui.description'),
+            'isbn' => Yii::t('app', 'ui.isbn'),
+            'cover' => Yii::t('app', 'ui.cover'),
+            'authorIds' => Yii::t('app', 'ui.authors'),
         ];
     }
 
@@ -101,7 +101,7 @@ final class BookForm extends RepositoryAwareForm
             return;
         }
 
-        $this->addError($attribute, Yii::t('app', 'Book with this ISBN already exists'));
+        $this->addError($attribute, Yii::t('app', 'book.error.isbn_exists_generic'));
     }
 
     public function validateAuthorsExist(string $attribute): void
@@ -125,7 +125,7 @@ final class BookForm extends RepositoryAwareForm
                 continue;
             }
 
-            $this->addError($attribute, Yii::t('app', 'Author with ID {id} does not exist', ['id' => $authorId]));
+            $this->addError($attribute, Yii::t('app', 'author.error.id_not_found', ['id' => $authorId]));
         }
     }
 }

@@ -46,7 +46,7 @@ final readonly class BookCommandHandler
         try {
             $command = $this->mapper->toCreateCommand($form, $coverPath);
             $bookId = $this->createBookUseCase->execute($command);
-            $this->notifier->success(Yii::t('app', 'Book has been created'));
+            $this->notifier->success(Yii::t('app', 'book.success.created'));
             return $bookId;
         } catch (DomainException $e) {
             $this->cleanupFile($coverPath);
@@ -67,7 +67,7 @@ final readonly class BookCommandHandler
         try {
             $command = $this->mapper->toUpdateCommand($id, $form, $coverPath);
             $this->updateBookUseCase->execute($command);
-            $this->notifier->success(Yii::t('app', 'Book has been updated'));
+            $this->notifier->success(Yii::t('app', 'book.success.updated'));
             return true;
         } catch (DomainException $e) {
             $this->cleanupFile($coverPath);
@@ -87,7 +87,7 @@ final readonly class BookCommandHandler
 
         return $this->useCaseRunner->execute(
             fn() => $this->deleteBookUseCase->execute($command),
-            Yii::t('app', 'Book has been deleted'),
+            Yii::t('app', 'book.success.deleted'),
             ['book_id' => $id]
         );
     }
@@ -98,7 +98,7 @@ final readonly class BookCommandHandler
 
         return $this->useCaseRunner->execute(
             fn() => $this->publishBookUseCase->execute($command),
-            Yii::t('app', 'Book has been published'),
+            Yii::t('app', 'book.success.published'),
             ['book_id' => $id]
         );
     }

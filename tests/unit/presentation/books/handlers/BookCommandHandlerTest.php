@@ -129,11 +129,11 @@ final class BookCommandHandlerTest extends Unit
         $this->translator->expects($this->once())
             ->method('translate')
             ->with('app', 'isbn.error.invalid_format')
-            ->willReturn('Invalid ISBN format');
+            ->willReturn('isbn.error.invalid_format');
 
         $form->expects($this->once())
             ->method('addError')
-            ->with('isbn', 'Invalid ISBN format');
+            ->with('isbn', 'isbn.error.invalid_format');
 
         $result = $this->handler->createBook($form);
 
@@ -166,7 +166,7 @@ final class BookCommandHandlerTest extends Unit
             ->with($coverPath);
 
         $this->errorMapper->method('getFieldForError')->willReturn('year');
-        $this->translator->method('translate')->willReturn('Year is too old');
+        $this->translator->method('translate')->willReturn('year.error.too_old');
 
         $form->cover = new UploadedFile([
             'name' => 'test.jpg',
@@ -202,11 +202,11 @@ final class BookCommandHandlerTest extends Unit
 
         $this->translator->expects($this->once())
             ->method('translate')
-            ->willReturn('Unknown error');
+            ->willReturn('some.unknown.error');
 
         $form->expects($this->once())
             ->method('addError')
-            ->with('title', 'Unknown error');
+            ->with('title', 'some.unknown.error');
 
         $result = $this->handler->createBook($form);
 
@@ -262,11 +262,11 @@ final class BookCommandHandlerTest extends Unit
         $this->translator->expects($this->once())
             ->method('translate')
             ->with('app', 'book.error.isbn_change_published')
-            ->willReturn('Cannot change ISBN of published book');
+            ->willReturn('book.error.isbn_change_published');
 
         $form->expects($this->once())
             ->method('addError')
-            ->with('isbn', 'Cannot change ISBN of published book');
+            ->with('isbn', 'book.error.isbn_change_published');
 
         $result = $this->handler->updateBook(123, $form);
 
@@ -299,7 +299,7 @@ final class BookCommandHandlerTest extends Unit
             ->with($coverPath);
 
         $this->errorMapper->method('getFieldForError')->willReturn('title');
-        $this->translator->method('translate')->willReturn('Title is empty');
+        $this->translator->method('translate')->willReturn('book.error.title_empty');
 
         $form->cover = new UploadedFile([
             'name' => 'test.jpg',
@@ -335,11 +335,11 @@ final class BookCommandHandlerTest extends Unit
         $this->translator->expects($this->once())
             ->method('translate')
             ->with('app', 'error.unexpected')
-            ->willReturn('Unexpected error occurred');
+            ->willReturn('error.unexpected');
 
         $this->notifier->expects($this->once())
             ->method('error')
-            ->with('Unexpected error occurred');
+            ->with('error.unexpected');
 
         $result = $this->handler->updateBook(123, $form);
 
@@ -370,11 +370,11 @@ final class BookCommandHandlerTest extends Unit
         $this->translator->expects($this->once())
             ->method('translate')
             ->with('app', 'error.unexpected')
-            ->willReturn('Unexpected error occurred');
+            ->willReturn('error.unexpected');
 
         $this->notifier->expects($this->once())
             ->method('error')
-            ->with('Unexpected error occurred');
+            ->with('error.unexpected');
 
         $result = $this->handler->createBook($form);
 

@@ -55,10 +55,10 @@ final class WebUseCaseRunnerTest extends Unit
         $this->translator->expects($this->once())
             ->method('translate')
             ->with('app', 'domain.error.key')
-            ->willReturn('Translated error');
+            ->willReturn('domain.error.key');
         $this->notifier->expects($this->once())
             ->method('error')
-            ->with('Translated error');
+            ->with('domain.error.key');
         $this->notifier->expects($this->never())
             ->method('success');
         $this->logger->expects($this->never())
@@ -76,10 +76,10 @@ final class WebUseCaseRunnerTest extends Unit
         $this->translator->expects($this->once())
             ->method('translate')
             ->with('app', 'error.unexpected', [])
-            ->willReturn('unexpected');
+            ->willReturn('error.unexpected');
         $this->notifier->expects($this->once())
             ->method('error')
-            ->with('unexpected');
+            ->with('error.unexpected');
         $this->notifier->expects($this->never())
             ->method('success');
 
@@ -115,7 +115,7 @@ final class WebUseCaseRunnerTest extends Unit
 
     public function testExecuteForApiHandlesUnexpectedExceptionWithLogging(): void
     {
-        $this->translator->method('translate')->willReturn('error');
+        $this->translator->method('translate')->willReturn('error.unexpected');
 
         $exception = new \RuntimeException('api boom');
         $logContext = ['requestId' => '123'];
@@ -133,6 +133,6 @@ final class WebUseCaseRunnerTest extends Unit
             throw $exception;
         }, 'ok', $logContext);
 
-        $this->assertSame(['success' => false, 'message' => 'error'], $result);
+        $this->assertSame(['success' => false, 'message' => 'error.unexpected'], $result);
     }
 }

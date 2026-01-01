@@ -40,8 +40,8 @@ final class SubscriptionForm extends RepositoryAwareForm
     public function attributeLabels(): array
     {
         return [
-            'phone' => Yii::t('app', 'Phone'),
-            'authorId' => Yii::t('app', 'Author'),
+            'phone' => Yii::t('app', 'ui.phone'),
+            'authorId' => Yii::t('app', 'ui.author'),
         ];
     }
 
@@ -53,13 +53,13 @@ final class SubscriptionForm extends RepositoryAwareForm
             $phoneNumber = $phoneUtil->parse($this->$attribute, PhoneNumberUtil::UNKNOWN_REGION);
 
             if (!$phoneUtil->isValidNumber($phoneNumber)) {
-                $this->addError($attribute, Yii::t('app', 'Invalid phone format'));
+                $this->addError($attribute, Yii::t('app', 'phone.error.invalid_format'));
                 return;
             }
 
             $this->$attribute = $phoneUtil->format($phoneNumber, PhoneNumberFormat::E164);
         } catch (NumberParseException) {
-            $this->addError($attribute, Yii::t('app', 'Invalid phone format. Use international format (e.g., +79991234567)'));
+            $this->addError($attribute, Yii::t('app', 'phone.error.invalid_format_hint'));
         }
     }
 
@@ -68,14 +68,14 @@ final class SubscriptionForm extends RepositoryAwareForm
         $value = $this->$attribute;
 
         if (!is_int($value) && !is_string($value)) {
-            $this->addError($attribute, Yii::t('app', 'Invalid author ID')); // @codeCoverageIgnore
+            $this->addError($attribute, Yii::t('app', 'author.error.invalid_id')); // @codeCoverageIgnore
             return; // @codeCoverageIgnore
         }
 
         $authorId = (int)$value;
 
         if ($authorId <= 0) {
-            $this->addError($attribute, Yii::t('app', 'Invalid author ID'));
+            $this->addError($attribute, Yii::t('app', 'author.error.invalid_id'));
             return;
         }
 
@@ -85,6 +85,6 @@ final class SubscriptionForm extends RepositoryAwareForm
             return;
         }
 
-        $this->addError($attribute, Yii::t('app', 'Author does not exist'));
+        $this->addError($attribute, Yii::t('app', 'author.error.not_exists'));
     }
 }

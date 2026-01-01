@@ -5,8 +5,8 @@ declare(strict_types=1);
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
 
-$this->title = Yii::t('app', 'Update Author');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Authors'), 'url' => ['index']];
+$this->title = Yii::t('app', 'ui.author_update');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.authors'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= $form->field($model, 'fio')->textInput(['maxlength' => true]) ?>
 
     <div class="form-group">
-        <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success']) ?>
+        <?= Html::submitButton(Yii::t('app', 'ui.save'), ['class' => 'btn btn-success']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

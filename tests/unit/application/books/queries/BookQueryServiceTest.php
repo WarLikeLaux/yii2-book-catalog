@@ -55,7 +55,7 @@ final class BookQueryServiceTest extends Unit
             ->willReturn(null);
 
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Book not found');
+        $this->expectExceptionMessage('book.error.not_found');
 
         $this->service->getById(999);
     }

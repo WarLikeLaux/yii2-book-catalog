@@ -34,7 +34,7 @@ final class AuthorForm extends RepositoryAwareForm
     public function attributeLabels(): array
     {
         return [
-            'fio' => Yii::t('app', 'FIO'),
+            'fio' => Yii::t('app', 'ui.fio'),
         ];
     }
 
@@ -53,6 +53,6 @@ final class AuthorForm extends RepositoryAwareForm
             return;
         }
 
-        $this->addError($attribute, Yii::t('app', 'Author with this FIO already exists'));
+        $this->addError($attribute, Yii::t('app', 'author.error.fio_exists'));
     }
 }

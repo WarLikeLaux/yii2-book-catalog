@@ -47,7 +47,7 @@ final class SubscribeUseCaseTest extends Unit
         $this->repository->method('exists')->willReturn(true);
 
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('You are already subscribed to this author');
+        $this->expectExceptionMessage('subscription.error.already_subscribed');
 
         $this->useCase->execute($command);
     }
@@ -60,7 +60,7 @@ final class SubscribeUseCaseTest extends Unit
         $this->repository->method('save')->willThrowException(new \Exception('DB Error'));
 
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Could not create subscription. Please try again later.');
+        $this->expectExceptionMessage('subscription.error.create_failed');
 
         $this->useCase->execute($command);
     }

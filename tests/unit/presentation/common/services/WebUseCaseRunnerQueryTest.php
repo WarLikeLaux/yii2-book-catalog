@@ -41,8 +41,8 @@ final class WebUseCaseRunnerQueryTest extends Unit
         $this->translator->expects($this->once())
             ->method('translate')
             ->with('app', 'domain.error.key')
-            ->willReturn('Translated domain error');
-        $this->notifier->expects($this->once())->method('error')->with('Translated domain error');
+            ->willReturn('domain.error.key');
+        $this->notifier->expects($this->once())->method('error')->with('domain.error.key');
 
         $result = $this->runner->query(
             fn() => throw new DomainException('domain.error.key'),
@@ -72,7 +72,7 @@ final class WebUseCaseRunnerQueryTest extends Unit
         $this->translator->expects($this->once())
             ->method('translate')
             ->with('app', 'domain.error.key')
-            ->willReturn('Translated domain error');
+            ->willReturn('domain.error.key');
 
         $result = $this->runner->executeForApi(
             fn() => throw new DomainException('domain.error.key'),
@@ -80,14 +80,14 @@ final class WebUseCaseRunnerQueryTest extends Unit
         );
 
         $this->assertFalse($result['success']);
-        $this->assertSame('Translated domain error', $result['message']);
+        $this->assertSame('domain.error.key', $result['message']);
     }
 
     public function testExecuteForApiReturnsGenericError(): void
     {
         $this->translator->expects($this->once())
             ->method('translate')
-            ->willReturn('unexpected error');
+            ->willReturn('error.unexpected');
         $this->logger->expects($this->once())->method('error');
 
         $result = $this->runner->executeForApi(
@@ -96,6 +96,6 @@ final class WebUseCaseRunnerQueryTest extends Unit
         );
 
         $this->assertFalse($result['success']);
-        $this->assertSame('unexpected error', $result['message']);
+        $this->assertSame('error.unexpected', $result['message']);
     }
 }

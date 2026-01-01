@@ -12,6 +12,7 @@ use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookPublishedEvent;
 use app\domain\exceptions\DomainException;
+use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use Codeception\Test\Unit;
@@ -25,6 +26,8 @@ final class PublishBookUseCaseTest extends Unit
 
     private EventPublisherInterface&MockObject $eventPublisher;
 
+    private BookPublicationPolicy $publicationPolicy;
+
     private PublishBookUseCase $useCase;
 
     protected function _before(): void
@@ -32,10 +35,12 @@ final class PublishBookUseCaseTest extends Unit
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
         $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
+        $this->publicationPolicy = new BookPublicationPolicy();
         $this->useCase = new PublishBookUseCase(
             $this->bookRepository,
             $this->transaction,
-            $this->eventPublisher
+            $this->eventPublisher,
+            $this->publicationPolicy
         );
     }
 

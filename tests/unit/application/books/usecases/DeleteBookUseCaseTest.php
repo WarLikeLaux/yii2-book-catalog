@@ -98,13 +98,13 @@ final class DeleteBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('get')
             ->with(999)
-            ->willThrowException(new EntityNotFoundException('Book not found'));
+            ->willThrowException(new EntityNotFoundException('book.error.not_found'));
 
         $this->transaction->expects($this->never())->method('begin');
         $this->bookRepository->expects($this->never())->method('delete');
 
         $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage('Book not found');
+        $this->expectExceptionMessage('book.error.not_found');
 
         $this->useCase->execute($command);
     }

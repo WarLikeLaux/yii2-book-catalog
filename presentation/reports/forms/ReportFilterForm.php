@@ -34,7 +34,7 @@ final class ReportFilterForm extends Model
     public function attributeLabels(): array
     {
         return [
-            'year' => Yii::t('app', 'Year'),
+            'year' => Yii::t('app', 'ui.year'),
         ];
     }
 

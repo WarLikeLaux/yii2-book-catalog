@@ -24,7 +24,7 @@ final class IsbnValidator extends Validator
             return;
         }
 
-        $this->message = Yii::t('app', 'Invalid ISBN. Use ISBN-10 or ISBN-13 format.');
+        $this->message = Yii::t('app', 'isbn.error.invalid_format_hint');
     }
 
     #[\Override]

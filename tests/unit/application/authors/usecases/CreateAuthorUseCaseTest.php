@@ -52,7 +52,7 @@ final class CreateAuthorUseCaseTest extends Unit
             ->willThrowException(new \RuntimeException('DB error'));
 
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Failed to create author');
+        $this->expectExceptionMessage('author.error.create_failed');
 
         $this->useCase->execute($command);
     }

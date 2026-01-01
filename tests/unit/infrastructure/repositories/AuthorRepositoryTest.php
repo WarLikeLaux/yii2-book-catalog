@@ -169,7 +169,7 @@ final class AuthorRepositoryTest extends Unit
         $author2 = AuthorEntity::create('Unique Author');
 
         $this->expectException(AlreadyExistsException::class);
-        $this->expectExceptionMessage('Author with this FIO already exists');
+        $this->expectExceptionMessage('author.error.fio_exists');
         $this->repository->save($author2);
     }
 }

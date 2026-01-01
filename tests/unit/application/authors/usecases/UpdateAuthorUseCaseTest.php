@@ -50,12 +50,12 @@ final class UpdateAuthorUseCaseTest extends Unit
         $this->authorRepository->expects($this->once())
             ->method('get')
             ->with(999)
-            ->willThrowException(new EntityNotFoundException('Author not found'));
+            ->willThrowException(new EntityNotFoundException('author.error.not_found'));
 
         $this->authorRepository->expects($this->never())->method('save');
 
         $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage('Author not found');
+        $this->expectExceptionMessage('author.error.not_found');
 
         $this->useCase->execute($command);
     }
@@ -75,7 +75,7 @@ final class UpdateAuthorUseCaseTest extends Unit
             ->willThrowException(new \RuntimeException('DB error'));
 
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Failed to update author');
+        $this->expectExceptionMessage('author.error.update_failed');
 
         $this->useCase->execute($command);
     }
