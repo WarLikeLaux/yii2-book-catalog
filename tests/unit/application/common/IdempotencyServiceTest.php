@@ -95,6 +95,29 @@ final class IdempotencyServiceTest extends Unit
         $this->assertNull($result->redirectUrl);
     }
 
+    public function testGetRecordIgnoresPayloadWhenStatusStarted(): void
+    {
+        $key = 'test-key';
+        $savedData = [
+            'status' => 'started',
+            'status_code' => 201,
+            'body' => (string)json_encode(['redirect_url' => '/should-not-use']),
+        ];
+
+        $this->repository->expects($this->once())
+            ->method('getRecord')
+            ->with($key)
+            ->willReturn($savedData);
+
+        $result = $this->service->getRecord($key);
+
+        $this->assertNotNull($result);
+        $this->assertSame(IdempotencyKeyStatus::Started, $result->status);
+        $this->assertNull($result->statusCode);
+        $this->assertSame([], $result->data);
+        $this->assertNull($result->redirectUrl);
+    }
+
     public function testGetRecordReturnsNullOnUnknownStatus(): void
     {
         $key = 'test-key';
