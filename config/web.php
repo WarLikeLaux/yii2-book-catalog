@@ -7,6 +7,10 @@ require_once __DIR__ . '/env.php';
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
+if (!YII_ENV_DEV && env('COOKIE_VALIDATION_KEY', '') === '') {
+    throw new RuntimeException('COOKIE_VALIDATION_KEY must be set in production');
+}
+
 $config = [
     'id' => 'basic',
     'name' => 'Yii 2 Book Catalog',

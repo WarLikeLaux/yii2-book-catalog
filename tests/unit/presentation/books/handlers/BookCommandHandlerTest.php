@@ -11,8 +11,6 @@ use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\ports\FileStorageInterface;
-use app\application\ports\NotificationInterface;
-use app\application\ports\TranslatorInterface;
 use app\domain\exceptions\DomainException;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
@@ -21,7 +19,6 @@ use app\presentation\books\mappers\DomainErrorToFormMapper;
 use app\presentation\common\services\WebUseCaseRunner;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
-use Psr\Log\LoggerInterface;
 use yii\web\UploadedFile;
 
 final class BookCommandHandlerTest extends Unit
@@ -42,12 +39,6 @@ final class BookCommandHandlerTest extends Unit
 
     private FileStorageInterface&MockObject $fileStorage;
 
-    private NotificationInterface&MockObject $notifier;
-
-    private TranslatorInterface&MockObject $translator;
-
-    private LoggerInterface&MockObject $logger;
-
     private BookCommandHandler $handler;
 
     protected function _before(): void
@@ -60,9 +51,6 @@ final class BookCommandHandlerTest extends Unit
         $this->publishBookUseCase = $this->createMock(PublishBookUseCase::class);
         $this->useCaseRunner = $this->createMock(WebUseCaseRunner::class);
         $this->fileStorage = $this->createMock(FileStorageInterface::class);
-        $this->notifier = $this->createMock(NotificationInterface::class);
-        $this->translator = $this->createMock(TranslatorInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
 
         $this->handler = new BookCommandHandler(
             $this->mapper,
@@ -72,10 +60,7 @@ final class BookCommandHandlerTest extends Unit
             $this->deleteBookUseCase,
             $this->publishBookUseCase,
             $this->useCaseRunner,
-            $this->fileStorage,
-            $this->notifier,
-            $this->translator,
-            $this->logger
+            $this->fileStorage
         );
     }
 
@@ -96,8 +81,9 @@ final class BookCommandHandlerTest extends Unit
             ->with($command)
             ->willReturn(42);
 
-        $this->notifier->expects($this->once())
-            ->method('success');
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(fn(callable $action) => $action());
 
         $result = $this->handler->createBook($form);
 
@@ -117,23 +103,51 @@ final class BookCommandHandlerTest extends Unit
 
         $exception = new DomainException('isbn.error.invalid_format');
 
-        $this->createBookUseCase->expects($this->once())
-            ->method('execute')
-            ->willThrowException($exception);
-
         $this->errorMapper->expects($this->once())
             ->method('getFieldForError')
             ->with('isbn.error.invalid_format')
             ->willReturn('isbn');
 
-        $this->translator->expects($this->once())
-            ->method('translate')
-            ->with('app', 'isbn.error.invalid_format')
-            ->willReturn('isbn.error.invalid_format');
-
         $form->expects($this->once())
             ->method('addError')
-            ->with('isbn', 'isbn.error.invalid_format');
+            ->with('isbn', $this->anything());
+
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(function ($action, $msg, $onDomainError, $onError) use ($exception) {
+                $onError();
+                $onDomainError($exception);
+                return null;
+            });
+
+        $result = $this->handler->createBook($form);
+
+        $this->assertNull($result);
+    }
+
+    public function testCreateBookWithDomainExceptionAndNullCoverDoesNotCallDelete(): void
+    {
+        $form = $this->createMock(BookForm::class);
+        $form->cover = null;
+
+        $command = $this->createMock(CreateBookCommand::class);
+
+        $this->mapper->expects($this->once())
+            ->method('toCreateCommand')
+            ->willReturn($command);
+
+        $this->fileStorage->expects($this->never())
+            ->method('delete');
+
+        $this->errorMapper->method('getFieldForError')->willReturn('isbn');
+
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(function ($action, $msg, $onDomainError, $onError) {
+                $onError();
+                $onDomainError(new DomainException('isbn.error.invalid_format'));
+                return null;
+            });
 
         $result = $this->handler->createBook($form);
 
@@ -155,23 +169,26 @@ final class BookCommandHandlerTest extends Unit
             ->method('toCreateCommand')
             ->willReturn($command);
 
-        $exception = new DomainException('year.error.too_old');
-
-        $this->createBookUseCase->expects($this->once())
-            ->method('execute')
-            ->willThrowException($exception);
-
         $this->fileStorage->expects($this->once())
             ->method('delete')
             ->with($coverPath);
 
         $this->errorMapper->method('getFieldForError')->willReturn('year');
-        $this->translator->method('translate')->willReturn('year.error.too_old');
 
         $form->cover = new UploadedFile([
             'name' => 'test.jpg',
             'tempName' => '/tmp/test.jpg',
         ]);
+
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(function ($action, $msg, $onDomainError, $onError) {
+                if ($onError !== null) {
+                    $onError();
+                }
+                $onDomainError(new DomainException('year.error.too_old'));
+                return null;
+            });
 
         $result = $this->handler->createBook($form);
 
@@ -191,22 +208,22 @@ final class BookCommandHandlerTest extends Unit
 
         $exception = new DomainException('some.unknown.error');
 
-        $this->createBookUseCase->expects($this->once())
-            ->method('execute')
-            ->willThrowException($exception);
-
         $this->errorMapper->expects($this->once())
             ->method('getFieldForError')
             ->with('some.unknown.error')
             ->willReturn(null);
 
-        $this->translator->expects($this->once())
-            ->method('translate')
-            ->willReturn('some.unknown.error');
-
         $form->expects($this->once())
             ->method('addError')
-            ->with('title', 'some.unknown.error');
+            ->with('title', $this->anything());
+
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(function ($action, $msg, $onDomainError, $onError) use ($exception) {
+                $onError();
+                $onDomainError($exception);
+                return null;
+            });
 
         $result = $this->handler->createBook($form);
 
@@ -229,8 +246,9 @@ final class BookCommandHandlerTest extends Unit
             ->method('execute')
             ->with($command);
 
-        $this->notifier->expects($this->once())
-            ->method('success');
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(fn(callable $action) => $action());
 
         $result = $this->handler->updateBook(123, $form);
 
@@ -250,23 +268,51 @@ final class BookCommandHandlerTest extends Unit
 
         $exception = new DomainException('book.error.isbn_change_published');
 
-        $this->updateBookUseCase->expects($this->once())
-            ->method('execute')
-            ->willThrowException($exception);
-
         $this->errorMapper->expects($this->once())
             ->method('getFieldForError')
             ->with('book.error.isbn_change_published')
             ->willReturn('isbn');
 
-        $this->translator->expects($this->once())
-            ->method('translate')
-            ->with('app', 'book.error.isbn_change_published')
-            ->willReturn('book.error.isbn_change_published');
-
         $form->expects($this->once())
             ->method('addError')
-            ->with('isbn', 'book.error.isbn_change_published');
+            ->with('isbn', $this->anything());
+
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(function ($action, $msg, $onDomainError, $onError) use ($exception) {
+                $onError();
+                $onDomainError($exception);
+                return null;
+            });
+
+        $result = $this->handler->updateBook(123, $form);
+
+        $this->assertFalse($result);
+    }
+
+    public function testUpdateBookWithDomainExceptionAndNullCoverDoesNotCallDelete(): void
+    {
+        $form = $this->createMock(BookForm::class);
+        $form->cover = null;
+
+        $command = $this->createMock(UpdateBookCommand::class);
+
+        $this->mapper->expects($this->once())
+            ->method('toUpdateCommand')
+            ->willReturn($command);
+
+        $this->fileStorage->expects($this->never())
+            ->method('delete');
+
+        $this->errorMapper->method('getFieldForError')->willReturn('isbn');
+
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(function ($action, $msg, $onDomainError, $onError) {
+                $onError();
+                $onDomainError(new DomainException('book.error.isbn_change_published'));
+                return null;
+            });
 
         $result = $this->handler->updateBook(123, $form);
 
@@ -288,97 +334,30 @@ final class BookCommandHandlerTest extends Unit
             ->method('toUpdateCommand')
             ->willReturn($command);
 
-        $exception = new DomainException('book.error.title_empty');
-
-        $this->updateBookUseCase->expects($this->once())
-            ->method('execute')
-            ->willThrowException($exception);
-
         $this->fileStorage->expects($this->once())
             ->method('delete')
             ->with($coverPath);
 
         $this->errorMapper->method('getFieldForError')->willReturn('title');
-        $this->translator->method('translate')->willReturn('book.error.title_empty');
 
         $form->cover = new UploadedFile([
             'name' => 'test.jpg',
             'tempName' => '/tmp/test.jpg',
         ]);
 
-        $result = $this->handler->updateBook(123, $form);
-
-        $this->assertFalse($result);
-    }
-
-    public function testUpdateBookWithUnexpectedExceptionLogsAndNotifiesError(): void
-    {
-        $form = $this->createMock(BookForm::class);
-        $form->cover = null;
-
-        $command = $this->createMock(UpdateBookCommand::class);
-
-        $this->mapper->expects($this->once())
-            ->method('toUpdateCommand')
-            ->willReturn($command);
-
-        $exception = new \RuntimeException('Database connection failed');
-
-        $this->updateBookUseCase->expects($this->once())
-            ->method('execute')
-            ->willThrowException($exception);
-
-        $this->logger->expects($this->once())
-            ->method('error')
-            ->with('Database connection failed', $this->arrayHasKey('exception'));
-
-        $this->translator->expects($this->once())
-            ->method('translate')
-            ->with('app', 'error.unexpected')
-            ->willReturn('error.unexpected');
-
-        $this->notifier->expects($this->once())
-            ->method('error')
-            ->with('error.unexpected');
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(function ($action, $msg, $onDomainError, $onError) {
+                if ($onError !== null) {
+                    $onError();
+                }
+                $onDomainError(new DomainException('book.error.title_empty'));
+                return null;
+            });
 
         $result = $this->handler->updateBook(123, $form);
 
         $this->assertFalse($result);
-    }
-
-    public function testCreateBookWithUnexpectedExceptionLogsAndNotifiesError(): void
-    {
-        $form = $this->createMock(BookForm::class);
-        $form->cover = null;
-
-        $command = $this->createMock(CreateBookCommand::class);
-
-        $this->mapper->expects($this->once())
-            ->method('toCreateCommand')
-            ->willReturn($command);
-
-        $exception = new \RuntimeException('Database connection failed');
-
-        $this->createBookUseCase->expects($this->once())
-            ->method('execute')
-            ->willThrowException($exception);
-
-        $this->logger->expects($this->once())
-            ->method('error')
-            ->with('Database connection failed', $this->arrayHasKey('exception'));
-
-        $this->translator->expects($this->once())
-            ->method('translate')
-            ->with('app', 'error.unexpected')
-            ->willReturn('error.unexpected');
-
-        $this->notifier->expects($this->once())
-            ->method('error')
-            ->with('error.unexpected');
-
-        $result = $this->handler->createBook($form);
-
-        $this->assertNull($result);
     }
 
     public function testPublishBookExecutesUseCase(): void

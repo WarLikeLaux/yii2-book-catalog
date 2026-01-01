@@ -135,4 +135,87 @@ final class WebUseCaseRunnerTest extends Unit
 
         $this->assertSame(['success' => false, 'message' => 'error.unexpected'], $result);
     }
+
+    public function testExecuteWithFormErrorsReturnsResultOnSuccess(): void
+    {
+        $this->notifier->expects($this->once())
+            ->method('success')
+            ->with('created');
+
+        $onDomainErrorCalled = false;
+
+        $result = $this->runner->executeWithFormErrors(
+            fn() => 42,
+            'created',
+            function () use (&$onDomainErrorCalled): void {
+                $onDomainErrorCalled = true;
+            }
+        );
+
+        $this->assertSame(42, $result);
+        $this->assertFalse($onDomainErrorCalled);
+    }
+
+    public function testExecuteWithFormErrorsCallsOnDomainErrorCallback(): void
+    {
+        $exception = new DomainException('test.error');
+        $receivedException = null;
+
+        $this->notifier->expects($this->never())->method('success');
+
+        $result = $this->runner->executeWithFormErrors(
+            function () use ($exception): void {
+                throw $exception;
+            },
+            'ok',
+            function (DomainException $e) use (&$receivedException): void {
+                $receivedException = $e;
+            }
+        );
+
+        $this->assertNull($result);
+        $this->assertSame($exception, $receivedException);
+    }
+
+    public function testExecuteWithFormErrorsCallsOnErrorCallbackOnDomainException(): void
+    {
+        $onErrorCalled = false;
+
+        $this->runner->executeWithFormErrors(
+            function (): void {
+                throw new DomainException('test.error');
+            },
+            'ok',
+            function (): void {
+            },
+            function () use (&$onErrorCalled): void {
+                $onErrorCalled = true;
+            }
+        );
+
+        $this->assertTrue($onErrorCalled);
+    }
+
+    public function testExecuteWithFormErrorsCallsOnErrorCallbackOnUnexpectedException(): void
+    {
+        $onErrorCalled = false;
+        $this->translator->method('translate')->willReturn('error.unexpected');
+
+        $this->logger->expects($this->once())->method('error');
+        $this->notifier->expects($this->once())->method('error');
+
+        $this->runner->executeWithFormErrors(
+            function (): void {
+                throw new \RuntimeException('boom');
+            },
+            'ok',
+            function (): void {
+            },
+            function () use (&$onErrorCalled): void {
+                $onErrorCalled = true;
+            }
+        );
+
+        $this->assertTrue($onErrorCalled);
+    }
 }
