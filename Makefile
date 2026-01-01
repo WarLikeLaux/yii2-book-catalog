@@ -1,4 +1,4 @@
-.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-e2e test-coverage infection load-test migrate seed queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached
+.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-unit test-integration test-e2e test-coverage coverage cov infection load-test migrate seed queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -28,6 +28,7 @@ help:
 	@echo "  \033[35mtest-unit\033[0m        ⚡ Только Unit-тесты (Быстрые)"
 	@echo "  \033[35mtest-integration\033[0m 🌐 Только Integration-тесты (С БД)"
 	@echo "  \033[35mtest-e2e\033[0m         🎭 Только E2E-тесты (Acceptance)"
+	@echo "  \033[35mcov\033[0m              📊 Краткий отчет покрытия (coverage.txt)"
 	@echo "  \033[35minfection\033[0m        🧟 \033[1mМутационное тестирование\033[0m"
 	@echo "  \033[35mdeptrac\033[0m          🏗️  Архитектурный анализ"
 	@echo "  \033[35manalyze\033[0m          🔍 Статический анализ (PHPStan Level 9)"
@@ -228,6 +229,14 @@ test: _test-init
 		--coverage --coverage-xml --coverage-html --coverage-text \
 		--coverage-phpunit --xml=junit.xml --no-colors
 	@sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml
+
+test-unit:
+	@echo "🚀 Запуск Unit тестов..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit --no-colors
+
+test-integration: _test-init
+	@echo "🚀 Запуск Integration тестов..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration --no-colors
 
 test-e2e: _test-init
 	@echo "🚀 Запуск E2E тестов..."

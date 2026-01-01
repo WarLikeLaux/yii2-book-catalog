@@ -70,8 +70,8 @@ graph TD
         Nginx["Nginx (Web Server)"]
         PHP["PHP-FPM (Application)"]
         Worker["Queue Worker (PHP CLI)"]
-        DB[("MySQL 8.0 (Database)")]
-        Redis[("Redis (Cache/Queue)")]
+        DB[("MySQL 8.0 (Database + Queue Table)")]
+        Redis[("Redis (Cache)")]
     end
     
     SMS["SMS Provider"]
@@ -80,10 +80,10 @@ graph TD
     Nginx -- FastCGI --> PHP
     
     PHP -- Read/Write --> DB
-    PHP -- Push Jobs --> Redis
+    PHP -- Push Jobs --> DB
     PHP -- Cache --> Redis
     
-    Worker -- Pop Jobs --> Redis
+    Worker -- Pop Jobs --> DB
     Worker -- Read/Write --> DB
     Worker -- API Calls --> SMS
     
@@ -92,6 +92,8 @@ graph TD
     style DB fill:#2f95c4,stroke:#206a8c,color:#ffffff
     style Redis fill:#2f95c4,stroke:#206a8c,color:#ffffff
 ```
+
+Очередь работает через DB-драйвер (`yii\queue\db\Queue`): задания лежат в MySQL. Redis используется только как кэш.
 
 #### Level 3: Components (Application Layer)
 **Внутреннее устройство Application Layer (Clean Architecture).**
@@ -102,6 +104,7 @@ graph TD
         Controller[Web Controller]
         Handler[Command Handler]
         Mapper[Mapper]
+        Filter[Idempotency Filter]
     end
 
     subgraph Application ["Application Layer (Pure PHP)"]
@@ -128,6 +131,7 @@ graph TD
     Controller -- "1. Form DTO" --> Handler
     Handler -- "2. Map to Command" --> Mapper
     Handler -- "3. Execute Command" --> UseCase
+    Filter -- "Mutex Lock" --> Handler
     
     %% Logic Flow
     UseCase -- "4. Business Logic" --> Entity
@@ -379,14 +383,17 @@ public function actionCreate(): string|Response|array
 public function createBook(BookForm $form): ?int
 {
     $coverPath = $this->uploadCover($form);
-    $command = $this->mapper->toCreateCommand($form, $coverPath);
-
-    $bookId = null;
-    $success = $this->useCaseExecutor->execute(function () use ($command, &$bookId): void {
+    
+    try {
+        $command = $this->mapper->toCreateCommand($form, $coverPath);
         $bookId = $this->createBookUseCase->execute($command);
-    }, Yii::t('app', 'Book has been created'));
-
-    return $success ? $bookId : null;
+        $this->notifier->success(Yii::t('app', 'Book has been created'));
+        return $bookId;
+    } catch (DomainException $e) {
+        $this->cleanupFile($coverPath);
+        $this->addFormError($form, $e); // Маппинг ошибки на поле формы
+        return null;
+    }
 }
 ```
 
@@ -405,16 +412,16 @@ public function execute(CreateBookCommand $command): int
             coverUrl: $command->cover
         );
         
-        $book->syncAuthors($command->authorIds);
+        $book->replaceAuthors($command->authorIds);
         $this->bookRepository->save($book);
         $bookId = $book->getId();
         
-        $this->transaction->commit();
-        
-        $this->eventPublisher->publishEvent(
-            new BookCreatedEvent($bookId, $command->title)
+        // Отправка события ТОЛЬКО после успешного коммита
+        $this->transaction->afterCommit(fn() => 
+            $this->eventPublisher->publishEvent(new BookCreatedEvent($bookId))
         );
         
+        $this->transaction->commit();
         return $bookId;
     } catch (\Throwable $e) {
         $this->transaction->rollBack();
@@ -627,17 +634,18 @@ interface BookRepositoryInterface
 // Реализация (infrastructure/repositories/)
 class BookRepository implements BookRepositoryInterface
 {
+    public function __construct(private Connection $db) {} // Инъекция!
+
     public function save(BookEntity $book): void
     {
-        $ar = Book::findOne($book->getId()) ?? new Book();
-        $ar->title = $book->getTitle();
-        // ... mapping properties
+        // ... mapping
         $ar->save();
-        $book->setId($ar->id);
+        
+        // ... saving relations using $this->db
     }
 }
 ```
-✅ **Результат:** UseCase зависит от интерфейса. В тестах — mock.
+✅ **Результат:** UseCase зависит от интерфейса. Репозиторий **не использует глобальный Yii::$app**.
 
 ---
 
@@ -686,12 +694,12 @@ $this->sendEmail(...);  // А если email упадёт?
 **Стало:**
 ```php
 // UseCase
-$this->eventPublisher->publishEvent(new BookCreatedEvent($bookId));
-// Книга создана. Точка. UseCase не знает про SMS.
-
-// Инфраструктура слушает событие
-// BookCreatedEvent → Queue → NotifySubscribersJob → SMS
+// Отправка события через afterCommit (гарантия согласованности)
+$this->transaction->afterCommit(fn() => 
+    $this->eventPublisher->publishEvent(new BookCreatedEvent($bookId))
+);
 ```
+Слушатели получают событие синхронно через `EventListenerInterface`, а в очередь уходят только события, реализующие `QueueableEvent`.
 ✅ **Результат:** упал SMS? Книга всё равно создана. SMS повторится из очереди.
 
 ---
@@ -741,82 +749,43 @@ class Book extends ActiveRecord
 // domain/entities/Book.php — чистый PHP, без Yii
 final class Book
 {
-    public function __construct(
-        private ?int $id,
-        private string $title,
-        private BookYear $year,    // Value Object
-        private Isbn $isbn,        // Value Object
-        private ?string $description,
-        private ?string $coverUrl
-    ) {}
-
-    public static function create(
-        string $title,
-        BookYear $year,
-        Isbn $isbn,
-        ?string $description,
-        ?string $coverUrl
-    ): self {
-        return new self(null, $title, $year, $isbn, $description, $coverUrl);
-    }
-
-    public function update(string $title, BookYear $year, Isbn $isbn, ...): void
+    // ...
+    public function publish(): void
     {
-        $this->title = $title;
-        $this->year = $year;
-        // Бизнес-логика без persistence
+        if ($this->authorIds === []) {
+            throw new DomainException('book.error.publish_without_authors');
+        }
+        $this->published = true;
     }
+    
+    // Сущность сама управляет своими авторами
+    public function addAuthor(int $authorId): void { ... }
 }
 ```
 ✅ **Результат:** Entity не знает о БД. Тестируется без инфраструктуры. Value Objects гарантируют валидность.
 
 ---
 
-### 10. Ports & Adapters (Hexagonal)
+### 10. Optimistic Locking (Конкурентность)
 
 **Было:**
 ```php
-// UseCase напрямую использует Yii
-class CreateBookUseCase
-{
-    public function execute($data): int
-    {
-        Yii::$app->queue->push(new NotifyJob(...));  // Зависимость от Yii
-    }
-}
+// Менеджер А открыл книгу. Менеджер Б открыл ту же книгу.
+// А сохранил. Б сохранил (затер изменения А).
 ```
-❌ **Проблема:** UseCase привязан к Yii. Нельзя заменить очередь.
+❌ **Проблема:** Потеря данных (Lost Update).
 
 **Стало:**
 ```php
-// application/ports/EventPublisherInterface.php — контракт
-interface EventPublisherInterface
-{
-    public function publishEvent(DomainEvent $event): void;
-}
-
-// infrastructure/adapters/YiiEventPublisherAdapter.php — реализация
-final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
-{
-    public function __construct(private QueueInterface $queue) {}
-
-    public function publishEvent(DomainEvent $event): void
-    {
-        if ($event instanceof BookCreatedEvent) {
-            $this->queue->push(new NotifySubscribersJob($event->bookId));
-        }
-    }
-}
-
-// UseCase зависит от интерфейса
-class CreateBookUseCase
-{
-    public function __construct(
-        private EventPublisherInterface $eventPublisher
-    ) {}
+// Repository
+try {
+    $ar->version = $book->getVersion();
+    $ar->save(); // Проверяет version = DB.version
+} catch (StaleObjectException $e) {
+    throw new StaleDataException(); // Контроллер покажет ошибку
 }
 ```
-✅ **Результат:** UseCase не знает о Yii. Легко подменить реализацию (Redis, RabbitMQ, mock).
+✅ **Результат:** Менеджер Б получит сообщение "Данные устарели, обновите страницу". Данные в безопасности.
 
 ---
 
@@ -846,26 +815,15 @@ final readonly class BookCommandHandler
     public function createBook(BookForm $form): ?int
     {
         $coverPath = $this->uploadCover($form);
-        $command = $this->mapper->toCreateCommand($form, $coverPath);
-
-        $bookId = null;
-        $this->useCaseExecutor->execute(function () use ($command, &$bookId): void {
-            $bookId = $this->createBookUseCase->execute($command);
-        }, Yii::t('app', 'Book has been created'));
-
-        return $bookId;
+        
+        try {
+            $command = $this->mapper->toCreateCommand($form, $coverPath);
+            return $this->createBookUseCase->execute($command);
+        } catch (DomainException $e) {
+            $this->addFormError($form, $e); // Маппинг ошибки на поле
+            return null;
+        }
     }
-}
-
-// Контроллер — тонкий координатор
-public function actionCreate(): string|Response|array
-{
-    $form = new BookForm();
-    if ($form->validate()) {
-        $bookId = $this->commandHandler->createBook($form);  // Делегирует
-        if ($bookId) return $this->redirect(['view', 'id' => $bookId]);
-    }
-    return $this->render('create', ['model' => $form]);
 }
 ```
 ✅ **Результат:** Handler инкапсулирует логику. Контроллер только координирует HTTP.
@@ -939,47 +897,51 @@ try {
 
 ## 📁 Структура этого проекта
 
-```
-├── application/           # 🧠 Мозг (чистый PHP, БЕЗ Yii)
-│   ├── books/            # Модуль Книги
-│   │   ├── commands/     # CreateBookCommand, UpdateBookCommand
-│   │   ├── queries/      # BookQueryService, BookReadDto
-│   │   └── usecases/     # CreateBookUseCase, DeleteBookUseCase
-│   ├── authors/          # Модуль Авторы (аналогичная структура)
-│   ├── subscriptions/    # Модуль Подписки
-│   ├── common/           # UseCaseExecutor, общие DTO
-│   └── ports/            # Интерфейсы (контракты)
-│
-├── domain/               # 💎 Ядро (чистый PHP, БЕЗ Yii)
-│   ├── entities/         # Rich Entities: Book, Author, Subscription
-│   ├── events/           # BookCreatedEvent, DomainEvent
-│   ├── exceptions/       # DomainException, EntityNotFoundException
-│   └── values/           # Isbn, BookYear
-│
-├── infrastructure/       # 🔧 Реализации (ЗАВИСИТ от Yii)
-│   ├── adapters/         # YiiEventPublisher, YiiTranslator
-│   ├── persistence/      # ActiveRecord: Book, Author
-│   ├── repositories/     # BookRepository implements BookRepositoryInterface
-│   │   └── decorators/   # Tracing Decorators
-│   ├── queue/            # NotifySubscribersJob
-│   ├── services/         # SmsService, FileStorage
-│   └── phpstan/          # Custom правила статического анализа
-│
-└── presentation/         # 🖥 UI (ЗАВИСИТ от Yii) — модульная структура
-    ├── controllers/      # Тонкие контроллеры (HTTP-логика)
-    ├── books/            # Модуль Книги
-    │   ├── forms/        # BookForm extends yii\base\Model
-    │   ├── handlers/     # BookCommandHandler, BookViewFactory
-    │   ├── mappers/      # BookFormMapper
-    │   └── validators/   # IsbnValidator (Format only)
-    ├── authors/          # Модуль Авторы
-    │   ├── forms/        # AuthorForm
-    │   ├── handlers/     # AuthorCommandHandler
-    │   └── mappers/      # AuthorFormMapper
-    ├── subscriptions/    # Модуль Подписки
-    ├── common/           # Базовые виджеты, адаптеры
-    ├── views/            # Шаблоны
-    └── dto/              # DTO слоя представления
+```text
+yii2-book-catalog/
+├── assets/                  # Frontend assets
+├── bin/                     # Кастомные скрипты
+├── application/             # Application Layer (Use Cases, Queries, Ports)
+│   ├── books/               # Модуль "Книги"
+│   │   ├── commands/        # DTO команд (CreateBookCommand)
+│   │   ├── queries/         # DTO запросов (BookReadDto)
+│   │   └── usecases/        # Сценарии (CreateBookUseCase)
+│   ├── authors/             # Модуль "Авторы" (аналогичная структура)
+│   ├── subscriptions/       # Модуль "Подписки"
+│   ├── reports/             # Модуль "Отчеты"
+│   ├── common/              # Общие компоненты (IdempotencyService, DTO)
+│   └── ports/               # Интерфейсы (EventPublisher, EventListener, Mutex, Repository)
+├── domain/                  # Domain Layer (Чистый PHP)
+│   ├── entities/            # Rich Entities (Book, Author)
+│   ├── events/              # Domain Events & QueueableEvent
+│   ├── exceptions/          # Domain Exceptions (StaleDataException)
+│   └── values/              # Value Objects (Isbn, BookYear)
+├── infrastructure/          # Infrastructure Layer (Реализации портов)
+│   ├── adapters/            # Адаптеры (YiiEventPublisher, YiiMutex, YiiTransaction)
+│   ├── listeners/           # Event Listeners (ReportCacheInvalidation)
+│   ├── persistence/         # ActiveRecord модели (только для маппинга)
+│   ├── queue/               # Queue Jobs
+│   ├── repositories/        # Реализации репозиториев (Strict DI)
+│   │   └── decorators/      # Tracing Decorators
+│   └── services/            # Инфраструктурные сервисы (Logger, Storage)
+├── presentation/            # Presentation Layer (Yii2 & Web)
+│   ├── controllers/         # Тонкие контроллеры
+│   ├── books/               # Модуль Книги (Forms, Handlers, Mappers)
+│   ├── authors/             # Модуль Авторы
+│   ├── common/              # Общие виджеты, фильтры и сервисы (WebUseCaseRunner, IdempotencyFilter)
+│   ├── mail/                # Шаблоны писем
+│   └── views/               # Шаблоны (Views)
+├── commands/                # Console контроллеры (CLI)
+├── config/                  # Конфигурация приложения
+├── db-data/                 # Данные локальной БД (volume)
+├── docker/                  # Docker-конфигурация
+├── messages/                # Переводы i18n
+├── migrations/              # Миграции БД
+├── runtime/                 # Runtime кэш/логи
+├── tests/                   # Тесты
+├── tools/                   # Инструменты разработки (PHPUnit, Rector)
+├── web/                     # Web root
+└── docs/                    # Документация
 ```
 
 **Независимы от Yii:** `application/` + `domain/` — можно перенести в Symfony/Laravel без изменений.
