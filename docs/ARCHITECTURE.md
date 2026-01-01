@@ -119,7 +119,7 @@ graph TD
     end
 
     subgraph Infrastructure ["Infrastructure Layer"]
-        RepoImpl[Repository Impl]
+        RepoImpl[Repository/QueryService Impl]
         Adapter[Adapter Impl]
         AR[ActiveRecord]
         Job[Queue Job]
@@ -479,7 +479,7 @@ final readonly class Isbn
 | **Изменить провайдера SMS** | Правим контроллер | Правим сервис | Новый адаптер |
 | **Копипаста Create/Update** | 80% | 50% | 10% |
 | **Правила домена** | В контроллере | В сервисе | Entity/Policy |
-| **Поиск/фильтрация** | AR в контроллере | AR в сервисе | Specifications + Repository |
+| **Поиск/фильтрация** | AR в контроллере | AR в сервисе | Specifications + QueryService |
 | **Onboarding нового дева** | ⚡ 1 день | 2-3 дня | 1 неделя |
 | **Поддержка через 2 года** | 😱 Ад | 😐 Норм | 😊 Легко |
 
@@ -631,8 +631,17 @@ $book->save();
 // Интерфейс (application/ports/)
 interface BookRepositoryInterface
 {
-    public function findById(int $id): ?BookReadDto;
-    public function create(string $title, BookYear $year, ...): int;
+    public function save(Book $book): void;
+    public function get(int $id): Book;
+    public function delete(Book $book): void;
+    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool;
+}
+
+// Отдельный read-порт (ISP)
+interface BookQueryServiceInterface
+{
+    public function findByIdWithAuthors(int $id): ?BookReadDto;
+    public function search(string $term, int $page, int $pageSize): PagedResultInterface;
 }
 
 // Реализация (infrastructure/repositories/)
@@ -650,6 +659,7 @@ class BookRepository implements BookRepositoryInterface
 }
 ```
 ✅ **Результат:** UseCase зависит от интерфейса. Репозиторий **не использует глобальный Yii::$app**.
+Read‑операции вынесены в отдельный `BookQueryServiceInterface` (ISP), чтобы query‑логика не тянула write‑контракт.
 
 ---
 
@@ -905,8 +915,8 @@ return Book::find()
 // Domain: фабрика спецификаций
 $spec = $this->specFactory->create($term);
 
-// Repository: выполняет спецификацию
-$result = $this->bookRepository->searchBySpecification($spec);
+// QueryService: выполняет спецификацию
+$result = $this->bookQueryService->searchBySpecification($spec);
 ```
 ✅ **Результат:** критерии формализованы в домене, а SQL остаётся в инфраструктуре.
 
@@ -942,7 +952,7 @@ yii2-book-catalog/
 │   ├── subscriptions/       # Модуль "Подписки"
 │   ├── reports/             # Модуль "Отчеты"
 │   ├── common/              # Общие компоненты (IdempotencyService, DTO)
-│   └── ports/               # Интерфейсы (EventPublisher, EventListener, Mutex, Repository)
+│   └── ports/               # Интерфейсы (EventPublisher, EventListener, Mutex, Repository, QueryService)
 ├── domain/                  # Domain Layer (Чистый PHP)
 │   ├── entities/            # Rich Entities (Book, Author)
 │   ├── events/              # Domain Events & QueueableEvent

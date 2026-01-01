@@ -8,7 +8,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-411_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-415_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-96%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -54,7 +54,7 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **411 тестов** (925 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **415 тестов** (915 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Custom Architecture Rules | 🛠 **Makefile**<br>Автоматизация рутины |
 | ✅ **Mutation Testing**<br>Infection PHP (MSI > 96%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
@@ -76,8 +76,8 @@
 ### 1. Application Layer (Use Cases, CQS, Ports)
 Реализован **CQS (Command Query Separation)** и зависимости через порты:
 *   **Write Side (Команды):** операции изменения состояния инкапсулированы в **Use Cases** (`CreateBookUseCase`, `SubscribeUseCase`). Входные данные строго типизированы через **Command DTO** (`CreateBookCommand`).
-*   **Read Side (Запросы):** чтение данных отделено от бизнес-логики. **QueryServices** возвращают DTO (`BookReadDto`) и `PagedResult` с чистым `PaginationDto` вместо ActiveRecord моделей и framework-объектов.
-*   **Ports:** интерфейсы репозиториев и внешних сервисов находятся в `application/ports` (namespace: `app\application\ports`). Use Cases зависят только от портов, не от конкретных реализаций фреймворка.
+*   **Read Side (Запросы):** чтение данных отделено от бизнес-логики. query‑сервисы зависят от `BookQueryServiceInterface`, возвращают DTO (`BookReadDto`) и `PagedResult` с чистым `PaginationDto` вместо ActiveRecord моделей и framework-объектов.
+*   **Ports:** интерфейсы репозиториев (write), query‑портов (read) и внешних сервисов находятся в `application/ports` (namespace: `app\application\ports`). Use Cases зависят только от портов, не от конкретных реализаций фреймворка.
 *   **Event Publisher:** Use Cases публикуют доменные события через `EventPublisherInterface`, а не создают job напрямую. Это изолирует application layer от инфраструктуры.
 *   **Контроллеры:** выступают оркестраторами. Загружают данные в формы и запускают валидацию, но делегируют выполнение бизнес-операций в Command Handlers, а выборку данных — в View Data Factories. Не содержат самой бизнес-логики.
 
@@ -209,7 +209,7 @@ final readonly class BookCommandHandler
 Реализован "умный" поиск по каталогу без использования внешних движков (Elasticsearch), но с оптимизацией под MySQL и чистыми спецификациями в домене.
 *   **FullText Index:** используется для поиска по `title` и `description` (O(1)).
 *   **Exact Match:** для ISBN и Года используются точные совпадения.
-*   **Specifications:** `BookSearchSpecificationFactory` собирает критерии, а репозиторий выполняет `searchBySpecification()`.
+*   **Specifications:** `BookSearchSpecificationFactory` собирает критерии, а query‑порт выполняет `searchBySpecification()`.
 *   **UX:** обернуто в **PJAX** для фильтрации без перезагрузки страницы.
 
 ### 11. Dependency Injection
@@ -217,6 +217,8 @@ final readonly class BookCommandHandler
 
 **Порты application layer (`application/ports`):**
 *   `EventPublisherInterface`: публикация доменных событий. Реализация в `infrastructure/adapters/`.
+*   `BookRepositoryInterface`: write‑порт для сохранения агрегатов. Реализация в `infrastructure/repositories/`.
+*   `BookQueryServiceInterface`: read‑порт для запросов книг (поиск/страницы). Реализация в `infrastructure/repositories/`.
 *   `EventListenerInterface`: синхронные обработчики доменных событий. Реализация в `infrastructure/listeners/`.
 *   `NotificationInterface`: уведомления пользователя (Flash messages, логи). Реализации в `infrastructure/services/notifications/`.
 *   `TranslatorInterface`: переводы сообщений. Реализация в `infrastructure/adapters/`.
@@ -244,7 +246,7 @@ yii2-book-catalog/
 │   ├── subscriptions/       # Модуль "Подписки"
 │   ├── reports/             # Модуль "Отчеты"
 │   ├── common/              # Общие компоненты (IdempotencyService, DTO)
-│   └── ports/               # Интерфейсы (EventPublisher, EventListener, Mutex, Repository)
+│   └── ports/               # Интерфейсы (EventPublisher, EventListener, Mutex, Repository, QueryService)
 ├── domain/                  # Domain Layer (Чистый PHP)
 │   ├── entities/            # Rich Entities (Book, Author)
 │   ├── events/              # Domain Events & QueueableEvent
@@ -359,8 +361,8 @@ yii2-book-catalog/
 #### 🏗 Архитектура (Zero-Invasive)
 Трейсинг внедрен без вмешательства в бизнес-логику (Domain/UseCases) через паттерны **Decorator** и **Bootstrap**:
 
-1.  **Repository Decorators:**
-    *   Все репозитории обернуты в декораторы (например, `AuthorRepositoryTracingDecorator`).
+1.  **Repository/QueryService Decorators:**
+    *   Репозитории и query‑сервисы обернуты в декораторы (например, `AuthorRepositoryTracingDecorator`).
     *   Автоматически создают spans для методов `save()`, `delete()`, `findById()`.
     *   Добавляют в контекст SQL-запросы, параметры и время выполнения.
 
@@ -377,7 +379,7 @@ yii2-book-catalog/
 *   Полный **Waterfall** выполнения запроса.
 *   Все **SQL-запросы** с подсветкой синтаксиса и временем выполнения.
 *   **HTTP заголовки**, Query Params и JSON Payload.
-*   Иерархию вызовов (Controller -> UseCase -> Repository).
+*   Иерархию вызовов (Controller -> UseCase -> Repository / QueryService).
 
 ## 🚀 Установка и запуск
 
@@ -422,8 +424,8 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>411</b><br>Tests</td>
-<td align="center"><b>925</b><br>Assertions</td>
+<td align="center"><b>415</b><br>Tests</td>
+<td align="center"><b>915</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~26s</b><br>Runtime</td>
 </tr>
@@ -453,11 +455,11 @@ open http://localhost:8000
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 339 | Чистая бизнес-логика без БД и фреймворка |
+| **Unit** | 343 | Чистая бизнес-логика без БД и фреймворка |
 | **Integration** | 72 | CRUD, API, Use Cases, HTTP-сценарии с БД |
 | **E2E** | 17 | Приемочные тесты (Acceptance) |
 
-Метрики `make test-coverage` включают **Unit + Integration** (411 tests, 925 assertions). E2E запускаются отдельно.
+Метрики `make test-coverage` включают **Unit + Integration** (415 tests, 915 assertions). E2E запускаются отдельно.
 
 **Unit Tests покрывают:**
 - **Application Layer**: UseCases, Commands, QueryResult, PaginationRequest, IdempotencyService
@@ -517,8 +519,8 @@ open http://localhost:8000
 ### 📊 Статистика проекта
 
 ![Source Code](https://img.shields.io/badge/Source_Code-6.4k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-8.2k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-175-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-8.3k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-176-purple?style=for-the-badge&logo=php&logoColor=white)
 ![Test Files](https://img.shields.io/badge/Test_Files-100-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
