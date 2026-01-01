@@ -10,6 +10,7 @@ use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
+use app\application\common\dto\TemporaryFile;
 use app\application\ports\FileStorageInterface;
 use app\domain\exceptions\DomainException;
 use app\presentation\books\forms\BookForm;
@@ -35,31 +36,44 @@ final readonly class BookCommandHandler
 
     public function createBook(BookForm $form): int|null
     {
-        $coverPath = $this->uploadCover($form);
-        $command = $this->mapper->toCreateCommand($form, $coverPath);
+        $coverFile = $this->uploadCover($form);
+        $command = $this->mapper->toCreateCommand($form, $coverFile?->url);
 
-        return $this->useCaseRunner->executeWithFormErrors(
+        $result = $this->useCaseRunner->executeWithFormErrors(
             fn(): int => $this->createBookUseCase->execute($command),
             Yii::t('app', 'book.success.created'),
             fn(DomainException $e) => $this->addFormError($form, $e),
-            fn() => $this->cleanupFile($coverPath)
+            fn() => $this->cleanupTempFile($coverFile)
         );
+
+        if ($result !== null) {
+            $this->finalizeCover($coverFile);
+        }
+
+        return $result;
     }
 
     public function updateBook(int $id, BookForm $form): bool
     {
-        $coverPath = $this->uploadCover($form);
-        $command = $this->mapper->toUpdateCommand($id, $form, $coverPath);
+        $coverFile = $this->uploadCover($form);
+        $command = $this->mapper->toUpdateCommand($id, $form, $coverFile?->url);
 
-        return $this->useCaseRunner->executeWithFormErrors(
+        $result = $this->useCaseRunner->executeWithFormErrors(
             function () use ($command): bool {
                 $this->updateBookUseCase->execute($command);
                 return true;
             },
             Yii::t('app', 'book.success.updated'),
             fn(DomainException $e) => $this->addFormError($form, $e),
-            fn() => $this->cleanupFile($coverPath)
-        ) ?? false;
+            fn() => $this->cleanupTempFile($coverFile)
+        );
+
+        if ($result === null) {
+            return false;
+        }
+
+        $this->finalizeCover($coverFile);
+        return $result;
     }
 
     public function deleteBook(int $id): bool
@@ -85,10 +99,10 @@ final readonly class BookCommandHandler
     }
 
     /** @codeCoverageIgnore Делегирует в FileStorage, который покрыт отдельно */
-    private function uploadCover(BookForm $form): string|null
+    private function uploadCover(BookForm $form): TemporaryFile|null
     {
         if ($form->cover instanceof UploadedFile) {
-            return $this->fileStorage->save($form->cover->tempName, $form->cover->extension);
+            return $this->fileStorage->saveTemporary($form->cover->tempName, $form->cover->extension);
         }
         return null;
     }
@@ -101,12 +115,21 @@ final readonly class BookCommandHandler
         $form->addError($field ?? 'title', $message);
     }
 
-    private function cleanupFile(string|null $path): void
+    private function cleanupTempFile(TemporaryFile|null $file): void
     {
-        if ($path === null) {
+        if (!$file instanceof TemporaryFile) {
             return;
         }
 
-        $this->fileStorage->delete($path);
+        $this->fileStorage->deleteTemporary($file);
+    }
+
+    private function finalizeCover(TemporaryFile|null $file): void
+    {
+        if (!$file instanceof TemporaryFile) {
+            return;
+        }
+
+        $this->fileStorage->moveToPermanent($file);
     }
 }

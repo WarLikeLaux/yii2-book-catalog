@@ -10,6 +10,7 @@ use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
+use app\application\common\dto\TemporaryFile;
 use app\application\ports\FileStorageInterface;
 use app\domain\exceptions\DomainException;
 use app\presentation\books\forms\BookForm;
@@ -90,6 +91,44 @@ final class BookCommandHandlerTest extends Unit
         $this->assertSame(42, $result);
     }
 
+    public function testCreateBookMovesCoverAfterSuccess(): void
+    {
+        $form = $this->createMock(BookForm::class);
+        $form->cover = new UploadedFile([
+            'name' => 'test.jpg',
+            'tempName' => '/tmp/test.jpg',
+        ]);
+
+        $command = $this->createMock(CreateBookCommand::class);
+        $tempFile = new TemporaryFile('/tmp/test.jpg', '/uploads/test.jpg');
+
+        $this->fileStorage->expects($this->once())
+            ->method('saveTemporary')
+            ->willReturn($tempFile);
+
+        $this->mapper->expects($this->once())
+            ->method('toCreateCommand')
+            ->with($form, $tempFile->url)
+            ->willReturn($command);
+
+        $this->createBookUseCase->expects($this->once())
+            ->method('execute')
+            ->with($command)
+            ->willReturn(7);
+
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(fn(callable $action) => $action());
+
+        $this->fileStorage->expects($this->once())
+            ->method('moveToPermanent')
+            ->with($tempFile);
+
+        $result = $this->handler->createBook($form);
+
+        $this->assertSame(7, $result);
+    }
+
     public function testCreateBookWithDomainExceptionAddsFormError(): void
     {
         $form = $this->createMock(BookForm::class);
@@ -137,7 +176,7 @@ final class BookCommandHandlerTest extends Unit
             ->willReturn($command);
 
         $this->fileStorage->expects($this->never())
-            ->method('delete');
+            ->method('deleteTemporary');
 
         $this->errorMapper->method('getFieldForError')->willReturn('isbn');
 
@@ -159,19 +198,19 @@ final class BookCommandHandlerTest extends Unit
         $form = $this->createMock(BookForm::class);
 
         $command = $this->createMock(CreateBookCommand::class);
-        $coverPath = '/uploads/test-cover.jpg';
+        $tempFile = new TemporaryFile('/tmp/test-cover.jpg', '/uploads/test-cover.jpg');
 
         $this->fileStorage->expects($this->once())
-            ->method('save')
-            ->willReturn($coverPath);
+            ->method('saveTemporary')
+            ->willReturn($tempFile);
 
         $this->mapper->expects($this->once())
             ->method('toCreateCommand')
             ->willReturn($command);
 
         $this->fileStorage->expects($this->once())
-            ->method('delete')
-            ->with($coverPath);
+            ->method('deleteTemporary')
+            ->with($tempFile);
 
         $this->errorMapper->method('getFieldForError')->willReturn('year');
 
@@ -302,7 +341,7 @@ final class BookCommandHandlerTest extends Unit
             ->willReturn($command);
 
         $this->fileStorage->expects($this->never())
-            ->method('delete');
+            ->method('deleteTemporary');
 
         $this->errorMapper->method('getFieldForError')->willReturn('isbn');
 
@@ -322,11 +361,11 @@ final class BookCommandHandlerTest extends Unit
     public function testUpdateBookWithDomainExceptionCleansUpFile(): void
     {
         $form = $this->createMock(BookForm::class);
-        $coverPath = '/uploads/new-cover.jpg';
+        $tempFile = new TemporaryFile('/tmp/new-cover.jpg', '/uploads/new-cover.jpg');
 
         $this->fileStorage->expects($this->once())
-            ->method('save')
-            ->willReturn($coverPath);
+            ->method('saveTemporary')
+            ->willReturn($tempFile);
 
         $command = $this->createMock(UpdateBookCommand::class);
 
@@ -335,8 +374,8 @@ final class BookCommandHandlerTest extends Unit
             ->willReturn($command);
 
         $this->fileStorage->expects($this->once())
-            ->method('delete')
-            ->with($coverPath);
+            ->method('deleteTemporary')
+            ->with($tempFile);
 
         $this->errorMapper->method('getFieldForError')->willReturn('title');
 
