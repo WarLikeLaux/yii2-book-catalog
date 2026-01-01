@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace app\infrastructure\queue;
 
-use app\application\ports\SmsSenderInterface;
-use app\infrastructure\services\LogCategory;
-use app\infrastructure\services\YiiPsrLogger;
-use Throwable;
-use Yii;
+use RuntimeException;
 use yii\queue\JobInterface;
 use yii\queue\RetryableJobInterface;
 
@@ -23,38 +19,10 @@ final class NotifySingleSubscriberJob implements JobInterface, RetryableJobInter
     ) {
     }
 
-    /** @codeCoverageIgnore Выполнение джобы: зависит от Yii DI и кэша */
+    /** @codeCoverageIgnore Выполнение джобы: зависит от очереди и внешних сервисов */
     public function execute($queue): void
     {
-        $cache = Yii::$app->cache;
-        $idempotencyKey = sprintf('sms_handled:%d:%s', $this->bookId, md5($this->phone));
-
-        if ($cache !== null && !$cache->add($idempotencyKey, 1, 3600 * 24)) {
-            return;
-        }
-
-        $sender = Yii::$container->get(SmsSenderInterface::class);
-        $logger = new YiiPsrLogger(LogCategory::SMS);
-
-        try {
-            $sender->send($this->phone, $this->message);
-
-            $logger->info('SMS notification sent successfully', [
-                'phone' => $this->phone,
-                'book_id' => $this->bookId,
-            ]);
-        } catch (Throwable $exception) {
-            $cache?->delete($idempotencyKey);
-
-            $logger->error('SMS notification failed', [
-                'phone' => $this->phone,
-                'book_id' => $this->bookId,
-                'error' => $exception->getMessage(),
-                'exception_class' => $exception::class,
-            ]);
-
-            throw $exception;
-        }
+        $this->getRegistry($queue)->handle($this, $queue);
     }
 
     public function getTtr(): int
@@ -65,5 +33,14 @@ final class NotifySingleSubscriberJob implements JobInterface, RetryableJobInter
     public function canRetry($attempt, $error): bool
     {
         return $attempt < 3;
+    }
+
+    private function getRegistry(mixed $queue): JobHandlerRegistry
+    {
+        if (!$queue instanceof HandlerAwareQueue) {
+            throw new RuntimeException('Queue must be HandlerAwareQueue.');
+        }
+
+        return $queue->getJobHandlerRegistry();
     }
 }
