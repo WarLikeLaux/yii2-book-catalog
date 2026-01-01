@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\tests\unit\application\common;
 
 use app\application\books\queries\BookReadDto;
+use app\application\common\IdempotencyKeyStatus;
 use app\application\common\IdempotencyService;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
@@ -26,45 +27,91 @@ final class IdempotencyServiceTest extends Unit
         $this->service = new IdempotencyService($this->repository, $this->mutex);
     }
 
-    public function testGetCacheReturnsDtoWhenKeyExists(): void
+    public function testGetRecordReturnsFinishedDtoWhenKeyExists(): void
     {
         $key = 'test-key';
         $savedData = [
+            'status' => 'finished',
             'status_code' => 201,
             'body' => (string)json_encode(['id' => 123, 'title' => 'Test Book']),
         ];
 
         $this->repository->expects($this->once())
-            ->method('getResponse')
+            ->method('getRecord')
             ->with($key)
             ->willReturn($savedData);
 
-        $result = $this->service->getResponse($key);
+        $result = $this->service->getRecord($key);
 
         $this->assertNotNull($result);
+        $this->assertSame(IdempotencyKeyStatus::Finished, $result->status);
         $this->assertSame(201, $result->statusCode);
         $this->assertSame(['id' => 123, 'title' => 'Test Book'], $result->data);
         $this->assertNull($result->redirectUrl);
     }
 
-    public function testGetCacheReturnsDtoWithRedirect(): void
+    public function testGetRecordReturnsDtoWithRedirect(): void
     {
         $key = 'test-key';
         $savedData = [
+            'status' => 'finished',
             'status_code' => 302,
             'body' => (string)json_encode(['redirect_url' => '/view/123']),
         ];
 
         $this->repository->expects($this->once())
-            ->method('getResponse')
+            ->method('getRecord')
             ->with($key)
             ->willReturn($savedData);
 
-        $result = $this->service->getResponse($key);
+        $result = $this->service->getRecord($key);
 
         $this->assertNotNull($result);
+        $this->assertSame(IdempotencyKeyStatus::Finished, $result->status);
         $this->assertSame(302, $result->statusCode);
         $this->assertSame('/view/123', $result->redirectUrl);
+    }
+
+    public function testGetRecordReturnsStartedDto(): void
+    {
+        $key = 'test-key';
+        $savedData = [
+            'status' => 'started',
+            'status_code' => null,
+            'body' => null,
+        ];
+
+        $this->repository->expects($this->once())
+            ->method('getRecord')
+            ->with($key)
+            ->willReturn($savedData);
+
+        $result = $this->service->getRecord($key);
+
+        $this->assertNotNull($result);
+        $this->assertSame(IdempotencyKeyStatus::Started, $result->status);
+        $this->assertNull($result->statusCode);
+        $this->assertSame([], $result->data);
+        $this->assertNull($result->redirectUrl);
+    }
+
+    public function testGetRecordReturnsNullOnUnknownStatus(): void
+    {
+        $key = 'test-key';
+        $savedData = [
+            'status' => 'unknown',
+            'status_code' => 200,
+            'body' => (string)json_encode(['result' => 'ok']),
+        ];
+
+        $this->repository->expects($this->once())
+            ->method('getRecord')
+            ->with($key)
+            ->willReturn($savedData);
+
+        $result = $this->service->getRecord($key);
+
+        $this->assertNull($result);
     }
 
     public function testSaveResponseEncodesDataCorrectly(): void
@@ -78,6 +125,19 @@ final class IdempotencyServiceTest extends Unit
             ->with($key, 200, (string)json_encode($result), $ttl);
 
         $this->service->saveResponse($key, 200, $result, null, $ttl);
+    }
+
+    public function testStartRequestDelegatesToRepository(): void
+    {
+        $key = 'test-key';
+        $ttl = 3600;
+
+        $this->repository->expects($this->once())
+            ->method('saveStarted')
+            ->with($key, $ttl)
+            ->willReturn(true);
+
+        $this->assertTrue($this->service->startRequest($key, $ttl));
     }
 
     public function testSaveResponsePreservesArrayPayload(): void
