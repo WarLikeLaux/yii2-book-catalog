@@ -7,9 +7,9 @@ namespace app\infrastructure\repositories;
 use app\application\books\queries\BookReadDto;
 use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
-use app\application\ports\TranslatorInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
@@ -27,13 +27,12 @@ use yii\db\Expression;
 use yii\db\IntegrityException;
 use yii\db\StaleObjectException;
 
-final readonly class BookRepository implements BookRepositoryInterface
+final readonly class BookRepository implements BookRepositoryInterface, BookQueryServiceInterface
 {
     use DatabaseExceptionHandlerTrait;
 
     public function __construct(
-        private Connection $db,
-        private TranslatorInterface $translator
+        private Connection $db
     ) {
     }
 
@@ -46,7 +45,7 @@ final readonly class BookRepository implements BookRepositoryInterface
         } else {
             $ar = Book::findOne($book->getId());
             if ($ar === null) {
-                throw new EntityNotFoundException($this->translator->translate('app', 'book.error.not_found'));
+                throw new EntityNotFoundException('book.error.not_found');
             }
             $ar->version = $book->getVersion();
         }
@@ -59,13 +58,10 @@ final readonly class BookRepository implements BookRepositoryInterface
         $ar->is_published = (int)$book->isPublished();
 
         if ($this->existsByIsbn($book->getIsbn()->value, $book->getId())) {
-            throw new AlreadyExistsException(
-                $this->translator->translate('app', 'book.error.isbn_exists', ['isbn' => $book->getIsbn()->value]),
-                409
-            );
+            throw new AlreadyExistsException('book.error.isbn_exists', 409);
         }
 
-        $this->persistBook($ar, $book->getIsbn()->value);
+        $this->persistBook($ar);
 
         if ($isNew) {
             $book->setId($ar->id);
@@ -80,7 +76,7 @@ final readonly class BookRepository implements BookRepositoryInterface
     {
         $ar = Book::find()->where(['id' => $id])->with('authors')->one();
         if ($ar === null) {
-            throw new EntityNotFoundException($this->translator->translate('app', 'book.error.not_found'));
+            throw new EntityNotFoundException('book.error.not_found');
         }
 
         /** @var Author[] $authors */
@@ -104,11 +100,11 @@ final readonly class BookRepository implements BookRepositoryInterface
     {
         $ar = Book::findOne($book->getId());
         if ($ar === null) {
-            throw new EntityNotFoundException($this->translator->translate('app', 'book.error.not_found'));
+            throw new EntityNotFoundException('book.error.not_found');
         }
 
         if ($ar->delete() === false) {
-            throw new RuntimeException($this->translator->translate('app', 'book.error.delete_failed')); // @codeCoverageIgnore
+            throw new RuntimeException('book.error.delete_failed'); // @codeCoverageIgnore
         }
     }
 
@@ -221,23 +217,19 @@ final readonly class BookRepository implements BookRepositoryInterface
     }
 
     /** @codeCoverageIgnore Защитный код (недостижим из-за валидации домена) */
-    private function persistBook(Book $ar, string $isbn): void
+    private function persistBook(Book $ar): void
     {
         try {
             if (!$ar->save()) {
                 $errors = $ar->getFirstErrors();
-                $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'book.error.save_failed');
+                $message = $errors !== [] ? array_shift($errors) : 'book.error.save_failed';
                 throw new RuntimeException($message);
             }
         } catch (StaleObjectException) {
             throw new StaleDataException();
         } catch (IntegrityException $e) {
             if ($this->isDuplicateError($e)) {
-                throw new AlreadyExistsException(
-                    $this->translator->translate('app', 'book.error.isbn_exists', ['isbn' => $isbn]),
-                    409,
-                    $e
-                );
+                throw new AlreadyExistsException('book.error.isbn_exists', 409, $e);
             }
             throw $e;
         }

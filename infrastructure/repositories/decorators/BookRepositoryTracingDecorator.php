@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace app\infrastructure\repositories\decorators;
 
 use app\application\books\queries\BookReadDto;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
 use app\application\ports\TracerInterface;
 use app\domain\entities\Book;
 use app\domain\specifications\BookSpecificationInterface;
 
-final readonly class BookRepositoryTracingDecorator implements BookRepositoryInterface
+final readonly class BookRepositoryTracingDecorator implements BookRepositoryInterface, BookQueryServiceInterface
 {
     public function __construct(
-        private BookRepositoryInterface $repository,
+        private BookRepositoryInterface&BookQueryServiceInterface $repository,
         private TracerInterface $tracer
     ) {
     }
