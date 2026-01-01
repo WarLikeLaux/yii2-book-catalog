@@ -19,6 +19,8 @@ use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
+use app\infrastructure\adapters\EventToJobMapper;
+use app\infrastructure\adapters\EventToJobMapperInterface;
 use app\infrastructure\adapters\YiiCacheAdapter;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\adapters\YiiMutexAdapter;
@@ -109,8 +111,10 @@ return [
         ),
         QueueInterface::class => static fn() => new YiiQueueAdapter(Yii::$app->get('queue')),
         CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
+        EventToJobMapperInterface::class => EventToJobMapper::class,
         EventPublisherInterface::class => static fn(Container $c): EventPublisherInterface => new YiiEventPublisherAdapter(
             $c->get(QueueInterface::class),
+            $c->get(EventToJobMapperInterface::class),
             $c->get(ReportCacheInvalidationListener::class)
         ),
     ],
