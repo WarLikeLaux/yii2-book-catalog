@@ -86,3 +86,24 @@ a.desc:after {
 .form-group {
     margin-bottom: 1rem;
 }
+
+.btn-isbn-generator {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+    color: #495057;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding-bottom: 8px;
+}
+
+.btn-isbn-generator:hover {
+    background-color: #e2e6ea;
+    border-color: #adb5bd;
+    color: #212529;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.btn-isbn-generator:active {
+    background-color: #dae0e5;
+}
