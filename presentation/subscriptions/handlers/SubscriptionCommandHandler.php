@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\presentation\subscriptions\handlers;
 
-use app\application\common\UseCaseExecutor;
 use app\application\subscriptions\usecases\SubscribeUseCase;
+use app\presentation\common\services\WebUseCaseRunner;
 use app\presentation\subscriptions\forms\SubscriptionForm;
 use app\presentation\subscriptions\mappers\SubscriptionFormMapper;
 use Yii;
@@ -15,7 +15,7 @@ final readonly class SubscriptionCommandHandler
     public function __construct(
         private SubscriptionFormMapper $mapper,
         private SubscribeUseCase $useCase,
-        private UseCaseExecutor $useCaseExecutor
+        private WebUseCaseRunner $useCaseRunner
     ) {
     }
 
@@ -26,7 +26,7 @@ final readonly class SubscriptionCommandHandler
     {
         $command = $this->mapper->toCommand($form);
 
-        return $this->useCaseExecutor->executeForApi(
+        return $this->useCaseRunner->executeForApi(
             fn() => $this->useCase->execute($command),
             Yii::t('app', 'You are subscribed!'),
             ['author_id' => $form->authorId]

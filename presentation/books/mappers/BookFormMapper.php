@@ -32,6 +32,7 @@ final class BookFormMapper
             description: $form->description,
             isbn: (string)$form->isbn,
             authorIds: array_map(intval(...), (array)$form->authorIds),
+            version: $form->version,
             cover: $coverPath,
         );
     }
@@ -45,6 +46,7 @@ final class BookFormMapper
         $form->description = $dto->description;
         $form->isbn = $dto->isbn;
         $form->authorIds = $dto->authorIds;
+        $form->version = $dto->version;
 
         return $form;
     }

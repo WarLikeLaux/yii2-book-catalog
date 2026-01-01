@@ -21,6 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'enableAjaxValidation' => true,
     ]); ?>
 
+    <?= Html::hiddenInput('BookForm[version]', $model->version) ?>
     <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
     <?= $form->field($model, 'year')->textInput(['type' => 'number']) ?>
     <?= $form->field($model, 'isbn')->textInput(['maxlength' => true]) ?>

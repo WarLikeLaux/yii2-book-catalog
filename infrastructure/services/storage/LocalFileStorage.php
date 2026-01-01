@@ -17,9 +17,6 @@ final readonly class LocalFileStorage implements FileStorageInterface
     ) {
     }
 
-    /**
-     * @codeCoverageIgnore Зависит от Yii::getAlias и файловой системы
-     */
     public function save(string $tempPath, string $extension): string
     {
         $dir = Yii::getAlias($this->basePath);
@@ -31,9 +28,21 @@ final readonly class LocalFileStorage implements FileStorageInterface
         $result = is_uploaded_file($tempPath) ? move_uploaded_file($tempPath, $path) : copy($tempPath, $path);
 
         if (!$result) {
-            throw new RuntimeException('File save failed');
+            throw new RuntimeException('File save failed'); // @codeCoverageIgnore
         }
 
         return $this->baseUrl . '/' . $filename;
+    }
+
+    public function delete(string $url): void
+    {
+        $filename = basename($url);
+        $path = Yii::getAlias($this->basePath) . DIRECTORY_SEPARATOR . $filename;
+
+        if (!file_exists($path)) {
+            return;
+        }
+
+        unlink($path);
     }
 }

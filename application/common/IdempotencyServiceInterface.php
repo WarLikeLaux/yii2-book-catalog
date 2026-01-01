@@ -8,6 +8,10 @@ use app\application\common\dto\IdempotencyResponseDto;
 
 interface IdempotencyServiceInterface
 {
+    public function acquireLock(string $key, int $timeout = 0): bool;
+
+    public function releaseLock(string $key): void;
+
     public function getResponse(string $key): IdempotencyResponseDto|null;
 
     public function saveResponse(

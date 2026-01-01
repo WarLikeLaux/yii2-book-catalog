@@ -1,4 +1,4 @@
-.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-e2e test-coverage infection load-test migrate seed queue-info comments docs swagger repomix
+.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-unit test-integration test-e2e test-coverage coverage cov infection load-test migrate seed queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -28,6 +28,7 @@ help:
 	@echo "  \033[35mtest-unit\033[0m        ⚡ Только Unit-тесты (Быстрые)"
 	@echo "  \033[35mtest-integration\033[0m 🌐 Только Integration-тесты (С БД)"
 	@echo "  \033[35mtest-e2e\033[0m         🎭 Только E2E-тесты (Acceptance)"
+	@echo "  \033[35mcov\033[0m              📊 Краткий отчет покрытия (coverage.txt)"
 	@echo "  \033[35minfection\033[0m        🧟 \033[1mМутационное тестирование\033[0m"
 	@echo "  \033[35mdeptrac\033[0m          🏗️  Архитектурный анализ"
 	@echo "  \033[35manalyze\033[0m          🔍 Статический анализ (PHPStan Level 9)"
@@ -38,6 +39,8 @@ help:
 	@echo "  \033[33mdev\033[0m              🛠️  Стандартный цикл (fix + test)"
 	@echo "  \033[33mfix\033[0m              🧹 Авто-исправление стиля кода (CS-Fixer + Rector)"
 	@echo "  \033[33mcomments\033[0m         📝 Показать TODO и заметки"
+	@echo "  \033[33md\033[0m                🔎 Unstaged + новые файлы"
+	@echo "  \033[33mdc\033[0m               📌 Только staged"
 	@echo ""
 	@echo "🐳 \033[1;34mDOCKER & OPS:\033[0m"
 	@echo "  \033[34mup\033[0m               ▶️  Запустить контейнеры"
@@ -221,25 +224,36 @@ _test-init:
 	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "DB_NAME=$(DB_TEST_NAME) ./yii migrate --interactive=0 --migrationPath=@app/migrations" > /dev/null
 
 test: _test-init
-	@echo "🚀 Запуск всех тестов..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit,e2e --no-colors
+	@echo "🚀 Запуск всех тестов с генерацией отчетов..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit \
+		--coverage --coverage-xml --coverage-html --coverage-text \
+		--coverage-phpunit --xml=junit.xml --no-colors
+	@sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml
+
+test-unit:
+	@echo "🚀 Запуск Unit тестов..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit --no-colors
+
+test-integration: _test-init
+	@echo "🚀 Запуск Integration тестов..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration --no-colors
 
 test-e2e: _test-init
 	@echo "🚀 Запуск E2E тестов..."
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run e2e --no-colors
 
-test-coverage: _test-init
-	@echo "📊 Анализ покрытия кода..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit --coverage --coverage-html --coverage-text
+test-coverage coverage cov:
+	@if [ ! -f tests/_output/coverage.xml ]; then $(MAKE) test; fi
 	@echo "----------------------------------------------------------------------"
-	@$(COMPOSE) exec $(PHP_CONTAINER) head -n 10 tests/_output/coverage.txt
+	@$(COMPOSE) exec $(PHP_CONTAINER) head -n 9 tests/_output/coverage.txt
 	@echo "----------------------------------------------------------------------"
-	@echo "Отчет: tests/_output/coverage/index.html"
+	@php -r '$$xml = simplexml_load_file("tests/_output/coverage.xml"); $$out = ""; foreach ($$xml->project->xpath("//file") as $$file) { $$miss = []; foreach ($$file->line as $$line) { if ((string)$$line["count"] === "0" && (string)$$line["type"] === "stmt") { $$miss[] = (string)$$line["num"]; } } if (!empty($$miss)) { $$name = str_replace("$(CURDIR)/", "", (string)$$file["name"]); $$out .= "\033[1;31m✘ $$name\033[0m" . PHP_EOL . "   Lines: " . implode(", ", $$miss) . PHP_EOL; } } if ($$out !== "") { echo "🔍 Непокрытые строки:" . PHP_EOL . $$out . "----------------------------------------------------------------------" . PHP_EOL; }'
+	@echo "Полный отчет: tests/_output/coverage/index.html"
 
-infection: _test-init
-	$(COMPOSE) exec $(PHP_CONTAINER) mkdir -p runtime/coverage
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit --no-colors --coverage-xml=coverage.xml --coverage-phpunit=coverage-phpunit.xml --xml=junit.xml -o "paths: output: runtime/coverage"
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=runtime/coverage --threads=max --test-framework-options="integration,unit"
+test-infection infection inf:
+	@if [ ! -f tests/_output/coverage-phpunit.xml ]; then $(MAKE) test; fi
+	@echo "🧟 Запуск мутационного тестирования..."
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=tests/_output --threads=max --test-framework-options="integration,unit"
 
 load-test:
 	@echo "🚀 Load Testing (K6)..."
@@ -273,3 +287,10 @@ swagger:
 
 repomix:
 	@npx -y repomix --style markdown --output repomix-output.md
+
+diff d:
+	@git diff
+	@git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index /dev/null {}
+
+diff-staged diff-cached ds dc:
+	@git diff --staged

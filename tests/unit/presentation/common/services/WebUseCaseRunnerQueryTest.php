@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\application;
+namespace tests\unit\presentation\common\services;
 
-use app\application\common\UseCaseExecutor;
 use app\application\ports\NotificationInterface;
 use app\application\ports\TranslatorInterface;
 use app\domain\exceptions\DomainException;
+use app\presentation\common\services\WebUseCaseRunner;
 use Codeception\Test\Unit;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
-final class UseCaseExecutorQueryTest extends Unit
+final class WebUseCaseRunnerQueryTest extends Unit
 {
     private NotificationInterface $notifier;
 
@@ -20,19 +20,19 @@ final class UseCaseExecutorQueryTest extends Unit
 
     private TranslatorInterface $translator;
 
-    private UseCaseExecutor $executor;
+    private WebUseCaseRunner $runner;
 
     protected function _before(): void
     {
         $this->notifier = $this->createMock(NotificationInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->translator = $this->createMock(TranslatorInterface::class);
-        $this->executor = new UseCaseExecutor($this->notifier, $this->logger, $this->translator);
+        $this->runner = new WebUseCaseRunner($this->notifier, $this->logger, $this->translator);
     }
 
     public function testQueryReturnsResult(): void
     {
-        $result = $this->executor->query(fn() => 'data', 'fallback', 'error message');
+        $result = $this->runner->query(fn() => 'data', 'fallback', 'error message');
         $this->assertSame('data', $result);
     }
 
@@ -40,11 +40,11 @@ final class UseCaseExecutorQueryTest extends Unit
     {
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('domain', 'domain.error.key')
+            ->with('app', 'domain.error.key')
             ->willReturn('Translated domain error');
         $this->notifier->expects($this->once())->method('error')->with('Translated domain error');
 
-        $result = $this->executor->query(
+        $result = $this->runner->query(
             fn() => throw new DomainException('domain.error.key'),
             'fallback',
             'error message'
@@ -58,7 +58,7 @@ final class UseCaseExecutorQueryTest extends Unit
         $this->logger->expects($this->once())->method('error');
         $this->notifier->expects($this->once())->method('error')->with('generic error');
 
-        $result = $this->executor->query(
+        $result = $this->runner->query(
             fn() => throw new RuntimeException('boom'),
             'fallback',
             'generic error'
@@ -71,10 +71,10 @@ final class UseCaseExecutorQueryTest extends Unit
     {
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('domain', 'domain.error.key')
+            ->with('app', 'domain.error.key')
             ->willReturn('Translated domain error');
 
-        $result = $this->executor->executeForApi(
+        $result = $this->runner->executeForApi(
             fn() => throw new DomainException('domain.error.key'),
             'success'
         );
@@ -90,7 +90,7 @@ final class UseCaseExecutorQueryTest extends Unit
             ->willReturn('unexpected error');
         $this->logger->expects($this->once())->method('error');
 
-        $result = $this->executor->executeForApi(
+        $result = $this->runner->executeForApi(
             fn() => throw new RuntimeException('boom'),
             'success'
         );

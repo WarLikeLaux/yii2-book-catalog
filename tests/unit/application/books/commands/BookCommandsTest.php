@@ -52,6 +52,7 @@ final class BookCommandsTest extends Unit
             description: 'New description',
             isbn: '9780132350884',
             authorIds: [1],
+            version: 5,
             cover: '/uploads/new.jpg'
         );
 
@@ -61,6 +62,7 @@ final class BookCommandsTest extends Unit
         $this->assertSame('New description', $command->description);
         $this->assertSame('9780132350884', $command->isbn);
         $this->assertSame([1], $command->authorIds);
+        $this->assertSame(5, $command->version);
         $this->assertSame('/uploads/new.jpg', $command->cover);
     }
 

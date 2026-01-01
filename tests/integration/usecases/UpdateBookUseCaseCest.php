@@ -35,6 +35,7 @@ final class UpdateBookUseCaseCest
             isbn: '9783161484100',
             description: 'Updated description',
             authorIds: [$authorId],
+            version: 1,
             cover: null
         );
 

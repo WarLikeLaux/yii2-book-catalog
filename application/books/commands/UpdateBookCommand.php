@@ -16,6 +16,7 @@ final readonly class UpdateBookCommand
         public ?string $description,
         public string $isbn,
         public array $authorIds,
+        public int $version,
         public string|null $cover = null,
     ) {
     }

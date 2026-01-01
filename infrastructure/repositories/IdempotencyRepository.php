@@ -6,10 +6,15 @@ namespace app\infrastructure\repositories;
 
 use app\application\ports\IdempotencyInterface;
 use app\infrastructure\persistence\IdempotencyKey;
-use Yii;
+use Psr\Log\LoggerInterface;
 
-final class IdempotencyRepository implements IdempotencyInterface
+final readonly class IdempotencyRepository implements IdempotencyInterface
 {
+    public function __construct(
+        private LoggerInterface $logger
+    ) {
+    }
+
     /** @return array{status_code: int, body: string}|null */
     public function getResponse(string $key): array|null
     {
@@ -42,6 +47,6 @@ final class IdempotencyRepository implements IdempotencyInterface
             return;
         }
 
-        Yii::error('Failed to save idempotency key: ' . json_encode($model->getErrors()));
+        $this->logger->error('Failed to save idempotency key: ' . json_encode($model->getErrors()));
     }
 }

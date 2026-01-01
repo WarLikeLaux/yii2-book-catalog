@@ -8,7 +8,8 @@ final readonly class BookCreatedEvent implements DomainEvent
 {
     public function __construct(
         public int $bookId,
-        public string $title
+        public string $title,
+        public int $year
     ) {
     }
 
@@ -25,6 +26,7 @@ final readonly class BookCreatedEvent implements DomainEvent
         return [
             'bookId' => $this->bookId,
             'title' => $this->title,
+            'year' => $this->year,
         ];
     }
 }

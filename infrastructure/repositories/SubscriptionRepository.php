@@ -7,10 +7,16 @@ namespace app\infrastructure\repositories;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\domain\entities\Subscription as SubscriptionEntity;
 use app\infrastructure\persistence\Subscription;
+use yii\db\Connection;
 use yii\db\Query;
 
-final class SubscriptionRepository implements SubscriptionRepositoryInterface
+final readonly class SubscriptionRepository implements SubscriptionRepositoryInterface
 {
+    public function __construct(
+        private Connection $db
+    ) {
+    }
+
     public function save(SubscriptionEntity $subscription): void
     {
         $ar = Subscription::create($subscription->getPhone(), $subscription->getAuthorId());
@@ -44,16 +50,12 @@ final class SubscriptionRepository implements SubscriptionRepositoryInterface
             ->andWhere(['ba.book_id' => $bookId]);
 
         /** @var iterable<array<mixed>> $batches */
-        $batches = $query->batch($batchSize);
+        $batches = $query->batch($batchSize, $this->db);
         foreach ($batches as $batch) {
             /** @var array<string, mixed> $row */
             foreach ($batch as $row) {
+                /** @var string $phone */
                 $phone = $row['phone'];
-                // @codeCoverageIgnoreStart Защитный код для PHPStan: БД всегда возвращает string для VARCHAR
-                if (!is_string($phone)) {
-                    continue;
-                }
-                // @codeCoverageIgnoreEnd
 
                 yield $phone;
             }

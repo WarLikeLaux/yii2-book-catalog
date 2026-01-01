@@ -38,7 +38,12 @@ deptrac:
     - name: Framework
       collectors:
         - type: classLike
-          value: ^(Yii|yii\\).*  
+          value: ^yii\\.*
+
+    - name: GlobalState
+      collectors:
+        - type: classLike
+          value: ^Yii$
 
     - name: Vendor
       collectors:
@@ -64,13 +69,34 @@ deptrac:
       - Application
       - Vendor
       - Framework
-    
+
     Presentation:
       - DomainShared
       - Application
       - Vendor
       - Framework
+      - GlobalState
 
   skip_violations:
     app\presentation\auth\forms\LoginForm:
       - app\infrastructure\persistence\User
+    
+    # Адаптеры (разрешен доступ к Yii)
+    app\infrastructure\adapters\YiiTranslatorAdapter:
+      - Yii
+    
+    # Инфраструктурные сервисы (разрешен доступ к Yii)
+    app\infrastructure\services\YiiPsrLogger:
+      - Yii
+    app\infrastructure\services\notifications\FlashNotificationService:
+      - Yii
+    app\infrastructure\services\storage\LocalFileStorage:
+      - Yii
+    app\infrastructure\services\observability\TracerBootstrap:
+      - Yii
+    
+    # Очереди (требуется доступ к Service Locator для десериализации)
+    app\infrastructure\queue\NotifySubscribersJob:
+      - Yii
+    app\infrastructure\queue\NotifySingleSubscriberJob:
+      - Yii

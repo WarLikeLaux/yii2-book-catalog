@@ -11,4 +11,9 @@ interface TransactionInterface
     public function commit(): void;
 
     public function rollBack(): void;
+
+    /**
+     * @param callable(): void $callback
+     */
+    public function afterCommit(callable $callback): void;
 }

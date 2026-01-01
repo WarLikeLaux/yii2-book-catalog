@@ -10,12 +10,14 @@ use yii\db\Transaction;
 
 final class YiiTransactionAdapter implements TransactionInterface
 {
-    /*
-     * TODO: адаптер хранит состояние ($transaction).
-     * В long-running процессах (Swoole/RoadRunner) убедитесь, что сервис не Singleton,
-     * или корректно сбрасывайте стейт.
-     */
     private Transaction|null $transaction = null;
+
+    private int $nestingLevel = 0;
+
+    private bool $isOwner = false;
+
+    /** @var array<callable(): void> */
+    private array $afterCommitCallbacks = [];
 
     public function __construct(
         private readonly Connection $db
@@ -24,26 +26,68 @@ final class YiiTransactionAdapter implements TransactionInterface
 
     public function begin(): void
     {
-        $this->transaction = $this->db->beginTransaction();
+        if ($this->nestingLevel === 0) {
+            $existingTransaction = $this->db->getTransaction();
+            if ($existingTransaction !== null && $existingTransaction->getIsActive()) {
+                $this->transaction = $existingTransaction;
+                $this->isOwner = false;
+            } else {
+                $this->transaction = $this->db->beginTransaction();
+                $this->isOwner = true;
+            }
+        }
+
+        $this->nestingLevel++;
     }
 
     public function commit(): void
     {
-        if (!$this->transaction instanceof Transaction) {
-            throw new \RuntimeException('Transaction not started');
+        if ($this->nestingLevel === 0) {
+            throw new \RuntimeException('Transaction not started or nesting level mismatch');
         }
 
-        $this->transaction->commit();
+        $this->nestingLevel--;
+
+        if ($this->nestingLevel !== 0) {
+            return;
+        }
+
+        if ($this->isOwner) {
+            if (!$this->transaction instanceof Transaction || !$this->transaction->getIsActive()) {
+                throw new \RuntimeException('Transaction not active during commit'); // @codeCoverageIgnore
+            }
+            $this->transaction->commit();
+        }
+
         $this->transaction = null;
+        $this->isOwner = false;
+
+        $callbacks = $this->afterCommitCallbacks;
+        $this->afterCommitCallbacks = [];
+
+        foreach ($callbacks as $callback) {
+            $callback();
+        }
     }
 
     public function rollBack(): void
     {
-        if (!$this->transaction instanceof Transaction) {
+        if ($this->nestingLevel === 0) {
             throw new \RuntimeException('Transaction not started');
         }
 
-        $this->transaction->rollBack();
+        if ($this->transaction instanceof Transaction && $this->transaction->getIsActive()) {
+            $this->transaction->rollBack();
+        }
+
         $this->transaction = null;
+        $this->nestingLevel = 0;
+        $this->isOwner = false;
+        $this->afterCommitCallbacks = [];
+    }
+
+    public function afterCommit(callable $callback): void
+    {
+        $this->afterCommitCallbacks[] = $callback;
     }
 }

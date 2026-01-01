@@ -8,7 +8,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-327_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-394_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-95%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -49,12 +49,12 @@
 | :--- | :--- |
 | 🔹 **Clean-ish Architecture**<br>Компромисс между чистотой и прагматизмом | 🚀 **Async Fan-out**<br>Масштабируемые уведомления |
 | 🔹 **CQS Pattern**<br>Разделение команд и запросов | 🔍 **Hybrid Search**<br>FullText + Exact Match |
-| 🔹 **Value Objects**<br>`Isbn`, `BookYear` для бизнес-правил | 🛡 **Idempotency**<br>Защита от дублей в очередях |
+| 🔹 **Value Objects**<br>`Isbn`, `BookYear` для бизнес-правил | 🛡 **Idempotency + Mutex**<br>Защита от дублей без гонок |
 | 🔹 **Domain Events**<br>Асинхронное взаимодействие | ⚡ **PJAX**<br>Мгновенная фильтрация |
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **327 тестов** (677 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **394 тестов** (891 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Custom Architecture Rules | 🛠 **Makefile**<br>Автоматизация рутины |
 | ✅ **Mutation Testing**<br>Infection PHP (MSI > 95%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
@@ -68,7 +68,7 @@
 | **Database** | [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/) | InnoDB + FullText Search |
 | **Queue** | `yii2-queue` | DB Driver + Fan-out Pattern |
 | **Testing** | [![Codeception](https://img.shields.io/badge/Codeception-5.0-purple)](https://codeception.com/) | Unit + Functional, 100% Coverage |
-| **Infra** | [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) | PHP 8.4 + MySQL 8 + Queue Worker |
+| **Infra** | [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) | PHP 8.4 + MySQL 8 + Redis + Queue Worker |
 | **Quality** | `Rector`, `PHPStan`, `Deptrac`, `Advisories` | Strict Static Analysis & Security Checks |
 
 ## 🏗 Архитектурные решения
@@ -79,7 +79,6 @@
 *   **Read Side (Запросы):** чтение данных отделено от бизнес-логики. **QueryServices** возвращают DTO (`BookReadDto`) и `PagedResult` с чистым `PaginationDto` вместо ActiveRecord моделей и framework-объектов.
 *   **Ports:** интерфейсы репозиториев и внешних сервисов находятся в `application/ports` (namespace: `app\application\ports`). Use Cases зависят только от портов, не от конкретных реализаций фреймворка.
 *   **Event Publisher:** Use Cases публикуют доменные события через `EventPublisherInterface`, а не создают job напрямую. Это изолирует application layer от инфраструктуры.
-*   **UseCaseExecutor:** сквозной функционал (Cross-cutting concern) для выполнения use cases с обработкой ошибок, логированием и уведомлениями. Находится в `application/common`. Использует нативные средства локализации фреймворка (`Yii::t`) для упрощения.
 *   **Контроллеры:** выступают оркестраторами. Загружают данные в формы и запускают валидацию, но делегируют выполнение бизнес-операций в Command Handlers, а выборку данных — в View Data Factories. Не содержат самой бизнес-логики.
 
 ### 2. Domain Layer (Rich Domain Model)
@@ -88,7 +87,7 @@
 *   **Value Objects:** гарантируют консистентность данных (нельзя создать объект с неверным ISBN) и используются внутри сущностей.
 *   **Persistence Ignorance:** доменные сущности ничего не знают о базе данных или ActiveRecord.
 
-**Domain Events:** доменные события (`BookCreatedEvent`) используются для **decoupling** (развязки) между use cases и инфраструктурой. Все доменные события реализуют интерфейс `DomainEvent` с методами `getEventType()` и `getPayload()`. Use Cases публикуют события через типобезопасный метод `publishEvent(DomainEvent $event)` порта `EventPublisherInterface`. Инфраструктурный адаптер (`YiiEventPublisherAdapter`) преобразует их в конкретные job для очереди. Это исключает опечатки и обеспечивает типобезопасность.
+**Domain Events:** доменные события (`BookCreatedEvent`) используются для **decoupling** (развязки) между use cases и инфраструктурой. Все доменные события реализуют интерфейс `DomainEvent` с методами `getEventType()` и `getPayload()`. Use Cases публикуют события через типобезопасный метод `publishEvent(DomainEvent $event)` порта `EventPublisherInterface`. Инфраструктурный адаптер (`YiiEventPublisherAdapter`) сначала уведомляет синхронные слушатели (`EventListenerInterface`), а затем отправляет события в очередь только если они реализуют `QueueableEvent`. Это исключает опечатки, повышает типобезопасность и позволяет отделять фоновую обработку от синхронной.
 
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
@@ -100,6 +99,7 @@
     *   **View Data Factories:** читающие операции. Подготавливают DTO для отображения.
     *   **Search Handlers:** специфичные сервисы для AJAX-поиска (например, Select2).
 *   **Adapters (`presentation/common/adapters`):** преобразуют чистые DTO пагинации обратно в Yii2 форматы.
+*   **WebUseCaseRunner (`presentation/common/services`):** единый механизм выполнения use cases/queries с обработкой ошибок, логированием и пользовательскими уведомлениями (web + API).
 
 ### 4. Разделение ответственности: Use Cases vs Presentation Services
 
@@ -148,14 +148,17 @@ final readonly class BookCommandHandler
     public function createBook(BookForm $form): ?int
     {
         $coverPath = $this->uploadCover($form);
-        $command = $this->mapper->toCreateCommand($form, $coverPath);
 
-        $bookId = null;
-        $success = $this->useCaseExecutor->execute(function () use ($command, &$bookId): void {
+        try {
+            $command = $this->mapper->toCreateCommand($form, $coverPath);
             $bookId = $this->createBookUseCase->execute($command);
-        }, Yii::t('app', 'Book has been created'));
-
-        return $success ? $bookId : null;
+            $this->notifier->success(Yii::t('app', 'Book has been created'));
+            return $bookId;
+        } catch (DomainException $e) {
+            $this->cleanupFile($coverPath);
+            $this->addFormError($form, $e);
+            return null;
+        }
     }
 }
 ```
@@ -170,7 +173,8 @@ final readonly class BookCommandHandler
 ### 6. Infrastructure Layer
 *   **ActiveRecord и DB:** реализации портов живут в `infrastructure` (namespace: `app\infrastructure`).
 *   **Queue/File Storage:** подключаются через интерфейсы и DI.
-*   **Event Publisher Adapter:** `YiiEventPublisherAdapter` преобразует доменные события в конкретные job для очереди. Это позволяет use cases оставаться независимыми от фреймворка.
+*   **Event Publisher Adapter:** `YiiEventPublisherAdapter` диспатчит события синхронным слушателям и отправляет в очередь только `QueueableEvent`. Это позволяет use cases оставаться независимыми от фреймворка.
+*   **Optimistic Locking:** репозитории используют `version` и выбрасывают `StaleDataException` при устаревших данных.
 *   **Пагинация:** репозитории используют `ActiveDataProvider` для выполнения запросов (сохранение eager loading через `with()`), но создают чистый `PaginationDto` вместо передачи framework-объекта в application layer.
 
 ### 7. Code Quality & Standards
@@ -210,54 +214,65 @@ final readonly class BookCommandHandler
 
 **Порты application layer (`application/ports`):**
 *   `EventPublisherInterface`: публикация доменных событий. Реализация в `infrastructure/adapters/`.
+*   `EventListenerInterface`: синхронные обработчики доменных событий. Реализация в `infrastructure/listeners/`.
 *   `NotificationInterface`: уведомления пользователя (Flash messages, логи). Реализации в `infrastructure/services/notifications/`.
 *   `TranslatorInterface`: переводы сообщений. Реализация в `infrastructure/adapters/`.
 *   `SmsSenderInterface`: отправка SMS. Реализация в `infrastructure/services/sms/`.
 *   `FileStorageInterface`: сохранение файлов. Реализация в `infrastructure/services/storage/`.
+*   `MutexInterface`: блокировки для идемпотентности. Реализация в `infrastructure/adapters/`.
 *   `PagedResultInterface`: пагинация без зависимостей от фреймворка.
 
 **Направление зависимостей:** Application layer зависит только от портов. Infrastructure и Presentation реализуют эти порты, сохраняя правильное направление зависимостей Clean Architecture.
 
 ### 12. Структура проекта
 
-```
+
+
+```text
 yii2-book-catalog/
-├── bin/                      # Кастомные скрипты (валидаторы ченджлога и документации)
-├── application/              # Application Layer (Use Cases, Queries, Ports)
-│   ├── books/                # Модуль Книги (Commands, Queries, UseCases)
-│   ├── authors/              # Модуль Авторы
-│   ├── subscriptions/        # Модуль Подписки
-│   ├── reports/              # Модуль Отчеты
-│   ├── common/               # Общие компоненты (UseCaseExecutor, Shared DTOs)
-│   └── ports/                # Интерфейсы (EventPublisher, Notification, Tracer, SMS, etc.)
+├── assets/                  # Frontend assets
+├── bin/                     # Кастомные скрипты
+├── application/             # Application Layer (Use Cases, Queries, Ports)
+│   ├── books/               # Модуль "Книги"
+│   │   ├── commands/        # DTO команд (CreateBookCommand)
+│   │   ├── queries/         # DTO запросов (BookReadDto)
+│   │   └── usecases/        # Сценарии (CreateBookUseCase)
+│   ├── authors/             # Модуль "Авторы" (аналогичная структура)
+│   ├── subscriptions/       # Модуль "Подписки"
+│   ├── reports/             # Модуль "Отчеты"
+│   ├── common/              # Общие компоненты (IdempotencyService, DTO)
+│   └── ports/               # Интерфейсы (EventPublisher, EventListener, Mutex, Repository)
 ├── domain/                  # Domain Layer (Чистый PHP)
-│   ├── entities/           # Rich Entities (Book, Author, Subscription)
-│   ├── events/             # Domain Events (BookCreatedEvent)
-│   ├── exceptions/         # Domain Exceptions (EntityNotFoundException)
-│   └── values/             # Value Objects (Isbn, BookYear)
+│   ├── entities/            # Rich Entities (Book, Author)
+│   ├── events/              # Domain Events & QueueableEvent
+│   ├── exceptions/          # Domain Exceptions (StaleDataException)
+│   └── values/              # Value Objects (Isbn, BookYear)
 ├── infrastructure/          # Infrastructure Layer (Реализации портов)
-│   ├── adapters/           # Адаптеры (YiiEventPublisher, YiiTranslator)
-│   ├── persistence/        # ActiveRecord модели (Persistence Models)
-│   ├── queue/              # Queue Jobs (Асинхронные задачи)
-│   ├── repositories/       # Реализации репозиториев (SQL логика)
-│   │   └── decorators/     # Tracing Decorators
-│   ├── services/           # Внешние сервисы (SMS, Storage, Logger, Observability)
-│   └── phpstan/            # Правила статического анализа
+│   ├── adapters/            # Адаптеры (YiiEventPublisher, YiiMutex, YiiTransaction)
+│   ├── listeners/           # Event Listeners (ReportCacheInvalidation)
+│   ├── persistence/         # ActiveRecord модели (только для маппинга)
+│   ├── queue/               # Queue Jobs
+│   ├── repositories/        # Реализации репозиториев (Strict DI)
+│   │   └── decorators/      # Tracing Decorators
+│   └── services/            # Инфраструктурные сервисы (Logger, Storage)
 ├── presentation/            # Presentation Layer (Yii2 & Web)
-│   ├── controllers/        # Тонкие контроллеры
-│   ├── auth/               # Модуль Авторизации (Forms, Handlers, Mappers)
-│   ├── books/              # Модуль Книги (Forms, Handlers, Mappers)
-│   ├── authors/            # Модуль Авторы
-│   ├── subscriptions/      # Модуль Подписки
-│   ├── reports/            # Модуль Отчеты
-│   ├── common/             # Общие виджеты, фильтры и адаптеры
-│   ├── views/              # Шаблоны (Views)
-│   ├── mail/               # Шаблоны писем
-│   └── dto/                # DTO для слоя представления
+│   ├── controllers/         # Тонкие контроллеры
+│   ├── books/               # Модуль Книги (Forms, Handlers, Mappers)
+│   ├── authors/             # Модуль Авторы
+│   ├── common/              # Общие виджеты, фильтры и сервисы (WebUseCaseRunner, IdempotencyFilter)
+│   ├── mail/                # Шаблоны писем
+│   └── views/               # Шаблоны (Views)
 ├── commands/                # Console контроллеры (CLI)
 ├── config/                  # Конфигурация приложения
+├── db-data/                 # Данные локальной БД (volume)
+├── docker/                  # Docker-конфигурация
 ├── messages/                # Переводы i18n
-└── migrations/              # Миграции БД
+├── migrations/              # Миграции БД
+├── runtime/                 # Runtime кэш/логи
+├── tests/                   # Тесты
+├── tools/                   # Инструменты разработки (PHPUnit, Rector)
+├── web/                     # Web root
+└── docs/                    # Документация
 ```
 
 **Примечание:** В коде используется namespace `app\`, что соответствует стандартному Yii2 алиасу `@app`. Структура директорий в корне проекта соответствует namespace-ам (например, `application/` → `app\application\*`).
@@ -387,8 +402,8 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>327</b><br>Tests</td>
-<td align="center"><b>677</b><br>Assertions</td>
+<td align="center"><b>394</b><br>Tests</td>
+<td align="center"><b>891</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~26s</b><br>Runtime</td>
 </tr>
@@ -404,6 +419,7 @@ open http://localhost:8000
 | `make test-integration` | 🌐 Integration-тесты (с БД) | **Testing** (Integration) |
 | `make test-e2e` | 🎭 E2E-тесты (Acceptance) | **Testing** (E2E) |
 | `make test-coverage` | 📊 Отчет о покрытии (HTML) | **Testing** (Metric) |
+| `make cov` | 📊 Краткий отчет покрытия (coverage.txt) | **Testing** (Metric) |
 | `make lint-fix` | 🧹 PHPCS (Auto-fix) | **Quality** (Style) |
 | **Продвинутый контроль (Advanced QA)** | | |
 | `make infection` | 🧟 **Mutation Testing** (Infection) | **Quality** (Надежность тестов) |
@@ -417,15 +433,17 @@ open http://localhost:8000
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 215 | Чистая бизнес-логика без БД и фреймворка |
+| **Unit** | 322 | Чистая бизнес-логика без БД и фреймворка |
 | **Integration** | 72 | CRUD, API, Use Cases, HTTP-сценарии с БД |
 | **E2E** | 17 | Приемочные тесты (Acceptance) |
 
+Метрики `make test-coverage` включают **Unit + Integration** (394 tests, 891 assertions). E2E запускаются отдельно.
+
 **Unit Tests покрывают:**
-- **Application Layer**: UseCases, Commands, UseCaseExecutor, QueryResult, PaginationRequest, IdempotencyService
+- **Application Layer**: UseCases, Commands, QueryResult, PaginationRequest, IdempotencyService
 - **Domain Layer**: Value Objects (`Isbn`, `BookYear`), Domain Events
 - **Infrastructure**: Queue jobs (retry logic), Logger, Notifications
-- **Presentation**: Mappers, DataProvider adapters
+- **Presentation**: WebUseCaseRunner, Mappers, DataProvider adapters
 
 **Integration Tests покрывают:**
 - API Идемпотентность (Idempotency-Key)
@@ -480,8 +498,8 @@ open http://localhost:8000
 
 ![Source Code](https://img.shields.io/badge/Source_Code-5.0k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
 ![Test Code](https://img.shields.io/badge/Test_Code-6.5k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-156-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-85-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-201-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-97-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 

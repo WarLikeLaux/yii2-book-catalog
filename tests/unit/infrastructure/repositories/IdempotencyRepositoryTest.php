@@ -7,6 +7,7 @@ namespace app\tests\unit\infrastructure\repositories;
 use app\infrastructure\persistence\IdempotencyKey;
 use app\infrastructure\repositories\IdempotencyRepository;
 use Codeception\Test\Unit;
+use Psr\Log\NullLogger;
 
 final class IdempotencyRepositoryTest extends Unit
 {
@@ -14,7 +15,7 @@ final class IdempotencyRepositoryTest extends Unit
 
     protected function _before(): void
     {
-        $this->repository = new IdempotencyRepository();
+        $this->repository = new IdempotencyRepository(new NullLogger());
         IdempotencyKey::deleteAll();
     }
 

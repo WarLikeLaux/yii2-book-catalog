@@ -16,21 +16,32 @@ final class Book
     /** @var int[] */
     private array $authorIds = [];
 
+    /** @var int[] */
+    private array $originalAuthorIds = [];
+
     /**
      * @param int[] $authorIds
      */
-    public function __construct(
+    private function __construct(
         private ?int $id,
         private string $title,
         private BookYear $year,
         private Isbn $isbn,
         private ?string $description,
         private ?string $coverUrl,
-        array $authorIds = [],
-        private bool $published = false
+        array $authorIds,
+        private bool $published,
+        private int $version,
+        bool $isReconstituted
     ) {
         $this->validateTitle($title);
         $this->authorIds = array_map(intval(...), $authorIds);
+
+        if (!$isReconstituted) {
+            return;
+        }
+
+        $this->originalAuthorIds = $this->authorIds;
     }
 
     private function validateTitle(string $title): void
@@ -59,7 +70,39 @@ final class Book
             year: $year,
             isbn: $isbn,
             description: $description,
-            coverUrl: $coverUrl
+            coverUrl: $coverUrl,
+            authorIds: [],
+            published: false,
+            version: 1,
+            isReconstituted: false
+        );
+    }
+
+    /**
+     * @param int[] $authorIds
+     */
+    public static function reconstitute(
+        int $id,
+        string $title,
+        BookYear $year,
+        Isbn $isbn,
+        ?string $description,
+        ?string $coverUrl,
+        array $authorIds,
+        bool $published,
+        int $version
+    ): self {
+        return new self(
+            id: $id,
+            title: $title,
+            year: $year,
+            isbn: $isbn,
+            description: $description,
+            coverUrl: $coverUrl,
+            authorIds: $authorIds,
+            published: $published,
+            version: $version,
+            isReconstituted: true
         );
     }
 
@@ -90,12 +133,70 @@ final class Book
         $this->coverUrl = $coverUrl;
     }
 
+    public function addAuthor(int $authorId): void
+    {
+        if ($authorId <= 0) {
+            throw new DomainException('book.error.invalid_author_id');
+        }
+
+        if (in_array($authorId, $this->authorIds, true)) {
+            return;
+        }
+
+        $this->authorIds[] = $authorId;
+    }
+
+    public function removeAuthor(int $authorId): void
+    {
+        $key = array_search($authorId, $this->authorIds, true);
+        if ($key === false) {
+            return;
+        }
+
+        unset($this->authorIds[$key]);
+        $this->authorIds = array_values($this->authorIds);
+    }
+
+    public function hasAuthor(int $authorId): bool
+    {
+        return in_array($authorId, $this->authorIds, true);
+    }
+
     /**
      * @param int[] $authorIds
      */
-    public function syncAuthors(array $authorIds): void
+    public function replaceAuthors(array $authorIds): void
     {
-        $this->authorIds = array_map(intval(...), $authorIds);
+        $this->authorIds = [];
+        foreach ($authorIds as $authorId) {
+            $this->addAuthor($authorId);
+        }
+    }
+
+    /**
+     * @return int[]
+     */
+    public function getAddedAuthorIds(): array
+    {
+        return array_values(array_diff($this->authorIds, $this->originalAuthorIds));
+    }
+
+    /**
+     * @return int[]
+     */
+    public function getRemovedAuthorIds(): array
+    {
+        return array_values(array_diff($this->originalAuthorIds, $this->authorIds));
+    }
+
+    public function hasAuthorChanges(): bool
+    {
+        return $this->getAddedAuthorIds() !== [] || $this->getRemovedAuthorIds() !== [];
+    }
+
+    public function markAuthorsPersisted(): void
+    {
+        $this->originalAuthorIds = $this->authorIds;
     }
 
     public function getId(): ?int
@@ -161,5 +262,18 @@ final class Book
     public function isPublished(): bool
     {
         return $this->published;
+    }
+
+    public function getVersion(): int
+    {
+        return $this->version;
+    }
+
+    /**
+     * @internal
+     */
+    public function incrementVersion(): void
+    {
+        $this->version++;
     }
 }

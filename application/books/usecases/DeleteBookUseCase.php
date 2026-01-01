@@ -6,13 +6,16 @@ namespace app\application\books\usecases;
 
 use app\application\books\commands\DeleteBookCommand;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\CacheInterface;
+use app\application\ports\EventPublisherInterface;
+use app\application\ports\TransactionInterface;
+use app\domain\events\BookDeletedEvent;
 
 final readonly class DeleteBookUseCase
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
-        private CacheInterface $cache,
+        private TransactionInterface $transaction,
+        private EventPublisherInterface $eventPublisher,
     ) {
     }
 
@@ -21,9 +24,23 @@ final readonly class DeleteBookUseCase
         $book = $this->bookRepository->get($command->id);
 
         $year = $book->getYear()->value;
+        $wasPublished = $book->isPublished();
 
-        $this->bookRepository->delete($book);
+        $this->transaction->begin();
 
-        $this->cache->delete(sprintf('report:top_authors:%d', $year));
+        try {
+            $this->bookRepository->delete($book);
+
+            $this->transaction->afterCommit(function () use ($command, $year, $wasPublished): void {
+                $this->eventPublisher->publishEvent(
+                    new BookDeletedEvent($command->id, $year, $wasPublished)
+                );
+            });
+
+            $this->transaction->commit();
+        } catch (\Throwable $e) {
+            $this->transaction->rollBack();
+            throw $e;
+        }
     }
 }

@@ -58,3 +58,6 @@ coverage-phpunit.xml
 junit.xml
 infection.log
 repomix-output.md
+
+# Docs for learning
+docs/learning

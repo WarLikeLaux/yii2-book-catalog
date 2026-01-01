@@ -14,6 +14,12 @@ class SearchBookCest
     {
     }
 
+    public function _after(IntegrationTester $I): void
+    {
+        Book::deleteAll();
+        Author::deleteAll();
+    }
+
     public function testSearchByAuthor(IntegrationTester $I): void
     {
         $I->wantTo('search books by author via global search');
@@ -80,5 +86,7 @@ class SearchBookCest
         ]);
         $book = $I->grabRecord(Book::class, ['isbn' => $isbn]);
         $book->link('authors', $author);
+
+        \Yii::$app->db->createCommand('COMMIT')->execute();
     }
 }

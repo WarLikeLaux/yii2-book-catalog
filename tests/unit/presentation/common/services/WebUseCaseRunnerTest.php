@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\application;
+namespace tests\unit\presentation\common\services;
 
-use app\application\common\UseCaseExecutor;
 use app\application\ports\NotificationInterface;
 use app\application\ports\TranslatorInterface;
 use app\domain\exceptions\DomainException;
+use app\presentation\common\services\WebUseCaseRunner;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-final class UseCaseExecutorTest extends Unit
+final class WebUseCaseRunnerTest extends Unit
 {
     private NotificationInterface&MockObject $notifier;
 
@@ -20,14 +20,14 @@ final class UseCaseExecutorTest extends Unit
 
     private TranslatorInterface&MockObject $translator;
 
-    private UseCaseExecutor $executor;
+    private WebUseCaseRunner $runner;
 
     protected function _before(): void
     {
         $this->notifier = $this->createMock(NotificationInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->translator = $this->createMock(TranslatorInterface::class);
-        $this->executor = new UseCaseExecutor($this->notifier, $this->logger, $this->translator);
+        $this->runner = new WebUseCaseRunner($this->notifier, $this->logger, $this->translator);
     }
 
     public function testExecuteSuccessNotifiesAndReturnsTrue(): void
@@ -42,7 +42,7 @@ final class UseCaseExecutorTest extends Unit
 
         $called = false;
 
-        $result = $this->executor->execute(function () use (&$called): void {
+        $result = $this->runner->execute(function () use (&$called): void {
             $called = true;
         }, 'ok');
 
@@ -54,7 +54,7 @@ final class UseCaseExecutorTest extends Unit
     {
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('domain', 'domain.error.key')
+            ->with('app', 'domain.error.key')
             ->willReturn('Translated error');
         $this->notifier->expects($this->once())
             ->method('error')
@@ -64,7 +64,7 @@ final class UseCaseExecutorTest extends Unit
         $this->logger->expects($this->never())
             ->method('error');
 
-        $result = $this->executor->execute(function (): void {
+        $result = $this->runner->execute(function (): void {
             throw new DomainException('domain.error.key');
         }, 'ok');
 
@@ -95,7 +95,7 @@ final class UseCaseExecutorTest extends Unit
                 })
             );
 
-        $result = $this->executor->execute(function (): void {
+        $result = $this->runner->execute(function (): void {
             throw new \RuntimeException('boom');
         }, 'ok', ['foo' => 'bar']);
 
@@ -107,7 +107,7 @@ final class UseCaseExecutorTest extends Unit
         $this->logger->expects($this->never())
             ->method('error');
 
-        $result = $this->executor->executeForApi(function (): void {
+        $result = $this->runner->executeForApi(function (): void {
         }, 'done');
 
         $this->assertSame(['success' => true, 'message' => 'done'], $result);
@@ -129,7 +129,7 @@ final class UseCaseExecutorTest extends Unit
                 return $context['requestId'] === '123' && $context['exception'] === $exception;
             }));
 
-        $result = $this->executor->executeForApi(function () use ($exception): void {
+        $result = $this->runner->executeForApi(function () use ($exception): void {
             throw $exception;
         }, 'ok', $logContext);
 

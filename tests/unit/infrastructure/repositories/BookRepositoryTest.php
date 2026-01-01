@@ -25,6 +25,16 @@ final class BookRepositoryTest extends Unit
     {
         Yii::$app->language = 'en-US';
         $this->repository = Yii::$container->get(BookRepositoryInterface::class);
+        $this->cleanup();
+    }
+
+    protected function _after(): void
+    {
+        $this->cleanup();
+    }
+
+    private function cleanup(): void
+    {
         Book::deleteAll();
         Author::deleteAll();
     }
@@ -49,13 +59,16 @@ final class BookRepositoryTest extends Unit
 
     public function testDeleteThrowsExceptionOnNotFound(): void
     {
-        $book = new BookEntity(
+        $book = BookEntity::reconstitute(
             999,
             'Title',
             new BookYear(2025),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
+            [],
+            false,
+            1
         );
 
         $this->expectException(EntityNotFoundException::class);
@@ -73,7 +86,7 @@ final class BookRepositoryTest extends Unit
             null,
             null
         );
-        $book->syncAuthors([$authorId]);
+        $book->replaceAuthors([$authorId]);
 
         $this->repository->save($book);
         $bookId = $book->getId();
@@ -187,8 +200,11 @@ final class BookRepositoryTest extends Unit
             null,
             null
         );
-        $book->syncAuthors([$authorId]);
+        $book->replaceAuthors([$authorId]);
         $this->repository->save($book);
+
+        // InnoDB FullText search requires committed transaction
+        Yii::$app->db->getTransaction()->commit();
 
         $result = $this->repository->search('Unique Author', 1, 10);
 
@@ -254,8 +270,11 @@ final class BookRepositoryTest extends Unit
             'Some description',
             null
         );
-        $book->syncAuthors([$authorId]);
+        $book->replaceAuthors([$authorId]);
         $this->repository->save($book);
+
+        // InnoDB FullText search requires committed transaction
+        Yii::$app->db->getTransaction()->commit();
 
         $result = $this->repository->search('SearchTestAuthor', 1, 10);
 
@@ -295,11 +314,10 @@ final class BookRepositoryTest extends Unit
             null,
             null
         );
-        $book->syncAuthors([$author1, $author2]);
+        $book->replaceAuthors([$author1, $author2]);
         $this->repository->save($book);
 
-        // Remove author 2
-        $book->syncAuthors([$author1]);
+        $book->replaceAuthors([$author1]);
         $this->repository->save($book);
 
         $storedBook = $this->repository->get($book->getId());

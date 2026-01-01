@@ -7,7 +7,6 @@ namespace tests\unit\application\books\usecases;
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
@@ -24,8 +23,6 @@ final class CreateBookUseCaseTest extends Unit
 
     private EventPublisherInterface&MockObject $eventPublisher;
 
-    private CacheInterface&MockObject $cache;
-
     private CreateBookUseCase $useCase;
 
     protected function _before(): void
@@ -33,12 +30,10 @@ final class CreateBookUseCaseTest extends Unit
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
         $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
-        $this->cache = $this->createMock(CacheInterface::class);
         $this->useCase = new CreateBookUseCase(
             $this->bookRepository,
             $this->transaction,
-            $this->eventPublisher,
-            $this->cache
+            $this->eventPublisher
         );
     }
 
@@ -53,8 +48,22 @@ final class CreateBookUseCaseTest extends Unit
             cover: '/uploads/cover.jpg'
         );
 
+        $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
+        $this->transaction->expects($this->once())
+            ->method('afterCommit')
+            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
+                $afterCommitCallback = $callback;
+            });
+        $this->transaction->expects($this->once())
+            ->method('commit')
+            ->willReturnCallback(function () use (&$afterCommitCallback): void {
+                if ($afterCommitCallback === null) {
+                    return;
+                }
+
+                $afterCommitCallback();
+            });
         $this->transaction->expects($this->never())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
@@ -67,7 +76,9 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->eventPublisher->expects($this->once())
             ->method('publishEvent')
-            ->with($this->callback(fn (BookCreatedEvent $event): bool => $event->bookId === 42 && $event->title === 'Clean Code'));
+            ->with($this->callback(fn (BookCreatedEvent $event) => $event->bookId === 42
+                && $event->title === 'Clean Code'
+                && $event->year === 2008));
 
         $result = $this->useCase->execute($command);
 
@@ -92,8 +103,6 @@ final class CreateBookUseCaseTest extends Unit
             ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
 
-        $this->eventPublisher->expects($this->never())->method('publishEvent');
-
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('DB error');
 
@@ -114,8 +123,6 @@ final class CreateBookUseCaseTest extends Unit
         $this->transaction->expects($this->never())->method('commit');
         $this->transaction->expects($this->once())->method('rollBack');
 
-        $this->eventPublisher->expects($this->never())->method('publishEvent');
-
         $this->expectException(DomainException::class);
 
         $this->useCase->execute($command);
@@ -131,8 +138,22 @@ final class CreateBookUseCaseTest extends Unit
             authorIds: []
         );
 
+        $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
+        $this->transaction->expects($this->once())
+            ->method('afterCommit')
+            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
+                $afterCommitCallback = $callback;
+            });
+        $this->transaction->expects($this->once())
+            ->method('commit')
+            ->willReturnCallback(function () use (&$afterCommitCallback): void {
+                if ($afterCommitCallback === null) {
+                    return;
+                }
+
+                $afterCommitCallback();
+            });
 
         $this->bookRepository->expects($this->once())
             ->method('save')

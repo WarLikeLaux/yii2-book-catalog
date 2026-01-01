@@ -45,6 +45,7 @@ final class BookController extends Controller
                 'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
+                    'publish' => ['post'],
                 ],
             ],
         ];
@@ -140,5 +141,11 @@ final class BookController extends Controller
     {
         $this->commandHandler->deleteBook($id);
         return $this->redirect(['index']);
+    }
+
+    public function actionPublish(int $id): Response
+    {
+        $this->commandHandler->publishBook($id);
+        return $this->redirect(['view', 'id' => $id]);
     }
 }
