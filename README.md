@@ -8,9 +8,9 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-415_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-427_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![Mutation Score](https://img.shields.io/badge/MSI-96%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
 ---
 
@@ -54,9 +54,9 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **415 тестов** (915 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **427 тестов** (940 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Custom Architecture Rules | 🛠 **Makefile**<br>Автоматизация рутины |
-| ✅ **Mutation Testing**<br>Infection PHP (MSI > 96%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
+| ✅ **Mutation Testing**<br>Infection PHP (MSI 100%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
 ## 🛠 Технический стек
@@ -424,8 +424,8 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>415</b><br>Tests</td>
-<td align="center"><b>915</b><br>Assertions</td>
+<td align="center"><b>427</b><br>Tests</td>
+<td align="center"><b>940</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~26s</b><br>Runtime</td>
 </tr>
@@ -459,7 +459,7 @@ open http://localhost:8000
 | **Integration** | 72 | CRUD, API, Use Cases, HTTP-сценарии с БД |
 | **E2E** | 17 | Приемочные тесты (Acceptance) |
 
-Метрики `make test-coverage` включают **Unit + Integration** (415 tests, 915 assertions). E2E запускаются отдельно.
+Метрики `make test-coverage` включают **Unit + Integration** (427 tests, 940 assertions). E2E запускаются отдельно.
 
 **Unit Tests покрывают:**
 - **Application Layer**: UseCases, Commands, QueryResult, PaginationRequest, IdempotencyService
@@ -519,7 +519,7 @@ open http://localhost:8000
 ### 📊 Статистика проекта
 
 ![Source Code](https://img.shields.io/badge/Source_Code-6.4k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-8.3k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-8.4k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
 ![Source Files](https://img.shields.io/badge/Source_Files-176-purple?style=for-the-badge&logo=php&logoColor=white)
 ![Test Files](https://img.shields.io/badge/Test_Files-100-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
