@@ -253,6 +253,8 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
 
         $toDelete = array_values(array_diff($storedAuthorIds, $currentAuthorIds));
         $toAdd = array_values(array_diff($currentAuthorIds, $storedAuthorIds));
+        sort($toDelete);
+        sort($toAdd);
 
         if ($toDelete !== []) {
             $this->db->createCommand()->delete('book_authors', [
