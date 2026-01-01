@@ -6,6 +6,8 @@ namespace app\domain\events;
 
 final readonly class BookCreatedEvent implements DomainEvent
 {
+    public const string EVENT_TYPE = 'book.created';
+
     public function __construct(
         public int $bookId,
         public string $title,
@@ -15,7 +17,7 @@ final readonly class BookCreatedEvent implements DomainEvent
 
     public function getEventType(): string
     {
-        return 'book.created';
+        return self::EVENT_TYPE;
     }
 
     /**

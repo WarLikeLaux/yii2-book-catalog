@@ -81,7 +81,7 @@ final class Book
         bool $published,
         int $version
     ): self {
-        return new self(
+        $book = new self(
             title: $title,
             year: $year,
             isbn: $isbn,
@@ -90,7 +90,9 @@ final class Book
             authorIds: $authorIds,
             published: $published,
             version: $version
-        )->withId($id);
+        );
+
+        return $book->withId($id);
     }
 
     /**

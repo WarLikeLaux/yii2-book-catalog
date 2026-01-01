@@ -6,6 +6,8 @@ namespace app\domain\events;
 
 final readonly class BookPublishedEvent implements QueueableEvent
 {
+    public const string EVENT_TYPE = 'book.published';
+
     public function __construct(
         public int $bookId,
         public string $title,
@@ -15,7 +17,7 @@ final readonly class BookPublishedEvent implements QueueableEvent
 
     public function getEventType(): string
     {
-        return 'book.published';
+        return self::EVENT_TYPE;
     }
 
     /**
