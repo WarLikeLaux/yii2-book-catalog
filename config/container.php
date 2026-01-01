@@ -5,6 +5,7 @@ declare(strict_types=1);
 use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
 use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\AuthServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\CacheInterface;
@@ -38,6 +39,7 @@ use app\infrastructure\repositories\decorators\SubscriptionRepositoryTracingDeco
 use app\infrastructure\repositories\IdempotencyRepository;
 use app\infrastructure\repositories\ReportRepository;
 use app\infrastructure\repositories\SubscriptionRepository;
+use app\infrastructure\services\auth\YiiAuthService;
 use app\infrastructure\services\notifications\FlashNotificationService;
 use app\infrastructure\services\observability\InspectorTracer;
 use app\infrastructure\services\observability\NullTracer;
@@ -61,6 +63,7 @@ return [
         ),
 
         // Порты и адаптеры
+        AuthServiceInterface::class => YiiAuthService::class,
         NotificationInterface::class => FlashNotificationService::class,
         TranslatorInterface::class => YiiTranslatorAdapter::class,
         IdempotencyInterface::class => IdempotencyRepository::class,
