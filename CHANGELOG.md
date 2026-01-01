@@ -16,17 +16,28 @@
 - **#27** - добавлена доменная политика `BookPublicationPolicy` для управления правилами публикации ([460ad6b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/460ad6b))
 
 ### 🛠 Рефакторинг и архитектура
+- **#27** - разделены интерфейсы для чтения (Query) и записи (Repository) согласно ISP ([f138a0a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f138a0a))
+- **#27** - удалена зависимость от `TranslatorInterface` в репозиториях, реализован возврат ключей сообщений ([1a90348](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1a90348))
 - **#27** - реализован **EventToJobMapper** для отвязки доменных событий от конкретных задач очереди ([bab9912](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bab9912))
 - **#27** - консолидированы все переводы в `app.php`, удалены разрозненные файлы `domain.php` ([a41f6cd](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a41f6cd))
 - **#27** - обновлены формы, хендлеры и валидаторы для поддержки унифицированных ключей i18n ([2c3359c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2c3359c))
+- **#27** - рефакторинг `BookCommandHandler` для использования `WebUseCaseRunner` ([184acf6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/184acf6))
 - **#27** - упрощена сущность `Book` за счет выноса логики в спецификации и политики ([460ad6b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/460ad6b))
+
+### 🧪 Тестирование
+- **#27** - обновлены тесты и Makefile для поддержки новой структуры интерфейсов ([4db00a4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4db00a4))
 
 ### 🐛 Исправления
 - **#27** - исправлена обработка `null` для версии в `OptimisticLockBehavior` ([978c917](https://github.com/WarLikeLaux/yii2-book-catalog/commit/978c917))
 
 ### 📝 Документация
+- **#27** - обновлена документация по архитектуре и ISP рефакторингу интерфейсов ([0d0bc0a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0d0bc0a))
 - **#27** - подробно документирован паттерн Specification и роль `EventToJobMapper` в `ARCHITECTURE.md` ([1ecce46](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1ecce46))
-- **#27** - актуализированы метрики проекта в `README.md`: **411 тестов**, **925 ассертов** ([1ecce46](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1ecce46))
+- **#27** - актуализированы метрики проекта в `README.md`: **415 тестов**, **915 ассертов** ([1ecce46](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1ecce46))
+- **#27** - актуализирована автогенерируемая документация БД, моделей и маршрутов ([72de8e7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/72de8e7))
+
+### ⚙️ Инфраструктура
+- **#27** - обновлена конфигурация DI и удален `.geminiignore` ([c960e85](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c960e85))
 
 ## [0.12.0] - 2026-01-01 — "Блокировки и события"
 
