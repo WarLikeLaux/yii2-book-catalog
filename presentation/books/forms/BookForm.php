@@ -128,4 +128,43 @@ final class BookForm extends RepositoryAwareForm
             $this->addError($attribute, Yii::t('app', 'author.error.id_not_found', ['id' => $authorId]));
         }
     }
+
+    /**
+     * @param array<int, string> $authors
+     * @return array<int, string>
+     */
+    public function getAuthorInitValueText(array $authors): array
+    {
+        $authorIds = $this->normalizeAuthorIds();
+        if ($authorIds === []) {
+            return [];
+        }
+
+        return array_map(
+            static fn(int $authorId): string => $authors[$authorId] ?? (string)$authorId,
+            $authorIds
+        );
+    }
+
+    /**
+     * @return array<int>
+     */
+    private function normalizeAuthorIds(): array
+    {
+        $authorIds = $this->authorIds;
+        if (!is_array($authorIds)) {
+            $authorIds = $authorIds === null ? [] : [$authorIds];
+        }
+
+        $normalized = [];
+        foreach ($authorIds as $authorId) {
+            $id = filter_var($authorId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($id === false) {
+                continue;
+            }
+            $normalized[] = $id;
+        }
+
+        return $normalized;
+    }
 }
