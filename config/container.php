@@ -5,6 +5,7 @@ declare(strict_types=1);
 use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
 use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
@@ -67,10 +68,17 @@ return [
 
         // Репозитории (с декораторами)
         BookRepository::class => static fn(Container $c): BookRepository => new BookRepository(
-            Yii::$app->get('db'),
-            $c->get(TranslatorInterface::class)
+            Yii::$app->get('db')
         ),
         BookRepositoryInterface::class => static function (Container $c): BookRepositoryInterface {
+            $repo = $c->get(BookRepository::class);
+            if ($c->has(TracerInterface::class)) {
+                return new BookRepositoryTracingDecorator($repo, $c->get(TracerInterface::class));
+            }
+            return $repo;
+        },
+
+        BookQueryServiceInterface::class => static function (Container $c): BookQueryServiceInterface {
             $repo = $c->get(BookRepository::class);
             if ($c->has(TracerInterface::class)) {
                 return new BookRepositoryTracingDecorator($repo, $c->get(TracerInterface::class));
