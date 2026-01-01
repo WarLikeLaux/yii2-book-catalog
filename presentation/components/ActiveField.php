@@ -23,7 +23,7 @@ class ActiveField extends BootstrapActiveField
             'title' => $options['title'] ?? 'Сгенерировать',
         ]);
 
-        $this->template = "{label}\n<div class=\"input-group\">{input}{$button}</div>\n{hint}\n{error}";
+        $this->template = "{label}\n<div class=\"input-group has-validation\">{input}{$button}{error}</div>\n{hint}";
 
         return $this;
     }
