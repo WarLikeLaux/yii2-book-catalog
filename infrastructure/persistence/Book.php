@@ -73,7 +73,10 @@ final class Book extends ActiveRecord
     {
         return [
             TimestampBehavior::class,
-            OptimisticLockBehavior::class,
+            [
+                'class' => OptimisticLockBehavior::class,
+                'value' => fn(): int => $this->version,
+            ],
         ];
     }
 

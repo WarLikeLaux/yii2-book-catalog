@@ -6,6 +6,7 @@ namespace app\application\ports;
 
 use app\application\books\queries\BookReadDto;
 use app\domain\entities\Book;
+use app\domain\specifications\BookSpecificationInterface;
 
 interface BookRepositoryInterface
 {
@@ -23,6 +24,12 @@ interface BookRepositoryInterface
     public function findByIdWithAuthors(int $id): ?BookReadDto;
 
     public function search(string $term, int $page, int $pageSize): PagedResultInterface;
+
+    public function searchBySpecification(
+        BookSpecificationInterface $specification,
+        int $page,
+        int $pageSize
+    ): PagedResultInterface;
 
     public function existsByIsbn(string $isbn, ?int $excludeId = null): bool;
 }

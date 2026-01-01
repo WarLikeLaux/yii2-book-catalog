@@ -33,14 +33,14 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         } else {
             $ar = Author::findOne($author->getId());
             if ($ar === null) {
-                throw new EntityNotFoundException($this->translator->translate('app', 'Author not found'));
+                throw new EntityNotFoundException($this->translator->translate('app', 'author.error.not_found'));
             }
             $ar->edit($author->getFio());
         }
 
         if ($this->existsByFio($author->getFio(), $author->getId())) {
             throw new AlreadyExistsException(
-                $this->translator->translate('app', 'Author with this FIO already exists'),
+                $this->translator->translate('app', 'author.error.fio_exists'),
                 409
             );
         }
@@ -58,7 +58,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
     {
         $ar = Author::findOne($id);
         if ($ar === null) {
-            throw new EntityNotFoundException($this->translator->translate('app', 'Author not found'));
+            throw new EntityNotFoundException($this->translator->translate('app', 'author.error.not_found'));
         }
 
         return new AuthorEntity(
@@ -71,11 +71,11 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
     {
         $ar = Author::findOne($author->getId());
         if ($ar === null) {
-            throw new EntityNotFoundException($this->translator->translate('app', 'Author not found'));
+            throw new EntityNotFoundException($this->translator->translate('app', 'author.error.not_found'));
         }
 
         if ($ar->delete() === false) {
-            throw new \RuntimeException($this->translator->translate('app', 'Failed to delete author')); // @codeCoverageIgnore
+            throw new \RuntimeException($this->translator->translate('app', 'author.error.delete_failed')); // @codeCoverageIgnore
         }
     }
 
@@ -165,13 +165,13 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         try {
             if (!$ar->save()) {
                 $errors = $ar->getFirstErrors();
-                $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'Failed to save author');
+                $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'author.error.save_failed');
                 throw new \RuntimeException($message);
             }
         } catch (IntegrityException $e) {
             if ($this->isDuplicateError($e)) {
                 throw new AlreadyExistsException(
-                    $this->translator->translate('app', 'Author with this FIO already exists'),
+                    $this->translator->translate('app', 'author.error.fio_exists'),
                     409,
                     $e
                 );

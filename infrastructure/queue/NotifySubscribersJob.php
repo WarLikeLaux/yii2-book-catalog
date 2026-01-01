@@ -39,7 +39,7 @@ final readonly class NotifySubscribersJob implements JobInterface, RetryableJobI
         /** @var TranslatorInterface $translator */
         $translator = Yii::$container->get(TranslatorInterface::class);
 
-        $message = $translator->translate('app', 'New book released: {title}', ['title' => $this->title]);
+        $message = $translator->translate('app', 'notification.book.released', ['title' => $this->title]);
         $totalDispatched = 0;
 
         foreach ($queryService->getSubscriberPhonesForBook($this->bookId) as $phone) {

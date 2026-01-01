@@ -37,7 +37,7 @@ final readonly class AuthorQueryService
     {
         $author = $this->authorRepository->findById($id);
         if (!$author instanceof AuthorReadDto) {
-            throw new DomainException('Author not found');
+            throw new DomainException('author.error.not_found');
         }
 
         return $author;
