@@ -184,6 +184,10 @@ composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
 
+req:
+	$(COMPOSE) exec $(PHP_CONTAINER) composer require $(PKG)
+
+
 # =================================================================================================
 # 🛡️ КОНТРОЛЬ КАЧЕСТВА (QA)
 # =================================================================================================

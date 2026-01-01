@@ -25,7 +25,7 @@ $config = [
             'class' => \yii\mutex\MysqlMutex::class,
         ],
         'queue' => [
-            'class' => \yii\queue\db\Queue::class,
+            'class' => \app\infrastructure\queue\HandlerAwareQueue::class,
             'db' => $db,
             'tableName' => '{{%queue}}',
             'channel' => 'queue',

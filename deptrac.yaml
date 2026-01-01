@@ -96,9 +96,3 @@ deptrac:
       - Yii
     app\infrastructure\services\observability\TracerBootstrap:
       - Yii
-    
-    # Очереди (требуется доступ к Service Locator для десериализации)
-    app\infrastructure\queue\NotifySubscribersJob:
-      - Yii
-    app\infrastructure\queue\NotifySingleSubscriberJob:
-      - Yii

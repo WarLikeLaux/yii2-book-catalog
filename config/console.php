@@ -63,7 +63,7 @@ $config = [
             'db' => $db,
         ],
         'queue' => [
-            'class' => \yii\queue\db\Queue::class,
+            'class' => \app\infrastructure\queue\HandlerAwareQueue::class,
             'db' => $db,
             'tableName' => '{{%queue}}',
             'channel' => 'queue',

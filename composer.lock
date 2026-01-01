@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e2bf79244e084614c045a9e3d8327dc5",
+    "content-hash": "ac52868b0645327673ef3e1ae199c079",
     "packages": [
         {
             "name": "bower-asset/inputmask",
@@ -1051,6 +1051,18 @@
                 }
             ],
             "time": "2023-06-22T07:43:31+00:00"
+        },
+        {
+            "name": "npm-asset/faker",
+            "version": "5.5.3",
+            "dist": {
+                "type": "tar",
+                "url": "https://registry.npmjs.org/faker/-/faker-5.5.3.tgz"
+            },
+            "type": "npm-asset",
+            "license": [
+                "MIT"
+            ]
         },
         {
             "name": "phpoption/phpoption",
