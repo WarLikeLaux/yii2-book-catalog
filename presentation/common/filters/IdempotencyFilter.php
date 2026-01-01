@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\common\filters;
 
-use app\application\common\dto\IdempotencyResponseDto;
+use app\application\common\dto\IdempotencyRecordDto;
 use app\application\common\IdempotencyServiceInterface;
 use Yii;
 use yii\base\ActionFilter;
@@ -62,10 +62,15 @@ final class IdempotencyFilter extends ActionFilter
 
         $this->lockedKey = $key;
 
-        $cached = $this->service->getResponse($key);
-        if ($cached instanceof IdempotencyResponseDto) {
+        $record = $this->service->getRecord($key);
+        if ($record instanceof IdempotencyRecordDto) {
             $this->releaseLockIfHeld();
-            $this->applyCachedResponse($cached);
+            return $this->handleExistingRecord($record);
+        }
+
+        if (!$this->service->startRequest($key, $this->ttl)) {
+            $this->releaseLockIfHeld();
+            $this->applyUnavailableResponse();
             return false;
         }
 
@@ -108,23 +113,39 @@ final class IdempotencyFilter extends ActionFilter
     /** @codeCoverageIgnore */
     private function returnCachedResponseIfExists(string $key): bool
     {
-        $cached = $this->service->getResponse($key);
-        if (!$cached instanceof IdempotencyResponseDto) {
-            return true;
+        $record = $this->service->getRecord($key);
+        if (!$record instanceof IdempotencyRecordDto) {
+            $this->applyInProgressResponse();
+            return false;
         }
 
-        $this->applyCachedResponse($cached);
+        return $this->handleExistingRecord($record);
+    }
+
+    private function handleExistingRecord(IdempotencyRecordDto $record): bool
+    {
+        if (!$record->isFinished()) {
+            $this->applyInProgressResponse();
+            return false;
+        }
+
+        $this->applyCachedResponse($record);
         return false;
     }
 
-    private function applyCachedResponse(IdempotencyResponseDto $cached): void
+    private function applyCachedResponse(IdempotencyRecordDto $cached): void
     {
         $response = Yii::$app->response;
         if (!$response instanceof Response) {
             return; // @codeCoverageIgnore
         }
 
-        $response->statusCode = $cached->statusCode;
+        $statusCode = $cached->statusCode;
+        if (!is_int($statusCode)) {
+            return; // @codeCoverageIgnore
+        }
+
+        $response->statusCode = $statusCode;
         if ($cached->redirectUrl !== null) {
             $response->getHeaders()->set('Location', $cached->redirectUrl);
         } else {
@@ -141,5 +162,29 @@ final class IdempotencyFilter extends ActionFilter
 
         $this->service->releaseLock($this->lockedKey);
         $this->lockedKey = null;
+    }
+
+    private function applyInProgressResponse(): void
+    {
+        $response = Yii::$app->response;
+        if (!$response instanceof Response) {
+            return; // @codeCoverageIgnore
+        }
+
+        $response->statusCode = 409;
+        $response->content = 'Idempotency key is in progress.';
+        $response->getHeaders()->set('X-Idempotency-Status', 'IN_PROGRESS');
+    }
+
+    private function applyUnavailableResponse(): void
+    {
+        $response = Yii::$app->response;
+        if (!$response instanceof Response) {
+            return; // @codeCoverageIgnore
+        }
+
+        $response->statusCode = 503;
+        $response->content = 'Idempotency storage unavailable.';
+        $response->getHeaders()->set('X-Idempotency-Status', 'UNAVAILABLE');
     }
 }
