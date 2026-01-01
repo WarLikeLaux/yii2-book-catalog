@@ -18,7 +18,6 @@ final readonly class NotifySubscribersJob implements JobInterface, RetryableJobI
     ) {
     }
 
-    /** @codeCoverageIgnore Fan-out джоба: зависит от очереди и внешних сервисов */
     public function execute($queue): void
     {
         $this->getRegistry($queue)->handle($this, $queue);

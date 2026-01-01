@@ -19,7 +19,6 @@ final class NotifySingleSubscriberJob implements JobInterface, RetryableJobInter
     ) {
     }
 
-    /** @codeCoverageIgnore Выполнение джобы: зависит от очереди и внешних сервисов */
     public function execute($queue): void
     {
         $this->getRegistry($queue)->handle($this, $queue);
