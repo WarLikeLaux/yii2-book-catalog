@@ -16,9 +16,6 @@ final class Book
     /** @var int[] */
     private array $authorIds = [];
 
-    /** @var int[] */
-    private array $originalAuthorIds = [];
-
     /**
      * @param int[] $authorIds
      */
@@ -31,17 +28,10 @@ final class Book
         private ?string $coverUrl,
         array $authorIds,
         private bool $published,
-        private int $version,
-        bool $isReconstituted
+        private int $version
     ) {
         $this->validateTitle($title);
         $this->authorIds = array_map(intval(...), $authorIds);
-
-        if (!$isReconstituted) {
-            return;
-        }
-
-        $this->originalAuthorIds = $this->authorIds;
     }
 
     private function validateTitle(string $title): void
@@ -73,8 +63,7 @@ final class Book
             coverUrl: $coverUrl,
             authorIds: [],
             published: false,
-            version: 1,
-            isReconstituted: false
+            version: 1
         );
     }
 
@@ -101,8 +90,7 @@ final class Book
             coverUrl: $coverUrl,
             authorIds: $authorIds,
             published: $published,
-            version: $version,
-            isReconstituted: true
+            version: $version
         );
     }
 
@@ -171,32 +159,6 @@ final class Book
         foreach ($authorIds as $authorId) {
             $this->addAuthor($authorId);
         }
-    }
-
-    /**
-     * @return int[]
-     */
-    public function getAddedAuthorIds(): array
-    {
-        return array_values(array_diff($this->authorIds, $this->originalAuthorIds));
-    }
-
-    /**
-     * @return int[]
-     */
-    public function getRemovedAuthorIds(): array
-    {
-        return array_values(array_diff($this->originalAuthorIds, $this->authorIds));
-    }
-
-    public function hasAuthorChanges(): bool
-    {
-        return $this->getAddedAuthorIds() !== [] || $this->getRemovedAuthorIds() !== [];
-    }
-
-    public function markAuthorsPersisted(): void
-    {
-        $this->originalAuthorIds = $this->authorIds;
     }
 
     public function getId(): ?int

@@ -124,50 +124,6 @@ final class BookTest extends Unit
         $this->assertFalse($book->hasAuthor(2));
     }
 
-    public function testChangeTrackingForNewBook(): void
-    {
-        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
-        $book->replaceAuthors([1, 2]);
-
-        $this->assertSame([1, 2], $book->getAddedAuthorIds());
-        $this->assertSame([], $book->getRemovedAuthorIds());
-        $this->assertTrue($book->hasAuthorChanges());
-    }
-
-    public function testChangeTrackingForReconstitutedBook(): void
-    {
-        $book = Book::reconstitute(
-            1,
-            'Title',
-            new BookYear(2023),
-            new Isbn('978-3-16-148410-0'),
-            null,
-            null,
-            [1, 2],
-            false,
-            1
-        );
-
-        $book->removeAuthor(2);
-        $book->addAuthor(3);
-
-        $this->assertSame([3], $book->getAddedAuthorIds());
-        $this->assertSame([2], $book->getRemovedAuthorIds());
-        $this->assertTrue($book->hasAuthorChanges());
-    }
-
-    public function testMarkAuthorsPersistedResetsTracking(): void
-    {
-        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
-        $book->replaceAuthors([1, 2]);
-
-        $book->markAuthorsPersisted();
-
-        $this->assertSame([], $book->getAddedAuthorIds());
-        $this->assertSame([], $book->getRemovedAuthorIds());
-        $this->assertFalse($book->hasAuthorChanges());
-    }
-
     public function testSetId(): void
     {
         $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
