@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace app\application\books\queries;
 
-use app\application\ports\BookRepositoryInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\exceptions\DomainException;
 
 final readonly class BookQueryService
 {
     public function __construct(
-        private BookRepositoryInterface $bookRepository
+        private BookQueryServiceInterface $bookRepository
     ) {
     }
 
