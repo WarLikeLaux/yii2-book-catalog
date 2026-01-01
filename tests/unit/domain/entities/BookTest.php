@@ -129,13 +129,13 @@ final class BookTest extends Unit
     {
         $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
 
-        $book->setId(100);
+        $this->assignBookId($book, 100);
         $this->assertSame(100, $book->getId());
 
-        $book->setId(100);
+        $this->assignBookId($book, 100);
 
         $this->expectException(\RuntimeException::class);
-        $book->setId(200);
+        $this->assignBookId($book, 200);
     }
 
     public function testIncrementVersion(): void
@@ -267,5 +267,12 @@ final class BookTest extends Unit
         $this->expectExceptionMessage('book.error.title_too_long');
 
         $book->update(str_repeat('X', 256), new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+    }
+
+    private function assignBookId(Book $book, int $id): void
+    {
+        $method = new \ReflectionMethod(Book::class, 'setId');
+        $method->setAccessible(true);
+        $method->invoke($book, $id);
     }
 }

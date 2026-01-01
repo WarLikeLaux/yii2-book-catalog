@@ -295,7 +295,7 @@ final class BookRepositoryTest extends Unit
             null,
             null
         );
-        $book->setId(99999);
+        $this->assignBookId($book, 99999);
 
         $this->expectException(EntityNotFoundException::class);
         $this->repository->save($book);
@@ -359,6 +359,13 @@ final class BookRepositoryTest extends Unit
         $this->expectException(AlreadyExistsException::class);
         $this->expectExceptionMessage('book.error.isbn_exists');
         $this->repository->save($book2);
+    }
+
+    private function assignBookId(BookEntity $book, int $id): void
+    {
+        $method = new \ReflectionMethod(BookEntity::class, 'setId');
+        $method->setAccessible(true);
+        $method->invoke($book, $id);
     }
 
     public function testSearchBySpecificationWithYearSpec(): void

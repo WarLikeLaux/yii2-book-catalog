@@ -16,11 +16,12 @@ final class Book
     /** @var int[] */
     private array $authorIds = [];
 
+    private ?int $id = null;
+
     /**
      * @param int[] $authorIds
      */
     private function __construct(
-        private ?int $id,
         private string $title,
         private BookYear $year,
         private Isbn $isbn,
@@ -55,7 +56,6 @@ final class Book
         ?string $coverUrl
     ): self {
         return new self(
-            id: null,
             title: $title,
             year: $year,
             isbn: $isbn,
@@ -82,7 +82,6 @@ final class Book
         int $version
     ): self {
         return new self(
-            id: $id,
             title: $title,
             year: $year,
             isbn: $isbn,
@@ -91,7 +90,7 @@ final class Book
             authorIds: $authorIds,
             published: $published,
             version: $version
-        );
+        )->withId($id);
     }
 
     /**
@@ -166,15 +165,18 @@ final class Book
         return $this->id;
     }
 
-    /**
-     * @internal Только для использования репозиторием
-     */
-    public function setId(int $id): void
+    private function setId(int $id): void
     {
         if ($this->id !== null && $this->id !== $id) {
             throw new RuntimeException('Cannot overwrite ID');
         }
         $this->id = $id;
+    }
+
+    private function withId(int $id): self
+    {
+        $this->setId($id);
+        return $this;
     }
 
     public function getTitle(): string

@@ -64,7 +64,7 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
         $this->persistBook($ar);
 
         if ($isNew) {
-            $book->setId($ar->id);
+            $this->assignBookId($book, $ar->id);
         } else {
             $book->incrementVersion();
         }
@@ -233,6 +233,12 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
             }
             throw $e;
         }
+    }
+
+    private function assignBookId(BookEntity $book, int $id): void
+    {
+        $method = new \ReflectionMethod(BookEntity::class, 'setId');
+        $method->invoke($book, $id);
     }
 
     private function syncAuthors(BookEntity $book): void
