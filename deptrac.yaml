@@ -84,6 +84,8 @@ deptrac:
     # Адаптеры (разрешен доступ к Yii)
     app\infrastructure\adapters\YiiTranslatorAdapter:
       - Yii
+    app\infrastructure\adapters\YiiAuthAdapter:
+      - Yii
     
     # Инфраструктурные сервисы (разрешен доступ к Yii)
     app\infrastructure\services\YiiPsrLogger:

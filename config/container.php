@@ -23,6 +23,7 @@ use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
+use app\infrastructure\adapters\YiiAuthAdapter;
 use app\infrastructure\adapters\YiiCacheAdapter;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\adapters\YiiMutexAdapter;
@@ -39,7 +40,6 @@ use app\infrastructure\repositories\decorators\SubscriptionRepositoryTracingDeco
 use app\infrastructure\repositories\IdempotencyRepository;
 use app\infrastructure\repositories\ReportRepository;
 use app\infrastructure\repositories\SubscriptionRepository;
-use app\infrastructure\services\auth\YiiAuthService;
 use app\infrastructure\services\notifications\FlashNotificationService;
 use app\infrastructure\services\observability\InspectorTracer;
 use app\infrastructure\services\observability\NullTracer;
@@ -63,7 +63,7 @@ return [
         ),
 
         // Порты и адаптеры
-        AuthServiceInterface::class => YiiAuthService::class,
+        AuthServiceInterface::class => YiiAuthAdapter::class,
         NotificationInterface::class => FlashNotificationService::class,
         TranslatorInterface::class => YiiTranslatorAdapter::class,
         IdempotencyInterface::class => IdempotencyRepository::class,

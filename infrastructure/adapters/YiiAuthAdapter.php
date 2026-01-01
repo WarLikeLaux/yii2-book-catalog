@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace app\infrastructure\services\auth;
+namespace app\infrastructure\adapters;
 
 use app\application\ports\AuthServiceInterface;
 use Yii;
 
-final class YiiAuthService implements AuthServiceInterface
+final class YiiAuthAdapter implements AuthServiceInterface
 {
     public function isGuest(): bool
     {
