@@ -28,7 +28,7 @@ final readonly class YiiPsrLogger implements LoggerInterface
     ];
 
     public function __construct(
-        private string $category = 'application'
+        private string $category = LogCategory::APPLICATION
     ) {
     }
 

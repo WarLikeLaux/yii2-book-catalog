@@ -6,6 +6,7 @@ namespace app\infrastructure\queue;
 
 use app\application\ports\TranslatorInterface;
 use app\application\subscriptions\queries\SubscriptionQueryService;
+use app\infrastructure\services\LogCategory;
 use app\infrastructure\services\YiiPsrLogger;
 use Yii;
 use yii\queue\JobInterface;
@@ -30,7 +31,7 @@ final readonly class NotifySubscribersJob implements JobInterface, RetryableJobI
     /** @codeCoverageIgnore Fan-out джоба: зависит от Yii-очереди и внешних сервисов */
     public function execute($queue): void
     {
-        $logger = new YiiPsrLogger('sms');
+        $logger = new YiiPsrLogger(LogCategory::SMS);
         /** @var \yii\queue\Queue $jobQueue */
         $jobQueue = Yii::$app->get('queue');
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\infrastructure\queue;
 
 use app\application\ports\SmsSenderInterface;
+use app\infrastructure\services\LogCategory;
 use app\infrastructure\services\YiiPsrLogger;
 use Throwable;
 use Yii;
@@ -33,7 +34,7 @@ final class NotifySingleSubscriberJob implements JobInterface, RetryableJobInter
         }
 
         $sender = Yii::$container->get(SmsSenderInterface::class);
-        $logger = new YiiPsrLogger('sms');
+        $logger = new YiiPsrLogger(LogCategory::SMS);
 
         try {
             $sender->send($this->phone, $this->message);
