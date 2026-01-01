@@ -10,4 +10,9 @@ return [
     'appPort' => (int)env('APP_PORT', 8000),
     'swaggerPort' => (int)env('SWAGGER_PORT', 8081),
     'buggregatorUiPort' => (int)env('BUGGREGATOR_UI_PORT', 8090),
+    'idempotency' => [
+        'ttl' => (int)env('IDEMPOTENCY_TTL', 86400),
+        'lockTimeout' => (int)env('IDEMPOTENCY_LOCK_TIMEOUT', 1),
+        'waitSeconds' => (int)env('IDEMPOTENCY_WAIT_SECONDS', 1),
+    ],
 ];
