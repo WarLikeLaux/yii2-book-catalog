@@ -8,9 +8,9 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-394_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-411_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![Mutation Score](https://img.shields.io/badge/MSI-95%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Mutation Score](https://img.shields.io/badge/MSI-96%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
 ---
 
@@ -54,9 +54,9 @@
 
 | 🧪 Качество кода | 🐳 DevOps Ready |
 | :--- | :--- |
-| ✅ **394 тестов** (891 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **411 тестов** (925 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Custom Architecture Rules | 🛠 **Makefile**<br>Автоматизация рутины |
-| ✅ **Mutation Testing**<br>Infection PHP (MSI > 95%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
+| ✅ **Mutation Testing**<br>Infection PHP (MSI > 96%) | 🚀 **Automatic Doc Validation**<br>Custom PHP metrics linter |
 | ✅ **Automated Refactoring**<br>Rector & Deptrac | 🔄 **Hot Reload**<br>Быстрая разработка |
 
 ## 🛠 Технический стек
@@ -82,12 +82,14 @@
 *   **Контроллеры:** выступают оркестраторами. Загружают данные в формы и запускают валидацию, но делегируют выполнение бизнес-операций в Command Handlers, а выборку данных — в View Data Factories. Не содержат самой бизнес-логики.
 
 ### 2. Domain Layer (Rich Domain Model)
-Доменный слой содержит **Rich Entities** (`Book`) и **Value Objects** (`Isbn`, `BookYear`). 
+Доменный слой содержит **Rich Entities** (`Book`), **Value Objects** (`Isbn`, `BookYear`), **Domain Services** (`BookPublicationPolicy`) и **Specifications** (поиск/фильтрация).
 *   **Rich Entities:** инкапсулируют бизнес-логику и инварианты (а не просто геттеры/сеттеры).
 *   **Value Objects:** гарантируют консистентность данных (нельзя создать объект с неверным ISBN) и используются внутри сущностей.
+*   **Domain Services:** выносят правила, которые не принадлежат одной сущности (например, политика публикации).
+*   **Specifications:** формализуют критерии поиска и комбинируются в фабрике (`BookSearchSpecificationFactory`).
 *   **Persistence Ignorance:** доменные сущности ничего не знают о базе данных или ActiveRecord.
 
-**Domain Events:** доменные события (`BookCreatedEvent`) используются для **decoupling** (развязки) между use cases и инфраструктурой. Все доменные события реализуют интерфейс `DomainEvent` с методами `getEventType()` и `getPayload()`. Use Cases публикуют события через типобезопасный метод `publishEvent(DomainEvent $event)` порта `EventPublisherInterface`. Инфраструктурный адаптер (`YiiEventPublisherAdapter`) сначала уведомляет синхронные слушатели (`EventListenerInterface`), а затем отправляет события в очередь только если они реализуют `QueueableEvent`. Это исключает опечатки, повышает типобезопасность и позволяет отделять фоновую обработку от синхронной.
+**Domain Events:** доменные события (`BookCreatedEvent`) используются для **decoupling** (развязки) между use cases и инфраструктурой. Все доменные события реализуют интерфейс `DomainEvent` с методами `getEventType()` и `getPayload()`. Use Cases публикуют события через типобезопасный метод `publishEvent(DomainEvent $event)` порта `EventPublisherInterface`. Инфраструктурный адаптер (`YiiEventPublisherAdapter`) сначала уведомляет синхронные слушатели (`EventListenerInterface`), а затем отправляет события в очередь только если они реализуют маркер `QueueableEvent`. Маппинг Event → Job выполняет `EventToJobMapper` в инфраструктуре, что держит domain чистым и без ссылок на job-классы.
 
 ### 3. Presentation Layer (Yii2)
 Слой представления полностью отделен от бизнес-логики и инкапсулирует всю работу с формами и HTTP-запросами:
@@ -173,7 +175,7 @@ final readonly class BookCommandHandler
 ### 6. Infrastructure Layer
 *   **ActiveRecord и DB:** реализации портов живут в `infrastructure` (namespace: `app\infrastructure`).
 *   **Queue/File Storage:** подключаются через интерфейсы и DI.
-*   **Event Publisher Adapter:** `YiiEventPublisherAdapter` диспатчит события синхронным слушателям и отправляет в очередь только `QueueableEvent`. Это позволяет use cases оставаться независимыми от фреймворка.
+*   **Event Publisher Adapter:** `YiiEventPublisherAdapter` диспатчит события синхронным слушателям и отправляет в очередь только `QueueableEvent`. Маппинг событий в job делает `EventToJobMapper`. Это позволяет use cases оставаться независимыми от фреймворка.
 *   **Optimistic Locking:** репозитории используют `version` и выбрасывают `StaleDataException` при устаревших данных.
 *   **Пагинация:** репозитории используют `ActiveDataProvider` для выполнения запросов (сохранение eager loading через `with()`), но создают чистый `PaginationDto` вместо передачи framework-объекта в application layer.
 
@@ -188,7 +190,7 @@ final readonly class BookCommandHandler
 *   **Проблема:** отправка SMS тысячам подписчиков в одном Job-е может привести к тайм-аутам и блокировке воркера.
 *   **Решение:** используется паттерн **Fan-out**.
     1.  `CreateBookUseCase` публикует типобезопасное доменное событие `BookCreatedEvent` через метод `publishEvent()` порта `EventPublisherInterface`.
-    2.  `YiiEventPublisherAdapter` преобразует доменное событие в `NotifySubscribersJob` (Dispatcher).
+    2.  `EventToJobMapper` маппит доменное событие в `NotifySubscribersJob` (Dispatcher) внутри `YiiEventPublisherAdapter`.
     3.  `NotifySubscribersJob` получает список подписчиков.
     4.  Для каждого подписчика создается отдельная задача `NotifySingleSubscriberJob`.
 *   **Результат:** изоляция ошибок (сбой одного SMS не ломает рассылку), возможность параллельной обработки несколькими воркерами, полная независимость use cases от конкретных реализаций очереди, и типобезопасность через интерфейс `DomainEvent`.
@@ -204,9 +206,10 @@ final readonly class BookCommandHandler
 *   **Результат:** Application layer независим от фреймворка, но сохраняет все преимущества Yii2 ActiveRecord (eager loading, оптимизация запросов).
 
 ### 10. Гибридный поиск (Universal Search)
-Реализован "умный" поиск по каталогу без использования внешних движков (Elasticsearch), но с оптимизацией под MySQL.
+Реализован "умный" поиск по каталогу без использования внешних движков (Elasticsearch), но с оптимизацией под MySQL и чистыми спецификациями в домене.
 *   **FullText Index:** используется для поиска по `title` и `description` (O(1)).
 *   **Exact Match:** для ISBN и Года используются точные совпадения.
+*   **Specifications:** `BookSearchSpecificationFactory` собирает критерии, а репозиторий выполняет `searchBySpecification()`.
 *   **UX:** обернуто в **PJAX** для фильтрации без перезагрузки страницы.
 
 ### 11. Dependency Injection
@@ -246,9 +249,11 @@ yii2-book-catalog/
 │   ├── entities/            # Rich Entities (Book, Author)
 │   ├── events/              # Domain Events & QueueableEvent
 │   ├── exceptions/          # Domain Exceptions (StaleDataException)
+│   ├── services/            # Domain Services (BookPublicationPolicy)
+│   ├── specifications/      # Specifications (поиск/фильтрация)
 │   └── values/              # Value Objects (Isbn, BookYear)
 ├── infrastructure/          # Infrastructure Layer (Реализации портов)
-│   ├── adapters/            # Адаптеры (YiiEventPublisher, YiiMutex, YiiTransaction)
+│   ├── adapters/            # Адаптеры (YiiEventPublisher, EventToJobMapper, YiiMutex, YiiTransaction)
 │   ├── listeners/           # Event Listeners (ReportCacheInvalidation)
 │   ├── persistence/         # ActiveRecord модели (только для маппинга)
 │   ├── queue/               # Queue Jobs
@@ -257,7 +262,7 @@ yii2-book-catalog/
 │   └── services/            # Инфраструктурные сервисы (Logger, Storage)
 ├── presentation/            # Presentation Layer (Yii2 & Web)
 │   ├── controllers/         # Тонкие контроллеры
-│   ├── books/               # Модуль Книги (Forms, Handlers, Mappers)
+│   ├── books/               # Модуль "Книги" (Forms, Handlers, Mappers)
 │   ├── authors/             # Модуль Авторы
 │   ├── common/              # Общие виджеты, фильтры и сервисы (WebUseCaseRunner, IdempotencyFilter)
 │   ├── mail/                # Шаблоны писем
@@ -327,6 +332,21 @@ yii2-book-catalog/
 *   **Business Rules:** Валидация инвариантов (ISBN) — в Value Objects.
 *   **Integrity:** Валидация уникальности делегирована Репозиториям (`AlreadyExistsException`).
 *   **Result:** Presentation слой ловит исключение и добавляет ошибку в форму. Это надежнее (нет Race Condition) и чище.
+
+#### 13.5. Асинхронные события через маркер + маппер
+
+**Компромисс:** доменный слой не знает о job-классах очереди, но асинхронность нужна.
+
+**Почему:** прямые ссылки на job в домене ломают чистоту слоя и усложняют тестирование.
+
+**Решение:**
+*   `QueueableEvent` — маркерное событие без инфраструктурных зависимостей.
+*   `EventToJobMapper` в Infrastructure маппит событие в конкретную job.
+*   `YiiEventPublisherAdapter` диспатчит listeners синхронно и пушит job только для `QueueableEvent`.
+
+**Что получили:**
+* Domain остаётся чистым (никаких ссылок на queue/job).
+* Инфраструктура управляет асинхронностью и маршрутизацией событий.
 
 ### 14. Observability & Tracing
 Реализована полноценная система распределенной трассировки (Distributed Tracing) для мониторинга производительности и отладки SQL-запросов.
@@ -402,8 +422,8 @@ open http://localhost:8000
 
 <table>
 <tr>
-<td align="center"><b>394</b><br>Tests</td>
-<td align="center"><b>891</b><br>Assertions</td>
+<td align="center"><b>411</b><br>Tests</td>
+<td align="center"><b>925</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~26s</b><br>Runtime</td>
 </tr>
@@ -433,15 +453,15 @@ open http://localhost:8000
 
 | Тип | Количество | Описание |
 |-----|------------|----------|
-| **Unit** | 322 | Чистая бизнес-логика без БД и фреймворка |
+| **Unit** | 339 | Чистая бизнес-логика без БД и фреймворка |
 | **Integration** | 72 | CRUD, API, Use Cases, HTTP-сценарии с БД |
 | **E2E** | 17 | Приемочные тесты (Acceptance) |
 
-Метрики `make test-coverage` включают **Unit + Integration** (394 tests, 891 assertions). E2E запускаются отдельно.
+Метрики `make test-coverage` включают **Unit + Integration** (411 tests, 925 assertions). E2E запускаются отдельно.
 
 **Unit Tests покрывают:**
 - **Application Layer**: UseCases, Commands, QueryResult, PaginationRequest, IdempotencyService
-- **Domain Layer**: Value Objects (`Isbn`, `BookYear`), Domain Events
+- **Domain Layer**: Value Objects (`Isbn`, `BookYear`), Domain Events, Specifications, Policies
 - **Infrastructure**: Queue jobs (retry logic), Logger, Notifications
 - **Presentation**: WebUseCaseRunner, Mappers, DataProvider adapters
 
@@ -496,10 +516,10 @@ open http://localhost:8000
 
 ### 📊 Статистика проекта
 
-![Source Code](https://img.shields.io/badge/Source_Code-5.0k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-6.5k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-201-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-97-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Code](https://img.shields.io/badge/Source_Code-6.4k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-8.2k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-175-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-100-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
