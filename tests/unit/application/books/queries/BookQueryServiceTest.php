@@ -7,7 +7,7 @@ namespace app\tests\unit\application\books\queries;
 use app\application\books\queries\BookQueryService;
 use app\application\books\queries\BookReadDto;
 use app\application\books\queries\BookSearchCriteria;
-use app\application\ports\BookRepositoryInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
@@ -15,13 +15,13 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 final class BookQueryServiceTest extends Unit
 {
-    private BookRepositoryInterface&MockObject $repository;
+    private BookQueryServiceInterface&MockObject $repository;
 
     private BookQueryService $service;
 
     protected function _before(): void
     {
-        $this->repository = $this->createMock(BookRepositoryInterface::class);
+        $this->repository = $this->createMock(BookQueryServiceInterface::class);
         $this->service = new BookQueryService($this->repository);
     }
 

@@ -229,6 +229,7 @@ test: _test-init
 		--coverage --coverage-xml --coverage-html --coverage-text \
 		--coverage-phpunit --xml=junit.xml --no-colors
 	@sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml
+	@$(MAKE) cov
 
 test-unit:
 	@echo "🚀 Запуск Unit тестов..."
