@@ -80,6 +80,19 @@ final class IdempotencyServiceTest extends Unit
         $this->service->saveResponse($key, 200, $result, null, $ttl);
     }
 
+    public function testSaveResponsePreservesArrayPayload(): void
+    {
+        $key = 'test-key';
+        $result = ['id' => 456, 'title' => 'Test Book'];
+        $ttl = 3600;
+
+        $this->repository->expects($this->once())
+            ->method('saveResponse')
+            ->with($key, 200, (string)json_encode($result), $ttl);
+
+        $this->service->saveResponse($key, 200, $result, null, $ttl);
+    }
+
     public function testSaveResponseEncodesRedirect(): void
     {
         $key = 'test-key';

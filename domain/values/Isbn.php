@@ -67,14 +67,13 @@ final readonly class Isbn implements \Stringable
             return false;
         }
 
-        $checksum = 0;
-        for ($i = 0; $i < 10; $i++) {
-            $digit = $isbn[$i];
-            $digitValue = $digit === 'X' || $digit === 'x' ? 10 : (int)$digit;
-            $checksum += $digitValue * (10 - $i);
+        $weightedDigits = [];
+        foreach (str_split($isbn) as $index => $digit) {
+            $digitValue = $digit === 'X' || $digit === 'x' ? 10 : ord($digit) - 48;
+            $weightedDigits[] = $digitValue * (10 - $index);
         }
 
-        return $checksum % 11 === 0;
+        return array_sum($weightedDigits) % 11 === 0;
     }
 
     private function validateIsbn13(string $isbn): bool

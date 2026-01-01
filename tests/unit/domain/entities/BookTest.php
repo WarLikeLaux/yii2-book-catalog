@@ -26,6 +26,7 @@ final class BookTest extends Unit
         $this->assertSame('Desc', $book->getDescription());
         $this->assertSame('http://url.com', $book->getCoverUrl());
         $this->assertSame([], $book->getAuthorIds());
+        $this->assertSame(1, $book->getVersion());
     }
 
     public function testUpdate(): void
@@ -137,11 +138,37 @@ final class BookTest extends Unit
         $book->setId(200);
     }
 
+    public function testIncrementVersion(): void
+    {
+        $book = Book::reconstitute(
+            1,
+            'Title',
+            new BookYear(2023),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null,
+            [],
+            false,
+            5
+        );
+
+        $book->incrementVersion();
+
+        $this->assertSame(6, $book->getVersion());
+    }
+
     public function testIsPublishedReturnsFalseByDefault(): void
     {
         $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
 
         $this->assertFalse($book->isPublished());
+    }
+
+    public function testDefaultVersionIsOne(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+
+        $this->assertSame(1, $book->getVersion());
     }
 
     public function testPublishWithAuthorsSucceeds(): void

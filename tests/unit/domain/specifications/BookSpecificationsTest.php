@@ -83,6 +83,30 @@ final class BookSpecificationsTest extends Unit
         $this->assertSame('year', $criteria['value'][0]['type']);
     }
 
+    public function testFactoryDoesNotTreatSuffixAsYear(): void
+    {
+        $factory = new BookSearchSpecificationFactory();
+
+        $spec = $factory->createFromSearchTerm('2024a');
+        $criteria = $spec->toSearchCriteria();
+
+        $this->assertSame('or', $criteria['type']);
+        $this->assertCount(3, $criteria['value']);
+        $this->assertSame('isbn_prefix', $criteria['value'][0]['type']);
+    }
+
+    public function testFactoryDoesNotTreatPrefixAsYear(): void
+    {
+        $factory = new BookSearchSpecificationFactory();
+
+        $spec = $factory->createFromSearchTerm('a2024');
+        $criteria = $spec->toSearchCriteria();
+
+        $this->assertSame('or', $criteria['type']);
+        $this->assertCount(3, $criteria['value']);
+        $this->assertSame('isbn_prefix', $criteria['value'][0]['type']);
+    }
+
     public function testFactoryCreatesCompositeForRegularTerm(): void
     {
         $factory = new BookSearchSpecificationFactory();

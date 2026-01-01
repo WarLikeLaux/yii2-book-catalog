@@ -281,7 +281,7 @@ final class BookRepositoryTest extends Unit
         // InnoDB FullText search requires committed transaction
         Yii::$app->db->getTransaction()->commit();
 
-        $result = $this->repository->search('SearchTestAuthor', 1, 10);
+        $result = $this->repository->search('SearchableBookTitle', 1, 10);
 
         $this->assertGreaterThan(0, $result->getTotalCount());
     }

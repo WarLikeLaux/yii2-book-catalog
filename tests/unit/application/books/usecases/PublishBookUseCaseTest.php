@@ -46,6 +46,7 @@ final class PublishBookUseCaseTest extends Unit
 
     public function testPublishesBookSuccessfully(): void
     {
+        $policy = $this->createMock(BookPublicationPolicy::class);
         $book = Book::reconstitute(
             id: 42,
             title: 'Clean Code',
@@ -58,7 +59,17 @@ final class PublishBookUseCaseTest extends Unit
             version: 1
         );
 
+        $policy->expects($this->once())
+            ->method('ensureCanPublish')
+            ->with($book);
+
         $command = new PublishBookCommand(bookId: 42);
+        $useCase = new PublishBookUseCase(
+            $this->bookRepository,
+            $this->transaction,
+            $this->eventPublisher,
+            $policy
+        );
 
         $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
@@ -93,7 +104,7 @@ final class PublishBookUseCaseTest extends Unit
                     && $e->title === 'Clean Code'
                     && $e->year === 2008));
 
-        $this->useCase->execute($command);
+        $useCase->execute($command);
     }
 
     public function testThrowsDomainExceptionWithoutAuthors(): void
