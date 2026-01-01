@@ -14,17 +14,30 @@ use yii\web\Response;
 final class IdempotencyFilter extends ActionFilter
 {
     private const string HEADER_KEY = 'Idempotency-Key';
-    private const int TTL = 86400;
-    private const int LOCK_TIMEOUT = 1;
-    private const int WAIT_SECONDS = 1;
 
     private string|null $lockedKey = null;
+
+    public int $ttl = 86400;
+
+    public int $lockTimeout = 1;
+
+    public int $waitSeconds = 1;
 
     public function __construct(
         private readonly IdempotencyServiceInterface $service,
         array $config = []
     ) {
         parent::__construct($config);
+    }
+
+    public function init(): void
+    {
+        parent::init();
+
+        $params = Yii::$app->params['idempotency'] ?? [];
+        $this->ttl = (int)($params['ttl'] ?? $this->ttl);
+        $this->lockTimeout = (int)($params['lockTimeout'] ?? $this->lockTimeout);
+        $this->waitSeconds = (int)($params['waitSeconds'] ?? $this->waitSeconds);
     }
 
     #[\Override]
@@ -41,8 +54,8 @@ final class IdempotencyFilter extends ActionFilter
         }
 
         // @codeCoverageIgnoreStart
-        if (!$this->service->acquireLock($key, self::LOCK_TIMEOUT)) {
-            sleep(self::WAIT_SECONDS);
+        if (!$this->service->acquireLock($key, $this->lockTimeout)) {
+            sleep($this->waitSeconds);
             return $this->returnCachedResponseIfExists($key);
         }
         // @codeCoverageIgnoreEnd
@@ -81,7 +94,7 @@ final class IdempotencyFilter extends ActionFilter
                     $response->statusCode,
                     $result,
                     is_string($location) ? $location : null,
-                    self::TTL
+                    $this->ttl
                 );
                 $response->getHeaders()->set('X-Idempotency-Cache', 'MISS');
             }

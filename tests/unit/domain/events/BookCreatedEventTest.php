@@ -16,7 +16,7 @@ final class BookCreatedEventTest extends Unit
         $this->assertSame(456, $event->bookId);
         $this->assertSame('Domain Driven Design', $event->title);
         $this->assertSame(2024, $event->year);
-        $this->assertSame('book.created', $event->getEventType());
+        $this->assertSame(BookCreatedEvent::EVENT_TYPE, $event->getEventType());
         $this->assertSame([
             'bookId' => 456,
             'title' => 'Domain Driven Design',

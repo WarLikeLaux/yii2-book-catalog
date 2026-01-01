@@ -8,6 +8,8 @@ use app\domain\exceptions\DomainException;
 
 final readonly class Isbn implements \Stringable
 {
+    private const array ISBN13_PREFIXES = ['978', '979'];
+
     public string $value;
 
     public function __construct(string $value)
@@ -82,7 +84,7 @@ final readonly class Isbn implements \Stringable
             return false;
         }
 
-        if (!str_starts_with($isbn, '978') && !str_starts_with($isbn, '979')) {
+        if (!$this->hasValidIsbn13Prefix($isbn)) {
             return false;
         }
 
@@ -93,5 +95,16 @@ final readonly class Isbn implements \Stringable
         }
 
         return $checksum % 10 === 0;
+    }
+
+    private function hasValidIsbn13Prefix(string $isbn): bool
+    {
+        foreach (self::ISBN13_PREFIXES as $prefix) {
+            if (str_starts_with($isbn, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

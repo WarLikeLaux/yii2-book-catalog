@@ -16,7 +16,7 @@ final class BookDeletedEventTest extends Unit
         $this->assertSame(123, $event->bookId);
         $this->assertSame(2024, $event->year);
         $this->assertTrue($event->wasPublished);
-        $this->assertSame('book.deleted', $event->getEventType());
+        $this->assertSame(BookDeletedEvent::EVENT_TYPE, $event->getEventType());
         $this->assertSame([
             'bookId' => 123,
             'year' => 2024,
