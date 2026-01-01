@@ -8,19 +8,20 @@ use app\application\ports\SmsSenderInterface;
 use app\infrastructure\services\YiiPsrLogger;
 use Throwable;
 use Yii;
-use yii\base\BaseObject;
 use yii\queue\JobInterface;
 use yii\queue\RetryableJobInterface;
 
-final class NotifySingleSubscriberJob extends BaseObject implements JobInterface, RetryableJobInterface
+final class NotifySingleSubscriberJob implements JobInterface, RetryableJobInterface
 {
     private const int TTR_SECONDS = 30;
 
-    public string $phone;
+    public function __construct(
+        public string $phone,
+        public string $message,
+        public int $bookId,
+    ) {
+    }
 
-    public string $message;
-
-    public int $bookId;
     /** @codeCoverageIgnore Выполнение джобы: зависит от Yii DI и кэша */
     public function execute($queue): void
     {

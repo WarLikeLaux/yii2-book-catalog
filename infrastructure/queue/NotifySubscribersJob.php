@@ -43,11 +43,11 @@ final readonly class NotifySubscribersJob implements JobInterface, RetryableJobI
         $totalDispatched = 0;
 
         foreach ($queryService->getSubscriberPhonesForBook($this->bookId) as $phone) {
-            $jobQueue->push(new NotifySingleSubscriberJob([
-                'phone' => $phone,
-                'message' => $message,
-                'bookId' => $this->bookId,
-            ]));
+            $jobQueue->push(new NotifySingleSubscriberJob(
+                $phone,
+                $message,
+                $this->bookId
+            ));
             $totalDispatched++;
         }
 
