@@ -32,7 +32,7 @@ final readonly class IdempotencyRepository implements IdempotencyInterface
         return [
             'status' => $model->status,
             'status_code' => $model->status_code,
-            'body' => $model->response_body,
+            'body' => $this->normalizeResponseBody($model->response_body),
         ];
     }
 
@@ -79,5 +79,24 @@ final readonly class IdempotencyRepository implements IdempotencyInterface
         }
 
         $this->logger->error('Failed to save idempotency key: ' . json_encode($model->getErrors()));
+    }
+
+    private function normalizeResponseBody(mixed $responseBody): string|null
+    {
+        if (is_string($responseBody) || $responseBody === null) {
+            return $responseBody;
+        }
+
+        if (!is_resource($responseBody)) {
+            return null;
+        }
+
+        $content = stream_get_contents($responseBody);
+
+        if ($content === false) {
+            return null;
+        }
+
+        return $content;
     }
 }
