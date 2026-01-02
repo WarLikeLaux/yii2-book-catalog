@@ -9,6 +9,7 @@ use app\application\ports\BookRepositoryInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookDeletedEvent;
+use Throwable;
 
 final readonly class DeleteBookUseCase
 {
@@ -38,7 +39,7 @@ final readonly class DeleteBookUseCase
             });
 
             $this->transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->transaction->rollBack();
             throw $e;
         }

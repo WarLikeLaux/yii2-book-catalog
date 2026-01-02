@@ -7,6 +7,7 @@ namespace app\infrastructure\repositories;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\domain\entities\Subscription as SubscriptionEntity;
 use app\infrastructure\persistence\Subscription;
+use RuntimeException;
 use yii\db\Connection;
 use yii\db\Query;
 
@@ -23,8 +24,8 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
 
         if (!$ar->save()) {
             $errors = $ar->getFirstErrors();
-            $message = $errors !== [] ? array_shift($errors) : 'Failed to create subscription'; // @codeCoverageIgnore
-            throw new \RuntimeException($message);
+            $message = $errors !== [] ? array_shift($errors) : 'subscription.error.save_failed';
+            throw new RuntimeException($message);
         }
 
         $subscription->setId($ar->id);

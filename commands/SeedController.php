@@ -6,6 +6,8 @@ namespace app\commands;
 
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
+use RuntimeException;
+use Throwable;
 use Yii;
 use yii\console\Controller;
 use yii\console\ExitCode;
@@ -25,7 +27,7 @@ final class SeedController extends Controller
             $transaction->commit();
             $this->stdout('Done! Data generated for current year (' . date('Y') . ") too.\n", Console::FG_GREEN);
             return ExitCode::OK;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
             $this->stdout('Error: ' . $e->getMessage() . "\n", Console::FG_RED);
             return ExitCode::UNSPECIFIED_ERROR;
@@ -55,7 +57,7 @@ final class SeedController extends Controller
         foreach ($names as $name) {
             $author = Author::findOne(['fio' => $name]) ?? new Author(['fio' => $name]);
             if ($author->isNewRecord && !$author->save()) {
-                throw new \RuntimeException('Save author failed');
+                throw new RuntimeException('Save author failed');
             }
             $ids[] = $author->id;
             if (!$author->isNewRecord) {

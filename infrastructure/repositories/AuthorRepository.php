@@ -13,6 +13,7 @@ use app\domain\entities\Author as AuthorEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
 use app\infrastructure\persistence\Author;
+use RuntimeException;
 use yii\data\ActiveDataProvider;
 use yii\db\IntegrityException;
 
@@ -66,7 +67,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         }
 
         if ($ar->delete() === false) {
-            throw new \RuntimeException('author.error.delete_failed'); // @codeCoverageIgnore
+            throw new RuntimeException('author.error.delete_failed'); // @codeCoverageIgnore
         }
     }
 
@@ -157,7 +158,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             if (!$ar->save()) {
                 $errors = $ar->getFirstErrors();
                 $message = $errors !== [] ? array_shift($errors) : 'author.error.save_failed';
-                throw new \RuntimeException($message);
+                throw new RuntimeException($message);
             }
         } catch (IntegrityException $e) {
             if ($this->isDuplicateError($e)) {
