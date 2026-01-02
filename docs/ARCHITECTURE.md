@@ -398,31 +398,29 @@ public function createBook(BookForm $form): ?int
 ```
 
 ```php
-// application/books/usecases/CreateBookUseCase.php
-public function execute(CreateBookCommand $command): int
+// application/books/usecases/PublishBookUseCase.php
+public function execute(PublishBookCommand $command): void
 {
     $this->transaction->begin();
     
     try {
-        $book = Book::create(
-            title: $command->title,
-            year: new BookYear($command->year),
-            isbn: new Isbn($command->isbn),
-            description: $command->description,
-            coverUrl: $command->cover
-        );
-        
-        $book->replaceAuthors($command->authorIds);
+        $book = $this->bookRepository->get($command->bookId);
+
+        $this->publicationPolicy->ensureCanPublish($book);
+        $book->publish();
         $this->bookRepository->save($book);
-        $bookId = $book->getId();
-        
+
+        $title = $book->getTitle();
+        $year = $book->getYear()->value;
+
         // Отправка события ТОЛЬКО после успешного коммита
-        $this->transaction->afterCommit(fn() => 
-            $this->eventPublisher->publishEvent(new BookCreatedEvent($bookId))
-        );
+        $this->transaction->afterCommit(function () use ($command, $title, $year): void {
+            $this->eventPublisher->publishEvent(
+                new BookPublishedEvent($command->bookId, $title, $year)
+            );
+        });
         
         $this->transaction->commit();
-        return $bookId;
     } catch (\Throwable $e) {
         $this->transaction->rollBack();
         throw $e;
@@ -710,7 +708,7 @@ $this->sendEmail(...);  // А если email упадёт?
 // UseCase
 // Отправка события через afterCommit (гарантия согласованности)
 $this->transaction->afterCommit(fn() => 
-    $this->eventPublisher->publishEvent(new BookCreatedEvent($bookId))
+    $this->eventPublisher->publishEvent(new BookPublishedEvent($bookId, $title, $year))
 );
 ```
 Слушатели получают событие синхронно через `EventListenerInterface`, а в очередь уходят только события, реализующие `QueueableEvent`. Маппинг Event → Job выполняет `EventToJobMapper` в инфраструктуре, чтобы домен не знал о job-классах.
@@ -964,17 +962,24 @@ yii2-book-catalog/
 │   ├── adapters/            # Адаптеры (YiiEventPublisher, EventToJobMapper, YiiMutex, YiiTransaction)
 │   ├── listeners/           # Event Listeners (ReportCacheInvalidation)
 │   ├── persistence/         # ActiveRecord модели (только для маппинга)
+│   ├── phpstan/             # Custom PHPStan rules
 │   ├── queue/               # Queue Jobs
 │   ├── repositories/        # Реализации репозиториев (Strict DI)
 │   │   └── decorators/      # Tracing Decorators
 │   └── services/            # Инфраструктурные сервисы (Logger, Storage)
 ├── presentation/            # Presentation Layer (Yii2 & Web)
+│   ├── auth/                # Аутентификация
 │   ├── controllers/         # Тонкие контроллеры
 │   ├── books/               # Модуль "Книги" (Forms, Handlers, Mappers)
 │   ├── authors/             # Модуль Авторы
+│   ├── components/          # Базовые UI-компоненты
 │   ├── common/              # Общие виджеты, фильтры и сервисы (WebUseCaseRunner, IdempotencyFilter)
+│   ├── dto/                 # DTO для представления
 │   ├── mail/                # Шаблоны писем
-│   └── views/               # Шаблоны (Views)
+│   ├── reports/             # Модуль "Отчеты"
+│   ├── subscriptions/       # Модуль "Подписки"
+│   ├── views/               # Шаблоны (Views)
+│   └── widgets/             # UI-виджеты
 ├── commands/                # Console контроллеры (CLI)
 ├── config/                  # Конфигурация приложения
 ├── db-data/                 # Данные локальной БД (volume)
