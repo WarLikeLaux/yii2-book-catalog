@@ -73,6 +73,11 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             'options' => ['class' => 'navbar-nav'],
             'items' => $menuItems,
         ]);
+        echo Html::tag(
+            'span',
+            'DB: ' . strtoupper((string) Yii::$app->db->driverName),
+            ['class' => 'navbar-text ms-3 small text-warning']
+        );
         NavBar::end();
         ?>
     </header>
