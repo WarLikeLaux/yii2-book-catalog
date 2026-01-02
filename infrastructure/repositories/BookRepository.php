@@ -321,6 +321,8 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
         }
 
         $conditions[] = ['like', 'isbn', $term . '%', false];
+        $conditions[] = ['like', 'title', $term];
+        $conditions[] = ['like', 'description', $term];
         $conditions[] = $this->buildAuthorCondition($term);
 
         $fulltextQuery = $this->prepareFulltextQuery($term);
@@ -353,12 +355,15 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
             ->where('ba.book_id = books.id');
 
         $fulltextQuery = $this->prepareFulltextQuery($term);
+        $authorConditions = ['or', ['like', 'authors.fio', $term]];
         if ($fulltextQuery !== '' && $fulltextQuery !== '0') {
-            $subQuery->andWhere(new Expression(
+            $authorConditions[] = new Expression(
                 'MATCH(authors.fio) AGAINST(:query IN BOOLEAN MODE)',
                 [':query' => $fulltextQuery]
-            ));
+            );
         }
+
+        $subQuery->andWhere($authorConditions);
 
         return ['exists', $subQuery];
     }
