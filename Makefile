@@ -1,4 +1,4 @@
-.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-unit test-integration test-e2e test-coverage coverage cov infection load-test migrate seed queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached
+.PHONY: help init up down restart logs shell sms-logs tinker perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-unit test-integration test-e2e test-coverage coverage cov infection load-test migrate seed db-info queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -45,8 +45,13 @@ help:
 	@echo "🐳 \033[1;34mDOCKER & OPS:\033[0m"
 	@echo "  \033[34mup\033[0m               ▶️  Запустить контейнеры"
 	@echo "  \033[34mdown\033[0m             ⏹️  Остановить контейнеры"
+	@echo "  \033[34mrestart\033[0m          🔁 Перезапустить контейнеры"
 	@echo "  \033[34mlogs\033[0m             📄 Смотреть логи"
 	@echo "  \033[34mshell\033[0m            🐚 Зайти в контейнер PHP"
+	@echo "  \033[34mtinker\033[0m           🧪 Yii shell (php yii shell)"
+	@echo ""
+	@echo "🗄️  \033[1;34mБАЗА ДАННЫХ:\033[0m"
+	@echo "  \033[34mdb-info\033[0m          📊 Показать текущую конфигурацию БД"
 	@echo ""
 	@echo "📚 \033[1;36mДОКУМЕНТАЦИЯ:\033[0m"
 	@echo "  \033[36mdocs\033[0m             📑 Генерация Yii2 API Docs"
@@ -104,7 +109,12 @@ _init_confirm:
 	fi
 
 up:
-	$(COMPOSE) up -d --remove-orphans
+	@driver=$${DB_DRIVER:-mysql}; \
+	if [ "$$driver" = "pgsql" ]; then \
+		$(COMPOSE) up -d pgsql redis php nginx queue --remove-orphans; \
+	else \
+		$(COMPOSE) up -d db redis php nginx queue --remove-orphans; \
+	fi
 
 down:
 	$(COMPOSE) down
@@ -116,6 +126,9 @@ logs:
 
 shell:
 	$(COMPOSE) exec $(PHP_CONTAINER) sh
+
+tinker:
+	$(COMPOSE) exec $(PHP_CONTAINER) php yii shell
 
 sms-logs:
 	$(COMPOSE) exec $(PHP_CONTAINER) tail -f runtime/logs/sms.log
@@ -223,8 +236,12 @@ audit:
 # =================================================================================================
 
 _test-init:
-	@echo "🔧 Подготовка тестовой базы..."
+	@echo "🔧 Подготовка тестовой базы ($(DB_DRIVER))..."
+ifeq ($(DB_DRIVER),pgsql)
+	@$(COMPOSE) exec -T pgsql sh -c 'psql -U "$${POSTGRES_USER}" -d postgres -c "SELECT 1 FROM pg_database WHERE datname = '\''$(DB_TEST_NAME)'\''" | grep -q 1 || psql -U "$${POSTGRES_USER}" -d postgres -c "CREATE DATABASE $(DB_TEST_NAME)"' 2>/dev/null || true
+else
 	@$(COMPOSE) exec -T db sh -c 'mysql -uroot -p"$${MYSQL_ROOT_PASSWORD}" -h127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS $(DB_TEST_NAME); GRANT ALL PRIVILEGES ON $(DB_TEST_NAME).* TO \"$${MYSQL_USER}\"@\"%\"; FLUSH PRIVILEGES;"' 2>&1 | grep -v "Using a password" || true
+endif
 	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "DB_NAME=$(DB_TEST_NAME) ./yii migrate --interactive=0 --migrationPath=@app/migrations" > /dev/null
 
 test: _test-init
@@ -273,6 +290,24 @@ migrate:
 
 seed:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./yii seed
+
+db-mysql:
+	@sed -i 's/^DB_DRIVER=.*/DB_DRIVER=mysql/' .env
+	@echo "✅ DB_DRIVER=mysql (host=db:3306 авто)"
+
+db-pgsql:
+	@sed -i 's/^DB_DRIVER=.*/DB_DRIVER=pgsql/' .env
+	@echo "✅ DB_DRIVER=pgsql (host=pgsql:5432 авто)"
+db-info:
+	@driver=$$(grep '^DB_DRIVER=' .env | cut -d= -f2); \
+	if [ "$$driver" = "pgsql" ]; then \
+		host=$$(grep '^PGSQL_DB_HOST=' .env | cut -d= -f2); \
+		port=$$(grep '^PGSQL_DB_PORT=' .env | cut -d= -f2); \
+	else \
+		host=$$(grep '^MYSQL_DB_HOST=' .env | cut -d= -f2); \
+		port=$$(grep '^MYSQL_DB_PORT=' .env | cut -d= -f2); \
+	fi; \
+	echo "📊 DB_DRIVER=$$driver → $$host:$$port"
 
 # =================================================================================================
 # 📚 ДОКУМЕНТАЦИЯ И УТИЛИТЫ
