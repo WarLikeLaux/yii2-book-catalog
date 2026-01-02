@@ -22,14 +22,18 @@ $config = [
     'components' => [
         'db' => $db,
         'mutex' => [
-            'class' => \yii\mutex\MysqlMutex::class,
+            'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
+                ? \yii\mutex\PgsqlMutex::class
+                : \yii\mutex\MysqlMutex::class,
         ],
         'queue' => [
             'class' => \app\infrastructure\queue\HandlerAwareQueue::class,
             'db' => $db,
             'tableName' => '{{%queue}}',
             'channel' => 'queue',
-            'mutex' => \yii\mutex\MysqlMutex::class,
+            'mutex' => env('DB_DRIVER', 'mysql') === 'pgsql'
+                ? \yii\mutex\PgsqlMutex::class
+                : \yii\mutex\MysqlMutex::class,
         ],
         'cache' => [
             'class' => 'yii\caching\DummyCache',
