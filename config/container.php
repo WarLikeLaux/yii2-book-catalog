@@ -21,6 +21,7 @@ use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
+use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
 use app\infrastructure\adapters\YiiAuthAdapter;
@@ -31,6 +32,7 @@ use app\infrastructure\adapters\YiiQueueAdapter;
 use app\infrastructure\adapters\YiiTransactionAdapter;
 use app\infrastructure\adapters\YiiTranslatorAdapter;
 use app\infrastructure\listeners\ReportCacheInvalidationListener;
+use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use app\infrastructure\repositories\AuthorRepository;
 use app\infrastructure\repositories\BookRepository;
 use app\infrastructure\repositories\decorators\AuthorRepositoryTracingDecorator;
@@ -40,6 +42,7 @@ use app\infrastructure\repositories\decorators\SubscriptionRepositoryTracingDeco
 use app\infrastructure\repositories\IdempotencyRepository;
 use app\infrastructure\repositories\ReportRepository;
 use app\infrastructure\repositories\SubscriptionRepository;
+use app\infrastructure\services\LogCategory;
 use app\infrastructure\services\notifications\FlashNotificationService;
 use app\infrastructure\services\observability\InspectorTracer;
 use app\infrastructure\services\observability\NullTracer;
@@ -127,6 +130,12 @@ return [
             $c->get(QueueInterface::class),
             $c->get(EventToJobMapperInterface::class),
             $c->get(ReportCacheInvalidationListener::class)
+        ),
+
+        NotifySubscribersHandler::class => static fn(Container $c): NotifySubscribersHandler => new NotifySubscribersHandler(
+            $c->get(SubscriptionQueryService::class),
+            $c->get(TranslatorInterface::class),
+            new YiiPsrLogger(LogCategory::SMS)
         ),
     ],
     'singletons' => [
