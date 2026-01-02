@@ -20,14 +20,14 @@ final readonly class SubscribeUseCase
     public function execute(SubscribeCommand $command): void
     {
         if ($this->subscriptionRepository->exists($command->phone, $command->authorId)) {
-            throw new DomainException('You are already subscribed to this author');
+            throw new DomainException('subscription.error.already_subscribed');
         }
 
         try {
             $subscription = Subscription::create($command->phone, $command->authorId);
             $this->subscriptionRepository->save($subscription);
         } catch (Throwable) {
-            throw new DomainException('Could not create subscription. Please try again later.');
+            throw new DomainException('subscription.error.create_failed');
         }
     }
 }

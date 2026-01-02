@@ -23,7 +23,7 @@ final readonly class CreateAuthorUseCase
             $this->authorRepository->save($author);
             return (int)$author->getId();
         } catch (\RuntimeException) {
-            throw new DomainException('Failed to create author');
+            throw new DomainException('author.error.create_failed');
         }
     }
 }

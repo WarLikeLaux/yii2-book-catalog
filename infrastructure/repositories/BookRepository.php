@@ -7,13 +7,14 @@ namespace app\infrastructure\repositories;
 use app\application\books\queries\BookReadDto;
 use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\PagedResultInterface;
-use app\application\ports\TranslatorInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
+use app\domain\specifications\BookSpecificationInterface;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
@@ -26,24 +27,25 @@ use yii\db\Expression;
 use yii\db\IntegrityException;
 use yii\db\StaleObjectException;
 
-final readonly class BookRepository implements BookRepositoryInterface
+final readonly class BookRepository implements BookRepositoryInterface, BookQueryServiceInterface
 {
     use DatabaseExceptionHandlerTrait;
 
     public function __construct(
-        private Connection $db,
-        private TranslatorInterface $translator
+        private Connection $db
     ) {
     }
 
     public function save(BookEntity $book): void
     {
-        if ($book->getId() === null) {
+        $isNew = $book->getId() === null;
+        if ($isNew) {
             $ar = new Book();
+            $ar->version = $book->getVersion();
         } else {
             $ar = Book::findOne($book->getId());
             if ($ar === null) {
-                throw new EntityNotFoundException($this->translator->translate('app', 'Book not found'));
+                throw new EntityNotFoundException('book.error.not_found');
             }
             $ar->version = $book->getVersion();
         }
@@ -56,28 +58,25 @@ final readonly class BookRepository implements BookRepositoryInterface
         $ar->is_published = (int)$book->isPublished();
 
         if ($this->existsByIsbn($book->getIsbn()->value, $book->getId())) {
-            throw new AlreadyExistsException(
-                $this->translator->translate('app', 'Book with ISBN {isbn} already exists', ['isbn' => $book->getIsbn()->value]),
-                409
-            );
+            throw new AlreadyExistsException('book.error.isbn_exists', 409);
         }
 
-        $this->persistBook($ar, $book->getIsbn()->value);
+        $this->persistBook($ar);
 
-        if ($book->getId() === null) {
-            $book->setId($ar->id);
+        if ($isNew) {
+            $this->assignBookId($book, $ar->id);
+        } else {
+            $book->incrementVersion();
         }
 
-        $book->incrementVersion();
-        $this->persistAuthorChanges($book);
-        $book->markAuthorsPersisted();
+        $this->syncAuthors($book);
     }
 
     public function get(int $id): BookEntity
     {
         $ar = Book::find()->where(['id' => $id])->with('authors')->one();
         if ($ar === null) {
-            throw new EntityNotFoundException($this->translator->translate('app', 'Book not found'));
+            throw new EntityNotFoundException('book.error.not_found');
         }
 
         /** @var Author[] $authors */
@@ -101,11 +100,11 @@ final readonly class BookRepository implements BookRepositoryInterface
     {
         $ar = Book::findOne($book->getId());
         if ($ar === null) {
-            throw new EntityNotFoundException($this->translator->translate('app', 'Book not found'));
+            throw new EntityNotFoundException('book.error.not_found');
         }
 
         if ($ar->delete() === false) {
-            throw new RuntimeException($this->translator->translate('app', 'Failed to delete book')); // @codeCoverageIgnore
+            throw new RuntimeException('book.error.delete_failed'); // @codeCoverageIgnore
         }
     }
 
@@ -178,38 +177,84 @@ final readonly class BookRepository implements BookRepositoryInterface
         return $query->exists();
     }
 
+    public function searchBySpecification(
+        BookSpecificationInterface $specification,
+        int $page,
+        int $pageSize
+    ): PagedResultInterface {
+        $query = Book::find()->withAuthors()->orderedByCreatedAt();
+
+        $this->applySpecification($query, $specification->toSearchCriteria());
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'page' => $page - 1,
+                'pageSize' => $pageSize,
+            ],
+        ]);
+
+        $models = array_map(
+            $this->mapToDto(...),
+            $dataProvider->getModels()
+        );
+
+        $totalCount = $dataProvider->getTotalCount();
+        $totalPages = (int)ceil($totalCount / $pageSize);
+
+        $pagination = new PaginationDto(
+            page: $page,
+            pageSize: $pageSize,
+            totalCount: $totalCount,
+            totalPages: $totalPages
+        );
+
+        return new QueryResult(
+            models: $models,
+            totalCount: $totalCount,
+            pagination: $pagination
+        );
+    }
+
     /** @codeCoverageIgnore Защитный код (недостижим из-за валидации домена) */
-    private function persistBook(Book $ar, string $isbn): void
+    private function persistBook(Book $ar): void
     {
         try {
             if (!$ar->save()) {
                 $errors = $ar->getFirstErrors();
-                $message = $errors !== [] ? array_shift($errors) : $this->translator->translate('app', 'Failed to save book');
+                $message = $errors !== [] ? array_shift($errors) : 'book.error.save_failed';
                 throw new RuntimeException($message);
             }
         } catch (StaleObjectException) {
             throw new StaleDataException();
         } catch (IntegrityException $e) {
             if ($this->isDuplicateError($e)) {
-                throw new AlreadyExistsException(
-                    $this->translator->translate('app', 'Book with ISBN {isbn} already exists', ['isbn' => $isbn]),
-                    409,
-                    $e
-                );
+                throw new AlreadyExistsException('book.error.isbn_exists', 409, $e);
             }
             throw $e;
         }
     }
 
-    private function persistAuthorChanges(BookEntity $book): void
+    private function assignBookId(BookEntity $book, int $id): void
+    {
+        $method = new \ReflectionMethod(BookEntity::class, 'setId');
+        $method->invoke($book, $id);
+    }
+
+    private function syncAuthors(BookEntity $book): void
     {
         $bookId = $book->getId();
         if ($bookId === null) {
             return; // @codeCoverageIgnore
         }
 
-        $toDelete = $book->getRemovedAuthorIds();
-        $toAdd = $book->getAddedAuthorIds();
+        $storedAuthorIds = $this->getStoredAuthorIds($bookId);
+        $currentAuthorIds = $book->getAuthorIds();
+
+        $toDelete = array_values(array_diff($storedAuthorIds, $currentAuthorIds));
+        $toAdd = array_values(array_diff($currentAuthorIds, $storedAuthorIds));
+        sort($toDelete);
+        sort($toAdd);
 
         if ($toDelete !== []) {
             $this->db->createCommand()->delete('book_authors', [
@@ -232,6 +277,18 @@ final readonly class BookRepository implements BookRepositoryInterface
             ['book_id', 'author_id'],
             $rows
         )->execute();
+    }
+
+    /**
+     * @return int[]
+     */
+    private function getStoredAuthorIds(int $bookId): array
+    {
+        $ids = $this->db->createCommand(
+            'SELECT author_id FROM book_authors WHERE book_id = :bookId'
+        )->bindValue(':bookId', $bookId)->queryColumn();
+
+        return array_map(intval(...), $ids);
     }
 
     private function mapToDto(Book $book): BookReadDto
@@ -264,6 +321,8 @@ final readonly class BookRepository implements BookRepositoryInterface
         }
 
         $conditions[] = ['like', 'isbn', $term . '%', false];
+        $conditions[] = ['like', 'title', $term];
+        $conditions[] = ['like', 'description', $term];
         $conditions[] = $this->buildAuthorCondition($term);
 
         $fulltextQuery = $this->prepareFulltextQuery($term);
@@ -296,13 +355,95 @@ final readonly class BookRepository implements BookRepositoryInterface
             ->where('ba.book_id = books.id');
 
         $fulltextQuery = $this->prepareFulltextQuery($term);
+        $authorConditions = ['or', ['like', 'authors.fio', $term]];
         if ($fulltextQuery !== '' && $fulltextQuery !== '0') {
-            $subQuery->andWhere(new Expression(
+            $authorConditions[] = new Expression(
                 'MATCH(authors.fio) AGAINST(:query IN BOOLEAN MODE)',
                 [':query' => $fulltextQuery]
-            ));
+            );
         }
 
+        $subQuery->andWhere($authorConditions);
+
         return ['exists', $subQuery];
+    }
+
+    /**
+     * @param array{type: string, value: mixed} $criteria
+     */
+    private function applySpecification(ActiveQuery $query, array $criteria): void
+    {
+        $value = $criteria['value'];
+        $stringValue = is_scalar($value) ? (string)$value : '';
+
+        match ($criteria['type']) {
+            'year' => $query->andWhere(['year' => $value]),
+            'isbn_prefix' => $query->andWhere(['like', 'isbn', $stringValue . '%', false]),
+            'fulltext' => $this->applyFulltextSpecification($query, $stringValue),
+            'author' => $query->andWhere($this->buildAuthorCondition($stringValue)),
+            'or' => $this->applyOrSpecifications($query, is_array($value) ? $value : []),
+            default => null, // @codeCoverageIgnore
+        };
+    }
+
+    private function applyFulltextSpecification(ActiveQuery $query, string $term): void
+    {
+        $fulltextQuery = $this->prepareFulltextQuery($term);
+        if ($fulltextQuery === '' || $fulltextQuery === '0') {
+            return; // @codeCoverageIgnore
+        }
+
+        $query->andWhere(new Expression(
+            'MATCH(title, description) AGAINST(:query IN BOOLEAN MODE)',
+            [':query' => $fulltextQuery]
+        ));
+    }
+
+    /**
+     * @param array<mixed> $specs
+     */
+    private function applyOrSpecifications(ActiveQuery $query, array $specs): void
+    {
+        $conditions = ['or'];
+
+        foreach ($specs as $spec) {
+            if (!is_array($spec)) {
+                continue; // @codeCoverageIgnore
+            }
+
+            $type = $spec['type'] ?? null;
+            $value = $spec['value'] ?? null;
+            $stringValue = is_scalar($value) ? (string)$value : '';
+
+            match ($type) {
+                'year' => $conditions[] = ['year' => $value],
+                'isbn_prefix' => $conditions[] = ['like', 'isbn', $stringValue . '%', false],
+                'fulltext' => $this->addFulltextCondition($conditions, $stringValue),
+                'author' => $conditions[] = $this->buildAuthorCondition($stringValue),
+                default => null, // @codeCoverageIgnore
+            };
+        }
+
+        if (count($conditions) <= 1) {
+            return; // @codeCoverageIgnore
+        }
+
+        $query->andWhere($conditions);
+    }
+
+    /**
+     * @param array<mixed> $conditions
+     */
+    private function addFulltextCondition(array &$conditions, string $term): void
+    {
+        $fulltextQuery = $this->prepareFulltextQuery($term);
+        if ($fulltextQuery === '' || $fulltextQuery === '0') {
+            return; // @codeCoverageIgnore
+        }
+
+        $conditions[] = new Expression(
+            'MATCH(title, description) AGAINST(:query IN BOOLEAN MODE)',
+            [':query' => $fulltextQuery]
+        );
     }
 }

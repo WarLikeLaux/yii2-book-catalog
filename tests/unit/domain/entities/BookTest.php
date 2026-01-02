@@ -26,6 +26,7 @@ final class BookTest extends Unit
         $this->assertSame('Desc', $book->getDescription());
         $this->assertSame('http://url.com', $book->getCoverUrl());
         $this->assertSame([], $book->getAuthorIds());
+        $this->assertSame(1, $book->getVersion());
     }
 
     public function testUpdate(): void
@@ -124,17 +125,20 @@ final class BookTest extends Unit
         $this->assertFalse($book->hasAuthor(2));
     }
 
-    public function testChangeTrackingForNewBook(): void
+    public function testSetId(): void
     {
         $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
-        $book->replaceAuthors([1, 2]);
 
-        $this->assertSame([1, 2], $book->getAddedAuthorIds());
-        $this->assertSame([], $book->getRemovedAuthorIds());
-        $this->assertTrue($book->hasAuthorChanges());
+        $this->assignBookId($book, 100);
+        $this->assertSame(100, $book->getId());
+
+        $this->assignBookId($book, 100);
+
+        $this->expectException(\RuntimeException::class);
+        $this->assignBookId($book, 200);
     }
 
-    public function testChangeTrackingForReconstitutedBook(): void
+    public function testIncrementVersion(): void
     {
         $book = Book::reconstitute(
             1,
@@ -143,42 +147,14 @@ final class BookTest extends Unit
             new Isbn('978-3-16-148410-0'),
             null,
             null,
-            [1, 2],
+            [],
             false,
-            1
+            5
         );
 
-        $book->removeAuthor(2);
-        $book->addAuthor(3);
+        $book->incrementVersion();
 
-        $this->assertSame([3], $book->getAddedAuthorIds());
-        $this->assertSame([2], $book->getRemovedAuthorIds());
-        $this->assertTrue($book->hasAuthorChanges());
-    }
-
-    public function testMarkAuthorsPersistedResetsTracking(): void
-    {
-        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
-        $book->replaceAuthors([1, 2]);
-
-        $book->markAuthorsPersisted();
-
-        $this->assertSame([], $book->getAddedAuthorIds());
-        $this->assertSame([], $book->getRemovedAuthorIds());
-        $this->assertFalse($book->hasAuthorChanges());
-    }
-
-    public function testSetId(): void
-    {
-        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
-
-        $book->setId(100);
-        $this->assertSame(100, $book->getId());
-
-        $book->setId(100);
-
-        $this->expectException(\RuntimeException::class);
-        $book->setId(200);
+        $this->assertSame(6, $book->getVersion());
     }
 
     public function testIsPublishedReturnsFalseByDefault(): void
@@ -186,6 +162,13 @@ final class BookTest extends Unit
         $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
 
         $this->assertFalse($book->isPublished());
+    }
+
+    public function testDefaultVersionIsOne(): void
+    {
+        $book = Book::create('Title', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+
+        $this->assertSame(1, $book->getVersion());
     }
 
     public function testPublishWithAuthorsSucceeds(): void
@@ -284,5 +267,12 @@ final class BookTest extends Unit
         $this->expectExceptionMessage('book.error.title_too_long');
 
         $book->update(str_repeat('X', 256), new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
+    }
+
+    private function assignBookId(Book $book, int $id): void
+    {
+        $method = new \ReflectionMethod(Book::class, 'setId');
+        $method->setAccessible(true);
+        $method->invoke($book, $id);
     }
 }

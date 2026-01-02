@@ -28,7 +28,7 @@ final readonly class SubscriptionCommandHandler
 
         return $this->useCaseRunner->executeForApi(
             fn() => $this->useCase->execute($command),
-            Yii::t('app', 'You are subscribed!'),
+            Yii::t('app', 'subscription.success.subscribed'),
             ['author_id' => $form->authorId]
         );
     }

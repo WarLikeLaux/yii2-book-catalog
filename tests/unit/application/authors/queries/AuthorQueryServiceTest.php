@@ -69,7 +69,7 @@ final class AuthorQueryServiceTest extends Unit
             ->willReturn(null);
 
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Author not found');
+        $this->expectExceptionMessage('author.error.not_found');
 
         $this->service->getById(999);
     }

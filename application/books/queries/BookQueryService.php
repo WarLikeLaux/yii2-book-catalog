@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace app\application\books\queries;
 
-use app\application\ports\BookRepositoryInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\exceptions\DomainException;
 
 final readonly class BookQueryService
 {
     public function __construct(
-        private BookRepositoryInterface $bookRepository
+        private BookQueryServiceInterface $bookRepository
     ) {
     }
 
@@ -24,7 +24,7 @@ final readonly class BookQueryService
     {
         $book = $this->bookRepository->findByIdWithAuthors($id);
         if (!$book instanceof BookReadDto) {
-            throw new DomainException('Book not found');
+            throw new DomainException('book.error.not_found');
         }
 
         return $book;

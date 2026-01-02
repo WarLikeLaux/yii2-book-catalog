@@ -184,6 +184,10 @@ composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
 
+req:
+	$(COMPOSE) exec $(PHP_CONTAINER) composer require $(PKG)
+
+
 # =================================================================================================
 # 🛡️ КОНТРОЛЬ КАЧЕСТВА (QA)
 # =================================================================================================
@@ -229,6 +233,7 @@ test: _test-init
 		--coverage --coverage-xml --coverage-html --coverage-text \
 		--coverage-phpunit --xml=junit.xml --no-colors
 	@sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml
+	@$(MAKE) cov
 
 test-unit:
 	@echo "🚀 Запуск Unit тестов..."

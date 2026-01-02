@@ -24,8 +24,9 @@ class SearchBookCest
     {
         $I->wantTo('search books by author via global search');
 
-        $this->createBookWithAuthor($I, '978-3-16-148410-0', 'PHP Expert', 'Unique PHP Guide');
-        $this->createBookWithAuthor($I, '978-1-23-456789-7', 'Java Guru', 'Another Java Book');
+        $suffix = uniqid('author_', true);
+        $this->createBookWithAuthor($I, '978-3-16-148410-0', 'PHP Expert ' . $suffix, 'Unique PHP Guide');
+        $this->createBookWithAuthor($I, '978-1-23-456789-7', 'Java Guru ' . $suffix, 'Another Java Book');
 
         $I->amOnPage('/');
         $I->see('Unique PHP Guide');

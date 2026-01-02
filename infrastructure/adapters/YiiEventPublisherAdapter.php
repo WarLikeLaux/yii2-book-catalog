@@ -17,6 +17,7 @@ final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
 
     public function __construct(
         private QueueInterface $queue,
+        private EventToJobMapperInterface $jobMapper,
         EventListenerInterface ...$listeners
     ) {
         $this->listeners = $listeners;
@@ -45,11 +46,7 @@ final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
             return;
         }
 
-        $jobClass = $event->getJobClass();
-        $payload = $event->getJobPayload();
-
-        /** @var \yii\queue\JobInterface $job */
-        $job = new $jobClass(...$payload);
+        $job = $this->jobMapper->map($event);
         $this->queue->push($job);
     }
 }

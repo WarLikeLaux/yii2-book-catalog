@@ -58,11 +58,42 @@ final class AuthorTest extends Unit
         Author::create('A');
     }
 
+    public function testThrowsExceptionOnSingleMultibyteCharFio(): void
+    {
+        $previousEncoding = mb_internal_encoding();
+        mb_internal_encoding('UTF-8');
+
+        try {
+            $this->expectException(DomainException::class);
+            $this->expectExceptionMessage('author.error.fio_too_short');
+            Author::create("\xD0\xAF");
+        } finally {
+            if ($previousEncoding !== false) {
+                mb_internal_encoding($previousEncoding);
+            }
+        }
+    }
+
+    public function testAllowsMinLengthFio(): void
+    {
+        $author = Author::create('Ab');
+
+        $this->assertSame('Ab', $author->getFio());
+    }
+
     public function testThrowsExceptionOnTooLongFio(): void
     {
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('author.error.fio_too_long');
         Author::create(str_repeat('A', 256));
+    }
+
+    public function testAllowsMaxLengthFioWithMultibyte(): void
+    {
+        $fio = str_repeat("\xD0\xAF", 255);
+        $author = Author::create($fio);
+
+        $this->assertSame($fio, $author->getFio());
     }
 
     public function testUpdateThrowsExceptionOnEmptyFio(): void

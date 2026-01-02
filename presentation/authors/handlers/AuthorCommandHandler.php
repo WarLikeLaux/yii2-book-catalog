@@ -31,7 +31,7 @@ final readonly class AuthorCommandHandler
         $authorId = null;
         $success = $this->useCaseRunner->execute(function () use ($command, &$authorId): void {
             $authorId = $this->createAuthorUseCase->execute($command);
-        }, Yii::t('app', 'Author has been created'));
+        }, Yii::t('app', 'author.success.created'));
 
         return $success ? $authorId : null;
     }
@@ -42,7 +42,7 @@ final readonly class AuthorCommandHandler
 
         return $this->useCaseRunner->execute(
             fn() => $this->updateAuthorUseCase->execute($command),
-            Yii::t('app', 'Author has been updated'),
+            Yii::t('app', 'author.success.updated'),
             ['author_id' => $id]
         );
     }
@@ -53,7 +53,7 @@ final readonly class AuthorCommandHandler
 
         return $this->useCaseRunner->execute(
             fn() => $this->deleteAuthorUseCase->execute($command),
-            Yii::t('app', 'Author has been deleted'),
+            Yii::t('app', 'author.success.deleted'),
             ['author_id' => $id]
         );
     }

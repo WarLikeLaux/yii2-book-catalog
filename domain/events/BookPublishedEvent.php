@@ -6,7 +6,7 @@ namespace app\domain\events;
 
 final readonly class BookPublishedEvent implements QueueableEvent
 {
-    private const string JOB_CLASS = 'app\infrastructure\queue\NotifySubscribersJob';
+    public const string EVENT_TYPE = 'book.published';
 
     public function __construct(
         public int $bookId,
@@ -17,7 +17,7 @@ final readonly class BookPublishedEvent implements QueueableEvent
 
     public function getEventType(): string
     {
-        return 'book.published';
+        return self::EVENT_TYPE;
     }
 
     /**
@@ -29,22 +29,6 @@ final readonly class BookPublishedEvent implements QueueableEvent
             'bookId' => $this->bookId,
             'title' => $this->title,
             'year' => $this->year,
-        ];
-    }
-
-    public function getJobClass(): string
-    {
-        return self::JOB_CLASS;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getJobPayload(): array
-    {
-        return [
-            'bookId' => $this->bookId,
-            'title' => $this->title,
         ];
     }
 }

@@ -55,6 +55,39 @@ final readonly class WebUseCaseRunner
     }
 
     /**
+     * @template T
+     * @param callable(): T $action
+     * @param callable(DomainException): void $onDomainError
+     * @param (callable(): void)|null $onError
+     * @return T|null
+     */
+    public function executeWithFormErrors(
+        callable $action,
+        string $successMessage,
+        callable $onDomainError,
+        callable|null $onError = null
+    ): mixed {
+        try {
+            $result = $action();
+            $this->notifier->success($successMessage);
+            return $result;
+        } catch (DomainException $e) {
+            if ($onError !== null) {
+                $onError();
+            }
+            $onDomainError($e);
+            return null;
+        } catch (\Throwable $e) {
+            if ($onError !== null) {
+                $onError();
+            }
+            $this->logger->error($e->getMessage(), ['exception' => $e]);
+            $this->notifier->error($this->translator->translate('app', 'error.unexpected'));
+            return null;
+        }
+    }
+
+    /**
      * @param array<string, mixed> $logContext
      */
     public function query(callable $query, mixed $fallback, string $errorMessage, array $logContext = []): mixed

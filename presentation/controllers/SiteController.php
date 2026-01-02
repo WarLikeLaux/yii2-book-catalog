@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\ports\AuthServiceInterface;
 use app\presentation\auth\handlers\LoginHandler;
 use app\presentation\books\handlers\BookSearchHandler;
 use Yii;
@@ -18,6 +19,7 @@ final class SiteController extends Controller
     public function __construct(
         $id,
         $module,
+        private readonly AuthServiceInterface $authService,
         private readonly BookSearchHandler $bookSearchHandler,
         private readonly LoginHandler $loginHandler,
         $config = []
@@ -67,7 +69,7 @@ final class SiteController extends Controller
 
     public function actionLogin(): Response|string
     {
-        if (!Yii::$app->user->isGuest) {
+        if (!$this->authService->isGuest()) {
             return $this->goHome();
         }
 
@@ -87,7 +89,7 @@ final class SiteController extends Controller
 
     public function actionLogout(): Response
     {
-        Yii::$app->user->logout();
+        $this->authService->logout();
 
         return $this->goHome();
     }

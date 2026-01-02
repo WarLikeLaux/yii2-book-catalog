@@ -82,6 +82,7 @@ final class SeedController extends Controller
             $isbn = $this->generateValidIsbn13();
 
             $year = rand(1, 100) <= 40 ? $currentYear : rand($currentYear - 5, $currentYear);
+            $isPublished = rand(1, 100) <= 70;
 
             if (Book::find()->where(['isbn' => $isbn])->exists()) {
                 continue;
@@ -92,6 +93,7 @@ final class SeedController extends Controller
                 'year' => $year,
                 'isbn' => $isbn,
                 'description' => "Автогенерированное описание для книги $title ($year).",
+                'is_published' => $isPublished,
             ]);
 
             if (!$book->save()) {

@@ -8,6 +8,11 @@ use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\specifications\AuthorSpecification;
+use app\domain\specifications\CompositeOrSpecification;
+use app\domain\specifications\FullTextSpecification;
+use app\domain\specifications\IsbnPrefixSpecification;
+use app\domain\specifications\YearSpecification;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
@@ -276,7 +281,7 @@ final class BookRepositoryTest extends Unit
         // InnoDB FullText search requires committed transaction
         Yii::$app->db->getTransaction()->commit();
 
-        $result = $this->repository->search('SearchTestAuthor', 1, 10);
+        $result = $this->repository->search('SearchableBookTitle', 1, 10);
 
         $this->assertGreaterThan(0, $result->getTotalCount());
     }
@@ -290,7 +295,7 @@ final class BookRepositoryTest extends Unit
             null,
             null
         );
-        $book->setId(99999);
+        $this->assignBookId($book, 99999);
 
         $this->expectException(EntityNotFoundException::class);
         $this->repository->save($book);
@@ -352,7 +357,152 @@ final class BookRepositoryTest extends Unit
         );
 
         $this->expectException(AlreadyExistsException::class);
-        $this->expectExceptionMessage("Book with ISBN $isbn already exists");
+        $this->expectExceptionMessage('book.error.isbn_exists');
         $this->repository->save($book2);
+    }
+
+    private function assignBookId(BookEntity $book, int $id): void
+    {
+        $method = new \ReflectionMethod(BookEntity::class, 'setId');
+        $method->setAccessible(true);
+        $method->invoke($book, $id);
+    }
+
+    public function testSearchBySpecificationWithYearSpec(): void
+    {
+        $book = BookEntity::create(
+            'Year Spec Test',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $this->repository->save($book);
+
+        $spec = new YearSpecification(new BookYear(2024));
+        $result = $this->repository->searchBySpecification($spec, 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchBySpecificationWithIsbnPrefixSpec(): void
+    {
+        $book = BookEntity::create(
+            'ISBN Prefix Spec Test',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $this->repository->save($book);
+
+        $spec = new IsbnPrefixSpecification('978316');
+        $result = $this->repository->searchBySpecification($spec, 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchBySpecificationWithFullTextSpec(): void
+    {
+        $book = BookEntity::create(
+            'FullTextSpecificationTestBook',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            'Unique description for fulltext search',
+            null
+        );
+        $this->repository->save($book);
+
+        Yii::$app->db->getTransaction()->commit();
+
+        $spec = new FullTextSpecification('FullTextSpecificationTestBook');
+        $result = $this->repository->searchBySpecification($spec, 1, 10);
+
+        $this->assertGreaterThanOrEqual(0, $result->getTotalCount());
+    }
+
+    public function testSearchBySpecificationWithAuthorSpec(): void
+    {
+        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'SpecificationAuthorName']);
+
+        $book = BookEntity::create(
+            'Author Spec Test',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $book->replaceAuthors([$authorId]);
+        $this->repository->save($book);
+
+        Yii::$app->db->getTransaction()->commit();
+
+        $spec = new AuthorSpecification('SpecificationAuthorName');
+        $result = $this->repository->searchBySpecification($spec, 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchBySpecificationWithCompositeOrSpec(): void
+    {
+        $book1 = BookEntity::create(
+            'Composite Spec Year Book',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null
+        );
+        $this->repository->save($book1);
+
+        $book2 = BookEntity::create(
+            'Composite Spec ISBN Book',
+            new BookYear(2025),
+            new Isbn('9780132350884'),
+            null,
+            null
+        );
+        $this->repository->save($book2);
+
+        $composite = new CompositeOrSpecification([
+            new YearSpecification(new BookYear(2024)),
+            new IsbnPrefixSpecification('978013'),
+        ]);
+        $result = $this->repository->searchBySpecification($composite, 1, 10);
+
+        $this->assertGreaterThanOrEqual(2, $result->getTotalCount());
+    }
+
+    public function testSearchBySpecificationWithCompositeOrFulltextAndAuthor(): void
+    {
+        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'CompositeSpecAuthor']);
+
+        $book1 = BookEntity::create(
+            'CompositeFulltextTestBook',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            'Some unique description',
+            null
+        );
+        $this->repository->save($book1);
+
+        $book2 = BookEntity::create(
+            'Another Book',
+            new BookYear(2025),
+            new Isbn('9780132350884'),
+            null,
+            null
+        );
+        $book2->replaceAuthors([$authorId]);
+        $this->repository->save($book2);
+
+        Yii::$app->db->getTransaction()->commit();
+
+        $composite = new CompositeOrSpecification([
+            new FullTextSpecification('CompositeFulltextTestBook'),
+            new AuthorSpecification('CompositeSpecAuthor'),
+        ]);
+        $result = $this->repository->searchBySpecification($composite, 1, 10);
+
+        $this->assertGreaterThanOrEqual(1, $result->getTotalCount());
     }
 }

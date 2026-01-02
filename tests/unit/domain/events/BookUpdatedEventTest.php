@@ -17,7 +17,7 @@ final class BookUpdatedEventTest extends Unit
         $this->assertSame(2023, $event->oldYear);
         $this->assertSame(2024, $event->newYear);
         $this->assertTrue($event->isPublished);
-        $this->assertSame('book.updated', $event->getEventType());
+        $this->assertSame(BookUpdatedEvent::EVENT_TYPE, $event->getEventType());
         $this->assertSame([
             'bookId' => 123,
             'oldYear' => 2023,

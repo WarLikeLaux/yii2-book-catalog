@@ -53,10 +53,22 @@ final class IsbnTest extends Unit
         new Isbn('0306406152x');
     }
 
+    public function testThrowsExceptionOnIsbn10WithInvalidNinthCharButValidChecksum(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('00000000B8');
+    }
+
     public function testThrowsExceptionOnInvalidIsbn13Prefix(): void
     {
         $this->expectException(DomainException::class);
         new Isbn('9773161484100');
+    }
+
+    public function testThrowsExceptionOnValidChecksumWithInvalidPrefix(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('9771234567898');
     }
 
     public function testThrowsExceptionOnInvalidChecksum(): void
@@ -154,6 +166,12 @@ final class IsbnTest extends Unit
     {
         $this->expectException(DomainException::class);
         new Isbn('000000000Y');
+    }
+
+    public function testThrowsExceptionOnIsbn10WithInvalidCheckDigitButValidChecksum(): void
+    {
+        $this->expectException(DomainException::class);
+        new Isbn('000000000F');
     }
 
     public function testThrowsExceptionOnIsbn10WithLetterYAtPosition8(): void

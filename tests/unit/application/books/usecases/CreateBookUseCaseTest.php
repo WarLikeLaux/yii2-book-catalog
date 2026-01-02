@@ -71,7 +71,7 @@ final class CreateBookUseCaseTest extends Unit
             ->with($this->callback(fn (Book $book) => $book->getTitle() === 'Clean Code'
                     && $book->getAuthorIds() === [1, 2]))
             ->willReturnCallback(function (Book $book) {
-                $book->setId(42);
+                $this->assignBookId($book, 42);
             });
 
         $this->eventPublisher->expects($this->once())
@@ -158,7 +158,7 @@ final class CreateBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->willReturnCallback(function (Book $book) {
-                $book->setId(1);
+                $this->assignBookId($book, 1);
             });
 
         $this->eventPublisher->expects($this->once())->method('publishEvent');
@@ -192,5 +192,12 @@ final class CreateBookUseCaseTest extends Unit
         $this->expectExceptionMessage('Failed to retrieve book ID after save');
 
         $this->useCase->execute($command);
+    }
+
+    private function assignBookId(Book $book, int $id): void
+    {
+        $method = new \ReflectionMethod(Book::class, 'setId');
+        $method->setAccessible(true);
+        $method->invoke($book, $id);
     }
 }

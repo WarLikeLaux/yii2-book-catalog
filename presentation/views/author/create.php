@@ -2,24 +2,17 @@
 
 declare(strict_types=1);
 
-use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
 
-$this->title = Yii::t('app', 'Create Author');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Authors'), 'url' => ['index']];
+$this->title = Yii::t('app', 'ui.author_create');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.authors'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
 <div class="author-create">
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?php $form = ActiveForm::begin(); ?>
-
-    <?= $form->field($model, 'fio')->textInput(['maxlength' => true]) ?>
-
-    <div class="form-group">
-        <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success']) ?>
-    </div>
-
-    <?php ActiveForm::end(); ?>
+    <?= $this->render('_form', [
+        'model' => $model,
+    ]) ?>
 </div>

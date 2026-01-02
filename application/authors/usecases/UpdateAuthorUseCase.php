@@ -23,7 +23,7 @@ final readonly class UpdateAuthorUseCase
             $author->update($command->fio);
             $this->authorRepository->save($author);
         } catch (\RuntimeException) {
-            throw new DomainException('Failed to update author');
+            throw new DomainException('author.error.update_failed');
         }
     }
 }

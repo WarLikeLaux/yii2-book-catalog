@@ -119,7 +119,7 @@ graph TD
     end
 
     subgraph Infrastructure ["Infrastructure Layer"]
-        RepoImpl[Repository Impl]
+        RepoImpl[Repository/QueryService Impl]
         Adapter[Adapter Impl]
         AR[ActiveRecord]
         Job[Queue Job]
@@ -398,31 +398,29 @@ public function createBook(BookForm $form): ?int
 ```
 
 ```php
-// application/books/usecases/CreateBookUseCase.php
-public function execute(CreateBookCommand $command): int
+// application/books/usecases/PublishBookUseCase.php
+public function execute(PublishBookCommand $command): void
 {
     $this->transaction->begin();
     
     try {
-        $book = Book::create(
-            title: $command->title,
-            year: new BookYear($command->year),
-            isbn: new Isbn($command->isbn),
-            description: $command->description,
-            coverUrl: $command->cover
-        );
-        
-        $book->replaceAuthors($command->authorIds);
+        $book = $this->bookRepository->get($command->bookId);
+
+        $this->publicationPolicy->ensureCanPublish($book);
+        $book->publish();
         $this->bookRepository->save($book);
-        $bookId = $book->getId();
-        
+
+        $title = $book->getTitle();
+        $year = $book->getYear()->value;
+
         // Отправка события ТОЛЬКО после успешного коммита
-        $this->transaction->afterCommit(fn() => 
-            $this->eventPublisher->publishEvent(new BookCreatedEvent($bookId))
-        );
+        $this->transaction->afterCommit(function () use ($command, $title, $year): void {
+            $this->eventPublisher->publishEvent(
+                new BookPublishedEvent($command->bookId, $title, $year)
+            );
+        });
         
         $this->transaction->commit();
-        return $bookId;
     } catch (\Throwable $e) {
         $this->transaction->rollBack();
         throw $e;
@@ -465,6 +463,8 @@ final readonly class Isbn
 
 ## 📈 Сравнительная таблица
 
+Для ориентира: «толстый контроллер» = типичный Yii2 CRUD на ActiveRecord, «+Сервис» = привычный сервисный слой поверх AR.
+
 | Критерий | Толстый контроллер | +Сервис | Clean Architecture |
 |----------|-------------------|---------|-------------------|
 | **Время разработки** | ⚡ 30 мин | ⚡ 1 час | 🐢 3-4 часа |
@@ -476,6 +476,8 @@ final readonly class Isbn
 | **Зависимость от Yii** | 🔴 Везде | 🟡 В сервисе | 🟢 Infrastructure + Presentation |
 | **Изменить провайдера SMS** | Правим контроллер | Правим сервис | Новый адаптер |
 | **Копипаста Create/Update** | 80% | 50% | 10% |
+| **Правила домена** | В контроллере | В сервисе | Entity/Policy |
+| **Поиск/фильтрация** | AR в контроллере | AR в сервисе | Specifications + QueryService |
 | **Onboarding нового дева** | ⚡ 1 день | 2-3 дня | 1 неделя |
 | **Поддержка через 2 года** | 😱 Ад | 😐 Норм | 😊 Легко |
 
@@ -627,8 +629,17 @@ $book->save();
 // Интерфейс (application/ports/)
 interface BookRepositoryInterface
 {
-    public function findById(int $id): ?BookReadDto;
-    public function create(string $title, BookYear $year, ...): int;
+    public function save(Book $book): void;
+    public function get(int $id): Book;
+    public function delete(Book $book): void;
+    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool;
+}
+
+// Отдельный read-порт (ISP)
+interface BookQueryServiceInterface
+{
+    public function findByIdWithAuthors(int $id): ?BookReadDto;
+    public function search(string $term, int $page, int $pageSize): PagedResultInterface;
 }
 
 // Реализация (infrastructure/repositories/)
@@ -646,6 +657,7 @@ class BookRepository implements BookRepositoryInterface
 }
 ```
 ✅ **Результат:** UseCase зависит от интерфейса. Репозиторий **не использует глобальный Yii::$app**.
+Read‑операции вынесены в отдельный `BookQueryServiceInterface` (ISP), чтобы query‑логика не тянула write‑контракт.
 
 ---
 
@@ -696,10 +708,10 @@ $this->sendEmail(...);  // А если email упадёт?
 // UseCase
 // Отправка события через afterCommit (гарантия согласованности)
 $this->transaction->afterCommit(fn() => 
-    $this->eventPublisher->publishEvent(new BookCreatedEvent($bookId))
+    $this->eventPublisher->publishEvent(new BookPublishedEvent($bookId, $title, $year))
 );
 ```
-Слушатели получают событие синхронно через `EventListenerInterface`, а в очередь уходят только события, реализующие `QueueableEvent`.
+Слушатели получают событие синхронно через `EventListenerInterface`, а в очередь уходят только события, реализующие `QueueableEvent`. Маппинг Event → Job выполняет `EventToJobMapper` в инфраструктуре, чтобы домен не знал о job-классах.
 ✅ **Результат:** упал SMS? Книга всё равно создана. SMS повторится из очереди.
 
 ---
@@ -717,7 +729,7 @@ foreach ($subscribers as $sub) {
 
 **Стало:**
 ```php
-// Event → одна задача в очередь
+// Event → одна задача в очередь (маппинг делает EventToJobMapper)
 Yii::$app->queue->push(new NotifySubscribersJob($bookId));
 // Страница отвечает мгновенно
 
@@ -763,6 +775,10 @@ final class Book
 }
 ```
 ✅ **Результат:** Entity не знает о БД. Тестируется без инфраструктуры. Value Objects гарантируют валидность.
+
+Дополнительно в домене:
+- **Domain Services** (например, `BookPublicationPolicy`) для правил, которые не принадлежат одной сущности.
+- **Specifications** для формализации критериев поиска (`BookSearchSpecificationFactory`, `YearSpecification`).
 
 ---
 
@@ -880,6 +896,30 @@ try {
 
 ---
 
+### 13. Specification (поиск и фильтрация)
+
+**Было:**
+```php
+// В UseCase или сервисе
+return Book::find()
+    ->where(['year' => $year])
+    ->andWhere(['like', 'title', $term])
+    ->all();
+```
+❌ **Проблема:** бизнес-слой знает про AR и SQL-детали.
+
+**Стало:**
+```php
+// Domain: фабрика спецификаций
+$spec = $this->specFactory->create($term);
+
+// QueryService: выполняет спецификацию
+$result = $this->bookQueryService->searchBySpecification($spec);
+```
+✅ **Результат:** критерии формализованы в домене, а SQL остаётся в инфраструктуре.
+
+---
+
 
 ## 🎯 Когда какой подход
 
@@ -910,27 +950,36 @@ yii2-book-catalog/
 │   ├── subscriptions/       # Модуль "Подписки"
 │   ├── reports/             # Модуль "Отчеты"
 │   ├── common/              # Общие компоненты (IdempotencyService, DTO)
-│   └── ports/               # Интерфейсы (EventPublisher, EventListener, Mutex, Repository)
+│   └── ports/               # Интерфейсы (EventPublisher, EventListener, Mutex, Repository, QueryService)
 ├── domain/                  # Domain Layer (Чистый PHP)
 │   ├── entities/            # Rich Entities (Book, Author)
 │   ├── events/              # Domain Events & QueueableEvent
 │   ├── exceptions/          # Domain Exceptions (StaleDataException)
+│   ├── services/            # Domain Services (BookPublicationPolicy)
+│   ├── specifications/      # Specifications (поиск/фильтрация)
 │   └── values/              # Value Objects (Isbn, BookYear)
 ├── infrastructure/          # Infrastructure Layer (Реализации портов)
-│   ├── adapters/            # Адаптеры (YiiEventPublisher, YiiMutex, YiiTransaction)
+│   ├── adapters/            # Адаптеры (YiiEventPublisher, EventToJobMapper, YiiMutex, YiiTransaction)
 │   ├── listeners/           # Event Listeners (ReportCacheInvalidation)
 │   ├── persistence/         # ActiveRecord модели (только для маппинга)
+│   ├── phpstan/             # Custom PHPStan rules
 │   ├── queue/               # Queue Jobs
 │   ├── repositories/        # Реализации репозиториев (Strict DI)
 │   │   └── decorators/      # Tracing Decorators
 │   └── services/            # Инфраструктурные сервисы (Logger, Storage)
 ├── presentation/            # Presentation Layer (Yii2 & Web)
+│   ├── auth/                # Аутентификация
 │   ├── controllers/         # Тонкие контроллеры
-│   ├── books/               # Модуль Книги (Forms, Handlers, Mappers)
+│   ├── books/               # Модуль "Книги" (Forms, Handlers, Mappers)
 │   ├── authors/             # Модуль Авторы
+│   ├── components/          # Базовые UI-компоненты
 │   ├── common/              # Общие виджеты, фильтры и сервисы (WebUseCaseRunner, IdempotencyFilter)
+│   ├── dto/                 # DTO для представления
 │   ├── mail/                # Шаблоны писем
-│   └── views/               # Шаблоны (Views)
+│   ├── reports/             # Модуль "Отчеты"
+│   ├── subscriptions/       # Модуль "Подписки"
+│   ├── views/               # Шаблоны (Views)
+│   └── widgets/             # UI-виджеты
 ├── commands/                # Console контроллеры (CLI)
 ├── config/                  # Конфигурация приложения
 ├── db-data/                 # Данные локальной БД (volume)

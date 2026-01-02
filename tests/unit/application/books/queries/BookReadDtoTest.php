@@ -38,4 +38,19 @@ final class BookReadDtoTest extends Unit
 
         $this->assertSame('Unknown Year Book', $dto->getFullTitle());
     }
+
+    public function testDefaultsAreApplied(): void
+    {
+        $dto = new BookReadDto(
+            id: 10,
+            title: 'Defaults',
+            year: null,
+            description: null,
+            isbn: '9780000000000',
+            authorIds: []
+        );
+
+        $this->assertFalse($dto->isPublished);
+        $this->assertSame(1, $dto->version);
+    }
 }

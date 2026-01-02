@@ -9,6 +9,7 @@ use app\application\ports\BookRepositoryInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookPublishedEvent;
+use app\domain\services\BookPublicationPolicy;
 
 final readonly class PublishBookUseCase
 {
@@ -16,6 +17,7 @@ final readonly class PublishBookUseCase
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
         private EventPublisherInterface $eventPublisher,
+        private BookPublicationPolicy $publicationPolicy,
     ) {
     }
 
@@ -26,6 +28,7 @@ final readonly class PublishBookUseCase
         try {
             $book = $this->bookRepository->get($command->bookId);
 
+            $this->publicationPolicy->ensureCanPublish($book);
             $book->publish();
 
             $this->bookRepository->save($book);

@@ -5,6 +5,8 @@ declare(strict_types=1);
 use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
 use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\AuthServiceInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
@@ -19,6 +21,9 @@ use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
+use app\infrastructure\adapters\EventToJobMapper;
+use app\infrastructure\adapters\EventToJobMapperInterface;
+use app\infrastructure\adapters\YiiAuthAdapter;
 use app\infrastructure\adapters\YiiCacheAdapter;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\adapters\YiiMutexAdapter;
@@ -58,6 +63,7 @@ return [
         ),
 
         // Порты и адаптеры
+        AuthServiceInterface::class => YiiAuthAdapter::class,
         NotificationInterface::class => FlashNotificationService::class,
         TranslatorInterface::class => YiiTranslatorAdapter::class,
         IdempotencyInterface::class => IdempotencyRepository::class,
@@ -65,10 +71,17 @@ return [
 
         // Репозитории (с декораторами)
         BookRepository::class => static fn(Container $c): BookRepository => new BookRepository(
-            Yii::$app->get('db'),
-            $c->get(TranslatorInterface::class)
+            Yii::$app->get('db')
         ),
         BookRepositoryInterface::class => static function (Container $c): BookRepositoryInterface {
+            $repo = $c->get(BookRepository::class);
+            if ($c->has(TracerInterface::class)) {
+                return new BookRepositoryTracingDecorator($repo, $c->get(TracerInterface::class));
+            }
+            return $repo;
+        },
+
+        BookQueryServiceInterface::class => static function (Container $c): BookQueryServiceInterface {
             $repo = $c->get(BookRepository::class);
             if ($c->has(TracerInterface::class)) {
                 return new BookRepositoryTracingDecorator($repo, $c->get(TracerInterface::class));
@@ -109,8 +122,10 @@ return [
         ),
         QueueInterface::class => static fn() => new YiiQueueAdapter(Yii::$app->get('queue')),
         CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
+        EventToJobMapperInterface::class => EventToJobMapper::class,
         EventPublisherInterface::class => static fn(Container $c): EventPublisherInterface => new YiiEventPublisherAdapter(
             $c->get(QueueInterface::class),
+            $c->get(EventToJobMapperInterface::class),
             $c->get(ReportCacheInvalidationListener::class)
         ),
     ],

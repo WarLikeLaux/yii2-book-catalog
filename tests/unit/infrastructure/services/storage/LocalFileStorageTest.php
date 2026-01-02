@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\services\storage;
 
+use app\application\common\dto\TemporaryFile;
 use app\infrastructure\services\storage\LocalFileStorage;
 use Codeception\Test\Unit;
 
@@ -18,7 +19,11 @@ final class LocalFileStorageTest extends Unit
         $this->tempDir = sys_get_temp_dir() . '/test-storage-' . uniqid();
         mkdir($this->tempDir, 0777, true);
 
-        $this->storage = new LocalFileStorage($this->tempDir, '/uploads');
+        $this->storage = new LocalFileStorage(
+            $this->tempDir,
+            '/uploads',
+            $this->tempDir . '/tmp'
+        );
     }
 
     protected function _after(): void
@@ -26,29 +31,63 @@ final class LocalFileStorageTest extends Unit
         $this->removeDir($this->tempDir);
     }
 
-    public function testSaveCreatesFileAndReturnsUrl(): void
+    public function testSaveTemporaryCreatesFileAndReturnsUrl(): void
     {
         $tempFile = $this->createTempFile('test content');
 
-        $url = $this->storage->save($tempFile, 'txt');
+        $file = $this->storage->saveTemporary($tempFile, 'txt');
 
-        $this->assertStringStartsWith('/uploads/', $url);
-        $this->assertStringEndsWith('.txt', $url);
+        $this->assertStringStartsWith('/uploads/', $file->url);
+        $this->assertStringEndsWith('.txt', $file->url);
 
-        $savedFile = $this->tempDir . '/' . basename($url);
+        $this->assertFileExists($file->tempPath);
+        $this->assertSame('test content', file_get_contents($file->tempPath));
+    }
+
+    public function testMoveToPermanentMovesFile(): void
+    {
+        $tempFile = $this->createTempFile('content to delete');
+        $file = $this->storage->saveTemporary($tempFile, 'txt');
+
+        $this->storage->moveToPermanent($file);
+
+        $savedFile = $this->tempDir . '/' . basename($file->url);
         $this->assertFileExists($savedFile);
-        $this->assertSame('test content', file_get_contents($savedFile));
+        $this->assertFileDoesNotExist($file->tempPath);
+    }
+
+    public function testDeleteTemporaryRemovesFile(): void
+    {
+        $tempFile = $this->createTempFile('content to delete');
+        $file = $this->storage->saveTemporary($tempFile, 'txt');
+
+        $this->storage->deleteTemporary($file);
+
+        $this->assertFileDoesNotExist($file->tempPath);
+    }
+
+    public function testDeleteTemporaryIgnoresMissingFile(): void
+    {
+        $file = new TemporaryFile(
+            $this->tempDir . '/missing.txt',
+            '/uploads/missing.txt'
+        );
+
+        $this->storage->deleteTemporary($file);
+
+        $this->assertTrue(true);
     }
 
     public function testDeleteRemovesFile(): void
     {
         $tempFile = $this->createTempFile('content to delete');
-        $url = $this->storage->save($tempFile, 'txt');
+        $file = $this->storage->saveTemporary($tempFile, 'txt');
+        $this->storage->moveToPermanent($file);
 
-        $savedFile = $this->tempDir . '/' . basename($url);
+        $savedFile = $this->tempDir . '/' . basename($file->url);
         $this->assertFileExists($savedFile);
 
-        $this->storage->delete($url);
+        $this->storage->delete($file->url);
 
         $this->assertFileDoesNotExist($savedFile);
     }

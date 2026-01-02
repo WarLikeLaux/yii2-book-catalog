@@ -16,14 +16,12 @@ final class Book
     /** @var int[] */
     private array $authorIds = [];
 
-    /** @var int[] */
-    private array $originalAuthorIds = [];
+    private ?int $id = null;
 
     /**
      * @param int[] $authorIds
      */
     private function __construct(
-        private ?int $id,
         private string $title,
         private BookYear $year,
         private Isbn $isbn,
@@ -31,17 +29,10 @@ final class Book
         private ?string $coverUrl,
         array $authorIds,
         private bool $published,
-        private int $version,
-        bool $isReconstituted
+        private int $version
     ) {
         $this->validateTitle($title);
         $this->authorIds = array_map(intval(...), $authorIds);
-
-        if (!$isReconstituted) {
-            return;
-        }
-
-        $this->originalAuthorIds = $this->authorIds;
     }
 
     private function validateTitle(string $title): void
@@ -65,7 +56,6 @@ final class Book
         ?string $coverUrl
     ): self {
         return new self(
-            id: null,
             title: $title,
             year: $year,
             isbn: $isbn,
@@ -73,8 +63,7 @@ final class Book
             coverUrl: $coverUrl,
             authorIds: [],
             published: false,
-            version: 1,
-            isReconstituted: false
+            version: 1
         );
     }
 
@@ -92,8 +81,7 @@ final class Book
         bool $published,
         int $version
     ): self {
-        return new self(
-            id: $id,
+        $book = new self(
             title: $title,
             year: $year,
             isbn: $isbn,
@@ -101,9 +89,10 @@ final class Book
             coverUrl: $coverUrl,
             authorIds: $authorIds,
             published: $published,
-            version: $version,
-            isReconstituted: true
+            version: $version
         );
+
+        return $book->withId($id);
     }
 
     /**
@@ -173,46 +162,23 @@ final class Book
         }
     }
 
-    /**
-     * @return int[]
-     */
-    public function getAddedAuthorIds(): array
-    {
-        return array_values(array_diff($this->authorIds, $this->originalAuthorIds));
-    }
-
-    /**
-     * @return int[]
-     */
-    public function getRemovedAuthorIds(): array
-    {
-        return array_values(array_diff($this->originalAuthorIds, $this->authorIds));
-    }
-
-    public function hasAuthorChanges(): bool
-    {
-        return $this->getAddedAuthorIds() !== [] || $this->getRemovedAuthorIds() !== [];
-    }
-
-    public function markAuthorsPersisted(): void
-    {
-        $this->originalAuthorIds = $this->authorIds;
-    }
-
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @internal Только для использования репозиторием
-     */
-    public function setId(int $id): void
+    private function setId(int $id): void
     {
         if ($this->id !== null && $this->id !== $id) {
             throw new RuntimeException('Cannot overwrite ID');
         }
         $this->id = $id;
+    }
+
+    private function withId(int $id): self
+    {
+        $this->setId($id);
+        return $this;
     }
 
     public function getTitle(): string

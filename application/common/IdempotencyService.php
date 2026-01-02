@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\application\common;
 
-use app\application\common\dto\IdempotencyResponseDto;
+use app\application\common\dto\IdempotencyRecordDto;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
 use JsonSerializable;
@@ -29,18 +29,38 @@ final readonly class IdempotencyService implements IdempotencyServiceInterface
         $this->mutex->release(self::LOCK_PREFIX . $key);
     }
 
-    public function getResponse(string $key): IdempotencyResponseDto|null
+    public function startRequest(string $key, int $ttl): bool
     {
-        $saved = $this->repository->getResponse($key);
+        return $this->repository->saveStarted($key, $ttl);
+    }
+
+    public function getRecord(string $key): IdempotencyRecordDto|null
+    {
+        $saved = $this->repository->getRecord($key);
         if ($saved === null) {
             return null;
         }
 
-        /** @var array<string, mixed> $data */
-        $data = json_decode($saved['body'], true);
+        $status = IdempotencyKeyStatus::tryFrom($saved['status']);
+        if (!$status instanceof IdempotencyKeyStatus) {
+            return null;
+        }
+        if ($status === IdempotencyKeyStatus::Started) {
+            return new IdempotencyRecordDto(
+                $status,
+                null,
+                [],
+                null
+            );
+        }
+
+        $body = $saved['body'];
+        $decoded = is_string($body) ? json_decode($body, true) : null;
+        $data = is_array($decoded) ? $decoded : [];
         $redirectUrl = $data['redirect_url'] ?? null;
 
-        return new IdempotencyResponseDto(
+        return new IdempotencyRecordDto(
+            $status,
             $saved['status_code'],
             $data,
             is_string($redirectUrl) ? $redirectUrl : null
