@@ -15,8 +15,6 @@ services:
       XDEBUG_CONFIG: client_host=host.docker.internal client_port=9003
       PHP_IDE_CONFIG: serverName=yii2-book-catalog
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_started
     env_file: .env
@@ -39,12 +37,29 @@ services:
       MYSQL_USER: ${DB_USER:-yii2}
       MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
     ports:
-      - '${DB_PUBLIC_PORT:-33060}:3306'
+      - '${MYSQL_PUBLIC_PORT:-33060}:3306'
     volumes:
       - ./db-data:/var/lib/mysql
     env_file: .env
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u$DB_USER", "-p$DB_PASSWORD"]
+      timeout: 5s
+      retries: 10
+      interval: 5s
+
+  pgsql:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-yii2basic}
+      POSTGRES_USER: ${DB_USER:-yii2}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - '${PGSQL_PUBLIC_PORT:-54320}:5432'
+    volumes:
+      - ./db-data-pgsql:/var/lib/postgresql/data
+    env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-yii2} -d ${DB_NAME:-yii2basic}"]
       timeout: 5s
       retries: 10
       interval: 5s
@@ -75,7 +90,6 @@ services:
       - SMS_API_KEY=${SMS_API_KEY:-MOCK_KEY}
     command: php yii queue/listen --verbose
     depends_on:
-      - db
       - redis
       - php
     env_file: .env
