@@ -329,8 +329,8 @@ repomix:
 	@npx -y repomix --style markdown --output repomix-output.md
 
 diff d:
-	@git diff
-	@git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index /dev/null {}
+	@git diff || true
+	@git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index /dev/null {} || true
 
 diff-staged diff-cached ds dc:
-	@git diff --staged
+	@git diff --staged || true
