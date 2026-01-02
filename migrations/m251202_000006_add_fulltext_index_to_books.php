@@ -6,13 +6,26 @@ use yii\db\Migration;
 
 final class m251202_000006_add_fulltext_index_to_books extends Migration
 {
+    private const INDEX_NAME = 'ft_books_title_description';
+
     public function safeUp(): void
     {
-        $this->execute('ALTER TABLE `books` ADD FULLTEXT INDEX `ft_books_title_description` (`title`, `description`)');
+        match ($this->db->driverName) {
+            'mysql' => $this->createIndex(self::INDEX_NAME, 'books', ['title', 'description'], 'FULLTEXT'),
+            'pgsql' => $this->execute(
+                'CREATE INDEX ' . self::INDEX_NAME . ' ON books USING gin(' .
+                "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '')))"
+            ),
+            default => null,
+        };
     }
 
     public function safeDown(): void
     {
-        $this->dropIndex('ft_books_title_description', 'books');
+        if ($this->db->driverName === 'sqlite') {
+            return;
+        }
+
+        $this->dropIndex(self::INDEX_NAME, 'books');
     }
 }
