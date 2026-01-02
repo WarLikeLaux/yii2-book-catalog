@@ -19,6 +19,8 @@ use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
+use DateTimeImmutable;
+use ReflectionMethod;
 use RuntimeException;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
@@ -86,7 +88,7 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
         return BookEntity::reconstitute(
             id: $ar->id,
             title: $ar->title,
-            year: new BookYear($ar->year),
+            year: new BookYear($ar->year, new DateTimeImmutable()),
             isbn: new Isbn($ar->isbn),
             description: $ar->description,
             coverUrl: $ar->cover_url,
@@ -237,7 +239,7 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
 
     private function assignBookId(BookEntity $book, int $id): void
     {
-        $method = new \ReflectionMethod(BookEntity::class, 'setId');
+        $method = new ReflectionMethod(BookEntity::class, 'setId');
         $method->invoke($book, $id);
     }
 

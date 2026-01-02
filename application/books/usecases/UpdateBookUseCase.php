@@ -11,6 +11,8 @@ use app\application\ports\TransactionInterface;
 use app\domain\events\BookUpdatedEvent;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
+use DateTimeImmutable;
+use Throwable;
 
 final readonly class UpdateBookUseCase
 {
@@ -24,20 +26,19 @@ final readonly class UpdateBookUseCase
     public function execute(UpdateBookCommand $command): void
     {
         $book = $this->bookRepository->get($command->id);
-
         $oldYear = $book->getYear()->value;
         $isPublished = $book->isPublished();
 
         $this->transaction->begin();
-
         try {
             $book->update(
                 title: $command->title,
-                year: new BookYear($command->year),
+                year: new BookYear($command->year, new DateTimeImmutable()),
                 isbn: new Isbn($command->isbn),
                 description: $command->description,
-                coverUrl: $command->cover
+                coverUrl: null
             );
+
             $book->replaceAuthors($command->authorIds);
 
             $this->bookRepository->save($book);
@@ -49,7 +50,7 @@ final readonly class UpdateBookUseCase
             });
 
             $this->transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->transaction->rollBack();
             throw $e;
         }

@@ -12,6 +12,9 @@ use app\domain\entities\Book;
 use app\domain\events\BookCreatedEvent;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
+use DateTimeImmutable;
+use RuntimeException;
+use Throwable;
 
 final readonly class CreateBookUseCase
 {
@@ -25,14 +28,13 @@ final readonly class CreateBookUseCase
     public function execute(CreateBookCommand $command): int
     {
         $this->transaction->begin();
-
         try {
             $book = Book::create(
                 title: $command->title,
-                year: new BookYear($command->year),
+                year: new BookYear($command->year, new DateTimeImmutable()),
                 isbn: new Isbn($command->isbn),
                 description: $command->description,
-                coverUrl: $command->cover
+                coverUrl: null
             );
             $book->replaceAuthors($command->authorIds);
 
@@ -40,7 +42,7 @@ final readonly class CreateBookUseCase
             $bookId = $book->getId();
 
             if ($bookId === null) {
-                throw new \RuntimeException('Failed to retrieve book ID after save');
+                throw new RuntimeException('Failed to retrieve book ID after save');
             }
 
             $this->transaction->afterCommit(function () use ($bookId, $command): void {
@@ -52,7 +54,7 @@ final readonly class CreateBookUseCase
             $this->transaction->commit();
 
             return $bookId;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->transaction->rollBack();
             throw $e;
         }

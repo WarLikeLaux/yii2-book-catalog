@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\domain\specifications;
 
 use app\domain\values\BookYear;
+use DateTimeImmutable;
 
 final readonly class BookSearchSpecificationFactory
 {
@@ -18,7 +19,7 @@ final readonly class BookSearchSpecificationFactory
         $specs = [];
 
         if (preg_match('/^\d{4}$/', $term) === 1) {
-            $specs[] = new YearSpecification(new BookYear((int)$term));
+            $specs[] = new YearSpecification(new BookYear((int)$term, new DateTimeImmutable()));
         }
 
         $specs[] = new IsbnPrefixSpecification($term);

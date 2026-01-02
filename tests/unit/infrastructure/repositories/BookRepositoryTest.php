@@ -51,7 +51,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Test Book',
-            new BookYear(2025),
+            new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Desc',
             null
@@ -70,7 +70,7 @@ final class BookRepositoryTest extends Unit
         $book = BookEntity::reconstitute(
             999,
             'Title',
-            new BookYear(2025),
+            new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null,
@@ -89,7 +89,7 @@ final class BookRepositoryTest extends Unit
 
         $book = BookEntity::create(
             'Book',
-            new BookYear(2025),
+            new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -107,7 +107,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Get Test',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Description',
             null
@@ -130,7 +130,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Original Title',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -138,7 +138,7 @@ final class BookRepositoryTest extends Unit
         $this->repository->save($book);
 
         $updated = $this->repository->get($book->getId());
-        $updated->update('Updated Title', new BookYear(2025), new Isbn('9783161484100'), 'New desc', null);
+        $updated->update('Updated Title', new BookYear(2025, new \DateTimeImmutable()), new Isbn('9783161484100'), 'New desc', null);
         $this->repository->save($updated);
 
         $dto = $this->repository->findById($book->getId());
@@ -150,7 +150,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'To Delete',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -167,7 +167,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'ISBN Test',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -186,7 +186,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'ISBN Exclude Test',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -203,7 +203,7 @@ final class BookRepositoryTest extends Unit
 
         $book = BookEntity::create(
             'Author Search Book',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -223,7 +223,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'ISBN Search',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -239,7 +239,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Year Search',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -255,7 +255,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Empty Search',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -273,7 +273,7 @@ final class BookRepositoryTest extends Unit
 
         $book = BookEntity::create(
             'SearchableBookTitle',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Some description',
             null
@@ -293,7 +293,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Non-existent',
-            new BookYear(2023),
+            new BookYear(2023, new \DateTimeImmutable()),
             new Isbn('978-3-16-148410-0'),
             null,
             null
@@ -317,7 +317,7 @@ final class BookRepositoryTest extends Unit
 
         $book = BookEntity::create(
             'Book with Authors',
-            new BookYear(2023),
+            new BookYear(2023, new \DateTimeImmutable()),
             new Isbn('978-3-16-148410-0'),
             null,
             null
@@ -344,7 +344,7 @@ final class BookRepositoryTest extends Unit
         $isbn = '9783161484100';
         $book1 = BookEntity::create(
             'First Book',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn($isbn),
             null,
             null
@@ -353,7 +353,7 @@ final class BookRepositoryTest extends Unit
 
         $book2 = BookEntity::create(
             'Duplicate ISBN Book',
-            new BookYear(2025),
+            new BookYear(2025, new \DateTimeImmutable()),
             new Isbn($isbn),
             null,
             null
@@ -375,14 +375,14 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Year Spec Test',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
         );
         $this->repository->save($book);
 
-        $spec = new YearSpecification(new BookYear(2024));
+        $spec = new YearSpecification(new BookYear(2024, new \DateTimeImmutable()));
         $result = $this->repository->searchBySpecification($spec, 1, 10);
 
         $this->assertGreaterThan(0, $result->getTotalCount());
@@ -392,7 +392,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'ISBN Prefix Spec Test',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -409,7 +409,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'FullTextSpecificationTestBook',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Unique description for fulltext search',
             null
@@ -430,7 +430,7 @@ final class BookRepositoryTest extends Unit
 
         $book = BookEntity::create(
             'Author Spec Test',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -450,7 +450,7 @@ final class BookRepositoryTest extends Unit
     {
         $book1 = BookEntity::create(
             'Composite Spec Year Book',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -459,7 +459,7 @@ final class BookRepositoryTest extends Unit
 
         $book2 = BookEntity::create(
             'Composite Spec ISBN Book',
-            new BookYear(2025),
+            new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9780132350884'),
             null,
             null
@@ -467,7 +467,7 @@ final class BookRepositoryTest extends Unit
         $this->repository->save($book2);
 
         $composite = new CompositeOrSpecification([
-            new YearSpecification(new BookYear(2024)),
+            new YearSpecification(new BookYear(2024, new \DateTimeImmutable())),
             new IsbnPrefixSpecification('978013'),
         ]);
         $result = $this->repository->searchBySpecification($composite, 1, 10);
@@ -481,7 +481,7 @@ final class BookRepositoryTest extends Unit
 
         $book1 = BookEntity::create(
             'CompositeFulltextTestBook',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Some unique description',
             null
@@ -490,7 +490,7 @@ final class BookRepositoryTest extends Unit
 
         $book2 = BookEntity::create(
             'Another Book',
-            new BookYear(2025),
+            new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9780132350884'),
             null,
             null

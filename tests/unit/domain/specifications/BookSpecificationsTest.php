@@ -17,7 +17,7 @@ final class BookSpecificationsTest extends Unit
 {
     public function testYearSpecificationReturnsCorrectCriteria(): void
     {
-        $spec = new YearSpecification(new BookYear(2024));
+        $spec = new YearSpecification(new BookYear(2024, new \DateTimeImmutable()));
 
         $criteria = $spec->toSearchCriteria();
 
@@ -57,7 +57,7 @@ final class BookSpecificationsTest extends Unit
 
     public function testCompositeOrSpecificationCombinesMultipleSpecs(): void
     {
-        $yearSpec = new YearSpecification(new BookYear(2024));
+        $yearSpec = new YearSpecification(new BookYear(2024, new \DateTimeImmutable()));
         $authorSpec = new AuthorSpecification('Kent Beck');
         $composite = new CompositeOrSpecification([$yearSpec, $authorSpec]);
 

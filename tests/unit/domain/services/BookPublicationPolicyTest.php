@@ -24,7 +24,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Description',
             null
@@ -40,7 +40,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Description',
             null
@@ -56,7 +56,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
@@ -70,7 +70,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024),
+            new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
             null
