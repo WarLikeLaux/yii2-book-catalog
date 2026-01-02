@@ -101,7 +101,7 @@ final class BookForm extends RepositoryAwareForm
             return;
         }
 
-        $this->addError($attribute, Yii::t('app', 'book.error.isbn_exists_generic'));
+        $this->addError($attribute, Yii::t('app', 'book.error.isbn_exists'));
     }
 
     public function validateAuthorsExist(string $attribute): void
