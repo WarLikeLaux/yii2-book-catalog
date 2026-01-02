@@ -12,11 +12,7 @@ final class SubscribeUseCaseCest
 {
     public function _before(IntegrationTester $I): void
     {
-        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
-        Yii::$app->db->createCommand()->delete('subscriptions')->execute();
-        Yii::$app->db->createCommand()->delete('book_authors')->execute();
-        Yii::$app->db->createCommand()->delete('authors')->execute();
-        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
+        DbCleaner::clear(['subscriptions', 'book_authors', 'authors']);
     }
 
     public function testCreatesSubscription(IntegrationTester $I): void

@@ -8,9 +8,7 @@ final class SubscriptionFormCest
 {
     public function _before(IntegrationTester $I): void
     {
-        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
-        Yii::$app->db->createCommand()->delete('authors')->execute();
-        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
+        DbCleaner::clear(['authors']);
     }
 
     public function testSubscribeValidationError(IntegrationTester $I): void

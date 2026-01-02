@@ -88,6 +88,12 @@ class SearchBookCest
         $book = $I->grabRecord(Book::class, ['isbn' => $isbn]);
         $book->link('authors', $author);
 
-        \Yii::$app->db->createCommand('COMMIT')->execute();
+        $transaction = \Yii::$app->db->getTransaction();
+
+        if ($transaction === null || !$transaction->getIsActive()) {
+            return;
+        }
+
+        $transaction->commit();
     }
 }

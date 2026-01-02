@@ -6,6 +6,7 @@ namespace app\tests\unit\infrastructure\repositories;
 
 use app\infrastructure\persistence\IdempotencyKey;
 use app\infrastructure\repositories\IdempotencyRepository;
+use app\infrastructure\repositories\StreamGetContentsStub;
 use Codeception\Test\Unit;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -98,5 +99,53 @@ final class IdempotencyRepositoryTest extends Unit
         $key = str_repeat('b', 100);
 
         $repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
+    }
+
+    public function testNormalizeResponseBodyReturnsNullForNonResource(): void
+    {
+        $result = $this->invokePrivateMethod($this->repository, 'normalizeResponseBody', [['payload']]);
+
+        $this->assertNull($result);
+    }
+
+    public function testNormalizeResponseBodyReturnsNullWhenStreamReadFails(): void
+    {
+        $resource = fopen('php://temp', 'r+');
+        $this->assertIsResource($resource);
+
+        try {
+            StreamGetContentsStub::$forceFalse = true;
+            $result = $this->invokePrivateMethod($this->repository, 'normalizeResponseBody', [$resource]);
+            $this->assertNull($result);
+        } finally {
+            StreamGetContentsStub::$forceFalse = false;
+            fclose($resource);
+        }
+    }
+
+    public function testNormalizeResponseBodyReturnsContentForStream(): void
+    {
+        $resource = fopen('php://temp', 'r+');
+        $this->assertIsResource($resource);
+
+        fwrite($resource, 'payload');
+        rewind($resource);
+
+        $result = $this->invokePrivateMethod($this->repository, 'normalizeResponseBody', [$resource]);
+
+        $this->assertSame('payload', $result);
+
+        fclose($resource);
+    }
+
+    /**
+     * @param array<int, mixed> $arguments
+     */
+    private function invokePrivateMethod(object $target, string $method, array $arguments): mixed
+    {
+        $reflection = new \ReflectionMethod($target, $method);
+        $reflection->setAccessible(true);
+
+        return $reflection->invokeArgs($target, $arguments);
     }
 }
