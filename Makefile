@@ -353,7 +353,11 @@ ai:
 	@ln -sf CLAUDE.md .cursorrules
 	@ln -sf CLAUDE.md .clinerules
 	@ln -sf CLAUDE.md .windsurfrules
-	@echo "✅ Симлинки созданы: GEMINI.md, AGENTS.md, .cursorrules, .clinerules, .windsurfrules -> CLAUDE.md"
+	@mkdir -p .antigravity
+	@ln -sf ../CLAUDE.md .antigravity/rules.md
+	@mkdir -p .agent/rules
+	@ln -sf ../../CLAUDE.md .agent/rules/rules.md
+	@echo "✅ Симлинки созданы: GEMINI.md, AGENTS.md, .cursorrules, .clinerules, .windsurfrules, .antigravity/rules.md, .agent/rules/rules.md -> CLAUDE.md"
 
 diff d:
 	@git diff || true
