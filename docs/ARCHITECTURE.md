@@ -70,7 +70,7 @@ graph TD
         Nginx["Nginx (Web Server)"]
         PHP["PHP-FPM (Application)"]
         Worker["Queue Worker (PHP CLI)"]
-        DB[("MySQL 8.0 (Database + Queue Table)")]
+        DB[("Database (MySQL / PgSQL)")]
         Redis[("Redis (Cache)")]
     end
     
@@ -920,6 +920,32 @@ $result = $this->bookQueryService->searchBySpecification($spec);
 
 ---
 
+### 14. Observability (Tracing)
+
+**Было:**
+Сложно понять, почему задача в очереди выполнялась долго или почему идемпотентность сработала некорректно. Логи разбросаны.
+
+**Стало:**
+Внедрен паттерн **Decorator** для добавления наблюдаемости без изменения бизнес-логики.
+```php
+// infrastructure/repositories/decorators/QueueTracingDecorator.php
+final class QueueTracingDecorator implements QueueInterface {
+    public function __construct(
+        private QueueInterface $repo,
+        private TracerInterface $tracer
+    ) {}
+
+    public function push(Job $job): string {
+        return $this->tracer->trace('queue.push', fn() => $this->repo->push($job));
+    }
+}
+```
+✅ **Результат:** 
+1. `YiiQueueAdapter` остается чистым.
+2. `QueueTracingDecorator` добавляет spans в Inspector APM.
+3. В DI контейнере мы просто оборачиваем адаптер в декоратор.
+
+---
 
 ## 🎯 Когда какой подход
 
