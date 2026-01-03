@@ -10,14 +10,13 @@ use app\domain\specifications\CompositeOrSpecification;
 use app\domain\specifications\FullTextSpecification;
 use app\domain\specifications\IsbnPrefixSpecification;
 use app\domain\specifications\YearSpecification;
-use app\domain\values\BookYear;
 use Codeception\Test\Unit;
 
 final class BookSpecificationsTest extends Unit
 {
     public function testYearSpecificationReturnsCorrectCriteria(): void
     {
-        $spec = new YearSpecification(new BookYear(2024, new \DateTimeImmutable()));
+        $spec = new YearSpecification(2024);
 
         $criteria = $spec->toSearchCriteria();
 
@@ -57,7 +56,7 @@ final class BookSpecificationsTest extends Unit
 
     public function testCompositeOrSpecificationCombinesMultipleSpecs(): void
     {
-        $yearSpec = new YearSpecification(new BookYear(2024, new \DateTimeImmutable()));
+        $yearSpec = new YearSpecification(2024);
         $authorSpec = new AuthorSpecification('Kent Beck');
         $composite = new CompositeOrSpecification([$yearSpec, $authorSpec]);
 
