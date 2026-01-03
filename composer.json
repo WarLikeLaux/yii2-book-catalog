@@ -31,7 +31,8 @@
         "yiisoft/yii2-redis": "^2.1",
         "guzzlehttp/guzzle": "^7.10",
         "inspector-apm/inspector-php": "^3.16",
-        "npm-asset/faker": "5.5.3"
+        "npm-asset/faker": "5.5.3",
+        "twbs/bootstrap-icons": "^1.13"
     },
     "require-dev": {
         "symfony/var-dumper": "^5.4 || ^6.0 || ^7.0",
@@ -61,7 +62,8 @@
         "buggregator/trap": "^1.15",
         "phpro/grumphp": "^2.18",
         "dg/bypass-finals": "^1.9",
-        "psy/psysh": "^0.12.18"
+        "psy/psysh": "^0.12.18",
+        "symfony/yaml": "^7.4"
     },
     "autoload": {
         "psr-4": {
