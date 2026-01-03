@@ -6,6 +6,12 @@ namespace app\infrastructure\services\observability;
 
 final class RequestIdProvider
 {
+    /**
+     * Идентификатор хранится в статическом свойстве, что является прагматичным выбором
+     * для классического PHP-FPM рантайма (один запрос = один процесс).
+     * При переходе на асинхронные рантаймы (Swoole/RoadRunner) это решение
+     * потребуется пересмотреть в пользу Scoped DI или контекста запроса.
+     */
     private static string|null $requestId = null;
 
     public static function get(): string
