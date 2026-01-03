@@ -73,9 +73,9 @@
   - [1. Application Layer (Use Cases, CQS, Ports)](#1-application-layer-use-cases-cqs-ports)
   - [2. Domain Layer (Rich Domain Model)](#2-domain-layer-rich-domain-model)
   - [3. Presentation Layer (Yii2)](#3-presentation-layer-yii2)
-  - [4. Разделение ответственности (CQRS)](#4-разделение-ответственности-use-cases-vs-presentation-services)
+  - [4. Разделение ответственности: Use Cases vs Presentation Services](#4-разделение-ответственности-use-cases-vs-presentation-services)
   - [5. Infrastructure & Observability](#5-infrastructure--observability)
-  - [6. DTO & Forms для валидации](#6-dto--forms-для-валидации)
+  - [6. DTO & формы для валидации](#6-dto--forms-для-валидации)
   - [7. Infrastructure Layer (Implementation)](#7-infrastructure-layer)
   - [8. Code Quality & Standards](#8-code-quality--standards)
   - [9. Гибридный поиск (Universal Search)](#9-гибридный-поиск-universal-search)
@@ -192,7 +192,7 @@ make up         # управление контейнерами (up/down) 🐳
 | `MYSQL_PUBLIC_PORT` | `33060` | Внешний порт MySQL (доступ с хоста) |
 | `PGSQL_PUBLIC_PORT` | `54320` | Внешний порт PostgreSQL (доступ с хоста) |
 
-### 🔍 Инфраструктура и Отладка
+### 🔍 Инфраструктура и отладка
 
 Для локальной разработки используется полный стек [Buggregator](https://buggregator.dev).
 
@@ -424,7 +424,7 @@ final readonly class BookCommandHandler
 
 [↑ К навигации](#-навигация)
 
-### 6. DTO & Forms для валидации
+### 6. DTO & формы для валидации
 Слой представления отделен от домена.
 *   **Forms (`presentation/{feature}/forms`):** валидируют сырые пользовательские данные (HTTP request).
 *   **Command DTO (`application/{feature}/commands`):** передают валидные данные в Use Case.
@@ -574,7 +574,7 @@ final readonly class BookCommandHandler
 ### 14. Observability & Tracing
 Реализована полноценная система распределенной трассировки (Distributed Tracing) для мониторинга производительности и отладки SQL-запросов.
 
-#### 🛠 Инструменты и Стек
+#### 🛠 Инструменты и стек
 *   **Protocol:** [Inspector APM](https://inspector.dev) — используется как протокол обмена данными.
 *   **Visualization:** [Buggregator](https://buggregator.dev) — All-in-one сервер для локальной разработки. Собирает трейсы, логи и письма.
 *   **UI:** доступен по адресу **[http://localhost:8090](http://localhost:8090)**.
