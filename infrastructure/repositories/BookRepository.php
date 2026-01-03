@@ -40,26 +40,26 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
 
     public function save(BookEntity $book): void
     {
-        $isNew = $book->getId() === null;
+        $isNew = $book->id === null;
         if ($isNew) {
             $ar = new Book();
-            $ar->version = $book->getVersion();
+            $ar->version = $book->version;
         } else {
-            $ar = Book::findOne($book->getId());
+            $ar = Book::findOne($book->id);
             if ($ar === null) {
                 throw new EntityNotFoundException('book.error.not_found');
             }
-            $ar->version = $book->getVersion();
+            $ar->version = $book->version;
         }
 
-        $ar->title = $book->getTitle();
-        $ar->year = $book->getYear()->value;
-        $ar->isbn = $book->getIsbn()->value;
-        $ar->description = $book->getDescription();
-        $ar->cover_url = $book->getCoverUrl();
-        $ar->is_published = (int)$book->isPublished();
+        $ar->title = $book->title;
+        $ar->year = $book->year->value;
+        $ar->isbn = $book->isbn->value;
+        $ar->description = $book->description;
+        $ar->cover_url = $book->coverUrl;
+        $ar->is_published = (int)$book->published;
 
-        if ($this->existsByIsbn($book->getIsbn()->value, $book->getId())) {
+        if ($this->existsByIsbn($book->isbn->value, $book->id)) {
             throw new AlreadyExistsException('book.error.isbn_exists', 409);
         }
 
@@ -88,6 +88,7 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
         return BookEntity::reconstitute(
             id: $ar->id,
             title: $ar->title,
+            /** @reconstitution Валидация времени не требуется, так как данные загружаются из хранилища */
             year: new BookYear($ar->year, new DateTimeImmutable()),
             isbn: new Isbn($ar->isbn),
             description: $ar->description,
@@ -100,7 +101,7 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
 
     public function delete(BookEntity $book): void
     {
-        $ar = Book::findOne($book->getId());
+        $ar = Book::findOne($book->id);
         if ($ar === null) {
             throw new EntityNotFoundException('book.error.not_found');
         }
@@ -245,13 +246,13 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
 
     private function syncAuthors(BookEntity $book): void
     {
-        $bookId = $book->getId();
+        $bookId = $book->id;
         if ($bookId === null) {
             return; // @codeCoverageIgnore
         }
 
         $storedAuthorIds = $this->getStoredAuthorIds($bookId);
-        $currentAuthorIds = $book->getAuthorIds();
+        $currentAuthorIds = $book->authorIds;
 
         $toDelete = array_values(array_diff($storedAuthorIds, $currentAuthorIds));
         $toAdd = array_values(array_diff($currentAuthorIds, $storedAuthorIds));
@@ -366,7 +367,7 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
         $columnList = implode(', ', $columns);
 
         return new Expression(
-            "MATCH({$columnList}) AGAINST(:query IN BOOLEAN MODE)",
+            "MATCH($columnList) AGAINST(:query IN BOOLEAN MODE)",
             [':query' => $query]
         );
     }
@@ -379,7 +380,7 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
         }
 
         return new Expression(
-            "to_tsvector('english', {$columnExpression}) @@ plainto_tsquery('english', :query)",
+            "to_tsvector('english', $columnExpression) @@ plainto_tsquery('english', :query)",
             [':query' => $sanitized]
         );
     }
