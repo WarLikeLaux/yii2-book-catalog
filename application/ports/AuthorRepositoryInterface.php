@@ -25,4 +25,10 @@ interface AuthorRepositoryInterface
     public function search(string $search, int $page, int $pageSize): PagedResultInterface;
 
     public function existsByFio(string $fio, ?int $excludeId = null): bool;
+
+    /**
+     * @param array<int> $ids
+     * @return array<int>
+     */
+    public function findMissingIds(array $ids): array;
 }

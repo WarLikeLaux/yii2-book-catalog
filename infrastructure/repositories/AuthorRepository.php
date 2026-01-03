@@ -151,6 +151,29 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         return $query->exists();
     }
 
+    /**
+     * @param array<int> $ids
+     * @return array<int>
+     */
+    public function findMissingIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $existingIds = Author::find()
+            ->select('id')
+            ->where(['id' => $ids])
+            ->column();
+
+        $existingIdsMap = array_flip($existingIds);
+
+        return array_values(array_filter(
+            $ids,
+            static fn(int $id): bool => !isset($existingIdsMap[$id])
+        ));
+    }
+
     /** @codeCoverageIgnore Защитный код (недостижим из-за валидации домена) */
     private function persistAuthor(Author $ar): void
     {

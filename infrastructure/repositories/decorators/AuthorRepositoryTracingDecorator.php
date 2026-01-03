@@ -68,4 +68,17 @@ final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositor
             fn(): bool => $this->repository->existsByFio($fio, $excludeId)
         );
     }
+
+    /**
+     * @param array<int> $ids
+     * @return array<int>
+     */
+    #[\Override]
+    public function findMissingIds(array $ids): array
+    {
+        return $this->tracer->trace(
+            'AuthorRepo::' . __FUNCTION__,
+            fn(): array => $this->repository->findMissingIds($ids)
+        );
+    }
 }

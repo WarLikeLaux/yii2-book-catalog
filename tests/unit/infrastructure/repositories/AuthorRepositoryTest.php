@@ -172,4 +172,45 @@ final class AuthorRepositoryTest extends Unit
         $this->expectExceptionMessage('author.error.fio_exists');
         $this->repository->save($author2);
     }
+
+    public function testFindMissingIdsWithEmptyArray(): void
+    {
+        $this->assertSame([], $this->repository->findMissingIds([]));
+    }
+
+    public function testFindMissingIdsAllExist(): void
+    {
+        $author1 = AuthorEntity::create('Author 1');
+        $author2 = AuthorEntity::create('Author 2');
+        $this->repository->save($author1);
+        $this->repository->save($author2);
+
+        $result = $this->repository->findMissingIds([
+            $author1->getId(),
+            $author2->getId(),
+        ]);
+
+        $this->assertSame([], $result);
+    }
+
+    public function testFindMissingIdsSomeMissing(): void
+    {
+        $author = AuthorEntity::create('Existing Author');
+        $this->repository->save($author);
+
+        $result = $this->repository->findMissingIds([
+            $author->getId(),
+            99998,
+            99999,
+        ]);
+
+        $this->assertSame([99998, 99999], $result);
+    }
+
+    public function testFindMissingIdsAllMissing(): void
+    {
+        $result = $this->repository->findMissingIds([99998, 99999]);
+
+        $this->assertSame([99998, 99999], $result);
+    }
 }
