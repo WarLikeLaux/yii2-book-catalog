@@ -103,7 +103,11 @@ final class AuthorController extends Controller
             }
         }
 
-        return $this->render('update', ['model' => $form]);
+        $authorDto = $this->viewDataFactory->getAuthorView($id);
+        return $this->render('update', [
+            'model' => $form,
+            'author' => $authorDto,
+        ]);
     }
 
     public function actionDelete(int $id): Response

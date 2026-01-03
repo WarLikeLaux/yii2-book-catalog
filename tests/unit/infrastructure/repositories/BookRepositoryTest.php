@@ -138,7 +138,10 @@ final class BookRepositoryTest extends Unit
         $this->repository->save($book);
 
         $updated = $this->repository->get($book->getId());
-        $updated->update('Updated Title', new BookYear(2025, new \DateTimeImmutable()), new Isbn('9783161484100'), 'New desc', null);
+        $updated->rename('Updated Title');
+        $updated->changeYear(new BookYear(2025, new \DateTimeImmutable()));
+        $updated->correctIsbn(new Isbn('9783161484100'));
+        $updated->updateDescription('New desc');
         $this->repository->save($updated);
 
         $dto = $this->repository->findById($book->getId());

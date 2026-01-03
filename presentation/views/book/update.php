@@ -6,6 +6,7 @@ use yii\helpers\Html;
 
 $this->title = 'Обновить книгу';
 $this->params['breadcrumbs'][] = ['label' => 'Книги', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $book->title, 'url' => ['view', 'id' => $book->id]];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 

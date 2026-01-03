@@ -31,13 +31,10 @@ final readonly class UpdateBookUseCase
 
         $this->transaction->begin();
         try {
-            $book->update(
-                title: $command->title,
-                year: new BookYear($command->year, new DateTimeImmutable()),
-                isbn: new Isbn($command->isbn),
-                description: $command->description,
-                coverUrl: null
-            );
+            $book->rename($command->title);
+            $book->changeYear(new BookYear($command->year, new DateTimeImmutable()));
+            $book->correctIsbn(new Isbn($command->isbn));
+            $book->updateDescription($command->description);
 
             $book->replaceAuthors($command->authorIds);
 

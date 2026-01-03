@@ -46,15 +46,19 @@ final class BookTest extends Unit
         $newYear = new BookYear(2024, new \DateTimeImmutable());
         $newIsbn = new Isbn('978-3-16-148410-0');
 
-        $book->update('New Title', $newYear, $newIsbn, 'New Desc', 'http://new.com');
+        $book->rename('New Title');
+        $book->changeYear($newYear);
+        $book->correctIsbn($newIsbn);
+        $book->updateDescription('New Desc');
+        $book->updateCover('http://new.com');
 
         $this->assertSame('New Title', $book->getTitle());
         $this->assertSame($newYear, $book->getYear());
         $this->assertSame('New Desc', $book->getDescription());
         $this->assertSame('http://new.com', $book->getCoverUrl());
 
-        $book->update('Title 2', $newYear, $newIsbn, 'Desc 2', null);
-        $this->assertSame('http://new.com', $book->getCoverUrl(), 'Cover URL should not change if null passed');
+        $book->updateCover(null);
+        $this->assertNull($book->getCoverUrl(), 'Cover URL should be null if removed');
     }
 
     public function testReplaceAuthors(): void
@@ -200,7 +204,7 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.isbn_change_published');
 
-        $book->update('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('979-10-90636-07-1'), null, null);
+        $book->correctIsbn(new Isbn('979-10-90636-07-1'));
     }
 
     public function testUpdateIsbnOnDraftBookSucceeds(): void
@@ -208,7 +212,7 @@ final class BookTest extends Unit
         $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
         $newIsbn = new Isbn('979-10-90636-07-1');
 
-        $book->update('Title', new BookYear(2023, new \DateTimeImmutable()), $newIsbn, null, null);
+        $book->correctIsbn($newIsbn);
 
         $this->assertTrue($book->getIsbn()->equals($newIsbn));
     }
@@ -220,7 +224,7 @@ final class BookTest extends Unit
         $book->replaceAuthors([1]);
         $book->publish();
 
-        $book->update('New Title', new BookYear(2024, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), 'Desc', null);
+        $book->rename('New Title');
 
         $this->assertSame('New Title', $book->getTitle());
     }
@@ -256,7 +260,7 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.title_empty');
 
-        $book->update('', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
+        $book->rename('');
     }
 
     public function testUpdateThrowsExceptionOnTooLongTitle(): void
@@ -266,7 +270,7 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.title_too_long');
 
-        $book->update(str_repeat('X', 256), new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
+        $book->rename(str_repeat('X', 256));
     }
 
     private function assignBookId(Book $book, int $id): void
