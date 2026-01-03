@@ -28,13 +28,13 @@ final class AuthorRepositoryTest extends Unit
         $author = AuthorEntity::create('Test Author');
         $this->repository->save($author);
 
-        $this->assertNotNull($author->getId());
+        $this->assertNotNull($author->id);
 
-        $fetched = $this->repository->get($author->getId());
+        $fetched = $this->repository->get($author->id);
         $this->assertNotNull($fetched);
-        $this->assertSame('Test Author', $fetched->getFio());
+        $this->assertSame('Test Author', $fetched->fio);
 
-        $dto = $this->repository->findById($author->getId());
+        $dto = $this->repository->findById($author->id);
         $this->assertNotNull($dto);
         $this->assertSame('Test Author', $dto->fio);
     }
@@ -47,8 +47,8 @@ final class AuthorRepositoryTest extends Unit
         $author->update('New Name');
         $this->repository->save($author);
 
-        $fetched = $this->repository->get($author->getId());
-        $this->assertSame('New Name', $fetched->getFio());
+        $fetched = $this->repository->get($author->id);
+        $this->assertSame('New Name', $fetched->fio);
     }
 
     public function testDelete(): void
@@ -59,7 +59,7 @@ final class AuthorRepositoryTest extends Unit
         $this->repository->delete($author);
 
         $this->expectException(EntityNotFoundException::class);
-        $this->repository->get($author->getId());
+        $this->repository->get($author->id);
     }
 
     public function testExistsByFio(): void
@@ -76,7 +76,7 @@ final class AuthorRepositoryTest extends Unit
         $author = AuthorEntity::create('Unique Author');
         $this->repository->save($author);
 
-        $this->assertFalse($this->repository->existsByFio('Unique Author', $author->getId()));
+        $this->assertFalse($this->repository->existsByFio('Unique Author', $author->id));
         $this->assertTrue($this->repository->existsByFio('Unique Author', 99999));
     }
 
@@ -186,8 +186,8 @@ final class AuthorRepositoryTest extends Unit
         $this->repository->save($author2);
 
         $result = $this->repository->findMissingIds([
-            $author1->getId(),
-            $author2->getId(),
+            $author1->id,
+            $author2->id,
         ]);
 
         $this->assertSame([], $result);
@@ -199,7 +199,7 @@ final class AuthorRepositoryTest extends Unit
         $this->repository->save($author);
 
         $result = $this->repository->findMissingIds([
-            $author->getId(),
+            $author->id,
             99998,
             99999,
         ]);

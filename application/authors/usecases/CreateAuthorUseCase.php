@@ -8,6 +8,7 @@ use app\application\authors\commands\CreateAuthorCommand;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
 use app\domain\exceptions\DomainException;
+use Throwable;
 
 final readonly class CreateAuthorUseCase
 {
@@ -21,8 +22,9 @@ final readonly class CreateAuthorUseCase
         try {
             $author = Author::create($command->fio);
             $this->authorRepository->save($author);
-            return (int)$author->getId();
-        } catch (\RuntimeException) {
+
+            return (int)$author->id;
+        } catch (Throwable) {
             throw new DomainException('author.error.create_failed');
         }
     }

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use app\application\books\factories\BookYearFactory;
 use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
 use app\application\common\RateLimitService;
@@ -29,6 +30,7 @@ use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\infrastructure\adapters\decorators\QueueTracingDecorator;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
+use app\infrastructure\adapters\SystemClock;
 use app\infrastructure\adapters\SystemInfoAdapter;
 use app\infrastructure\adapters\YiiAuthAdapter;
 use app\infrastructure\adapters\YiiCacheAdapter;
@@ -58,11 +60,18 @@ use app\infrastructure\services\observability\NullTracer;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\storage\LocalFileStorage;
 use app\infrastructure\services\YiiPsrLogger;
+use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use yii\di\Container;
 
 return [
     'definitions' => [
+        // PSR-20 Clock
+        ClockInterface::class => SystemClock::class,
+        BookYearFactory::class => static fn(Container $c): BookYearFactory => new BookYearFactory(
+            $c->get(ClockInterface::class)
+        ),
+
         // Инфраструктурные сервисы
         SmsSenderInterface::class => static fn() => new SmsPilotSender(
             (string)env('SMS_API_KEY', 'MOCK_KEY'),

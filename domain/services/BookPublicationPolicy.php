@@ -14,13 +14,13 @@ final readonly class BookPublicationPolicy
      */
     public function ensureCanPublish(Book $book): void
     {
-        if ($book->getAuthorIds() === []) {
+        if ($book->authorIds === []) {
             throw new DomainException('book.error.publish_without_authors');
         }
     }
 
     public function canPublish(Book $book): bool
     {
-        return $book->getAuthorIds() !== [];
+        return $book->authorIds !== [];
     }
 }

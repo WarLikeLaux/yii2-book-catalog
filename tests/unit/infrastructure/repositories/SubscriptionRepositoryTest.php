@@ -33,7 +33,7 @@ final class SubscriptionRepositoryTest extends Unit
 
         $this->repository->save($subscription);
 
-        $this->assertNotNull($subscription->getId());
+        $this->assertNotNull($subscription->id);
     }
 
     public function testExistsReturnsTrueWhenSubscriptionExists(): void

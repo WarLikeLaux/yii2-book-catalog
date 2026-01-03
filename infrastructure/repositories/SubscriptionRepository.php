@@ -22,7 +22,7 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
 
     public function save(SubscriptionEntity $subscription): void
     {
-        $ar = Subscription::create($subscription->getPhone(), $subscription->getAuthorId());
+        $ar = Subscription::create($subscription->phone, $subscription->authorId);
 
         try {
             if (!$ar->save()) {
@@ -31,7 +31,7 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
                 throw new RuntimeException($message);
             }
         } catch (IntegrityException $e) {
-            throw new AlreadyExistsException(previous: $e);
+            throw new AlreadyExistsException(previous: $e); // @codeCoverageIgnore
         }
 
         $subscription->setId($ar->id);

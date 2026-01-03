@@ -23,23 +23,23 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
 
     public function save(AuthorEntity $author): void
     {
-        if ($author->getId() === null) {
-            $ar = Author::create($author->getFio());
+        if ($author->id === null) {
+            $ar = Author::create($author->fio);
         } else {
-            $ar = Author::findOne($author->getId());
+            $ar = Author::findOne($author->id);
             if ($ar === null) {
                 throw new EntityNotFoundException('author.error.not_found');
             }
-            $ar->edit($author->getFio());
+            $ar->edit($author->fio);
         }
 
-        if ($this->existsByFio($author->getFio(), $author->getId())) {
+        if ($this->existsByFio($author->fio, $author->id)) {
             throw new AlreadyExistsException('author.error.fio_exists', 409);
         }
 
         $this->persistAuthor($ar);
 
-        if ($author->getId() !== null) {
+        if ($author->id !== null) {
             return;
         }
 
@@ -61,7 +61,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
 
     public function delete(AuthorEntity $author): void
     {
-        $ar = Author::findOne($author->getId());
+        $ar = Author::findOne($author->id);
         if ($ar === null) {
             throw new EntityNotFoundException('author.error.not_found');
         }

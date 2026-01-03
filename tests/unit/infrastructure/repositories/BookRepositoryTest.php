@@ -58,9 +58,9 @@ final class BookRepositoryTest extends Unit
         );
 
         $this->repository->save($book);
-        $this->assertNotNull($book->getId());
+        $this->assertNotNull($book->id);
 
-        $dto = $this->repository->findById($book->getId());
+        $dto = $this->repository->findById($book->id);
         $this->assertNotNull($dto);
         $this->assertSame('Test Book', $dto->title);
     }
@@ -97,7 +97,7 @@ final class BookRepositoryTest extends Unit
         $book->replaceAuthors([$authorId]);
 
         $this->repository->save($book);
-        $bookId = $book->getId();
+        $bookId = $book->id;
 
         $dto = $this->repository->findByIdWithAuthors($bookId);
         $this->assertContains($authorId, $dto->authorIds);
@@ -114,10 +114,10 @@ final class BookRepositoryTest extends Unit
         );
         $this->repository->save($book);
 
-        $retrieved = $this->repository->get($book->getId());
+        $retrieved = $this->repository->get($book->id);
 
-        $this->assertSame('Get Test', $retrieved->getTitle());
-        $this->assertSame(2024, $retrieved->getYear()->value);
+        $this->assertSame('Get Test', $retrieved->title);
+        $this->assertSame(2024, $retrieved->year->value);
     }
 
     public function testGetThrowsExceptionOnNotFound(): void
@@ -137,14 +137,14 @@ final class BookRepositoryTest extends Unit
         );
         $this->repository->save($book);
 
-        $updated = $this->repository->get($book->getId());
+        $updated = $this->repository->get($book->id);
         $updated->rename('Updated Title');
         $updated->changeYear(new BookYear(2025, new \DateTimeImmutable()));
         $updated->correctIsbn(new Isbn('9783161484100'));
         $updated->updateDescription('New desc');
         $this->repository->save($updated);
 
-        $dto = $this->repository->findById($book->getId());
+        $dto = $this->repository->findById($book->id);
         $this->assertSame('Updated Title', $dto->title);
         $this->assertSame(2025, $dto->year);
     }
@@ -159,7 +159,7 @@ final class BookRepositoryTest extends Unit
             null
         );
         $this->repository->save($book);
-        $bookId = $book->getId();
+        $bookId = $book->id;
 
         $this->repository->delete($book);
 
@@ -196,7 +196,7 @@ final class BookRepositoryTest extends Unit
         );
         $this->repository->save($book);
 
-        $this->assertFalse($this->repository->existsByIsbn('9783161484100', $book->getId()));
+        $this->assertFalse($this->repository->existsByIsbn('9783161484100', $book->id));
         $this->assertTrue($this->repository->existsByIsbn('9783161484100', 99999));
     }
 
@@ -331,9 +331,9 @@ final class BookRepositoryTest extends Unit
         $book->replaceAuthors([$author1]);
         $this->repository->save($book);
 
-        $storedBook = $this->repository->get($book->getId());
-        $this->assertCount(1, $storedBook->getAuthorIds());
-        $this->assertEquals([$author1], $storedBook->getAuthorIds());
+        $storedBook = $this->repository->get($book->id);
+        $this->assertCount(1, $storedBook->authorIds);
+        $this->assertEquals([$author1], $storedBook->authorIds);
     }
 
     public function testFindByIdWithAuthorsReturnsNullOnNotFound(): void
@@ -385,7 +385,7 @@ final class BookRepositoryTest extends Unit
         );
         $this->repository->save($book);
 
-        $spec = new YearSpecification(new BookYear(2024, new \DateTimeImmutable()));
+        $spec = new YearSpecification(2024);
         $result = $this->repository->searchBySpecification($spec, 1, 10);
 
         $this->assertGreaterThan(0, $result->getTotalCount());
@@ -470,7 +470,7 @@ final class BookRepositoryTest extends Unit
         $this->repository->save($book2);
 
         $composite = new CompositeOrSpecification([
-            new YearSpecification(new BookYear(2024, new \DateTimeImmutable())),
+            new YearSpecification(2024),
             new IsbnPrefixSpecification('978013'),
         ]);
         $result = $this->repository->searchBySpecification($composite, 1, 10);
