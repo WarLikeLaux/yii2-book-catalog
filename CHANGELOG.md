@@ -38,8 +38,12 @@
 - **#28** - добавлены unit-тесты для QueueTracingDecorator ([b55ca5d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b55ca5d))
 - **#28** - обновлена конфигурация тестов для PostgreSQL ([f1cb6d0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f1cb6d0))
 - **#28** - обновлены тесты и классы поддержки для совместимости с PostgreSQL ([065650a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/065650a))
+### 📝 Документация
+- **#28** - обновлена архитектурная документация и структурная навигация ([f2d8a39](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f2d8a39))
+- **#28** - обновлена проектная документация и воркфлоу разработки с AI ([05f2219](https://github.com/WarLikeLaux/yii2-book-catalog/commit/05f2219))
 
 ### ⚙️ Инфраструктура
+- **#28** - обновлен CHANGELOG.md для версии 0.14.0 и доработан воркфлоу генерации лога ([a673543](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a673543))
 - **#28** - обновлен Makefile и CI для мульти-БД сред ([17af582](https://github.com/WarLikeLaux/yii2-book-catalog/commit/17af582))
 - **#28** - обновлены скрипты Makefile и зависимости ([bc3c22a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bc3c22a))
 - **#28** - обновлен воркфлоу коммитов инструкцией по атомарному разделению ([e9c4c39](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e9c4c39))
