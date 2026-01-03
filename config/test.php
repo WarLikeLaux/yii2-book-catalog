@@ -21,6 +21,12 @@ $config = [
     'container' => $container,
     'components' => [
         'db' => $db,
+        'redis' => [
+            'class' => 'yii\redis\Connection',
+            'hostname' => env('REDIS_HOST', 'localhost'),
+            'port' => (int)env('REDIS_PORT', 6379),
+            'database' => 15,
+        ],
         'mutex' => [
             'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
                 ? \yii\mutex\PgsqlMutex::class

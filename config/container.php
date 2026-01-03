@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
+use app\application\common\RateLimitService;
+use app\application\common\RateLimitServiceInterface;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\AuthServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
@@ -15,6 +17,7 @@ use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
 use app\application\ports\NotificationInterface;
 use app\application\ports\QueueInterface;
+use app\application\ports\RateLimitInterface;
 use app\application\ports\ReportRepositoryInterface;
 use app\application\ports\SmsSenderInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
@@ -41,9 +44,11 @@ use app\infrastructure\repositories\BookRepository;
 use app\infrastructure\repositories\decorators\AuthorRepositoryTracingDecorator;
 use app\infrastructure\repositories\decorators\BookRepositoryTracingDecorator;
 use app\infrastructure\repositories\decorators\IdempotencyRepositoryTracingDecorator;
+use app\infrastructure\repositories\decorators\RateLimitRepositoryTracingDecorator;
 use app\infrastructure\repositories\decorators\ReportRepositoryTracingDecorator;
 use app\infrastructure\repositories\decorators\SubscriptionRepositoryTracingDecorator;
 use app\infrastructure\repositories\IdempotencyRepository;
+use app\infrastructure\repositories\RateLimitRepository;
 use app\infrastructure\repositories\ReportRepository;
 use app\infrastructure\repositories\SubscriptionRepository;
 use app\infrastructure\services\LogCategory;
@@ -82,6 +87,17 @@ return [
             $repo = $c->get(IdempotencyRepository::class);
             if ($c->has(TracerInterface::class)) {
                 return new IdempotencyRepositoryTracingDecorator($repo, $c->get(TracerInterface::class));
+            }
+            return $repo;
+        },
+
+        RateLimitRepository::class => static fn(Container $c): RateLimitRepository => new RateLimitRepository(
+            Yii::$app->get('redis')
+        ),
+        RateLimitInterface::class => static function (Container $c): RateLimitInterface {
+            $repo = $c->get(RateLimitRepository::class);
+            if ($c->has(TracerInterface::class)) {
+                return new RateLimitRepositoryTracingDecorator($repo, $c->get(TracerInterface::class));
             }
             return $repo;
         },
@@ -166,6 +182,9 @@ return [
         IdempotencyServiceInterface::class => static fn(Container $c): IdempotencyServiceInterface => new IdempotencyService(
             $c->get(IdempotencyInterface::class),
             $c->get(MutexInterface::class)
+        ),
+        RateLimitServiceInterface::class => static fn(Container $c): RateLimitServiceInterface => new RateLimitService(
+            $c->get(RateLimitInterface::class)
         ),
         TracerInterface::class => static function (Container $c): TracerInterface {
             if (!env('INSPECTOR_INGESTION_KEY')) {

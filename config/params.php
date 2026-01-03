@@ -15,6 +15,10 @@ return [
         'lockTimeout' => (int)env('IDEMPOTENCY_LOCK_TIMEOUT', 1),
         'waitSeconds' => (int)env('IDEMPOTENCY_WAIT_SECONDS', 1),
     ],
+    'rateLimit' => [
+        'limit' => (int)env('RATE_LIMIT_REQUESTS', 60),
+        'window' => (int)env('RATE_LIMIT_WINDOW', 60),
+    ],
     'shell' => [
         'aliasTargets' => [
             'infrastructure/persistence' => 1,
