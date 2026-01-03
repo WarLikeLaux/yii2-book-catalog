@@ -34,7 +34,7 @@ $config = [
         ],
         'response' => [
             'on beforeSend' => static function ($event): void {
-                $event->sender->headers->add('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;");
+                $event->sender->headers->add('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.simpleicons.org; font-src 'self' data:;");
                 $event->sender->headers->add('X-Frame-Options', 'SAMEORIGIN');
                 $event->sender->headers->add('X-Content-Type-Options', 'nosniff');
                 $event->sender->headers->add('Referrer-Policy', 'strict-origin-when-cross-origin');

@@ -18,6 +18,7 @@ use app\application\ports\QueueInterface;
 use app\application\ports\ReportRepositoryInterface;
 use app\application\ports\SmsSenderInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
+use app\application\ports\SystemInfoProviderInterface;
 use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
@@ -25,6 +26,7 @@ use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\infrastructure\adapters\decorators\QueueTracingDecorator;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
+use app\infrastructure\adapters\SystemInfoAdapter;
 use app\infrastructure\adapters\YiiAuthAdapter;
 use app\infrastructure\adapters\YiiCacheAdapter;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
@@ -154,6 +156,9 @@ return [
             $c->get(SubscriptionQueryService::class),
             $c->get(TranslatorInterface::class),
             new YiiPsrLogger(LogCategory::SMS)
+        ),
+        SystemInfoProviderInterface::class => static fn(): SystemInfoProviderInterface => new SystemInfoAdapter(
+            Yii::$app->get('db')
         ),
     ],
     'singletons' => [

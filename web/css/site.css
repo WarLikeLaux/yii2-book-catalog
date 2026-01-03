@@ -1,16 +1,75 @@
 main > .container {
-    padding: 70px 15px 20px;
+    padding: 70px 15px 40px;
 }
 
 .footer {
-    background-color: #f5f5f5;
-    font-size: .9em;
-    height: 60px;
+    background-color: #212529;
+    color: #dee2e6;
+    font-size: 0.95rem;
+    padding: 3rem 0;
+    margin-top: auto;
+    border-top: 1px solid #343a40;
 }
 
-.footer > .container {
-    padding-right: 15px;
-    padding-left: 15px;
+.footer h6 {
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 1.25rem;
+}
+
+.footer-brand-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #fff !important;
+    text-decoration: none !important;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.footer-brand-title:hover {
+    text-decoration: none !important;
+    opacity: 0.9;
+}
+
+.footer-ddd-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+
+.footer a {
+    color: #adb5bd !important;
+    text-decoration: none !important;
+    transition: color 0.15s ease;
+}
+
+.footer a:hover {
+    color: #fff !important;
+    text-decoration: underline !important;
+}
+
+.footer .footer-brand:hover {
+    text-decoration: none !important;
+    opacity: 0.85;
+}
+
+.footer-bottom {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #343a40;
+    font-size: 0.85rem;
+    color: #adb5bd;
+}
+
+.request-id-subtle {
+    font-family: var(--bs-font-monospace);
+    color: #6c757d;
+    font-size: 0.8rem;
 }
 
 .not-set {
@@ -18,7 +77,6 @@ main > .container {
     font-style: italic;
 }
 
-/* add sorting icons to gridview sort links */
 a.asc:after, a.desc:after {
     content: '';
     left: 3px;
@@ -58,9 +116,7 @@ a.desc:after {
     margin: 0 0 15px 0;
 }
 
-/* align the logout "link" (button in form) of the navbar */
 .nav li > form > button.logout {
-    padding-top: 7px;
     color: rgba(255, 255, 255, 0.5);
 }
 
@@ -106,4 +162,77 @@ a.desc:after {
 
 .btn-isbn-generator:active {
     background-color: #dae0e5;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 1.5rem;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+
+.breadcrumb-item {
+    font-size: 0.85rem;
+}
+
+.breadcrumb-item a {
+    color: #808080;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: #005bff;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    color: #ccc;
+    padding-right: 0.5rem;
+}
+
+.breadcrumb-item.active {
+    color: #2b2b2b;
+}
+
+.system-info-item {
+    text-decoration: none !important;
+    color: #868e96 !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-family: var(--bs-font-monospace);
+    font-size: 0.8rem;
+}
+
+.system-info-item:hover {
+    color: #fff !important;
+}
+
+.system-logo-img {
+    width: 16px;
+    height: 16px;
+    display: block;
+    object-fit: contain;
+    filter: grayscale(100%) opacity(0.8);
+    transition: all 0.2s ease;
+}
+
+.system-info-item:hover .system-logo-img {
+    filter: grayscale(0%) opacity(1);
+    transform: scale(1.1);
+}
+
+.text-dev-value {
+    color: #adb5bd;
+    font-weight: 500;
+}
+
+.system-info-item:hover .text-dev-value {
+    color: #fff;
 }
