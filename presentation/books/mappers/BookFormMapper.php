@@ -16,7 +16,7 @@ final class BookFormMapper
         return new CreateBookCommand(
             title: $form->title,
             year: (int)$form->year,
-            description: $form->description,
+            description: $form->description !== '' ? $form->description : null,
             isbn: (string)$form->isbn,
             authorIds: array_map(intval(...), (array)$form->authorIds),
             cover: $coverPath,
@@ -29,7 +29,7 @@ final class BookFormMapper
             id: $id,
             title: $form->title,
             year: (int)$form->year,
-            description: $form->description,
+            description: $form->description !== '' ? $form->description : null,
             isbn: (string)$form->isbn,
             authorIds: array_map(intval(...), (array)$form->authorIds),
             version: $form->version,
