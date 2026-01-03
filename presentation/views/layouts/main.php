@@ -36,6 +36,8 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
 <body class="d-flex flex-column h-100">
     <?php $this->beginBody() ?>
 
+    <a class="visually-hidden-focusable p-2 m-2 fixed-top" href="#main">Skip to content</a>
+
     <header id="header">
         <?php
         NavBar::begin([
