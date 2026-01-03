@@ -1,197 +1,234 @@
 meta:
-  title: "Database Schema"
-  source: "generated"
-  updated_at: "2026-01-01T16:46:49+00:00"
-
+  title: 'Database Schema'
+  updated_at: '2026-01-03T02:11:24+00:00'
 tables:
   authors:
     columns:
-      - name: "id"
-        type: "int"
+      -
+        name: id
+        type: int
         nullable: false
         default: null
-      - name: "fio"
-        type: "varchar(255)"
+      -
+        name: fio
+        type: varchar(255)
         nullable: false
         default: null
     primary_key:
-      - "id"
-    foreign_keys:
-      []
+      - id
+    foreign_keys: {  }
   book_authors:
     columns:
-      - name: "book_id"
-        type: "int"
+      -
+        name: book_id
+        type: int
         nullable: false
         default: null
-      - name: "author_id"
-        type: "int"
+      -
+        name: author_id
+        type: int
         nullable: false
         default: null
     primary_key:
-      - "book_id"
-      - "author_id"
+      - book_id
+      - author_id
     foreign_keys:
-      - column: "author_id"
-        references: "authors.id"
-      - column: "book_id"
-        references: "books.id"
+      -
+        column: author_id
+        references: authors.id
+      -
+        column: book_id
+        references: books.id
   books:
     columns:
-      - name: "id"
-        type: "int"
+      -
+        name: id
+        type: int
         nullable: false
         default: null
-      - name: "title"
-        type: "varchar(255)"
+      -
+        name: title
+        type: varchar(255)
         nullable: false
         default: null
-      - name: "year"
-        type: "int"
+      -
+        name: year
+        type: int
         nullable: false
         default: null
-      - name: "description"
-        type: "text"
+      -
+        name: description
+        type: text
         nullable: true
         default: null
-      - name: "isbn"
-        type: "varchar(20)"
+      -
+        name: isbn
+        type: varchar(20)
         nullable: false
         default: null
-      - name: "cover_url"
-        type: "varchar(500)"
+      -
+        name: cover_url
+        type: varchar(500)
         nullable: true
         default: null
-      - name: "is_published"
-        type: "tinyint(1)"
+      -
+        name: is_published
+        type: tinyint(1)
         nullable: false
         default: 0
-      - name: "created_at"
-        type: "int"
+      -
+        name: created_at
+        type: int
         nullable: false
         default: null
-      - name: "updated_at"
-        type: "int"
+      -
+        name: updated_at
+        type: int
         nullable: false
         default: null
-      - name: "version"
-        type: "int"
+      -
+        name: version
+        type: int
         nullable: false
         default: 1
     primary_key:
-      - "id"
-    foreign_keys:
-      []
+      - id
+    foreign_keys: {  }
   idempotency_keys:
     columns:
-      - name: "id"
-        type: "int"
+      -
+        name: id
+        type: int
         nullable: false
         default: null
-      - name: "idempotency_key"
-        type: "varchar(36)"
+      -
+        name: idempotency_key
+        type: varchar(36)
         nullable: false
         default: null
-      - name: "status_code"
-        type: "int"
+      -
+        name: status_code
+        type: int
+        nullable: true
+        default: null
+      -
+        name: response_body
+        type: blob
+        nullable: true
+        default: null
+      -
+        name: created_at
+        type: int
         nullable: false
         default: null
-      - name: "response_body"
-        type: "blob"
+      -
+        name: expires_at
+        type: int
         nullable: false
         default: null
-      - name: "created_at"
-        type: "int"
+      -
+        name: status
+        type: varchar(20)
         nullable: false
-        default: null
-      - name: "expires_at"
-        type: "int"
-        nullable: false
-        default: null
+        default: finished
     primary_key:
-      - "id"
-    foreign_keys:
-      []
+      - id
+    foreign_keys: {  }
   migration:
     columns:
-      - name: "version"
-        type: "varchar(180)"
+      -
+        name: version
+        type: varchar(180)
         nullable: false
         default: null
-      - name: "apply_time"
-        type: "int"
+      -
+        name: apply_time
+        type: int
         nullable: true
         default: null
     primary_key:
-      - "version"
-    foreign_keys:
-      []
+      - version
+    foreign_keys: {  }
   queue:
     columns:
-      - name: "id"
-        type: "int"
+      -
+        name: id
+        type: int
         nullable: false
         default: null
-      - name: "channel"
-        type: "varchar(255)"
+      -
+        name: channel
+        type: varchar(255)
         nullable: false
         default: null
-      - name: "job"
-        type: "blob"
+      -
+        name: job
+        type: blob
         nullable: false
         default: null
-      - name: "pushed_at"
-        type: "int"
+      -
+        name: pushed_at
+        type: int
         nullable: false
         default: null
-      - name: "ttr"
-        type: "int"
+      -
+        name: ttr
+        type: int
         nullable: false
         default: null
-      - name: "delay"
-        type: "int"
+      -
+        name: delay
+        type: int
         nullable: false
         default: 0
-      - name: "priority"
-        type: "int unsigned"
+      -
+        name: priority
+        type: 'int unsigned'
         nullable: false
         default: 1024
-      - name: "reserved_at"
-        type: "int"
+      -
+        name: reserved_at
+        type: int
         nullable: true
         default: null
-      - name: "attempt"
-        type: "int"
+      -
+        name: attempt
+        type: int
         nullable: true
         default: null
-      - name: "done_at"
-        type: "int"
+      -
+        name: done_at
+        type: int
         nullable: true
         default: null
     primary_key:
-      - "id"
-    foreign_keys:
-      []
+      - id
+    foreign_keys: {  }
   subscriptions:
     columns:
-      - name: "id"
-        type: "int"
+      -
+        name: id
+        type: int
         nullable: false
         default: null
-      - name: "phone"
-        type: "varchar(20)"
+      -
+        name: phone
+        type: varchar(20)
         nullable: false
         default: null
-      - name: "author_id"
-        type: "int"
+      -
+        name: author_id
+        type: int
         nullable: false
         default: null
-      - name: "created_at"
-        type: "int"
+      -
+        name: created_at
+        type: int
         nullable: false
         default: null
     primary_key:
-      - "id"
+      - id
     foreign_keys:
-      - column: "author_id"
-        references: "authors.id"
+      -
+        column: author_id
+        references: authors.id

@@ -1,0 +1,28 @@
+meta:
+  title: 'Application Use Cases'
+  updated_at: '2026-01-03T02:11:24+00:00'
+usecases:
+  CreateAuthorUseCase:
+    command: CreateAuthorCommand
+    module: authors
+  CreateBookUseCase:
+    command: CreateBookCommand
+    module: books
+  DeleteAuthorUseCase:
+    command: DeleteAuthorCommand
+    module: authors
+  DeleteBookUseCase:
+    command: DeleteBookCommand
+    module: books
+  PublishBookUseCase:
+    command: PublishBookCommand
+    module: books
+  SubscribeUseCase:
+    command: SubscribeCommand
+    module: subscriptions
+  UpdateAuthorUseCase:
+    command: UpdateAuthorCommand
+    module: authors
+  UpdateBookUseCase:
+    command: UpdateBookCommand
+    module: books

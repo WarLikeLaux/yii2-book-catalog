@@ -1,0 +1,65 @@
+modules:
+  auth: "Авторизация и сессии"
+  authors: "Управление авторами"
+  books: "Каталог книг"
+  reports: "Аналитические отчеты"
+  subscriptions: "Подписки на уведомления"
+
+layers:
+  domain:
+    description: "Чистое ядро (Business Logic)"
+    children:
+      entities: "Сущности (Rich Models)"
+      values: "Value Objects (Immutable)"
+      events: "Domain Events"
+      services: "Domain Services (редко)"
+      exceptions: "Исключения домена"
+      specifications: "Спецификации (Criteria)"
+
+  application:
+    description: "Сценарии использования (Application Logic)"
+    type: "modules"
+    modules_exclude:
+      - common
+      - ports
+    children:
+      ports: "Интерфейсы (Interfaces for Infrastructure)"
+      common: "Общие DTO и валидаторы"
+    module_structure:
+      usecases: "Классы UseCase (execute)"
+      commands: "DTO команд (Write)"
+      queries: "DTO чтения (Read)"
+
+  infrastructure:
+    description: "Реализация интерфейсов (Framework Logic)"
+    children:
+      repositories: "Реализации репозиториев (через AR)"
+      persistence: "ActiveRecord модели (Mapping)"
+      adapters: "Адаптеры инфраструктуры"
+      queue: "Обработчики очередей"
+      services: "Внешние сервисы"
+      logging: "Конфигурация логов"
+      listeners: "Слушатели событий"
+
+  presentation:
+    description: "Входные точки (UI/API)"
+    type: "modules"
+    modules_exclude:
+      - common
+      - assets
+      - components
+      - mail
+      - views
+      - widgets
+      - controllers
+      - dto
+      - mappers
+    children:
+      controllers: "Общие контроллеры"
+      views: "Шаблоны представлений"
+      widgets: "UI виджеты"
+      common: "Общие компоненты"
+    module_structure:
+      controllers: "Контроллеры модуля"
+      forms: "Формы валидации"
+      dto: "DTO уровня представления"
