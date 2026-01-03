@@ -59,7 +59,9 @@ $config = [
         ],
         'db' => $db,
         'mutex' => [
-            'class' => \yii\mutex\MysqlMutex::class,
+            'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
+                ? \yii\mutex\PgsqlMutex::class
+                : \yii\mutex\MysqlMutex::class,
             'db' => $db,
         ],
         'queue' => [

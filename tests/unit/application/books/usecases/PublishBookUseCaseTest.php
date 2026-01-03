@@ -50,7 +50,7 @@ final class PublishBookUseCaseTest extends Unit
         $book = Book::reconstitute(
             id: 42,
             title: 'Clean Code',
-            year: new BookYear(2008),
+            year: new BookYear(2008, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'A Handbook',
             coverUrl: null,
@@ -112,7 +112,7 @@ final class PublishBookUseCaseTest extends Unit
         $book = Book::reconstitute(
             id: 42,
             title: 'Book Without Authors',
-            year: new BookYear(2024),
+            year: new BookYear(2024, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Test',
             coverUrl: null,
@@ -146,7 +146,7 @@ final class PublishBookUseCaseTest extends Unit
         $book = Book::reconstitute(
             id: 42,
             title: 'Test Book',
-            year: new BookYear(2024),
+            year: new BookYear(2024, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Test',
             coverUrl: null,

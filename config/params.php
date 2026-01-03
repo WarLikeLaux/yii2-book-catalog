@@ -15,4 +15,11 @@ return [
         'lockTimeout' => (int)env('IDEMPOTENCY_LOCK_TIMEOUT', 1),
         'waitSeconds' => (int)env('IDEMPOTENCY_WAIT_SECONDS', 1),
     ],
+    'shell' => [
+        'aliasTargets' => [
+            'infrastructure/persistence' => 1,
+            'domain' => 2,
+            'application' => 3,
+        ],
+    ],
 ];

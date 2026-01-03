@@ -51,7 +51,7 @@ final class UpdateBookUseCaseTest extends Unit
         $existingBook = Book::reconstitute(
             id: 42,
             title: 'Old Title',
-            year: new BookYear(2020),
+            year: new BookYear(2020, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Old description',
             coverUrl: '/uploads/old-cover.jpg',
@@ -138,7 +138,7 @@ final class UpdateBookUseCaseTest extends Unit
         $existingBook = Book::reconstitute(
             id: 42,
             title: 'Old Title',
-            year: new BookYear(2020),
+            year: new BookYear(2020, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Description',
             coverUrl: null,

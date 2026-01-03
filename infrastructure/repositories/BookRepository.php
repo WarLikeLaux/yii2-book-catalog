@@ -19,6 +19,8 @@ use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
+use DateTimeImmutable;
+use ReflectionMethod;
 use RuntimeException;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
@@ -86,7 +88,7 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
         return BookEntity::reconstitute(
             id: $ar->id,
             title: $ar->title,
-            year: new BookYear($ar->year),
+            year: new BookYear($ar->year, new DateTimeImmutable()),
             isbn: new Isbn($ar->isbn),
             description: $ar->description,
             coverUrl: $ar->cover_url,
@@ -237,7 +239,7 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
 
     private function assignBookId(BookEntity $book, int $id): void
     {
-        $method = new \ReflectionMethod(BookEntity::class, 'setId');
+        $method = new ReflectionMethod(BookEntity::class, 'setId');
         $method->invoke($book, $id);
     }
 
@@ -325,18 +327,64 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
         $conditions[] = ['like', 'description', $term];
         $conditions[] = $this->buildAuthorCondition($term);
 
-        $fulltextQuery = $this->prepareFulltextQuery($term);
-        if ($fulltextQuery !== '' && $fulltextQuery !== '0') {
-            $conditions[] = new Expression(
-                'MATCH(title, description) AGAINST(:query IN BOOLEAN MODE)',
-                [':query' => $fulltextQuery]
-            );
+        $fulltextExpr = $this->buildBooksFulltextExpression($term);
+        if ($fulltextExpr instanceof Expression) {
+            $conditions[] = $fulltextExpr;
         }
 
         $query->andWhere($conditions);
     }
 
-    private function prepareFulltextQuery(string $term): string
+    private function buildBooksFulltextExpression(string $term): Expression|null
+    {
+        return match ($this->db->driverName) {
+            'mysql' => $this->buildMysqlFulltext($term, ['title', 'description']),
+            'pgsql' => $this->buildPgsqlFulltext($term, "coalesce(title, '') || ' ' || coalesce(description, '')"),
+            default => null,
+        };
+    }
+
+    private function buildAuthorsFulltextExpression(string $term): Expression|null
+    {
+        return match ($this->db->driverName) {
+            'mysql' => $this->buildMysqlFulltext($term, ['authors.fio']),
+            'pgsql' => $this->buildPgsqlFulltext($term, "coalesce(authors.fio, '')"),
+            default => null,
+        };
+    }
+
+    /**
+     * @param string[] $columns
+     */
+    private function buildMysqlFulltext(string $term, array $columns): Expression|null
+    {
+        $query = $this->prepareMysqlFulltextQuery($term);
+        if ($query === '') {
+            return null;
+        }
+
+        $columnList = implode(', ', $columns);
+
+        return new Expression(
+            "MATCH({$columnList}) AGAINST(:query IN BOOLEAN MODE)",
+            [':query' => $query]
+        );
+    }
+
+    private function buildPgsqlFulltext(string $term, string $columnExpression): Expression|null
+    {
+        $sanitized = trim((string)preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $term));
+        if ($sanitized === '') {
+            return null;
+        }
+
+        return new Expression(
+            "to_tsvector('english', {$columnExpression}) @@ plainto_tsquery('english', :query)",
+            [':query' => $sanitized]
+        );
+    }
+
+    private function prepareMysqlFulltextQuery(string $term): string
     {
         $term = (string)preg_replace('/[+\-><()~*\"@]+/', ' ', $term);
         $words = array_filter(explode(' ', trim($term)), fn($w): bool => $w !== '');
@@ -354,13 +402,10 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
             ->innerJoin('book_authors ba', 'authors.id = ba.author_id')
             ->where('ba.book_id = books.id');
 
-        $fulltextQuery = $this->prepareFulltextQuery($term);
         $authorConditions = ['or', ['like', 'authors.fio', $term]];
-        if ($fulltextQuery !== '' && $fulltextQuery !== '0') {
-            $authorConditions[] = new Expression(
-                'MATCH(authors.fio) AGAINST(:query IN BOOLEAN MODE)',
-                [':query' => $fulltextQuery]
-            );
+        $fulltextExpr = $this->buildAuthorsFulltextExpression($term);
+        if ($fulltextExpr instanceof Expression) {
+            $authorConditions[] = $fulltextExpr;
         }
 
         $subQuery->andWhere($authorConditions);
@@ -388,15 +433,12 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
 
     private function applyFulltextSpecification(ActiveQuery $query, string $term): void
     {
-        $fulltextQuery = $this->prepareFulltextQuery($term);
-        if ($fulltextQuery === '' || $fulltextQuery === '0') {
+        $fulltextExpr = $this->buildBooksFulltextExpression($term);
+        if (!$fulltextExpr instanceof Expression) {
             return; // @codeCoverageIgnore
         }
 
-        $query->andWhere(new Expression(
-            'MATCH(title, description) AGAINST(:query IN BOOLEAN MODE)',
-            [':query' => $fulltextQuery]
-        ));
+        $query->andWhere($fulltextExpr);
     }
 
     /**
@@ -436,14 +478,11 @@ final readonly class BookRepository implements BookRepositoryInterface, BookQuer
      */
     private function addFulltextCondition(array &$conditions, string $term): void
     {
-        $fulltextQuery = $this->prepareFulltextQuery($term);
-        if ($fulltextQuery === '' || $fulltextQuery === '0') {
+        $fulltextExpr = $this->buildBooksFulltextExpression($term);
+        if (!$fulltextExpr instanceof Expression) {
             return; // @codeCoverageIgnore
         }
 
-        $conditions[] = new Expression(
-            'MATCH(title, description) AGAINST(:query IN BOOLEAN MODE)',
-            [':query' => $fulltextQuery]
-        );
+        $conditions[] = $fulltextExpr;
     }
 }

@@ -10,6 +10,7 @@ use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use app\infrastructure\queue\NotifySingleSubscriberJob;
 use Codeception\Test\Unit;
+use Psr\Log\LoggerInterface;
 use yii\queue\Queue;
 
 final class NotifySubscribersHandlerTest extends Unit
@@ -35,7 +36,8 @@ final class NotifySubscribersHandlerTest extends Unit
             ->method('push')
             ->with($this->isInstanceOf(NotifySingleSubscriberJob::class));
 
-        $handler = new NotifySubscribersHandler($queryService, $translator);
+        $logger = $this->createMock(LoggerInterface::class);
+        $handler = new NotifySubscribersHandler($queryService, $translator, $logger);
         $handler->handle(12, 'Test Book', $queue);
     }
 }

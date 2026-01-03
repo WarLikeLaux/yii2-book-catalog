@@ -46,7 +46,7 @@ final class DeleteBookUseCaseTest extends Unit
         $existingBook = Book::reconstitute(
             id: 42,
             title: 'Book to Delete',
-            year: new BookYear(2020),
+            year: new BookYear(2020, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Description',
             coverUrl: null,
@@ -116,7 +116,7 @@ final class DeleteBookUseCaseTest extends Unit
         $existingBook = Book::reconstitute(
             id: 42,
             title: 'Book to Delete',
-            year: new BookYear(2020),
+            year: new BookYear(2020, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Description',
             coverUrl: null,

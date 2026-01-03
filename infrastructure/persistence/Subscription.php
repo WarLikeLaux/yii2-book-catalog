@@ -46,7 +46,6 @@ final class Subscription extends ActiveRecord
             [['phone', 'author_id'], 'required'],
             [['author_id'], 'integer'],
             [['phone'], 'string', 'max' => 20],
-            [['phone', 'author_id'], 'unique', 'targetAttribute' => ['phone', 'author_id']],
         ];
     }
 

@@ -1,0 +1,16 @@
+meta:
+  title: 'Domain Events'
+  updated_at: '2026-01-03T02:11:24+00:00'
+events:
+  BookCreatedEvent:
+    type: book.created
+    payload: {  }
+  BookDeletedEvent:
+    type: book.deleted
+    payload: {  }
+  BookPublishedEvent:
+    type: book.published
+    payload: {  }
+  BookUpdatedEvent:
+    type: book.updated
+    payload: {  }

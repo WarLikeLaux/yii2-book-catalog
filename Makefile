@@ -1,11 +1,15 @@
-.PHONY: help init up down restart logs shell sms-logs perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-unit test-integration test-e2e test-coverage coverage cov infection load-test migrate seed queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached
+.PHONY: help init up down restart logs shell sms-logs tinker perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-unit test-integration test-e2e test-coverage coverage cov infection load-test migrate seed db-info queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached req require req-dev require-dev ai
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
 DB_TEST_NAME=yii2basic_test
 .DEFAULT_GOAL := help
 
-# Загружаем переменные из .env, если он существует, чтобы Makefile видел их
+ifeq ($(firstword $(MAKECMDGOALS)),$(filter $(firstword $(MAKECMDGOALS)),req require req-dev require-dev))
+  COMPOSER_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(COMPOSER_ARGS):;@:) 
+endif
+
 ifneq (,$(wildcard .env))
     include .env
     export
@@ -18,40 +22,51 @@ endif
 help:
 	@echo "Использование: make [команда]"
 	@echo ""
-	@echo "🚀 \033[1;32mБЫСТРЫЙ СТАРТ:\033[0m"
-	@echo "  \033[32minstall\033[0m          📥 Установить и запустить проект (рекомендуется)"
-	@echo "  \033[32minstall-force\033[0m    📥 Принудительная установка без вопросов (CI/CD)"
-	@echo "  \033[32minit\033[0m             ⚙️  Интерактивная инициализация"
+	@echo "🚀 СТАРТ:"
+	@echo "  install          📥 Установить и запустить проект"
+	@echo "  install-force    📥 Принудительная установка (без вопросов)"
 	@echo ""
-	@echo "🛡️  \033[1;35mКОНТРОЛЬ КАЧЕСТВА (ADVANCED QA):\033[0m"
-	@echo "  \033[35mtest\033[0m             ✅ Запуск всех тестов (Unit + Integration + E2E)"
-	@echo "  \033[35mtest-unit\033[0m        ⚡ Только Unit-тесты (Быстрые)"
-	@echo "  \033[35mtest-integration\033[0m 🌐 Только Integration-тесты (С БД)"
-	@echo "  \033[35mtest-e2e\033[0m         🎭 Только E2E-тесты (Acceptance)"
-	@echo "  \033[35mcov\033[0m              📊 Краткий отчет покрытия (coverage.txt)"
-	@echo "  \033[35minfection\033[0m        🧟 \033[1mМутационное тестирование\033[0m"
-	@echo "  \033[35mdeptrac\033[0m          🏗️  Архитектурный анализ"
-	@echo "  \033[35manalyze\033[0m          🔍 Статический анализ (PHPStan Level 9)"
-	@echo "  \033[35maudit\033[0m            🛡️  Аудит безопасности зависимостей"
-	@echo "  \033[35mpr\033[0m               🚀 Полная проверка перед Pull Request (All of the above)"
+	@echo "🛡️  КОНТРОЛЬ КАЧЕСТВА (QA):"
+	@echo "  test             ✅ Запуск тестов (unit + integration + coverage)"
+	@echo "  test-e2e         🎭 Только E2E-тесты (acceptance)"
+	@echo "  cov              📊 Отчет покрытия (из последнего запуска)"
+	@echo "  infection        🧟 Мутационное тестирование"
+	@echo "  deptrac          🏗️  Архитектурный анализ"
+	@echo "  pr               🚀 Полная проверка перед PR"
 	@echo ""
-	@echo "💻 \033[1;33mРАЗРАБОТКА:\033[0m"
-	@echo "  \033[33mdev\033[0m              🛠️  Стандартный цикл (fix + test)"
-	@echo "  \033[33mfix\033[0m              🧹 Авто-исправление стиля кода (CS-Fixer + Rector)"
-	@echo "  \033[33mcomments\033[0m         📝 Показать TODO и заметки"
-	@echo "  \033[33md\033[0m                🔎 Unstaged + новые файлы"
-	@echo "  \033[33mdc\033[0m               📌 Только staged"
+	@echo "💻 РАЗРАБОТКА:"
+	@echo "  dev              🛠️  Полный цикл (CS Fixer + Rector + PHPStan)"
+	@echo "  comments         📝 Показать TODO и заметки"
+	@echo "  d                🔎 Показать изменения (вкл. новые файлы)"
+	@echo "  dc               📌 Показать изменения в индексе (staged)"
+	@echo "  tree             🌳 Показать структуру проекта"
 	@echo ""
-	@echo "🐳 \033[1;34mDOCKER & OPS:\033[0m"
-	@echo "  \033[34mup\033[0m               ▶️  Запустить контейнеры"
-	@echo "  \033[34mdown\033[0m             ⏹️  Остановить контейнеры"
-	@echo "  \033[34mlogs\033[0m             📄 Смотреть логи"
-	@echo "  \033[34mshell\033[0m            🐚 Зайти в контейнер PHP"
+	@echo "📦 ПАКЕТЫ (COMPOSER):"
+	@echo "  composer         📥 Установка зависимостей (install)"
+	@echo "  req [package]    ➕ Добавить пакет (алиас: require)"
+	@echo "  req-dev [pkg]    ➕ Добавить dev-пакет (алиас: require-dev)"
 	@echo ""
-	@echo "📚 \033[1;36mДОКУМЕНТАЦИЯ:\033[0m"
-	@echo "  \033[36mdocs\033[0m             📑 Генерация Yii2 API Docs"
-	@echo "  \033[36mswagger\033[0m          🌐 Генерация OpenAPI/Swagger"
-	@echo "  \033[36mrepomix\033[0m          🤖 Сборка контекста для LLM"
+	@echo "🐳 DOCKER & OPS:"
+	@echo "  up               ▶️  Запустить контейнеры"
+	@echo "  down             ⏹️  Остановить контейнеры"
+	@echo "  restart          🔁 Перезапустить контейнеры"
+	@echo "  logs             📄 Смотреть логи"
+	@echo "  sms-logs         📱 Логи отправленных SMS"
+	@echo "  shell            🐚 Зайти в контейнер PHP"
+	@echo "  tinker           🧪 Yii shell (php yii shell)"
+	@echo ""
+	@echo "🗄️  БАЗА ДАННЫХ:"
+	@echo "  migrate          🏗️  Применить миграции"
+	@echo "  seed             🌱 Залить тестовые данные"
+	@echo "  db-info          📊 Текущая конфигурация БД"
+	@echo "  db-mysql         🐬 Переключить на MySQL"
+	@echo "  db-pgsql         🐘 Переключить на PostgreSQL"
+	@echo "  queue-info       📥 Статус очереди задач"
+	@echo ""
+	@echo "📚 ДОКУМЕНТАЦИЯ:"
+	@echo "  docs             📑 Генерация Yii2 API Docs"
+	@echo "  swagger          🌐 Генерация OpenAPI/Swagger"
+	@echo "  repomix          🤖 Сборка контекста для LLM"
 
 # =================================================================================================
 # 🐳 DOCKER И ОКРУЖЕНИЕ
@@ -74,7 +89,7 @@ init-force: _mkdirs
 	echo ""; \
 	echo "✅ Проект установлен: http://localhost:$$APP_PORT"
 
-init: _init_confirm setup up composer migrate seed
+init: _init_confirm setup ai up composer migrate seed
 	@APP_PORT=$$(grep '^APP_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000); \
 	BUG_PORT=$$(grep '^BUGGREGATOR_UI_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 9913); \
 	echo ""; \
@@ -93,9 +108,10 @@ _init_confirm:
 	@echo "======================================================================"
 	@echo "Будут выполнены следующие действия:"
 	@echo "  1. 🛠  Настройка окружения (права, папки, .env)"
-	@echo "  2. 🐳 Пересоздание и запуск контейнеров (docker compose up)"
-	@echo "  3. 📦 Установка зависимостей (composer install)"
-	@echo "  4. 🗄  Применение миграций и заливка тестовых данных (seed)"
+	@echo "  2. 🔗 Создание симлинков для AI агентов"
+	@echo "  3. 🐳 Пересоздание и запуск контейнеров (docker compose up)"
+	@echo "  4. 📦 Установка зависимостей (composer install)"
+	@echo "  5. 🗄  Применение миграций и заливка тестовых данных (seed)"
 	@echo ""
 	@read -p "   Вы готовы продолжить? [y/N] " ans; \
 	if [ "$$ans" != "y" ] && [ "$$ans" != "Y" ]; then \
@@ -104,7 +120,12 @@ _init_confirm:
 	fi
 
 up:
-	$(COMPOSE) up -d --remove-orphans
+	@driver=$${DB_DRIVER:-mysql}; \
+	if [ "$$driver" = "pgsql" ]; then \
+		$(COMPOSE) up -d pgsql redis php nginx queue swagger-ui buggregator selenium --remove-orphans; \
+	else \
+		$(COMPOSE) up -d db redis php nginx queue swagger-ui buggregator selenium --remove-orphans; \
+	fi
 
 down:
 	$(COMPOSE) down
@@ -116,6 +137,9 @@ logs:
 
 shell:
 	$(COMPOSE) exec $(PHP_CONTAINER) sh
+
+tinker:
+	$(COMPOSE) exec $(PHP_CONTAINER) php yii shell
 
 sms-logs:
 	$(COMPOSE) exec $(PHP_CONTAINER) tail -f runtime/logs/sms.log
@@ -132,7 +156,7 @@ perms:
 	@$(MAKE) _fix_code_perms
 	@echo "✅ Права доступа восстановлены."
 
-setup: perms _mkdirs
+setup: perms ai _mkdirs
 	@chmod +x bin/setup-env
 	@chmod +x bin/list-comments
 	@if [ -f .env ]; then \
@@ -184,8 +208,11 @@ composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
 
-req:
-	$(COMPOSE) exec $(PHP_CONTAINER) composer require $(PKG)
+req require:
+	$(COMPOSE) exec $(PHP_CONTAINER) composer require $(COMPOSER_ARGS)
+
+req-dev require-dev:
+	$(COMPOSE) exec $(PHP_CONTAINER) composer require --dev $(COMPOSER_ARGS)
 
 
 # =================================================================================================
@@ -195,7 +222,7 @@ req:
 dev: fix ci
 fix: lint-fix rector-fix
 ci: lint analyze
-pr: ci test deptrac infection
+pr: docs ci test deptrac infection
 
 lint:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs
@@ -223,8 +250,12 @@ audit:
 # =================================================================================================
 
 _test-init:
-	@echo "🔧 Подготовка тестовой базы..."
-	@$(COMPOSE) exec -T db sh -c 'mysql -uroot -p"$${MYSQL_ROOT_PASSWORD}" -h127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS $(DB_TEST_NAME); GRANT ALL PRIVILEGES ON $(DB_TEST_NAME).* TO \"$${MYSQL_USER}\"@\"%\"; FLUSH PRIVILEGES;"' 2>&1 | grep -v "Using a password" || true
+	@echo "🔧 Подготовка тестовой базы ($(DB_DRIVER))..."
+ifeq ($(DB_DRIVER),pgsql)
+	@$(COMPOSE) exec -T pgsql sh -c 'psql -U "$$POSTGRES_USER" -d postgres -c "SELECT 1 FROM pg_database WHERE datname = '\''$(DB_TEST_NAME)'\'''" | grep -q 1 || psql -U "$$POSTGRES_USER" -d postgres -c "CREATE DATABASE $(DB_TEST_NAME)"' 2>/dev/null || true
+else
+	@$(COMPOSE) exec -T db sh -c 'mysql -uroot -p"$$MYSQL_ROOT_PASSWORD" -h127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS $(DB_TEST_NAME); GRANT ALL PRIVILEGES ON $(DB_TEST_NAME).* TO \"$$MYSQL_USER\"@\"%\"; FLUSH PRIVILEGES;"' 2>&1 | grep -v "Using a password" || true
+endif
 	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "DB_NAME=$(DB_TEST_NAME) ./yii migrate --interactive=0 --migrationPath=@app/migrations" > /dev/null
 
 test: _test-init
@@ -274,6 +305,24 @@ migrate:
 seed:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./yii seed
 
+db-mysql:
+	@sed -i 's/^DB_DRIVER=.*/DB_DRIVER=mysql/' .env
+	@echo "✅ DB_DRIVER=mysql (host=db:3306 авто)"
+
+db-pgsql:
+	@sed -i 's/^DB_DRIVER=.*/DB_DRIVER=pgsql/' .env
+	@echo "✅ DB_DRIVER=pgsql (host=pgsql:5432 авто)"
+db-info:
+	@driver=$$(grep '^DB_DRIVER=' .env | cut -d= -f2); \
+	if [ "$$driver" = "pgsql" ]; then \
+		host=$$(grep '^PGSQL_DB_HOST=' .env | cut -d= -f2); \
+		port=$$(grep '^PGSQL_DB_PORT=' .env | cut -d= -f2); \
+	else \
+		host=$$(grep '^MYSQL_DB_HOST=' .env | cut -d= -f2); \
+		port=$$(grep '^MYSQL_DB_PORT=' .env | cut -d= -f2); \
+	fi; \
+	echo "📊 DB_DRIVER=$$driver → $$host:$$port"
+
 # =================================================================================================
 # 📚 ДОКУМЕНТАЦИЯ И УТИЛИТЫ
 # =================================================================================================
@@ -286,6 +335,10 @@ comments:
 
 docs:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/all
+	@echo "✅ Документация обновлена (docs/auto)."
+
+tree:
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/tree
 
 swagger:
 	$(COMPOSE) exec $(PHP_CONTAINER) php docs/api/generate.php
@@ -293,9 +346,22 @@ swagger:
 repomix:
 	@npx -y repomix --style markdown --output repomix-output.md
 
+ai:
+	@echo "🔗 Создание симлинков для AI агентов..."
+	@ln -sf CLAUDE.md GEMINI.md
+	@ln -sf CLAUDE.md AGENTS.md
+	@ln -sf CLAUDE.md .cursorrules
+	@ln -sf CLAUDE.md .clinerules
+	@ln -sf CLAUDE.md .windsurfrules
+	@mkdir -p .antigravity
+	@ln -sf ../CLAUDE.md .antigravity/rules.md
+	@mkdir -p .agent/rules
+	@ln -sf ../../CLAUDE.md .agent/rules/rules.md
+	@echo "✅ Симлинки созданы: GEMINI.md, AGENTS.md, .cursorrules, .clinerules, .windsurfrules, .antigravity/rules.md, .agent/rules/rules.md -> CLAUDE.md"
+
 diff d:
-	@git diff
-	@git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index /dev/null {}
+	@git diff || true
+	@git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index /dev/null {} || true
 
 diff-staged diff-cached ds dc:
-	@git diff --staged
+	@git diff --staged || true

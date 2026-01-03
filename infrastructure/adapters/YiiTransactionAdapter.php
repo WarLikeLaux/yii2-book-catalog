@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\infrastructure\adapters;
 
 use app\application\ports\TransactionInterface;
+use RuntimeException;
 use yii\db\Connection;
 use yii\db\Transaction;
 
@@ -43,7 +44,7 @@ final class YiiTransactionAdapter implements TransactionInterface
     public function commit(): void
     {
         if ($this->nestingLevel === 0) {
-            throw new \RuntimeException('Transaction not started or nesting level mismatch');
+            throw new RuntimeException('Transaction not started or nesting level mismatch');
         }
 
         $this->nestingLevel--;
@@ -54,7 +55,7 @@ final class YiiTransactionAdapter implements TransactionInterface
 
         if ($this->isOwner) {
             if (!$this->transaction instanceof Transaction || !$this->transaction->getIsActive()) {
-                throw new \RuntimeException('Transaction not active during commit'); // @codeCoverageIgnore
+                throw new RuntimeException('Transaction not active during commit'); // @codeCoverageIgnore
             }
             $this->transaction->commit();
         }
@@ -73,7 +74,7 @@ final class YiiTransactionAdapter implements TransactionInterface
     public function rollBack(): void
     {
         if ($this->nestingLevel === 0) {
-            throw new \RuntimeException('Transaction not started');
+            throw new RuntimeException('Transaction not started');
         }
 
         if ($this->transaction instanceof Transaction && $this->transaction->getIsActive()) {

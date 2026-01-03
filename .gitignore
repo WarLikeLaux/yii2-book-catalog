@@ -1,56 +1,42 @@
-# phpstorm project files
+# Настройки IDE и редакторов
 .idea
-
-# netbeans project files
 nbproject
-
-# zend studio for eclipse project files
 .buildpath
 .project
 .settings
 
-# windows thumbnail cache
+# Файлы операционных систем
 Thumbs.db
-
-# composer vendor dir
-/vendor
-
-# composer itself is not needed
-composer.phar
-
-# Mac DS_Store Files
 .DS_Store
 
-# phpunit itself is not needed
-phpunit.phar
-# local phpunit config
-/phpunit.xml
+# Зависимости и пакеты
+/vendor
+composer.phar
 
+# Тестирование и отчеты
+phpunit.phar
+/phpunit.xml
 tests/_output/*
 tests/_support/_generated
 
-#vagrant folder
-/.vagrant
-
-# database data
+# Локальные данные базы данных
 /db-data
+/db-data-pgsql
 
-# runtime files
+# Временные файлы приложения
 /runtime/*
 !/runtime/.gitkeep
 
-# web assets
+# Публичные ресурсы и загрузки
 /web/assets/*
 !/web/assets/.gitkeep
-
-# uploads
 /web/uploads/*
 !/web/uploads/.gitkeep
 
-# environment variables
+# Секреты и окружение
 .env
 
-# Tool caches and reports
+# Кэш инструментов и логи
 .deptrac.cache
 .phpstan.cache
 coverage.xml
@@ -58,8 +44,14 @@ coverage-phpunit.xml
 junit.xml
 infection.log
 repomix-output.md
+repomix-output.txt
 
-# Docs for learning
+# Обучающие материалы
 docs/learning
 
-TODO.md
+# Загрузчики AI-агентов: симлинки на CLAUDE.md
+GEMINI.md
+AGENTS.md
+.cursorrules
+.clinerules
+.windsurfrules

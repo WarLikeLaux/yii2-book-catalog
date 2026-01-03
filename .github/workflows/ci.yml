@@ -14,6 +14,10 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [mysql, pgsql]
 
     services:
       mysql:
@@ -26,6 +30,15 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: yii2basic_test
+          POSTGRES_USER: yii2
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready -U yii2" --health-interval=10s --health-timeout=5s --health-retries=3
 
       selenium:
         image: selenium/standalone-chrome:latest
@@ -47,7 +60,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, xml, ctype, iconv, mysql, gd, pcov
+          extensions: mbstring, xml, ctype, iconv, mysql, pgsql, gd, pcov
           coverage: pcov
 
       - name: Get Composer Cache Directory
@@ -65,7 +78,9 @@ jobs:
       - name: Setup environment
         run: |
           cp .env.example .env
-          sed -i 's/DB_HOST=db/DB_HOST=127.0.0.1/g' .env
+          sed -i 's/DB_DRIVER=mysql/DB_DRIVER=${{ matrix.db }}/g' .env
+          sed -i 's/MYSQL_DB_HOST=db/MYSQL_DB_HOST=127.0.0.1/g' .env
+          sed -i 's/PGSQL_DB_HOST=pgsql/PGSQL_DB_HOST=127.0.0.1/g' .env
           sed -i 's/DB_NAME=yii2basic/DB_NAME=yii2basic_test/g' .env
           sed -i 's/REDIS_HOST=redis/REDIS_HOST=127.0.0.1/g' .env
           sed -i 's/COOKIE_VALIDATION_KEY=changeme/COOKIE_VALIDATION_KEY=testkeytestkeytestkeytestkeytestkey/g' .env

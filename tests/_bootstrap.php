@@ -21,3 +21,5 @@ if (class_exists(BypassFinals::class)) {
 
 require __DIR__ . '/../config/env.php';
 require_once __DIR__ . '/../vendor/yiisoft/yii2/Yii.php';
+require_once __DIR__ . '/_support/DbCleaner.php';
+require_once __DIR__ . '/_support/IdempotencyStreamStub.php';

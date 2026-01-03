@@ -1,112 +1,182 @@
 meta:
-  title: "HTTP Routes"
-  source: "generated"
-  updated_at: "2026-01-01T16:46:49+00:00"
-
+  title: 'HTTP Routes'
+  updated_at: '2026-01-03T02:11:24+00:00'
 routes:
-  - path: "/"
-    action: "site/index"
-    controller: "SiteController"
+  -
+    path: /
+    action: site/index
+    controller: SiteController
     methods:
-      - "GET"
-    alias: "/site/index"
-  - path: "/author/create"
-    action: "author/create"
-    controller: "AuthorController"
+      - GET
+    guards:
+      - Auth
+  -
+    path: /author/create
+    action: author/create
+    controller: AuthorController
     methods:
-      - "GET"
-      - "POST"
-  - path: "/author/delete"
-    action: "author/delete"
-    controller: "AuthorController"
+      - GET
+      - POST
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /author/delete
+    action: author/delete
+    controller: AuthorController
     methods:
-      - "GET"
-  - path: "/author/index"
-    action: "author/index"
-    controller: "AuthorController"
+      - GET
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /author/index
+    action: author/index
+    controller: AuthorController
     methods:
-      - "GET"
-  - path: "/author/search"
-    action: "author/search"
-    controller: "AuthorController"
+      - GET
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /author/search
+    action: author/search
+    controller: AuthorController
     methods:
-      - "GET"
-  - path: "/author/update"
-    action: "author/update"
-    controller: "AuthorController"
+      - GET
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /author/update
+    action: author/update
+    controller: AuthorController
     methods:
-      - "GET"
-      - "POST"
-  - path: "/author/view"
-    action: "author/view"
-    controller: "AuthorController"
+      - GET
+      - POST
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /author/view
+    action: author/view
+    controller: AuthorController
     methods:
-      - "GET"
-  - path: "/book/create"
-    action: "book/create"
-    controller: "BookController"
+      - GET
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /book/create
+    action: book/create
+    controller: BookController
     methods:
-      - "GET"
-      - "POST"
-  - path: "/book/delete"
-    action: "book/delete"
-    controller: "BookController"
+      - GET
+      - POST
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /book/delete
+    action: book/delete
+    controller: BookController
     methods:
-      - "GET"
-  - path: "/book/index"
-    action: "book/index"
-    controller: "BookController"
+      - GET
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /book/index
+    action: book/index
+    controller: BookController
     methods:
-      - "GET"
-  - path: "/book/index"
-    action: "book/index"
-    controller: "BookController"
+      - GET
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /book/index
+    action: book/index
+    controller: BookController
     methods:
-      - "GET"
-  - path: "/book/publish"
-    action: "book/publish"
-    controller: "BookController"
+      - GET
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /book/publish
+    action: book/publish
+    controller: BookController
     methods:
-      - "GET"
-  - path: "/book/update"
-    action: "book/update"
-    controller: "BookController"
+      - GET
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /book/update
+    action: book/update
+    controller: BookController
     methods:
-      - "GET"
-      - "POST"
-  - path: "/book/view"
-    action: "book/view"
-    controller: "BookController"
+      - GET
+      - POST
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /book/view
+    action: book/view
+    controller: BookController
     methods:
-      - "GET"
-  - path: "/report/index"
-    action: "report/index"
-    controller: "ReportController"
+      - GET
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /report/index
+    action: report/index
+    controller: ReportController
     methods:
-      - "GET"
-  - path: "/site/api"
-    action: "site/api"
-    controller: "SiteController"
+      - GET
+  -
+    path: /site/api
+    action: site/api
+    controller: SiteController
     methods:
-      - "GET"
-  - path: "/site/login"
-    action: "site/login"
-    controller: "SiteController"
+      - GET
+    guards:
+      - Auth
+  -
+    path: /site/login
+    action: site/login
+    controller: SiteController
     methods:
-      - "GET"
-      - "POST"
-  - path: "/site/logout"
-    action: "site/logout"
-    controller: "SiteController"
+      - GET
+      - POST
+    guards:
+      - Auth
+  -
+    path: /site/logout
+    action: site/logout
+    controller: SiteController
     methods:
-      - "GET"
-  - path: "/subscription/form"
-    action: "subscription/form"
-    controller: "SubscriptionController"
+      - GET
+    guards:
+      - Auth
+  -
+    path: /subscription/form
+    action: subscription/form
+    controller: SubscriptionController
     methods:
-      - "GET"
-  - path: "/subscription/subscribe"
-    action: "subscription/subscribe"
-    controller: "SubscriptionController"
+      - GET
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /subscription/subscribe
+    action: subscription/subscribe
+    controller: SubscriptionController
     methods:
-      - "GET"
+      - GET
+    guards:
+      - Idempotency
+      - Auth

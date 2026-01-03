@@ -11,11 +11,7 @@ final class ReportCest
     public function _before(IntegrationTester $I): void
     {
         $I->amLoggedInAs(User::findByUsername('admin'));
-        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=0')->execute();
-        Yii::$app->db->createCommand()->delete('book_authors')->execute();
-        Yii::$app->db->createCommand()->delete('books')->execute();
-        Yii::$app->db->createCommand()->delete('authors')->execute();
-        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS=1')->execute();
+        DbCleaner::clear(['book_authors', 'books', 'authors']);
     }
 
     public function testCanViewReportPage(IntegrationTester $I): void

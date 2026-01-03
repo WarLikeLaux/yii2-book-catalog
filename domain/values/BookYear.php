@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace app\domain\values;
 
 use app\domain\exceptions\DomainException;
+use DateTimeImmutable;
 
 final readonly class BookYear implements \Stringable
 {
     public function __construct(
-        public int $value
+        public int $value,
+        DateTimeImmutable $now
     ) {
-        $currentYear = (int)date('Y');
+        $currentYear = (int)$now->format('Y');
 
         if ($this->value <= 1000) {
             throw new DomainException('year.error.too_old');

@@ -10,6 +10,7 @@ use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookPublishedEvent;
 use app\domain\services\BookPublicationPolicy;
+use Throwable;
 
 final readonly class PublishBookUseCase
 {
@@ -43,7 +44,7 @@ final readonly class PublishBookUseCase
             });
 
             $this->transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->transaction->rollBack();
             throw $e;
         }

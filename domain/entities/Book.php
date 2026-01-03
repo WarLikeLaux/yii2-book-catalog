@@ -95,30 +95,37 @@ final class Book
         return $book->withId($id);
     }
 
-    /**
-     * @throws DomainException
-     */
-    public function update(
-        string $title,
-        BookYear $year,
-        Isbn $isbn,
-        ?string $description,
-        ?string $coverUrl
-    ): void {
+    public function rename(string $title): void
+    {
         $this->validateTitle($title);
-
-        if ($this->published && !$this->isbn->equals($isbn)) {
-            throw new DomainException('book.error.isbn_change_published');
-        }
-
         $this->title = $title;
+    }
+
+    public function changeYear(BookYear $year): void
+    {
         $this->year = $year;
-        $this->isbn = $isbn;
-        $this->description = $description;
-        if ($coverUrl === null) {
+    }
+
+    public function correctIsbn(Isbn $isbn): void
+    {
+        if ($this->isbn->equals($isbn)) {
             return;
         }
 
+        if ($this->published) {
+            throw new DomainException('book.error.isbn_change_published');
+        }
+
+        $this->isbn = $isbn;
+    }
+
+    public function updateDescription(?string $description): void
+    {
+        $this->description = $description;
+    }
+
+    public function updateCover(?string $coverUrl): void
+    {
         $this->coverUrl = $coverUrl;
     }
 

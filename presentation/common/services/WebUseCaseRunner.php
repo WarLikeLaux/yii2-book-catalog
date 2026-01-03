@@ -8,6 +8,7 @@ use app\application\ports\NotificationInterface;
 use app\application\ports\TranslatorInterface;
 use app\domain\exceptions\DomainException;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 final readonly class WebUseCaseRunner
 {
@@ -30,7 +31,7 @@ final readonly class WebUseCaseRunner
         } catch (DomainException $e) {
             $this->notifier->error($this->translator->translate('app', $e->getMessage()));
             return false;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error($e->getMessage(), array_merge($logContext, ['exception' => $e]));
             $this->notifier->error($this->translator->translate('app', 'error.unexpected'));
             return false;
@@ -48,7 +49,7 @@ final readonly class WebUseCaseRunner
             return ['success' => true, 'message' => $successMessage];
         } catch (DomainException $e) {
             return ['success' => false, 'message' => $this->translator->translate('app', $e->getMessage())];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error($e->getMessage(), array_merge($logContext, ['exception' => $e]));
             return ['success' => false, 'message' => $this->translator->translate('app', 'error.unexpected')];
         }
@@ -77,7 +78,7 @@ final readonly class WebUseCaseRunner
             }
             $onDomainError($e);
             return null;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($onError !== null) {
                 $onError();
             }
@@ -97,7 +98,7 @@ final readonly class WebUseCaseRunner
         } catch (DomainException $e) {
             $this->notifier->error($this->translator->translate('app', $e->getMessage()));
             return $fallback;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error($e->getMessage(), array_merge($logContext, ['exception' => $e]));
             $this->notifier->error($errorMessage);
             return $fallback;
