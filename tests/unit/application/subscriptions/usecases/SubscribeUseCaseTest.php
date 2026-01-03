@@ -8,6 +8,7 @@ use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\application\subscriptions\usecases\SubscribeUseCase;
 use app\domain\entities\Subscription;
+use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -70,9 +71,9 @@ final class SubscribeUseCaseTest extends Unit
         $command = new SubscribeCommand('79001112233', 1);
 
         $this->repository->method('exists')->willReturn(false);
-        $this->repository->method('save')->willThrowException(new \app\domain\exceptions\AlreadyExistsException());
+        $this->repository->method('save')->willThrowException(new AlreadyExistsException());
 
-        $this->expectException(\app\domain\exceptions\AlreadyExistsException::class);
+        $this->expectException(AlreadyExistsException::class);
         $this->expectExceptionMessage('error.entity_already_exists');
 
         $this->useCase->execute($command);
