@@ -6,7 +6,7 @@ namespace app\infrastructure\adapters;
 
 use app\application\common\dto\SystemInfoDto;
 use app\application\ports\SystemInfoProviderInterface;
-use Yii;
+use yii\BaseYii;
 use yii\db\Connection;
 
 final readonly class SystemInfoAdapter implements SystemInfoProviderInterface
@@ -21,7 +21,7 @@ final readonly class SystemInfoAdapter implements SystemInfoProviderInterface
     {
         return new SystemInfoDto(
             phpVersion: PHP_VERSION,
-            yiiVersion: Yii::getVersion(),
+            yiiVersion: BaseYii::getVersion(),
             dbDriver: strtoupper((string)$this->db->driverName),
             dbVersion: $this->getDbVersion(),
         );
