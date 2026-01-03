@@ -13,23 +13,23 @@ final class Book
 {
     private const int MAX_TITLE_LENGTH = 255;
 
-    /** @var int[] */
-    private array $authorIds = [];
+    public private(set) ?int $id = null;
 
-    private ?int $id = null;
+    /** @var int[] */
+    public private(set) array $authorIds = [];
 
     /**
      * @param int[] $authorIds
      */
     private function __construct(
-        private string $title,
-        private BookYear $year,
-        private Isbn $isbn,
-        private ?string $description,
-        private ?string $coverUrl,
+        public private(set) string $title,
+        public private(set) BookYear $year,
+        public private(set) Isbn $isbn,
+        public private(set) ?string $description,
+        public private(set) ?string $coverUrl,
         array $authorIds,
-        private bool $published,
-        private int $version
+        public private(set) bool $published,
+        public private(set) int $version
     ) {
         $this->validateTitle($title);
         $this->authorIds = array_map(intval(...), $authorIds);
@@ -169,11 +169,6 @@ final class Book
         }
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
     private function setId(int $id): void
     {
         if ($this->id !== null && $this->id !== $id) {
@@ -188,39 +183,6 @@ final class Book
         return $this;
     }
 
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    public function getYear(): BookYear
-    {
-        return $this->year;
-    }
-
-    public function getIsbn(): Isbn
-    {
-        return $this->isbn;
-    }
-
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    public function getCoverUrl(): ?string
-    {
-        return $this->coverUrl;
-    }
-
-    /**
-     * @return int[]
-     */
-    public function getAuthorIds(): array
-    {
-        return $this->authorIds;
-    }
-
     /**
      * @throws DomainException
      */
@@ -230,16 +192,6 @@ final class Book
             throw new DomainException('book.error.publish_without_authors');
         }
         $this->published = true;
-    }
-
-    public function isPublished(): bool
-    {
-        return $this->published;
-    }
-
-    public function getVersion(): int
-    {
-        return $this->version;
     }
 
     /**
