@@ -6365,16 +6365,16 @@
         },
         {
             "name": "justinrainbow/json-schema",
-            "version": "6.6.3",
+            "version": "6.6.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jsonrainbow/json-schema.git",
-                "reference": "134e98916fa2f663afa623970af345cd788e8967"
+                "reference": "2eeb75d21cf73211335888e7f5e6fd7440723ec7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/134e98916fa2f663afa623970af345cd788e8967",
-                "reference": "134e98916fa2f663afa623970af345cd788e8967",
+                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/2eeb75d21cf73211335888e7f5e6fd7440723ec7",
+                "reference": "2eeb75d21cf73211335888e7f5e6fd7440723ec7",
                 "shasum": ""
             },
             "require": {
@@ -6434,9 +6434,9 @@
             ],
             "support": {
                 "issues": "https://github.com/jsonrainbow/json-schema/issues",
-                "source": "https://github.com/jsonrainbow/json-schema/tree/6.6.3"
+                "source": "https://github.com/jsonrainbow/json-schema/tree/6.6.4"
             },
-            "time": "2025-12-02T10:21:33+00:00"
+            "time": "2025-12-19T15:01:32+00:00"
         },
         {
             "name": "kelunik/certificate",
@@ -8551,12 +8551,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "412d91dc6342787fd733523797d9c9faf2ad3ea5"
+                "reference": "5ba14c800ff89c74333c22d56ca1c1f35c424805"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/412d91dc6342787fd733523797d9c9faf2ad3ea5",
-                "reference": "412d91dc6342787fd733523797d9c9faf2ad3ea5",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/5ba14c800ff89c74333c22d56ca1c1f35c424805",
+                "reference": "5ba14c800ff89c74333c22d56ca1c1f35c424805",
                 "shasum": ""
             },
             "conflict": {
@@ -8617,7 +8617,7 @@
                 "backpack/filemanager": "<2.0.2|>=3,<3.0.9",
                 "bacula-web/bacula-web": "<9.7.1",
                 "badaso/core": "<=2.9.11",
-                "bagisto/bagisto": "<=2.3.7",
+                "bagisto/bagisto": "<2.3.10",
                 "barrelstrength/sprout-base-email": "<1.2.7",
                 "barrelstrength/sprout-forms": "<3.9",
                 "barryvdh/laravel-translation-manager": "<0.6.8",
@@ -9550,20 +9550,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-12-30T23:05:26+00:00"
+            "time": "2026-01-02T22:05:49+00:00"
         },
         {
             "name": "sanmai/di-container",
-            "version": "0.1.6",
+            "version": "0.1.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sanmai/di-container.git",
-                "reference": "e57d6de5309be56ca3a810987bf8279d69ce4661"
+                "reference": "f7ea6a00692608f785fc0eabb1c54f5349d973e9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sanmai/di-container/zipball/e57d6de5309be56ca3a810987bf8279d69ce4661",
-                "reference": "e57d6de5309be56ca3a810987bf8279d69ce4661",
+                "url": "https://api.github.com/repos/sanmai/di-container/zipball/f7ea6a00692608f785fc0eabb1c54f5349d973e9",
+                "reference": "f7ea6a00692608f785fc0eabb1c54f5349d973e9",
                 "shasum": ""
             },
             "require": {
@@ -9617,7 +9617,7 @@
             ],
             "support": {
                 "issues": "https://github.com/sanmai/di-container/issues",
-                "source": "https://github.com/sanmai/di-container/tree/0.1.6"
+                "source": "https://github.com/sanmai/di-container/tree/0.1.8"
             },
             "funding": [
                 {
@@ -9625,7 +9625,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-01-02T09:35:43+00:00"
+            "time": "2026-01-03T14:10:40+00:00"
         },
         {
             "name": "sanmai/duoclock",
@@ -13285,16 +13285,16 @@
         },
         {
             "name": "zircote/swagger-php",
-            "version": "5.7.6",
+            "version": "5.7.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/zircote/swagger-php.git",
-                "reference": "e4727bad28cf426b026421162af384f893c0142c"
+                "reference": "a9cf18ac6610fcb1673f108380a76cf9b145a74e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/zircote/swagger-php/zipball/e4727bad28cf426b026421162af384f893c0142c",
-                "reference": "e4727bad28cf426b026421162af384f893c0142c",
+                "url": "https://api.github.com/repos/zircote/swagger-php/zipball/a9cf18ac6610fcb1673f108380a76cf9b145a74e",
+                "reference": "a9cf18ac6610fcb1673f108380a76cf9b145a74e",
                 "shasum": ""
             },
             "require": {
@@ -13316,7 +13316,7 @@
                 "friendsofphp/php-cs-fixer": "^3.62.0",
                 "phpstan/phpstan": "^1.6 || ^2.0",
                 "phpunit/phpunit": "^9.0",
-                "rector/rector": "^1.0 || ^2.0",
+                "rector/rector": "^1.0 || 2.2.14",
                 "vimeo/psalm": "^4.30 || ^5.0"
             },
             "suggest": {
@@ -13367,9 +13367,15 @@
             ],
             "support": {
                 "issues": "https://github.com/zircote/swagger-php/issues",
-                "source": "https://github.com/zircote/swagger-php/tree/5.7.6"
+                "source": "https://github.com/zircote/swagger-php/tree/5.7.7"
             },
-            "time": "2025-12-04T01:33:01+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/zircote",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-01-02T21:36:49+00:00"
         }
     ],
     "aliases": [],
