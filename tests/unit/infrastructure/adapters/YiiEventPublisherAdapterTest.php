@@ -6,7 +6,7 @@ namespace tests\unit\infrastructure\adapters;
 
 use app\application\ports\EventListenerInterface;
 use app\application\ports\QueueInterface;
-use app\domain\events\BookCreatedEvent;
+use app\domain\events\BookDeletedEvent;
 use app\domain\events\BookPublishedEvent;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
@@ -43,7 +43,7 @@ final class YiiEventPublisherAdapterTest extends Unit
     public function testPublishNonQueueableEventDoesNotPushToQueue(): void
     {
         $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper);
-        $event = new BookCreatedEvent(42, 'Test Book', 2024);
+        $event = new BookDeletedEvent(42, 2024, false);
 
         $this->queue->expects($this->never())->method('push');
 
@@ -67,7 +67,7 @@ final class YiiEventPublisherAdapterTest extends Unit
     public function testPublishEventSkipsUnsubscribedListeners(): void
     {
         $listener = $this->createMock(EventListenerInterface::class);
-        $listener->method('subscribedEvents')->willReturn([BookCreatedEvent::class]);
+        $listener->method('subscribedEvents')->willReturn([BookDeletedEvent::class]);
         $listener->expects($this->never())->method('handle');
 
         $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper, $listener);

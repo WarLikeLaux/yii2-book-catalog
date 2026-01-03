@@ -6,10 +6,8 @@ namespace app\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
-use app\domain\events\BookCreatedEvent;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use DateTimeImmutable;
@@ -21,7 +19,6 @@ final readonly class CreateBookUseCase
     public function __construct(
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
-        private EventPublisherInterface $eventPublisher,
     ) {
     }
 
@@ -44,12 +41,6 @@ final readonly class CreateBookUseCase
             if ($bookId === null) {
                 throw new RuntimeException('Failed to retrieve book ID after save');
             }
-
-            $this->transaction->afterCommit(function () use ($bookId, $command): void {
-                $this->eventPublisher->publishEvent(
-                    new BookCreatedEvent($bookId, $command->title, $command->year)
-                );
-            });
 
             $this->transaction->commit();
 
