@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
+use app\application\books\factories\BookYearFactory;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\EventPublisherInterface;
@@ -15,7 +16,9 @@ use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use Codeception\Test\Unit;
+use DateTimeImmutable;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Clock\ClockInterface;
 
 final class UpdateBookUseCaseTest extends Unit
 {
@@ -25,6 +28,8 @@ final class UpdateBookUseCaseTest extends Unit
 
     private EventPublisherInterface&MockObject $eventPublisher;
 
+    private BookYearFactory $bookYearFactory;
+
     private UpdateBookUseCase $useCase;
 
     protected function _before(): void
@@ -32,7 +37,17 @@ final class UpdateBookUseCaseTest extends Unit
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
         $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
-        $this->useCase = new UpdateBookUseCase($this->bookRepository, $this->transaction, $this->eventPublisher);
+
+        $clock = $this->createMock(ClockInterface::class);
+        $clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
+        $this->bookYearFactory = new BookYearFactory($clock);
+
+        $this->useCase = new UpdateBookUseCase(
+            $this->bookRepository,
+            $this->transaction,
+            $this->eventPublisher,
+            $this->bookYearFactory
+        );
     }
 
     public function testExecuteUpdatesBookSuccessfully(): void
@@ -85,8 +100,8 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->getTitle() === 'Updated Title'
-                    && $book->getAuthorIds() === [1, 2]));
+            ->with($this->callback(fn (Book $book) => $book->title === 'Updated Title'
+                    && $book->authorIds === [1, 2]));
 
         $this->eventPublisher->expects($this->once())
             ->method('publishEvent')

@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
+use app\application\books\factories\BookYearFactory;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
+use DateTimeImmutable;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Clock\ClockInterface;
 
 final class CreateBookUseCaseTest extends Unit
 {
@@ -19,15 +22,23 @@ final class CreateBookUseCaseTest extends Unit
 
     private TransactionInterface&MockObject $transaction;
 
+    private BookYearFactory $bookYearFactory;
+
     private CreateBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
+
+        $clock = $this->createMock(ClockInterface::class);
+        $clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
+        $this->bookYearFactory = new BookYearFactory($clock);
+
         $this->useCase = new CreateBookUseCase(
             $this->bookRepository,
-            $this->transaction
+            $this->transaction,
+            $this->bookYearFactory
         );
     }
 
@@ -48,8 +59,8 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->getTitle() === 'Clean Code'
-                    && $book->getAuthorIds() === [1, 2]))
+            ->with($this->callback(fn (Book $book) => $book->title === 'Clean Code'
+                    && $book->authorIds === [1, 2]))
             ->willReturnCallback(function (Book $book) {
                 $this->assignBookId($book, 42);
             });

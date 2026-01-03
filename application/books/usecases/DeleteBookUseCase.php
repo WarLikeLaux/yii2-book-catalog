@@ -23,12 +23,10 @@ final readonly class DeleteBookUseCase
     public function execute(DeleteBookCommand $command): void
     {
         $book = $this->bookRepository->get($command->id);
-
-        $year = $book->getYear()->value;
-        $wasPublished = $book->isPublished();
+        $year = $book->year->value;
+        $wasPublished = $book->published;
 
         $this->transaction->begin();
-
         try {
             $this->bookRepository->delete($book);
 
