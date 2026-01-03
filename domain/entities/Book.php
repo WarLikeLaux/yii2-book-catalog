@@ -223,6 +223,7 @@ final class Book
     }
 
     /**
+     * @param BookPublicationPolicy $policy
      * @throws DomainException
      */
     public function publish(BookPublicationPolicy $policy): void

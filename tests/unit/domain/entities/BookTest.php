@@ -19,6 +19,7 @@ final class BookTest extends Unit
     {
         $this->policy = new BookPublicationPolicy();
     }
+
     public function testCreateAndGetters(): void
     {
         $year = new BookYear(2023, new \DateTimeImmutable());
