@@ -64,4 +64,17 @@ final class SubscribeUseCaseTest extends Unit
 
         $this->useCase->execute($command);
     }
+
+    public function testExecuteLetsAlreadyExistsExceptionBubbleUp(): void
+    {
+        $command = new SubscribeCommand('79001112233', 1);
+
+        $this->repository->method('exists')->willReturn(false);
+        $this->repository->method('save')->willThrowException(new \app\domain\exceptions\AlreadyExistsException());
+
+        $this->expectException(\app\domain\exceptions\AlreadyExistsException::class);
+        $this->expectExceptionMessage('error.entity_already_exists');
+
+        $this->useCase->execute($command);
+    }
 }
