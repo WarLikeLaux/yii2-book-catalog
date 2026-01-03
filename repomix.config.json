@@ -5,7 +5,12 @@
 			"package-lock.json",
 			"*.lock",
 			"repomix-output.txt",
-			"repomix-output.md"
+			"repomix-output.md",
+			"db-data",
+			"db-data-pgsql",
+			"runtime",
+			"vendor",
+			".git"
 		]
 	}
 }
