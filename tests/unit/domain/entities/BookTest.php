@@ -6,12 +6,19 @@ namespace tests\unit\domain\entities;
 
 use app\domain\entities\Book;
 use app\domain\exceptions\DomainException;
+use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use Codeception\Test\Unit;
 
 final class BookTest extends Unit
 {
+    private BookPublicationPolicy $policy;
+
+    protected function _before(): void
+    {
+        $this->policy = new BookPublicationPolicy();
+    }
     public function testCreateAndGetters(): void
     {
         $year = new BookYear(2023, new \DateTimeImmutable());
@@ -180,7 +187,7 @@ final class BookTest extends Unit
         $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
         $book->replaceAuthors([1, 2]);
 
-        $book->publish();
+        $book->publish($this->policy);
 
         $this->assertTrue($book->isPublished());
     }
@@ -192,14 +199,14 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_without_authors');
 
-        $book->publish();
+        $book->publish($this->policy);
     }
 
     public function testUpdateIsbnOnPublishedBookThrowsDomainException(): void
     {
         $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
         $book->replaceAuthors([1]);
-        $book->publish();
+        $book->publish($this->policy);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.isbn_change_published');
@@ -222,7 +229,7 @@ final class BookTest extends Unit
         $isbn = new Isbn('978-3-16-148410-0');
         $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), $isbn, null, null);
         $book->replaceAuthors([1]);
-        $book->publish();
+        $book->publish($this->policy);
 
         $book->rename('New Title');
 

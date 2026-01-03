@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\domain\entities;
 
 use app\domain\exceptions\DomainException;
+use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use RuntimeException;
@@ -224,11 +225,9 @@ final class Book
     /**
      * @throws DomainException
      */
-    public function publish(): void
+    public function publish(BookPublicationPolicy $policy): void
     {
-        if ($this->authorIds === []) {
-            throw new DomainException('book.error.publish_without_authors');
-        }
+        $policy->ensureCanPublish($this);
         $this->published = true;
     }
 
