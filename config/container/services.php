@@ -7,14 +7,17 @@ use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
 use app\application\common\RateLimitService;
 use app\application\common\RateLimitServiceInterface;
+use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\CacheInterface;
+use app\application\ports\EventPublisherInterface;
 use app\application\ports\FileStorageInterface;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
 use app\application\ports\RateLimitInterface;
 use app\application\ports\ReportRepositoryInterface;
+use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
 use app\application\reports\queries\ReportQueryService;
 use app\application\subscriptions\queries\SubscriptionQueryService;
@@ -86,6 +89,10 @@ return static fn (array $params) => [
         ),
         RateLimitServiceInterface::class => static fn(Container $c): RateLimitServiceInterface => new RateLimitService(
             $c->get(RateLimitInterface::class)
+        ),
+        TransactionalEventPublisher::class => static fn(Container $c): TransactionalEventPublisher => new TransactionalEventPublisher(
+            $c->get(TransactionInterface::class),
+            $c->get(EventPublisherInterface::class)
         ),
     ],
 ];
