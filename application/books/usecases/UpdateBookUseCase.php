@@ -6,8 +6,8 @@ namespace app\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
 use app\application\books\factories\BookYearFactory;
+use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookUpdatedEvent;
 use app\domain\values\Isbn;
@@ -19,7 +19,7 @@ final readonly class UpdateBookUseCase
     public function __construct(
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
-        private EventPublisherInterface $eventPublisher,
+        private TransactionalEventPublisher $eventPublisher,
         private BookYearFactory $bookYearFactory,
     ) {
     }
@@ -49,11 +49,9 @@ final readonly class UpdateBookUseCase
 
             $this->bookRepository->save($book);
 
-            $this->transaction->afterCommit(function () use ($command, $oldYear, $isPublished): void {
-                $this->eventPublisher->publishEvent(
-                    new BookUpdatedEvent($command->id, $oldYear, $command->year, $isPublished)
-                );
-            });
+            $this->eventPublisher->publishAfterCommit(
+                new BookUpdatedEvent($command->id, $oldYear, $command->year, $isPublished)
+            );
 
             $this->transaction->commit();
         } catch (Throwable $e) {

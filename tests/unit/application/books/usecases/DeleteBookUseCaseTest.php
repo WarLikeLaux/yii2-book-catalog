@@ -6,8 +6,8 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\usecases\DeleteBookUseCase;
+use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookDeletedEvent;
@@ -23,7 +23,7 @@ final class DeleteBookUseCaseTest extends Unit
 
     private TransactionInterface&MockObject $transaction;
 
-    private EventPublisherInterface&MockObject $eventPublisher;
+    private TransactionalEventPublisher&MockObject $eventPublisher;
 
     private DeleteBookUseCase $useCase;
 
@@ -31,7 +31,7 @@ final class DeleteBookUseCaseTest extends Unit
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
-        $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
+        $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
         $this->useCase = new DeleteBookUseCase(
             $this->bookRepository,
             $this->transaction,
@@ -83,10 +83,13 @@ final class DeleteBookUseCaseTest extends Unit
             ->with($existingBook);
 
         $this->eventPublisher->expects($this->once())
-            ->method('publishEvent')
+            ->method('publishAfterCommit')
             ->with($this->callback(fn (BookDeletedEvent $event) => $event->bookId === 42
                 && $event->year === 2020
-                && $event->wasPublished === false));
+                && $event->wasPublished === false))
+            ->willReturnCallback(function (BookDeletedEvent $event) use (&$afterCommitCallback): void {
+                $this->transaction->afterCommit(fn() => null);
+            });
 
         $this->useCase->execute($command);
     }

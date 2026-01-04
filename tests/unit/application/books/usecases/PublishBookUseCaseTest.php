@@ -6,8 +6,8 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\PublishBookCommand;
 use app\application\books\usecases\PublishBookUseCase;
+use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookPublishedEvent;
@@ -24,7 +24,7 @@ final class PublishBookUseCaseTest extends Unit
 
     private TransactionInterface&MockObject $transaction;
 
-    private EventPublisherInterface&MockObject $eventPublisher;
+    private TransactionalEventPublisher&MockObject $eventPublisher;
 
     private BookPublicationPolicy $publicationPolicy;
 
@@ -34,7 +34,7 @@ final class PublishBookUseCaseTest extends Unit
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
-        $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
+        $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
         $this->publicationPolicy = new BookPublicationPolicy();
         $this->useCase = new PublishBookUseCase(
             $this->bookRepository,
@@ -99,10 +99,13 @@ final class PublishBookUseCaseTest extends Unit
             ->with($this->callback(fn (Book $b) => $b->published === true));
 
         $this->eventPublisher->expects($this->once())
-            ->method('publishEvent')
+            ->method('publishAfterCommit')
             ->with($this->callback(fn (BookPublishedEvent $e) => $e->bookId === 42
                     && $e->title === 'Clean Code'
-                    && $e->year === 2008));
+                    && $e->year === 2008))
+            ->willReturnCallback(function (): void {
+                $this->transaction->afterCommit(fn() => null);
+            });
 
         $useCase->execute($command);
     }
@@ -133,7 +136,7 @@ final class PublishBookUseCaseTest extends Unit
             ->willReturn($book);
 
         $this->bookRepository->expects($this->never())->method('save');
-        $this->eventPublisher->expects($this->never())->method('publishEvent');
+        $this->eventPublisher->expects($this->never())->method('publishAfterCommit');
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_without_authors');
@@ -169,7 +172,7 @@ final class PublishBookUseCaseTest extends Unit
             ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
 
-        $this->eventPublisher->expects($this->never())->method('publishEvent');
+        $this->eventPublisher->expects($this->never())->method('publishAfterCommit');
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('DB error');

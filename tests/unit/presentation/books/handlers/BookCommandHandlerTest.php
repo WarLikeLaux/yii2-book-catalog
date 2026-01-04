@@ -97,23 +97,10 @@ final class BookCommandHandlerTest extends Unit
     public function testCreateBookMovesCoverAfterSuccess(): void
     {
         $form = $this->createMock(BookForm::class);
-        $form->cover = new UploadedFile([
-            'name' => 'test.jpg',
-            'tempName' => '/tmp/test.jpg',
-        ]);
+        $form->cover = $this->createUploadedFile();
 
         $createCommand = $this->createMock(CreateBookCommand::class);
-        $tempFile = new TemporaryFile('/tmp/test.jpg', 'test.jpg');
-        $ref = new StoredFileReference('test.jpg');
-
-        $this->fileStorage->expects($this->once())
-            ->method('saveTemporary')
-            ->willReturn($tempFile);
-
-        $this->fileStorage->expects($this->once())
-            ->method('moveToPermanent')
-            ->with($tempFile)
-            ->willReturn($ref);
+        $ref = $this->mockFileStorageWithCover();
 
         $this->mapper->expects($this->once())
             ->method('toCreateCommand')
@@ -125,9 +112,7 @@ final class BookCommandHandlerTest extends Unit
             ->with($createCommand)
             ->willReturn(7);
 
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(fn(callable $action) => $action());
+        $this->mockUseCaseRunnerSimple();
 
         $result = $this->handler->createBook($form);
 
@@ -137,14 +122,9 @@ final class BookCommandHandlerTest extends Unit
     public function testCreateBookWithDomainExceptionCleansUpFile(): void
     {
         $form = $this->createMock(BookForm::class);
-        $form->cover = new UploadedFile([
-            'name' => 'test.jpg',
-            'tempName' => '/tmp/test.jpg',
-        ]);
+        $form->cover = $this->createUploadedFile();
 
-        $tempFile = new TemporaryFile('/tmp/test.jpg', 'test.jpg');
-        $ref = new StoredFileReference('test.jpg');
-
+        [$tempFile, $ref] = $this->createStorageFile();
         $this->fileStorage->method('saveTemporary')->willReturn($tempFile);
         $this->fileStorage->method('moveToPermanent')->willReturn($ref);
 
@@ -155,16 +135,7 @@ final class BookCommandHandlerTest extends Unit
             ->method('delete')
             ->with((string)$ref);
 
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(function (callable $action, string $msg, callable $onError) {
-                try {
-                    return $action();
-                } catch (DomainException $e) {
-                    $onError($e);
-                    return null;
-                }
-            });
+        $this->mockUseCaseRunnerWithException();
 
         $this->handler->createBook($form);
     }
@@ -231,14 +202,9 @@ final class BookCommandHandlerTest extends Unit
     public function testUpdateBookWithDomainExceptionCleansUpFile(): void
     {
         $form = $this->createMock(BookForm::class);
-        $form->cover = new UploadedFile([
-            'name' => 'test.jpg',
-            'tempName' => '/tmp/test.jpg',
-        ]);
+        $form->cover = $this->createUploadedFile();
 
-        $tempFile = new TemporaryFile('/tmp/test.jpg', 'test.jpg');
-        $ref = new StoredFileReference('test.jpg');
-
+        [$tempFile, $ref] = $this->createStorageFile();
         $this->fileStorage->method('saveTemporary')->willReturn($tempFile);
         $this->fileStorage->method('moveToPermanent')->willReturn($ref);
 
@@ -249,16 +215,7 @@ final class BookCommandHandlerTest extends Unit
             ->method('delete')
             ->with((string)$ref);
 
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(function ($action, $msg, $onError) {
-                try {
-                    return $action();
-                } catch (DomainException $e) {
-                    $onError($e);
-                    return null;
-                }
-            });
+        $this->mockUseCaseRunnerWithException();
 
         $result = $this->handler->updateBook(123, $form);
 
@@ -268,23 +225,10 @@ final class BookCommandHandlerTest extends Unit
     public function testUpdateBookMovesCoverAfterSuccess(): void
     {
         $form = $this->createMock(BookForm::class);
-        $form->cover = new UploadedFile([
-            'name' => 'test.jpg',
-            'tempName' => '/tmp/test.jpg',
-        ]);
+        $form->cover = $this->createUploadedFile();
 
         $updateCommand = $this->createMock(UpdateBookCommand::class);
-        $tempFile = new TemporaryFile('/tmp/test.jpg', 'test.jpg');
-        $ref = new StoredFileReference('test.jpg');
-
-        $this->fileStorage->expects($this->once())
-            ->method('saveTemporary')
-            ->willReturn($tempFile);
-
-        $this->fileStorage->expects($this->once())
-            ->method('moveToPermanent')
-            ->with($tempFile)
-            ->willReturn($ref);
+        $ref = $this->mockFileStorageWithCover();
 
         $this->mapper->expects($this->once())
             ->method('toUpdateCommand')
@@ -295,9 +239,7 @@ final class BookCommandHandlerTest extends Unit
             ->method('execute')
             ->with($updateCommand);
 
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(fn(callable $action) => $action());
+        $this->mockUseCaseRunnerSimple();
 
         $result = $this->handler->updateBook(7, $form);
 
@@ -342,5 +284,57 @@ final class BookCommandHandlerTest extends Unit
         $result = $this->handler->deleteBook($bookId);
 
         $this->assertTrue($result);
+    }
+
+    private function createUploadedFile(string $name = 'test.jpg', string $tempPath = '/tmp/test.jpg'): UploadedFile
+    {
+        return new UploadedFile([
+            'name' => $name,
+            'tempName' => $tempPath,
+        ]);
+    }
+
+    private function createStorageFile(string $tempPath = '/tmp/test.jpg', string $name = 'test.jpg'): array
+    {
+        $tempFile = new TemporaryFile($tempPath, $name);
+        $ref = new StoredFileReference($name);
+        return [$tempFile, $ref];
+    }
+
+    private function mockFileStorageWithCover(string $tempPath = '/tmp/test.jpg', string $name = 'test.jpg'): StoredFileReference
+    {
+        [$tempFile, $ref] = $this->createStorageFile($tempPath, $name);
+
+        $this->fileStorage->expects($this->once())
+            ->method('saveTemporary')
+            ->willReturn($tempFile);
+
+        $this->fileStorage->expects($this->once())
+            ->method('moveToPermanent')
+            ->with($tempFile)
+            ->willReturn($ref);
+
+        return $ref;
+    }
+
+    private function mockUseCaseRunnerSimple(): void
+    {
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(fn(callable $action) => $action());
+    }
+
+    private function mockUseCaseRunnerWithException(): void
+    {
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(function (callable $action, string $msg, callable $onError) {
+                try {
+                    return $action();
+                } catch (DomainException $e) {
+                    $onError($e);
+                    return null;
+                }
+            });
     }
 }
