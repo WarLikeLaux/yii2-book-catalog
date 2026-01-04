@@ -8,20 +8,12 @@ use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
-use app\domain\specifications\AuthorSpecification;
-use app\domain\specifications\CompositeOrSpecification;
-use app\domain\specifications\FullTextSpecification;
-use app\domain\specifications\IsbnPrefixSpecification;
-use app\domain\specifications\YearSpecification;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
-use app\infrastructure\repositories\BookRepository;
 use Codeception\Test\Unit;
 use Yii;
-use yii\db\Connection;
-use yii\db\Expression;
 
 final class BookRepositoryTest extends Unit
 {
@@ -60,9 +52,8 @@ final class BookRepositoryTest extends Unit
         $this->repository->save($book);
         $this->assertNotNull($book->id);
 
-        $dto = $this->repository->findById($book->id);
-        $this->assertNotNull($dto);
-        $this->assertSame('Test Book', $dto->title);
+        $retrieved = $this->repository->get($book->id);
+        $this->assertSame('Test Book', $retrieved->title);
     }
 
     public function testDeleteThrowsExceptionOnNotFound(): void
@@ -99,8 +90,8 @@ final class BookRepositoryTest extends Unit
         $this->repository->save($book);
         $bookId = $book->id;
 
-        $dto = $this->repository->findByIdWithAuthors($bookId);
-        $this->assertContains($authorId, $dto->authorIds);
+        $retrieved = $this->repository->get($bookId);
+        $this->assertContains($authorId, $retrieved->authorIds);
     }
 
     public function testGetReturnsBookEntity(): void
@@ -144,9 +135,9 @@ final class BookRepositoryTest extends Unit
         $updated->updateDescription('New desc');
         $this->repository->save($updated);
 
-        $dto = $this->repository->findById($book->id);
-        $this->assertSame('Updated Title', $dto->title);
-        $this->assertSame(2025, $dto->year);
+        $retrieved = $this->repository->get($book->id);
+        $this->assertSame('Updated Title', $retrieved->title);
+        $this->assertSame(2025, $retrieved->year->value);
     }
 
     public function testDeleteSuccessfully(): void
@@ -163,7 +154,8 @@ final class BookRepositoryTest extends Unit
 
         $this->repository->delete($book);
 
-        $this->assertNull($this->repository->findById($bookId));
+        $this->expectException(EntityNotFoundException::class);
+        $this->repository->get($bookId);
     }
 
     public function testExistsByIsbnReturnsTrue(): void
@@ -200,98 +192,6 @@ final class BookRepositoryTest extends Unit
         $this->assertTrue($this->repository->existsByIsbn('9783161484100', 99999));
     }
 
-    public function testSearchByAuthorName(): void
-    {
-        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'Unique Author Name']);
-
-        $book = BookEntity::create(
-            'Author Search Book',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            null,
-            null
-        );
-        $book->replaceAuthors([$authorId]);
-        $this->repository->save($book);
-
-        // InnoDB FullText search requires committed transaction
-        Yii::$app->db->getTransaction()->commit();
-
-        $result = $this->repository->search('Unique Author', 1, 10);
-
-        $this->assertGreaterThan(0, $result->getTotalCount());
-    }
-
-    public function testSearchByIsbnPrefix(): void
-    {
-        $book = BookEntity::create(
-            'ISBN Search',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            null,
-            null
-        );
-        $this->repository->save($book);
-
-        $result = $this->repository->search('978316', 1, 10);
-
-        $this->assertGreaterThan(0, $result->getTotalCount());
-    }
-
-    public function testSearchByYear(): void
-    {
-        $book = BookEntity::create(
-            'Year Search',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            null,
-            null
-        );
-        $this->repository->save($book);
-
-        $result = $this->repository->search('2024', 1, 10);
-
-        $this->assertGreaterThan(0, $result->getTotalCount());
-    }
-
-    public function testSearchEmptyTerm(): void
-    {
-        $book = BookEntity::create(
-            'Empty Search',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            null,
-            null
-        );
-        $this->repository->save($book);
-
-        $result = $this->repository->search('', 1, 10);
-
-        $this->assertGreaterThan(0, $result->getTotalCount());
-    }
-
-    public function testSearchByTitle(): void
-    {
-        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'SearchTestAuthor']);
-
-        $book = BookEntity::create(
-            'SearchableBookTitle',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            'Some description',
-            null
-        );
-        $book->replaceAuthors([$authorId]);
-        $this->repository->save($book);
-
-        // InnoDB FullText search requires committed transaction
-        Yii::$app->db->getTransaction()->commit();
-
-        $result = $this->repository->search('SearchableBookTitle', 1, 10);
-
-        $this->assertGreaterThan(0, $result->getTotalCount());
-    }
-
     public function testUpdateNonExistentBookThrowsException(): void
     {
         $book = BookEntity::create(
@@ -305,12 +205,6 @@ final class BookRepositoryTest extends Unit
 
         $this->expectException(EntityNotFoundException::class);
         $this->repository->save($book);
-    }
-
-    public function testFindByIdReturnsNullOnNotFound(): void
-    {
-        $result = $this->repository->findById(99999);
-        $this->assertNull($result);
     }
 
     public function testUpdateBookRemovesAuthor(): void
@@ -334,12 +228,6 @@ final class BookRepositoryTest extends Unit
         $storedBook = $this->repository->get($book->id);
         $this->assertCount(1, $storedBook->authorIds);
         $this->assertEquals([$author1], $storedBook->authorIds);
-    }
-
-    public function testFindByIdWithAuthorsReturnsNullOnNotFound(): void
-    {
-        $result = $this->repository->findByIdWithAuthors(99999);
-        $this->assertNull($result);
     }
 
     public function testSaveDuplicateIsbnThrowsAlreadyExistsException(): void
@@ -372,236 +260,5 @@ final class BookRepositoryTest extends Unit
         $method = new \ReflectionMethod(BookEntity::class, 'setId');
         $method->setAccessible(true);
         $method->invoke($book, $id);
-    }
-
-    public function testSearchBySpecificationWithYearSpec(): void
-    {
-        $book = BookEntity::create(
-            'Year Spec Test',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            null,
-            null
-        );
-        $this->repository->save($book);
-
-        $spec = new YearSpecification(2024);
-        $result = $this->repository->searchBySpecification($spec, 1, 10);
-
-        $this->assertGreaterThan(0, $result->getTotalCount());
-    }
-
-    public function testSearchBySpecificationWithIsbnPrefixSpec(): void
-    {
-        $book = BookEntity::create(
-            'ISBN Prefix Spec Test',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            null,
-            null
-        );
-        $this->repository->save($book);
-
-        $spec = new IsbnPrefixSpecification('978316');
-        $result = $this->repository->searchBySpecification($spec, 1, 10);
-
-        $this->assertGreaterThan(0, $result->getTotalCount());
-    }
-
-    public function testSearchBySpecificationWithFullTextSpec(): void
-    {
-        $book = BookEntity::create(
-            'FullTextSpecificationTestBook',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            'Unique description for fulltext search',
-            null
-        );
-        $this->repository->save($book);
-
-        Yii::$app->db->getTransaction()->commit();
-
-        $spec = new FullTextSpecification('FullTextSpecificationTestBook');
-        $result = $this->repository->searchBySpecification($spec, 1, 10);
-
-        $this->assertGreaterThanOrEqual(0, $result->getTotalCount());
-    }
-
-    public function testSearchBySpecificationWithAuthorSpec(): void
-    {
-        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'SpecificationAuthorName']);
-
-        $book = BookEntity::create(
-            'Author Spec Test',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            null,
-            null
-        );
-        $book->replaceAuthors([$authorId]);
-        $this->repository->save($book);
-
-        Yii::$app->db->getTransaction()->commit();
-
-        $spec = new AuthorSpecification('SpecificationAuthorName');
-        $result = $this->repository->searchBySpecification($spec, 1, 10);
-
-        $this->assertGreaterThan(0, $result->getTotalCount());
-    }
-
-    public function testSearchBySpecificationWithCompositeOrSpec(): void
-    {
-        $book1 = BookEntity::create(
-            'Composite Spec Year Book',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            null,
-            null
-        );
-        $this->repository->save($book1);
-
-        $book2 = BookEntity::create(
-            'Composite Spec ISBN Book',
-            new BookYear(2025, new \DateTimeImmutable()),
-            new Isbn('9780132350884'),
-            null,
-            null
-        );
-        $this->repository->save($book2);
-
-        $composite = new CompositeOrSpecification([
-            new YearSpecification(2024),
-            new IsbnPrefixSpecification('978013'),
-        ]);
-        $result = $this->repository->searchBySpecification($composite, 1, 10);
-
-        $this->assertGreaterThanOrEqual(2, $result->getTotalCount());
-    }
-
-    public function testSearchBySpecificationWithCompositeOrFulltextAndAuthor(): void
-    {
-        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'CompositeSpecAuthor']);
-
-        $book1 = BookEntity::create(
-            'CompositeFulltextTestBook',
-            new BookYear(2024, new \DateTimeImmutable()),
-            new Isbn('9783161484100'),
-            'Some unique description',
-            null
-        );
-        $this->repository->save($book1);
-
-        $book2 = BookEntity::create(
-            'Another Book',
-            new BookYear(2025, new \DateTimeImmutable()),
-            new Isbn('9780132350884'),
-            null,
-            null
-        );
-        $book2->replaceAuthors([$authorId]);
-        $this->repository->save($book2);
-
-        Yii::$app->db->getTransaction()->commit();
-
-        $composite = new CompositeOrSpecification([
-            new FullTextSpecification('CompositeFulltextTestBook'),
-            new AuthorSpecification('CompositeSpecAuthor'),
-        ]);
-        $result = $this->repository->searchBySpecification($composite, 1, 10);
-
-        $this->assertGreaterThanOrEqual(1, $result->getTotalCount());
-    }
-
-    public function testBuildBooksFulltextExpressionForMysql(): void
-    {
-        $repository = $this->createRepositoryWithDriver('mysql');
-
-        $expression = $this->invokePrivateMethod($repository, 'buildBooksFulltextExpression', ['hello world']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            'MATCH(title, description) AGAINST(:query IN BOOLEAN MODE)',
-            $expression->expression
-        );
-        $this->assertSame('+hello* +world*', $expression->params[':query']);
-    }
-
-    public function testBuildBooksFulltextExpressionForMysqlReturnsNullOnEmptyQuery(): void
-    {
-        $repository = $this->createRepositoryWithDriver('mysql');
-
-        $expression = $this->invokePrivateMethod($repository, 'buildBooksFulltextExpression', ['+++']);
-
-        $this->assertNull($expression);
-    }
-
-    public function testBuildBooksFulltextExpressionForPgsql(): void
-    {
-        $repository = $this->createRepositoryWithDriver('pgsql');
-
-        $expression = $this->invokePrivateMethod($repository, 'buildBooksFulltextExpression', ['Hello']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '')) @@ plainto_tsquery('english', :query)",
-            $expression->expression
-        );
-        $this->assertSame('Hello', $expression->params[':query']);
-    }
-
-    public function testBuildBooksFulltextExpressionForPgsqlReturnsNullOnSanitizedEmpty(): void
-    {
-        $repository = $this->createRepositoryWithDriver('pgsql');
-
-        $expression = $this->invokePrivateMethod($repository, 'buildBooksFulltextExpression', ['!!!']);
-
-        $this->assertNull($expression);
-    }
-
-    public function testBuildAuthorsFulltextExpressionForMysql(): void
-    {
-        $repository = $this->createRepositoryWithDriver('mysql');
-
-        $expression = $this->invokePrivateMethod($repository, 'buildAuthorsFulltextExpression', ['Author Name']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            'MATCH(authors.fio) AGAINST(:query IN BOOLEAN MODE)',
-            $expression->expression
-        );
-        $this->assertSame('+Author* +Name*', $expression->params[':query']);
-    }
-
-    public function testBuildAuthorsFulltextExpressionForPgsql(): void
-    {
-        $repository = $this->createRepositoryWithDriver('pgsql');
-
-        $expression = $this->invokePrivateMethod($repository, 'buildAuthorsFulltextExpression', ['Author']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            "to_tsvector('english', coalesce(authors.fio, '')) @@ plainto_tsquery('english', :query)",
-            $expression->expression
-        );
-        $this->assertSame('Author', $expression->params[':query']);
-    }
-
-    private function createRepositoryWithDriver(string $driverName): BookRepository
-    {
-        $connection = new Connection();
-        $connection->setDriverName($driverName);
-
-        return new BookRepository($connection);
-    }
-
-    /**
-     * @param array<int, mixed> $arguments
-     */
-    private function invokePrivateMethod(object $target, string $method, array $arguments): mixed
-    {
-        $reflection = new \ReflectionMethod($target, $method);
-        $reflection->setAccessible(true);
-
-        return $reflection->invokeArgs($target, $arguments);
     }
 }

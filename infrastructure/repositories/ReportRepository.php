@@ -24,9 +24,9 @@ final readonly class ReportRepository implements ReportRepositoryInterface
                 a.id,
                 a.fio,
                 COUNT(DISTINCT b.id) as books_count
-            FROM authors a
-            INNER JOIN book_authors ba ON ba.author_id = a.id
-            INNER JOIN books b ON b.id = ba.book_id
+            FROM {{%authors}} a
+            INNER JOIN {{%book_authors}} ba ON ba.author_id = a.id
+            INNER JOIN {{%books}} b ON b.id = ba.book_id
             WHERE b.year = :year AND b.is_published = TRUE
             GROUP BY a.id, a.fio
             ORDER BY books_count DESC
