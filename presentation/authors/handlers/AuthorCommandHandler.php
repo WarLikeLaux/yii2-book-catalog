@@ -13,6 +13,10 @@ use app\presentation\authors\mappers\AuthorFormMapper;
 use app\presentation\common\services\WebUseCaseRunner;
 use Yii;
 
+/**
+ * NOTE: Прагматичный компромисс: группировка всех команд сущности в одном классе.
+ * @see docs/DECISIONS.md (см. пункт "4. Группировка Handlers по сущностям")
+ */
 final readonly class AuthorCommandHandler
 {
     public function __construct(

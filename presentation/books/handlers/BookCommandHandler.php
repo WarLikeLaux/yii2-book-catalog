@@ -21,6 +21,10 @@ use app\presentation\common\services\WebUseCaseRunner;
 use Yii;
 use yii\web\UploadedFile;
 
+/**
+ * NOTE: Прагматичный компромисс: группировка всех команд сущности в одном классе.
+ * @see docs/DECISIONS.md (см. пункт "4. Группировка Handlers по сущностям")
+ */
 final readonly class BookCommandHandler
 {
     public function __construct(
