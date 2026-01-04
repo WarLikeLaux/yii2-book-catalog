@@ -12,6 +12,9 @@ final readonly class YearSpecification implements BookSpecificationInterface
     ) {
     }
 
+    /**
+     * @return array{type: string, value: mixed}
+     */
     public function toSearchCriteria(): array
     {
         return [

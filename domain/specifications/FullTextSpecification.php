@@ -11,6 +11,9 @@ final readonly class FullTextSpecification implements BookSpecificationInterface
     ) {
     }
 
+    /**
+     * @return array{type: string, value: mixed}
+     */
     public function toSearchCriteria(): array
     {
         return [

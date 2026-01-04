@@ -14,6 +14,9 @@ final readonly class CompositeOrSpecification implements BookSpecificationInterf
     ) {
     }
 
+    /**
+     * @return array{type: string, value: mixed}
+     */
     public function toSearchCriteria(): array
     {
         return [

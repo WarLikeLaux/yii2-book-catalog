@@ -11,6 +11,9 @@ final readonly class IsbnPrefixSpecification implements BookSpecificationInterfa
     ) {
     }
 
+    /**
+     * @return array{type: string, value: mixed}
+     */
     public function toSearchCriteria(): array
     {
         return [
