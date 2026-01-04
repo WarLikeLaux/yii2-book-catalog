@@ -35,12 +35,14 @@
 ### 🧪 Тестирование
 - **#29** - добавлены тесты для функционала Rate Limiting ([40a26e9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/40a26e9))
 - **#29** - добавлены тесты для декоратора трассировки RateLimitRepository ([315cfaa](https://github.com/WarLikeLaux/yii2-book-catalog/commit/315cfaa))
+- **#29** - добавлены недостающие тесты для обновления книги и доменных инвариантов ([366979e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/366979e))
 
 ### 📝 Документация
 - **#29** - обновлен README.md информацией о PSR-20 Clock ([edb3e41](https://github.com/WarLikeLaux/yii2-book-catalog/commit/edb3e41))
 - **#29** - добавлен PHPDoc для `HandlerAwareQueue` и `RequestIdProvider` ([586ce9d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/586ce9d))
 - **#29** - обновлены примеры архитектуры и рекомендации по документации ([213ad83](https://github.com/WarLikeLaux/yii2-book-catalog/commit/213ad83))
 - **#29** - обновлен контракт ([89afe74](https://github.com/WarLikeLaux/yii2-book-catalog/commit/89afe74))
+- **#29** - обновлены метрики MSI (Mutation Score Indicator) в README ([ad0ab5f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ad0ab5f))
 
 ### ⚙️ Инфраструктура
 - **#29** - зарегистрированы `ClockInterface` и `BookYearFactory` в DI контейнере ([19efe02](https://github.com/WarLikeLaux/yii2-book-catalog/commit/19efe02))
