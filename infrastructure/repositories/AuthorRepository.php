@@ -15,6 +15,7 @@ use yii\db\IntegrityException;
 final readonly class AuthorRepository implements AuthorRepositoryInterface
 {
     use DatabaseExceptionHandlerTrait;
+    use IdentityAssignmentTrait;
 
     public function save(AuthorEntity $author): void
     {
@@ -39,7 +40,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             return;
         }
 
-        $author->setId($ar->id);
+        $this->assignId($author, $ar->id);
     }
 
     public function get(int $id): AuthorEntity

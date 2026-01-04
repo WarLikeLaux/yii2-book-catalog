@@ -15,6 +15,9 @@ use yii\db\Query;
 
 final readonly class SubscriptionRepository implements SubscriptionRepositoryInterface
 {
+    use DatabaseExceptionHandlerTrait;
+    use IdentityAssignmentTrait;
+
     public function __construct(
         private Connection $db
     ) {
@@ -28,21 +31,7 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
 
         $this->persistSubscription($ar);
 
-        $subscription->setId($ar->id);
-    }
-
-    /** @codeCoverageIgnore */
-    private function persistSubscription(Subscription $ar): void
-    {
-        try {
-            if (!$ar->save(false)) {
-                $errors = $ar->getFirstErrors();
-                $message = $errors !== [] ? array_shift($errors) : 'subscription.error.save_failed';
-                throw new RuntimeException($message);
-            }
-        } catch (IntegrityException $e) {
-            throw new AlreadyExistsException(previous: $e);
-        }
+        $this->assignId($subscription, $ar->id);
     }
 
     public function exists(string $phone, int $authorId): bool
@@ -74,6 +63,23 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
 
                 yield $phone;
             }
+        }
+    }
+
+    /** @codeCoverageIgnore */
+    private function persistSubscription(Subscription $ar): void
+    {
+        try {
+            if (!$ar->save(false)) {
+                $errors = $ar->getFirstErrors();
+                $message = $errors !== [] ? array_shift($errors) : 'subscription.error.save_failed';
+                throw new RuntimeException($message);
+            }
+        } catch (IntegrityException $e) {
+            if ($this->isDuplicateError($e)) {
+                throw new AlreadyExistsException(previous: $e);
+            }
+            throw $e;
         }
     }
 }

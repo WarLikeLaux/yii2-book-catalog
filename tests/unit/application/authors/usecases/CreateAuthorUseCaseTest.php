@@ -11,6 +11,7 @@ use app\domain\entities\Author;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use ReflectionProperty;
 
 final class CreateAuthorUseCaseTest extends Unit
 {
@@ -34,7 +35,10 @@ final class CreateAuthorUseCaseTest extends Unit
                 if ($author->fio !== 'Иванов Иван Иванович') {
                     return false;
                 }
-                $author->setId(42);
+
+                $property = new ReflectionProperty(Author::class, 'id');
+                $property->setValue($author, 42);
+
                 return true;
             }));
 

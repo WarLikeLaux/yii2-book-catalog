@@ -14,7 +14,6 @@ use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
-use ReflectionMethod;
 use RuntimeException;
 use yii\db\Connection;
 use yii\db\IntegrityException;
@@ -23,6 +22,7 @@ use yii\db\StaleObjectException;
 final readonly class BookRepository implements BookRepositoryInterface
 {
     use DatabaseExceptionHandlerTrait;
+    use IdentityAssignmentTrait;
 
     public function __construct(
         private Connection $db
@@ -57,7 +57,7 @@ final readonly class BookRepository implements BookRepositoryInterface
         $this->persistBook($ar);
 
         if ($isNew) {
-            $this->assignBookId($book, $ar->id);
+            $this->assignId($book, $ar->id);
         } else {
             $book->incrementVersion();
         }
@@ -157,12 +157,6 @@ final readonly class BookRepository implements BookRepositoryInterface
             }
             throw $e;
         }
-    }
-
-    private function assignBookId(BookEntity $book, int $id): void
-    {
-        $method = new ReflectionMethod(BookEntity::class, 'setId');
-        $method->invoke($book, $id);
     }
 
     private function syncAuthors(BookEntity $book): void

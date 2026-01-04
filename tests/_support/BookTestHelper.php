@@ -35,8 +35,8 @@ final class BookTestHelper
 
     public static function assignBookId(Book $book, int $id): void
     {
-        $method = new ReflectionMethod(Book::class, 'setId');
-        $method->invoke($book, $id);
+        $property = new ReflectionProperty(Book::class, 'id');
+        $property->setValue($book, $id);
     }
 
     public static function setBookField(Book $book, string $field, mixed $value): void

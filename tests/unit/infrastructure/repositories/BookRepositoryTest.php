@@ -13,6 +13,7 @@ use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use Codeception\Test\Unit;
+use ReflectionProperty;
 use Yii;
 
 final class BookRepositoryTest extends Unit
@@ -257,8 +258,7 @@ final class BookRepositoryTest extends Unit
 
     private function assignBookId(BookEntity $book, int $id): void
     {
-        $method = new \ReflectionMethod(BookEntity::class, 'setId');
-        $method->setAccessible(true);
-        $method->invoke($book, $id);
+        $property = new ReflectionProperty(BookEntity::class, 'id');
+        $property->setValue($book, $id);
     }
 }
