@@ -14,27 +14,27 @@ final class AuthorTest extends Unit
     {
         $author = Author::create('Test FIO');
 
-        $this->assertNull($author->getId());
-        $this->assertSame('Test FIO', $author->getFio());
+        $this->assertNull($author->id);
+        $this->assertSame('Test FIO', $author->fio);
 
         $author->setId(123);
-        $this->assertSame(123, $author->getId());
+        $this->assertSame(123, $author->id);
     }
 
     public function testUpdate(): void
     {
         $author = Author::create('Old Name');
-        $this->assertSame('Old Name', $author->getFio());
+        $this->assertSame('Old Name', $author->fio);
 
         $author->update('New Name');
-        $this->assertSame('New Name', $author->getFio());
+        $this->assertSame('New Name', $author->fio);
     }
 
     public function testConstructor(): void
     {
         $author = new Author(555, 'Direct Create');
-        $this->assertSame(555, $author->getId());
-        $this->assertSame('Direct Create', $author->getFio());
+        $this->assertSame(555, $author->id);
+        $this->assertSame('Direct Create', $author->fio);
     }
 
     public function testThrowsExceptionOnEmptyFio(): void
@@ -78,7 +78,7 @@ final class AuthorTest extends Unit
     {
         $author = Author::create('Ab');
 
-        $this->assertSame('Ab', $author->getFio());
+        $this->assertSame('Ab', $author->fio);
     }
 
     public function testThrowsExceptionOnTooLongFio(): void
@@ -93,7 +93,7 @@ final class AuthorTest extends Unit
         $fio = str_repeat("\xD0\xAF", 255);
         $author = Author::create($fio);
 
-        $this->assertSame($fio, $author->getFio());
+        $this->assertSame($fio, $author->fio);
     }
 
     public function testUpdateThrowsExceptionOnEmptyFio(): void

@@ -9,19 +9,23 @@ use DateTimeImmutable;
 
 final readonly class BookYear implements \Stringable
 {
+    public private(set) int $value;
+
     public function __construct(
-        public int $value,
+        int $year,
         DateTimeImmutable $now
     ) {
         $currentYear = (int)$now->format('Y');
 
-        if ($this->value <= 1000) {
+        if ($year <= 1000) {
             throw new DomainException('year.error.too_old');
         }
 
-        if ($this->value > $currentYear + 1) {
+        if ($year > $currentYear + 1) {
             throw new DomainException('year.error.future');
         }
+
+        $this->value = $year;
     }
 
     public function __toString(): string

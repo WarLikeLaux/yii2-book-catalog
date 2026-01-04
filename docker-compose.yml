@@ -86,9 +86,11 @@ services:
     volumes:
       - ./:/app
     restart: on-failure
+    stop_signal: SIGTERM
+    stop_grace_period: 60s
     environment:
       - SMS_API_KEY=${SMS_API_KEY:-MOCK_KEY}
-    command: php yii queue/listen --verbose
+    command: exec php yii queue/listen --verbose --isolate
     depends_on:
       - redis
       - php

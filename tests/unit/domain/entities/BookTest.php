@@ -6,8 +6,10 @@ namespace tests\unit\domain\entities;
 
 use app\domain\entities\Book;
 use app\domain\exceptions\DomainException;
+use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
+use app\domain\values\StoredFileReference;
 use Codeception\Test\Unit;
 
 final class BookTest extends Unit
@@ -16,17 +18,18 @@ final class BookTest extends Unit
     {
         $year = new BookYear(2023, new \DateTimeImmutable());
         $isbn = new Isbn('978-3-16-148410-0');
+        $cover = new StoredFileReference('path/to/cover');
 
-        $book = Book::create('Title', $year, $isbn, 'Desc', 'http://url.com');
+        $book = Book::create('Title', $year, $isbn, 'Desc', $cover);
 
-        $this->assertNull($book->getId());
-        $this->assertSame('Title', $book->getTitle());
-        $this->assertSame($year, $book->getYear());
-        $this->assertSame($isbn, $book->getIsbn());
-        $this->assertSame('Desc', $book->getDescription());
-        $this->assertSame('http://url.com', $book->getCoverUrl());
-        $this->assertSame([], $book->getAuthorIds());
-        $this->assertSame(1, $book->getVersion());
+        $this->assertNull($book->id);
+        $this->assertSame('Title', $book->title);
+        $this->assertSame($year, $book->year);
+        $this->assertSame($isbn, $book->isbn);
+        $this->assertSame('Desc', $book->description);
+        $this->assertSame($cover, $book->coverImage);
+        $this->assertSame([], $book->authorIds);
+        $this->assertSame(1, $book->version);
     }
 
     public function testUpdate(): void
@@ -45,20 +48,21 @@ final class BookTest extends Unit
 
         $newYear = new BookYear(2024, new \DateTimeImmutable());
         $newIsbn = new Isbn('978-3-16-148410-0');
+        $newCover = new StoredFileReference('path/to/new');
 
         $book->rename('New Title');
         $book->changeYear($newYear);
         $book->correctIsbn($newIsbn);
         $book->updateDescription('New Desc');
-        $book->updateCover('http://new.com');
+        $book->updateCover($newCover);
 
-        $this->assertSame('New Title', $book->getTitle());
-        $this->assertSame($newYear, $book->getYear());
-        $this->assertSame('New Desc', $book->getDescription());
-        $this->assertSame('http://new.com', $book->getCoverUrl());
+        $this->assertSame('New Title', $book->title);
+        $this->assertSame($newYear, $book->year);
+        $this->assertSame('New Desc', $book->description);
+        $this->assertSame($newCover, $book->coverImage);
 
         $book->updateCover(null);
-        $this->assertNull($book->getCoverUrl(), 'Cover URL should be null if removed');
+        $this->assertNull($book->coverImage, 'Cover image should be null if removed');
     }
 
     public function testReplaceAuthors(): void
@@ -67,7 +71,7 @@ final class BookTest extends Unit
 
         $book->replaceAuthors([1, 2, 3]);
 
-        $this->assertSame([1, 2, 3], $book->getAuthorIds());
+        $this->assertSame([1, 2, 3], $book->authorIds);
     }
 
     public function testAddAuthor(): void
@@ -77,7 +81,7 @@ final class BookTest extends Unit
         $book->addAuthor(1);
         $book->addAuthor(2);
 
-        $this->assertSame([1, 2], $book->getAuthorIds());
+        $this->assertSame([1, 2], $book->authorIds);
     }
 
     public function testAddAuthorIsIdempotent(): void
@@ -87,7 +91,7 @@ final class BookTest extends Unit
         $book->addAuthor(1);
         $book->addAuthor(1);
 
-        $this->assertSame([1], $book->getAuthorIds());
+        $this->assertSame([1], $book->authorIds);
     }
 
     public function testAddAuthorThrowsExceptionOnInvalidId(): void
@@ -107,7 +111,7 @@ final class BookTest extends Unit
 
         $book->removeAuthor(2);
 
-        $this->assertSame([1, 3], $book->getAuthorIds());
+        $this->assertSame([1, 3], $book->authorIds);
     }
 
     public function testRemoveAuthorIsIdempotent(): void
@@ -117,7 +121,7 @@ final class BookTest extends Unit
 
         $book->removeAuthor(3);
 
-        $this->assertSame([1, 2], $book->getAuthorIds());
+        $this->assertSame([1, 2], $book->authorIds);
     }
 
     public function testHasAuthor(): void
@@ -134,7 +138,7 @@ final class BookTest extends Unit
         $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
 
         $this->assignBookId($book, 100);
-        $this->assertSame(100, $book->getId());
+        $this->assertSame(100, $book->id);
 
         $this->assignBookId($book, 100);
 
@@ -158,21 +162,21 @@ final class BookTest extends Unit
 
         $book->incrementVersion();
 
-        $this->assertSame(6, $book->getVersion());
+        $this->assertSame(6, $book->version);
     }
 
     public function testIsPublishedReturnsFalseByDefault(): void
     {
         $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
 
-        $this->assertFalse($book->isPublished());
+        $this->assertFalse($book->published);
     }
 
     public function testDefaultVersionIsOne(): void
     {
         $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
 
-        $this->assertSame(1, $book->getVersion());
+        $this->assertSame(1, $book->version);
     }
 
     public function testPublishWithAuthorsSucceeds(): void
@@ -180,9 +184,10 @@ final class BookTest extends Unit
         $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
         $book->replaceAuthors([1, 2]);
 
-        $book->publish();
+        $policy = new BookPublicationPolicy();
+        $book->publish($policy);
 
-        $this->assertTrue($book->isPublished());
+        $this->assertTrue($book->published);
     }
 
     public function testPublishWithoutAuthorsThrowsDomainException(): void
@@ -192,14 +197,16 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_without_authors');
 
-        $book->publish();
+        $policy = new BookPublicationPolicy();
+        $book->publish($policy);
     }
 
     public function testUpdateIsbnOnPublishedBookThrowsDomainException(): void
     {
         $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
         $book->replaceAuthors([1]);
-        $book->publish();
+        $policy = new BookPublicationPolicy();
+        $book->publish($policy);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.isbn_change_published');
@@ -214,7 +221,7 @@ final class BookTest extends Unit
 
         $book->correctIsbn($newIsbn);
 
-        $this->assertTrue($book->getIsbn()->equals($newIsbn));
+        $this->assertTrue($book->isbn->equals($newIsbn));
     }
 
     public function testUpdateSameIsbnOnPublishedBookSucceeds(): void
@@ -222,11 +229,23 @@ final class BookTest extends Unit
         $isbn = new Isbn('978-3-16-148410-0');
         $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), $isbn, null, null);
         $book->replaceAuthors([1]);
-        $book->publish();
+        $policy = new BookPublicationPolicy();
+        $book->publish($policy);
 
         $book->rename('New Title');
 
-        $this->assertSame('New Title', $book->getTitle());
+        $this->assertSame('New Title', $book->title);
+    }
+
+    public function testCorrectIsbnWithSameIsbnDoesNotChange(): void
+    {
+        $isbn = new Isbn('978-3-16-148410-0');
+        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), $isbn, null, null);
+
+        $sameIsbn = new Isbn('978-3-16-148410-0');
+        $book->correctIsbn($sameIsbn);
+
+        $this->assertTrue($book->isbn->equals($isbn));
     }
 
     public function testThrowsExceptionOnEmptyTitle(): void

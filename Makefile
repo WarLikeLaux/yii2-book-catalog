@@ -32,7 +32,8 @@ help:
 	@echo "  cov              📊 Отчет покрытия (из последнего запуска)"
 	@echo "  infection        🧟 Мутационное тестирование"
 	@echo "  deptrac          🏗️  Архитектурный анализ"
-	@echo "  pr               🚀 Полная проверка перед PR"
+	@echo "  check            🛡️  Экспресс-проверка (dev + deptrac + test)"
+	@echo "  pr               🚀 Полная проверка (check + e2e + infection)"
 	@echo ""
 	@echo "💻 РАЗРАБОТКА:"
 	@echo "  dev              🛠️  Полный цикл (CS Fixer + Rector + PHPStan)"
@@ -219,10 +220,11 @@ req-dev require-dev:
 # 🛡️ КОНТРОЛЬ КАЧЕСТВА (QA)
 # =================================================================================================
 
-dev: fix ci
-fix: lint-fix rector-fix
 ci: lint analyze
-pr: docs ci test deptrac infection
+fix: lint-fix rector-fix
+dev: fix ci
+check: dev deptrac test
+pr: docs check test-e2e infection
 
 lint:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs
@@ -350,6 +352,7 @@ ai:
 	@echo "🔗 Создание симлинков для AI агентов..."
 	@ln -sf CLAUDE.md GEMINI.md
 	@ln -sf CLAUDE.md AGENTS.md
+	@ln -sf CLAUDE.md GROK.md
 	@ln -sf CLAUDE.md .cursorrules
 	@ln -sf CLAUDE.md .clinerules
 	@ln -sf CLAUDE.md .windsurfrules
@@ -357,7 +360,7 @@ ai:
 	@ln -sf ../CLAUDE.md .antigravity/rules.md
 	@mkdir -p .agent/rules
 	@ln -sf ../../CLAUDE.md .agent/rules/rules.md
-	@echo "✅ Симлинки созданы: GEMINI.md, AGENTS.md, .cursorrules, .clinerules, .windsurfrules, .antigravity/rules.md, .agent/rules/rules.md -> CLAUDE.md"
+	@echo "✅ Симлинки созданы: GEMINI.md, AGENTS.md, GROK.MD, .cursorrules, .clinerules, .windsurfrules, .antigravity/rules.md, .agent/rules/rules.md -> CLAUDE.md"
 
 diff d:
 	@git diff || true

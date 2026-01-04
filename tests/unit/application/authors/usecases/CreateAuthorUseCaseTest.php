@@ -31,7 +31,7 @@ final class CreateAuthorUseCaseTest extends Unit
         $this->authorRepository->expects($this->once())
             ->method('save')
             ->with($this->callback(function (Author $author) {
-                if ($author->getFio() !== 'Иванов Иван Иванович') {
+                if ($author->fio !== 'Иванов Иван Иванович') {
                     return false;
                 }
                 $author->setId(42);

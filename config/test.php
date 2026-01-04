@@ -18,9 +18,15 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'language' => 'ru-RU',
-    'container' => $container,
+    'container' => $container($params),
     'components' => [
         'db' => $db,
+        'redis' => [
+            'class' => 'yii\redis\Connection',
+            'hostname' => env('REDIS_HOST', 'localhost'),
+            'port' => (int)env('REDIS_PORT', 6379),
+            'database' => 15,
+        ],
         'mutex' => [
             'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
                 ? \yii\mutex\PgsqlMutex::class

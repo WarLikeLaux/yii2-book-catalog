@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace app\domain\specifications;
 
-use app\domain\values\BookYear;
-
+/** Критерий поиска, не VO - принимает любой год, валидация не нужна */
 final readonly class YearSpecification implements BookSpecificationInterface
 {
     public function __construct(
-        private BookYear $year
+        private int $year
     ) {
     }
 
@@ -17,7 +16,7 @@ final readonly class YearSpecification implements BookSpecificationInterface
     {
         return [
             'type' => 'year',
-            'value' => $this->year->value,
+            'value' => $this->year,
         ];
     }
 }

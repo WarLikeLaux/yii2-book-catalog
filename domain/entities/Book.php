@@ -5,31 +5,33 @@ declare(strict_types=1);
 namespace app\domain\entities;
 
 use app\domain\exceptions\DomainException;
+use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
+use app\domain\values\StoredFileReference;
 use RuntimeException;
 
 final class Book
 {
     private const int MAX_TITLE_LENGTH = 255;
 
-    /** @var int[] */
-    private array $authorIds = [];
+    public private(set) ?int $id = null;
 
-    private ?int $id = null;
+    /** @var int[] */
+    public private(set) array $authorIds = [];
 
     /**
      * @param int[] $authorIds
      */
     private function __construct(
-        private string $title,
-        private BookYear $year,
-        private Isbn $isbn,
-        private ?string $description,
-        private ?string $coverUrl,
+        public private(set) string $title,
+        public private(set) BookYear $year,
+        public private(set) Isbn $isbn,
+        public private(set) ?string $description,
+        public private(set) ?StoredFileReference $coverImage,
         array $authorIds,
-        private bool $published,
-        private int $version
+        public private(set) bool $published,
+        public private(set) int $version
     ) {
         $this->validateTitle($title);
         $this->authorIds = array_map(intval(...), $authorIds);
@@ -53,14 +55,14 @@ final class Book
         BookYear $year,
         Isbn $isbn,
         ?string $description,
-        ?string $coverUrl
+        ?StoredFileReference $coverImage
     ): self {
         return new self(
             title: $title,
             year: $year,
             isbn: $isbn,
             description: $description,
-            coverUrl: $coverUrl,
+            coverImage: $coverImage,
             authorIds: [],
             published: false,
             version: 1
@@ -76,7 +78,7 @@ final class Book
         BookYear $year,
         Isbn $isbn,
         ?string $description,
-        ?string $coverUrl,
+        ?StoredFileReference $coverImage,
         array $authorIds,
         bool $published,
         int $version
@@ -86,7 +88,7 @@ final class Book
             year: $year,
             isbn: $isbn,
             description: $description,
-            coverUrl: $coverUrl,
+            coverImage: $coverImage,
             authorIds: $authorIds,
             published: $published,
             version: $version
@@ -124,9 +126,9 @@ final class Book
         $this->description = $description;
     }
 
-    public function updateCover(?string $coverUrl): void
+    public function updateCover(?StoredFileReference $coverImage): void
     {
-        $this->coverUrl = $coverUrl;
+        $this->coverImage = $coverImage;
     }
 
     public function addAuthor(int $authorId): void
@@ -169,11 +171,6 @@ final class Book
         }
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
     private function setId(int $id): void
     {
         if ($this->id !== null && $this->id !== $id) {
@@ -188,58 +185,13 @@ final class Book
         return $this;
     }
 
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    public function getYear(): BookYear
-    {
-        return $this->year;
-    }
-
-    public function getIsbn(): Isbn
-    {
-        return $this->isbn;
-    }
-
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    public function getCoverUrl(): ?string
-    {
-        return $this->coverUrl;
-    }
-
-    /**
-     * @return int[]
-     */
-    public function getAuthorIds(): array
-    {
-        return $this->authorIds;
-    }
-
     /**
      * @throws DomainException
      */
-    public function publish(): void
+    public function publish(BookPublicationPolicy $policy): void
     {
-        if ($this->authorIds === []) {
-            throw new DomainException('book.error.publish_without_authors');
-        }
+        $policy->ensureCanPublish($this);
         $this->published = true;
-    }
-
-    public function isPublished(): bool
-    {
-        return $this->published;
-    }
-
-    public function getVersion(): int
-    {
-        return $this->version;
     }
 
     /**

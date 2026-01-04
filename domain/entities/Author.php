@@ -12,8 +12,8 @@ final class Author
     private const int MAX_FIO_LENGTH = 255;
 
     public function __construct(
-        private ?int $id,
-        private string $fio
+        public private(set) ?int $id,
+        public private(set) string $fio
     ) {
         $this->validateFio($fio);
     }
@@ -44,16 +44,6 @@ final class Author
     {
         $this->validateFio($fio);
         $this->fio = $fio;
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getFio(): string
-    {
-        return $this->fio;
     }
 
     /**

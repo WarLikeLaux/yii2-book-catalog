@@ -7,11 +7,14 @@ namespace app\presentation\controllers\api;
 use app\application\common\dto\PaginationRequest;
 use app\presentation\books\handlers\BookViewDataFactory;
 use app\presentation\common\filters\IdempotencyFilter;
+use app\presentation\common\filters\RateLimitFilter;
 use OpenApi\Attributes as OA;
 use yii\data\DataProviderInterface;
 use yii\filters\AccessControl;
+use yii\filters\ContentNegotiator;
 use yii\filters\Cors;
 use yii\rest\Controller;
+use yii\web\Response;
 
 #[OA\Tag(name: 'API Books', description: 'REST API для работы с книгами')]
 final class BookController extends Controller
@@ -30,11 +33,24 @@ final class BookController extends Controller
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();
-        $behaviors['idempotency'] = [
-            'class' => IdempotencyFilter::class,
+
+        $behaviors['contentNegotiator'] = [
+            'class' => ContentNegotiator::class,
+            'formats' => [
+                'application/json' => Response::FORMAT_JSON,
+            ],
         ];
+
         $behaviors['corsFilter'] = [
             'class' => Cors::class,
+        ];
+
+        $behaviors['rateLimit'] = [
+            'class' => RateLimitFilter::class,
+        ];
+
+        $behaviors['idempotency'] = [
+            'class' => IdempotencyFilter::class,
         ];
         $behaviors['access'] = [
             'class' => AccessControl::class,

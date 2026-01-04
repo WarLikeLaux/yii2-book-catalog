@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\storage;
 
 use app\application\common\dto\TemporaryFile;
+use app\domain\values\StoredFileReference;
 use app\infrastructure\services\storage\LocalFileStorage;
+use app\infrastructure\services\storage\StorageConfig;
 use Codeception\Test\Unit;
 
 final class LocalFileStorageTest extends Unit
@@ -20,9 +22,12 @@ final class LocalFileStorageTest extends Unit
         mkdir($this->tempDir, 0777, true);
 
         $this->storage = new LocalFileStorage(
-            $this->tempDir,
-            '/uploads',
-            $this->tempDir . '/tmp'
+            new StorageConfig(
+                $this->tempDir,
+                '/uploads',
+                $this->tempDir . '/tmp',
+                '/tmp_uploads'
+            )
         );
     }
 
@@ -37,21 +42,22 @@ final class LocalFileStorageTest extends Unit
 
         $file = $this->storage->saveTemporary($tempFile, 'txt');
 
-        $this->assertStringStartsWith('/uploads/', $file->url);
-        $this->assertStringEndsWith('.txt', $file->url);
+        $this->assertStringEndsWith('.txt', $file->filename);
+        $this->assertStringContainsString('test-storage', $file->tempPath);
 
         $this->assertFileExists($file->tempPath);
         $this->assertSame('test content', file_get_contents($file->tempPath));
     }
 
-    public function testMoveToPermanentMovesFile(): void
+    public function testMoveToPermanentMovesFileAndReturnsUrl(): void
     {
         $tempFile = $this->createTempFile('content to delete');
         $file = $this->storage->saveTemporary($tempFile, 'txt');
 
-        $this->storage->moveToPermanent($file);
+        $permanentRef = $this->storage->moveToPermanent($file);
 
-        $savedFile = $this->tempDir . '/' . basename($file->url);
+        $this->assertInstanceOf(StoredFileReference::class, $permanentRef);
+        $savedFile = $this->tempDir . '/' . (string)$permanentRef;
         $this->assertFileExists($savedFile);
         $this->assertFileDoesNotExist($file->tempPath);
     }
@@ -70,7 +76,7 @@ final class LocalFileStorageTest extends Unit
     {
         $file = new TemporaryFile(
             $this->tempDir . '/missing.txt',
-            '/uploads/missing.txt'
+            'missing.txt'
         );
 
         $this->storage->deleteTemporary($file);
@@ -82,12 +88,12 @@ final class LocalFileStorageTest extends Unit
     {
         $tempFile = $this->createTempFile('content to delete');
         $file = $this->storage->saveTemporary($tempFile, 'txt');
-        $this->storage->moveToPermanent($file);
+        $ref = $this->storage->moveToPermanent($file);
 
-        $savedFile = $this->tempDir . '/' . basename($file->url);
+        $savedFile = $this->tempDir . '/' . (string)$ref;
         $this->assertFileExists($savedFile);
 
-        $this->storage->delete($file->url);
+        $this->storage->delete((string)$ref);
 
         $this->assertFileDoesNotExist($savedFile);
     }

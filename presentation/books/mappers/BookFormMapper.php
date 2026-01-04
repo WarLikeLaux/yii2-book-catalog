@@ -7,29 +7,30 @@ namespace app\presentation\books\mappers;
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\UpdateBookCommand;
 use app\application\books\queries\BookReadDto;
+use app\domain\values\StoredFileReference;
 use app\presentation\books\forms\BookForm;
 
 final class BookFormMapper
 {
-    public function toCreateCommand(BookForm $form, ?string $coverPath): CreateBookCommand
+    public function toCreateCommand(BookForm $form, string|StoredFileReference|null $coverPath): CreateBookCommand
     {
         return new CreateBookCommand(
             title: $form->title,
             year: (int)$form->year,
-            description: $form->description,
+            description: $form->description !== '' ? $form->description : null,
             isbn: (string)$form->isbn,
             authorIds: array_map(intval(...), (array)$form->authorIds),
             cover: $coverPath,
         );
     }
 
-    public function toUpdateCommand(int $id, BookForm $form, ?string $coverPath): UpdateBookCommand
+    public function toUpdateCommand(int $id, BookForm $form, string|StoredFileReference|null $coverPath): UpdateBookCommand
     {
         return new UpdateBookCommand(
             id: $id,
             title: $form->title,
             year: (int)$form->year,
-            description: $form->description,
+            description: $form->description !== '' ? $form->description : null,
             isbn: (string)$form->isbn,
             authorIds: array_map(intval(...), (array)$form->authorIds),
             version: $form->version,

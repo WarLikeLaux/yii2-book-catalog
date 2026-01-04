@@ -8,6 +8,7 @@ use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\application\subscriptions\usecases\SubscribeUseCase;
 use app\domain\entities\Subscription;
+use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -34,8 +35,8 @@ final class SubscribeUseCaseTest extends Unit
 
         $this->repository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Subscription $subscription) => $subscription->getPhone() === '79001112233'
-                    && $subscription->getAuthorId() === 1));
+            ->with($this->callback(fn (Subscription $subscription) => $subscription->phone === '79001112233'
+                    && $subscription->authorId === 1));
 
         $this->useCase->execute($command);
     }
@@ -61,6 +62,19 @@ final class SubscribeUseCaseTest extends Unit
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('subscription.error.create_failed');
+
+        $this->useCase->execute($command);
+    }
+
+    public function testExecuteLetsAlreadyExistsExceptionBubbleUp(): void
+    {
+        $command = new SubscribeCommand('79001112233', 1);
+
+        $this->repository->method('exists')->willReturn(false);
+        $this->repository->method('save')->willThrowException(new AlreadyExistsException());
+
+        $this->expectException(AlreadyExistsException::class);
+        $this->expectExceptionMessage('error.entity_already_exists');
 
         $this->useCase->execute($command);
     }

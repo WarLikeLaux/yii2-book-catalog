@@ -60,7 +60,7 @@ use yii\web\JsExpression;
     ],
 ]) ?>
 
-<?= $form->field($model, 'cover')->fileInput() ?>
+<?= $form->field($model, 'cover')->fileInput(['accept' => 'image/png,image/jpeg']) ?>
 
 <?php if (isset($book) && $book->coverUrl): ?>
     <div class="form-group">

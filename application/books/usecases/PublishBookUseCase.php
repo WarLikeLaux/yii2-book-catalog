@@ -29,13 +29,12 @@ final readonly class PublishBookUseCase
         try {
             $book = $this->bookRepository->get($command->bookId);
 
-            $this->publicationPolicy->ensureCanPublish($book);
-            $book->publish();
+            $book->publish($this->publicationPolicy);
 
             $this->bookRepository->save($book);
 
-            $title = $book->getTitle();
-            $year = $book->getYear()->value;
+            $title = $book->title;
+            $year = $book->year->value;
 
             $this->transaction->afterCommit(function () use ($command, $title, $year): void {
                 $this->eventPublisher->publishEvent(

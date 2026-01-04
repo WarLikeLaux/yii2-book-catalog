@@ -122,4 +122,26 @@ final class ReportQueryServiceTest extends Unit
         $dto = $this->service->getEmptyTopAuthorsReport(2000);
         $this->assertSame(2000, $dto->year);
     }
+
+    public function testGetTopAuthorsReportBypassesCacheWhenTtlIsZero(): void
+    {
+        $year = 2023;
+        $expectedData = [['id' => 1, 'fio' => 'Direct', 'books_count' => 5]];
+
+        $this->repository->expects($this->once())
+            ->method('getTopAuthorsByYear')
+            ->with($year, 10)
+            ->willReturn($expectedData);
+
+        $this->cache->expects($this->never())
+            ->method('getOrSet');
+
+        $service = new ReportQueryService($this->repository, $this->cache, 0);
+
+        $criteria = new ReportCriteria($year);
+        $dto = $service->getTopAuthorsReport($criteria);
+
+        $this->assertSame($expectedData, $dto->topAuthors);
+        $this->assertSame($year, $dto->year);
+    }
 }

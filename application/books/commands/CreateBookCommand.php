@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace app\application\books\commands;
 
+use app\domain\values\StoredFileReference;
+
 final readonly class CreateBookCommand
 {
     /**
@@ -15,7 +17,7 @@ final readonly class CreateBookCommand
         public ?string $description,
         public string $isbn,
         public array $authorIds,
-        public string|null $cover = null,
+        public string|StoredFileReference|null $cover = null,
     ) {
     }
 }

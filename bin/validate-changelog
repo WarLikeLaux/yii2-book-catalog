@@ -3,9 +3,6 @@
 
 declare(strict_types=1);
 
-/**
- * Валидатор CHANGELOG.md на соответствие коммитам и структуре.
- */
 
 final class ChangelogValidator
 {

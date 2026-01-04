@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
+use app\application\books\factories\BookYearFactory;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookUpdatedEvent;
-use app\domain\values\BookYear;
 use app\domain\values\Isbn;
-use DateTimeImmutable;
+use app\domain\values\StoredFileReference;
 use Throwable;
 
 final readonly class UpdateBookUseCase
@@ -20,21 +20,30 @@ final readonly class UpdateBookUseCase
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
         private EventPublisherInterface $eventPublisher,
+        private BookYearFactory $bookYearFactory,
     ) {
     }
 
     public function execute(UpdateBookCommand $command): void
     {
         $book = $this->bookRepository->get($command->id);
-        $oldYear = $book->getYear()->value;
-        $isPublished = $book->isPublished();
+        $oldYear = $book->year->value;
+        $isPublished = $book->published;
 
         $this->transaction->begin();
         try {
             $book->rename($command->title);
-            $book->changeYear(new BookYear($command->year, new DateTimeImmutable()));
+            $book->changeYear($this->bookYearFactory->create($command->year));
             $book->correctIsbn(new Isbn($command->isbn));
             $book->updateDescription($command->description);
+
+            if ($command->cover !== null) {
+                $cover = $command->cover;
+                if (is_string($cover)) {
+                    $cover = new StoredFileReference($cover);
+                }
+                $book->updateCover($cover);
+            }
 
             $book->replaceAuthors($command->authorIds);
 

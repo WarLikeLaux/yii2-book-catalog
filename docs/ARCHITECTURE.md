@@ -23,7 +23,7 @@
 ```
 Внешние слои (зависят от Yii2):
 ┌────────────────────────────────────────────────────────────┐
-│  PRESENTATION   │ Controllers, Forms, Views               │
+│  PRESENTATION   │ Контроллеры, формы, представления       │
 ├────────────────────────────────────────────────────────────┤
 │  INFRASTRUCTURE │ ActiveRecord, Queue, Repositories       │
 └────────────────────────────────────────────────────────────┘
@@ -375,29 +375,33 @@ public function actionCreate(): string|Response|array
         }
     }
 
+    $authors = $this->viewDataFactory->getAuthorsList();
+
     return $this->render('create', [
         'model' => $form,
-        'authors' => $this->viewDataFactory->getAuthorsList(),
+        'authors' => $authors,
     ]);
 }
 ```
 
 ```php
 // presentation/books/handlers/BookCommandHandler.php
-public function createBook(BookForm $form): ?int
+public function createBook(BookForm $form): int|null
 {
-    $coverPath = $this->uploadCover($form);
-    
-    try {
-        $command = $this->mapper->toCreateCommand($form, $coverPath);
-        $bookId = $this->createBookUseCase->execute($command);
-        $this->notifier->success(Yii::t('app', 'Book has been created'));
-        return $bookId;
-    } catch (DomainException $e) {
-        $this->cleanupFile($coverPath);
-        $this->addFormError($form, $e); // Маппинг ошибки на поле формы
-        return null;
-    }
+    $tempFile = $this->uploadCover($form);
+    $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
+    $command = $this->mapper->toCreateCommand($form, $permanentRef);
+
+    return $this->useCaseRunner->executeWithFormErrors(
+        fn(): int => $this->createBookUseCase->execute($command),
+        Yii::t('app', 'book.success.created'),
+        function (DomainException $e) use ($form, $permanentRef): void {
+            if ($permanentRef instanceof StoredFileReference) {
+                $this->fileStorage->delete((string)$permanentRef);
+            }
+            $this->addFormError($form, $e); // Маппинг ошибки на поле формы
+        }
+    );
 }
 ```
 
@@ -410,12 +414,11 @@ public function execute(PublishBookCommand $command): void
     try {
         $book = $this->bookRepository->get($command->bookId);
 
-        $this->publicationPolicy->ensureCanPublish($book);
-        $book->publish();
+        $book->publish($this->publicationPolicy);
         $this->bookRepository->save($book);
 
-        $title = $book->getTitle();
-        $year = $book->getYear()->value;
+        $title = $book->title;
+        $year = $book->year->value;
 
         // Отправка события ТОЛЬКО после успешного коммита
         $this->transaction->afterCommit(function () use ($command, $title, $year): void {
@@ -436,13 +439,13 @@ public function execute(PublishBookCommand $command): void
 // domain/values/Isbn.php
 final readonly class Isbn
 {
-    public string $value;
+    public private(set) string $value;
     
-    public function __construct(string $isbn)
+    public function __construct(string $value)
     {
-        $normalized = $this->normalize($isbn);
-        if (!$this->isValidChecksum($normalized)) {
-            throw new DomainException("Неверный ISBN: {$isbn}");
+        $normalized = $this->normalizeIsbn($value);
+        if (!$this->isValidIsbn($normalized)) {
+            throw new DomainException('isbn.error.invalid_format');
         }
         $this->value = $normalized;
     }
@@ -519,11 +522,16 @@ class Book extends ActiveRecord
 **Стало (BookForm):**
 ```php
 // Только для валидации ввода
-class BookForm extends Model
+final class BookForm extends RepositoryAwareForm
 {
-    public ?string $title = null;
-    public ?UploadedFile $coverFile = null;  // Файл от юзера
-    public array $authorIds = [];
+    public $id;
+    public $title = '';
+    public $year;
+    public $description;
+    public $isbn = '';
+    public $authorIds = [];
+    public $cover;
+    public int $version = 1;
 }
 
 // ActiveRecord чистый
@@ -549,6 +557,7 @@ $service->create($model);  // Book? BookForm? Array? Хз
 $command = new CreateBookCommand(
     title: 'Название',
     year: 2024,
+    description: 'Короткое описание',
     isbn: '9783161484100',
     authorIds: [1, 2],
     cover: '/uploads/cover.jpg'  // Уже URL, не файл!
@@ -578,14 +587,18 @@ $command = new CreateBookCommand(
 // presentation/mappers/BookFormMapper.php
 class BookFormMapper
 {
-    public function toCreateCommand(BookForm $form, ?string $coverUrl): CreateBookCommand
+    public function toCreateCommand(
+        BookForm $form,
+        string|StoredFileReference|null $coverPath
+    ): CreateBookCommand
     {
         return new CreateBookCommand(
             title: $form->title,
-            year: $form->year,
-            isbn: $form->isbn,
-            authorIds: $form->authorIds,
-            cover: $coverUrl
+            year: (int)$form->year,
+            description: $form->description !== '' ? $form->description : null,
+            isbn: (string)$form->isbn,
+            authorIds: array_map(intval(...), (array)$form->authorIds),
+            cover: $coverPath
         );
     }
 }
@@ -646,8 +659,14 @@ interface BookRepositoryInterface
 // Отдельный read-порт (ISP)
 interface BookQueryServiceInterface
 {
+    public function findById(int $id): ?BookReadDto;
     public function findByIdWithAuthors(int $id): ?BookReadDto;
     public function search(string $term, int $page, int $pageSize): PagedResultInterface;
+    public function searchBySpecification(
+        BookSpecificationInterface $specification,
+        int $page,
+        int $pageSize
+    ): PagedResultInterface;
 }
 
 // Реализация (infrastructure/repositories/)
@@ -657,7 +676,13 @@ class BookRepository implements BookRepositoryInterface
 
     public function save(BookEntity $book): void
     {
-        // ... mapping
+        $ar = $book->id === null ? new Book() : Book::findOne($book->id);
+        if ($ar === null) {
+            throw new EntityNotFoundException('book.error.not_found');
+        }
+        $ar->title = $book->title;
+        $ar->year = $book->year->value;
+        $ar->isbn = $book->isbn->value;
         $ar->save();
         
         // ... saving relations using $this->db
@@ -691,9 +716,9 @@ $isbn = new Isbn('фигня');  // DomainException!
 $isbn = new Isbn('9783161484100');  // OK
 
 // В репозитории
-public function create(..., Isbn $isbn, ...)
+public function save(BookEntity $book): void
 {
-    $book->isbn = $isbn->value;  // Гарантированно валидный
+    $ar->isbn = $book->isbn->value;  // Гарантированно валидный
 }
 ```
 ✅ **Результат:** невозможно создать невалидный ISBN. Точка.
@@ -715,9 +740,13 @@ $this->sendEmail(...);  // А если email упадёт?
 ```php
 // UseCase
 // Отправка события через afterCommit (гарантия согласованности)
-$this->transaction->afterCommit(fn() => 
-    $this->eventPublisher->publishEvent(new BookPublishedEvent($bookId, $title, $year))
-);
+$title = $book->title;
+$year = $book->year->value;
+$this->transaction->afterCommit(function () use ($command, $title, $year): void {
+    $this->eventPublisher->publishEvent(
+        new BookPublishedEvent($command->bookId, $title, $year)
+    );
+});
 ```
 Слушатели получают событие синхронно через `EventListenerInterface`, а в очередь уходят только события, реализующие `QueueableEvent`. Маппинг Event → Job выполняет `EventToJobMapper` в инфраструктуре, чтобы домен не знал о job-классах.
 ✅ **Результат:** упал SMS? Книга всё равно создана. SMS повторится из очереди.
@@ -738,7 +767,7 @@ foreach ($subscribers as $sub) {
 **Стало:**
 ```php
 // Event → одна задача в очередь (маппинг делает EventToJobMapper)
-Yii::$app->queue->push(new NotifySubscribersJob($bookId));
+$this->queue->push(new NotifySubscribersJob($bookId));
 // Страница отвечает мгновенно
 
 // Воркер в фоне:
@@ -770,16 +799,25 @@ class Book extends ActiveRecord
 final class Book
 {
     // ...
-    public function publish(): void
+    public function publish(BookPublicationPolicy $policy): void
     {
-        if ($this->authorIds === []) {
-            throw new DomainException('book.error.publish_without_authors');
-        }
+        $policy->ensureCanPublish($this);
         $this->published = true;
     }
     
     // Сущность сама управляет своими авторами
-    public function addAuthor(int $authorId): void { ... }
+    public function addAuthor(int $authorId): void
+    {
+        if ($authorId <= 0) {
+            throw new DomainException('book.error.invalid_author_id');
+        }
+
+        if (in_array($authorId, $this->authorIds, true)) {
+            return;
+        }
+
+        $this->authorIds[] = $authorId;
+    }
 }
 ```
 ✅ **Результат:** Entity не знает о БД. Тестируется без инфраструктуры. Value Objects гарантируют валидность.
@@ -803,7 +841,7 @@ final class Book
 ```php
 // Repository
 try {
-    $ar->version = $book->getVersion();
+    $ar->version = $book->version;
     $ar->save(); // Проверяет version = DB.version
 } catch (StaleObjectException $e) {
     throw new StaleDataException(); // Контроллер покажет ошибку
@@ -838,15 +876,20 @@ final readonly class BookCommandHandler
 {
     public function createBook(BookForm $form): ?int
     {
-        $coverPath = $this->uploadCover($form);
-        
-        try {
-            $command = $this->mapper->toCreateCommand($form, $coverPath);
-            return $this->createBookUseCase->execute($command);
-        } catch (DomainException $e) {
-            $this->addFormError($form, $e); // Маппинг ошибки на поле
-            return null;
-        }
+        $tempFile = $this->uploadCover($form);
+        $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
+        $command = $this->mapper->toCreateCommand($form, $permanentRef);
+
+        return $this->useCaseRunner->executeWithFormErrors(
+            fn(): int => $this->createBookUseCase->execute($command),
+            Yii::t('app', 'book.success.created'),
+            function (DomainException $e) use ($form, $permanentRef): void {
+                if ($permanentRef instanceof StoredFileReference) {
+                    $this->fileStorage->delete((string)$permanentRef);
+                }
+                $this->addFormError($form, $e); // Маппинг ошибки на поле
+            }
+        );
     }
 }
 ```
@@ -877,10 +920,35 @@ class Book extends ActiveRecord
 
 **Стало (Clean-ish):**
 ```php
-// Presentation (Form) — только формат
-class BookForm extends Model {
-    public function rules() {
-        return [['isbn', 'string', 'length' => 13]]; // Чистый PHP
+// Presentation (Form) — формат + проверка уникальности через репозиторий
+class BookForm extends RepositoryAwareForm
+{
+    public function rules(): array
+    {
+        return [
+            [['title', 'year', 'isbn', 'authorIds'], 'required'],
+            ['isbn', 'string', 'max' => 20],
+            ['isbn', IsbnValidator::class],
+            ['isbn', 'validateIsbnUnique'],
+        ];
+    }
+
+    public function validateIsbnUnique(string $attribute): void
+    {
+        $value = $this->$attribute;
+
+        if (!is_string($value)) {
+            return;
+        }
+
+        $repository = $this->resolve(BookRepositoryInterface::class);
+        $excludeId = $this->id !== null ? (int)$this->id : null;
+
+        if (!$repository->existsByIsbn($value, $excludeId)) {
+            return;
+        }
+
+        $this->addError($attribute, Yii::t('app', 'book.error.isbn_exists'));
     }
 }
 
@@ -889,18 +957,18 @@ public function save(Book $book): void {
     try {
         $ar->save(); // Unique Index в БД гарантирует целостность
     } catch (IntegrityException $e) {
-        throw new AlreadyExistsException("ISBN exists");
+        throw new AlreadyExistsException('book.error.isbn_exists', 409, $e);
     }
 }
 
-// Controller — обработка ошибок
+// Контроллер — обработка ошибок
 try {
     $this->useCase->create(...);
 } catch (AlreadyExistsException $e) {
     $form->addError('isbn', $e->getMessage());
 }
 ```
-✅ **Результат:** Presentation слой чист и тестируем. Целостность гарантирована БД. Нет Race Condition.
+✅ **Результат:** форма даёт быстрый фидбек, а БД всё равно гарантирует целостность. Нет Race Condition.
 
 ---
 
@@ -936,15 +1004,19 @@ $result = $this->bookQueryService->searchBySpecification($spec);
 **Стало:**
 Внедрен паттерн **Decorator** для добавления наблюдаемости без изменения бизнес-логики.
 ```php
-// infrastructure/repositories/decorators/QueueTracingDecorator.php
-final class QueueTracingDecorator implements QueueInterface {
+// infrastructure/adapters/decorators/QueueTracingDecorator.php
+final readonly class QueueTracingDecorator implements QueueInterface {
     public function __construct(
-        private QueueInterface $repo,
+        private QueueInterface $queue,
         private TracerInterface $tracer
     ) {}
 
-    public function push(Job $job): string {
-        return $this->tracer->trace('queue.push', fn() => $this->repo->push($job));
+    public function push(object $job): void {
+        $this->tracer->trace(
+            'Queue::' . __FUNCTION__,
+            fn() => $this->queue->push($job),
+            ['job_class' => $job::class]
+        );
     }
 }
 ```

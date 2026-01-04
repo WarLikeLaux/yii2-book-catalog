@@ -10,7 +10,7 @@ final readonly class Isbn implements \Stringable
 {
     private const array ISBN13_PREFIXES = ['978', '979'];
 
-    public string $value;
+    public private(set) string $value;
 
     public function __construct(string $value)
     {

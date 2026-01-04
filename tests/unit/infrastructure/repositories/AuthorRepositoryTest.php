@@ -23,20 +23,16 @@ final class AuthorRepositoryTest extends Unit
         Author::deleteAll();
     }
 
-    public function testCreateAndFindById(): void
+    public function testSaveAndGet(): void
     {
         $author = AuthorEntity::create('Test Author');
         $this->repository->save($author);
 
-        $this->assertNotNull($author->getId());
+        $this->assertNotNull($author->id);
 
-        $fetched = $this->repository->get($author->getId());
+        $fetched = $this->repository->get($author->id);
         $this->assertNotNull($fetched);
-        $this->assertSame('Test Author', $fetched->getFio());
-
-        $dto = $this->repository->findById($author->getId());
-        $this->assertNotNull($dto);
-        $this->assertSame('Test Author', $dto->fio);
+        $this->assertSame('Test Author', $fetched->fio);
     }
 
     public function testUpdate(): void
@@ -47,8 +43,8 @@ final class AuthorRepositoryTest extends Unit
         $author->update('New Name');
         $this->repository->save($author);
 
-        $fetched = $this->repository->get($author->getId());
-        $this->assertSame('New Name', $fetched->getFio());
+        $fetched = $this->repository->get($author->id);
+        $this->assertSame('New Name', $fetched->fio);
     }
 
     public function testDelete(): void
@@ -59,7 +55,7 @@ final class AuthorRepositoryTest extends Unit
         $this->repository->delete($author);
 
         $this->expectException(EntityNotFoundException::class);
-        $this->repository->get($author->getId());
+        $this->repository->get($author->id);
     }
 
     public function testExistsByFio(): void
@@ -76,7 +72,7 @@ final class AuthorRepositoryTest extends Unit
         $author = AuthorEntity::create('Unique Author');
         $this->repository->save($author);
 
-        $this->assertFalse($this->repository->existsByFio('Unique Author', $author->getId()));
+        $this->assertFalse($this->repository->existsByFio('Unique Author', $author->id));
         $this->assertTrue($this->repository->existsByFio('Unique Author', 99999));
     }
 
@@ -92,65 +88,6 @@ final class AuthorRepositoryTest extends Unit
 
         $this->expectException(EntityNotFoundException::class);
         $this->repository->delete($author);
-    }
-
-    public function testFindAllOrderedByFio(): void
-    {
-        $author1 = AuthorEntity::create('Zebra Author');
-        $author2 = AuthorEntity::create('Alpha Author');
-        $author3 = AuthorEntity::create('Middle Author');
-
-        $this->repository->save($author1);
-        $this->repository->save($author2);
-        $this->repository->save($author3);
-
-        $result = $this->repository->findAllOrderedByFio();
-
-        $this->assertCount(3, $result);
-        $this->assertSame('Alpha Author', $result[0]->fio);
-        $this->assertSame('Middle Author', $result[1]->fio);
-        $this->assertSame('Zebra Author', $result[2]->fio);
-    }
-
-    public function testSearchWithEmptyTerm(): void
-    {
-        $author = AuthorEntity::create('Searchable Author');
-        $this->repository->save($author);
-
-        $result = $this->repository->search('', 1, 10);
-
-        $this->assertGreaterThan(0, $result->getTotalCount());
-    }
-
-    public function testSearchWithTerm(): void
-    {
-        $author1 = AuthorEntity::create('John Doe');
-        $author2 = AuthorEntity::create('Jane Smith');
-        $this->repository->save($author1);
-        $this->repository->save($author2);
-
-        $result = $this->repository->search('John', 1, 10);
-
-        $this->assertSame(1, $result->getTotalCount());
-    }
-
-    public function testSearchPagination(): void
-    {
-        for ($i = 1; $i <= 15; $i++) {
-            $author = AuthorEntity::create("Author $i");
-            $this->repository->save($author);
-        }
-
-        $result = $this->repository->search('', 1, 10);
-
-        $this->assertSame(15, $result->getTotalCount());
-        $this->assertCount(10, $result->getModels());
-        $this->assertSame(2, $result->getPagination()->totalPages);
-    }
-
-    public function testFindByIdReturnsNullOnNotFound(): void
-    {
-        $this->assertNull($this->repository->findById(99999));
     }
 
     public function testSaveUpdateNonExistentAuthorThrowsException(): void

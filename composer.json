@@ -32,7 +32,8 @@
         "guzzlehttp/guzzle": "^7.10",
         "inspector-apm/inspector-php": "^3.16",
         "npm-asset/faker": "5.5.3",
-        "twbs/bootstrap-icons": "^1.13"
+        "twbs/bootstrap-icons": "^1.13",
+        "npm-asset/glightbox": "^3.3"
     },
     "require-dev": {
         "symfony/var-dumper": "^5.4 || ^6.0 || ^7.0",
@@ -50,7 +51,7 @@
         "yiisoft/yii2-coding-standards": "^3.0",
         "slevomat/coding-standard": "^8.25",
         "phpstan/phpstan": "^2.1",
-        "deptrac/deptrac": "^3.0",
+        "deptrac/deptrac": "4.x-dev",
         "infection/infection": "^0.32.0",
         "infection/codeception-adapter": "^0.4.4",
         "rector/rector": "^2.3",

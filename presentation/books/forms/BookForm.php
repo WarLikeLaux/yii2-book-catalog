@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\books\forms;
 
-use app\application\authors\queries\AuthorReadDto;
-use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\presentation\books\validators\IsbnValidator;
 use app\presentation\common\forms\RepositoryAwareForm;
@@ -112,20 +111,28 @@ final class BookForm extends RepositoryAwareForm
             return; // @codeCoverageIgnore
         }
 
-        $repository = $this->resolve(AuthorRepositoryInterface::class);
-
-        foreach ($value as $authorId) {
-            if (!is_int($authorId) && !is_string($authorId)) {
+        $ids = [];
+        foreach ($value as $rawId) {
+            if (!is_int($rawId) && !is_string($rawId)) {
                 continue; // @codeCoverageIgnore
             }
-
-            $authorId = (int)$authorId;
-
-            if ($repository->findById($authorId) instanceof AuthorReadDto) {
+            $id = (int)$rawId;
+            if ($id <= 0) {
                 continue;
             }
 
-            $this->addError($attribute, Yii::t('app', 'author.error.id_not_found', ['id' => $authorId]));
+            $ids[] = $id;
+        }
+
+        if ($ids === []) {
+            return;
+        }
+
+        $service = $this->resolve(AuthorQueryServiceInterface::class);
+        $missingIds = $service->findMissingIds($ids);
+
+        foreach ($missingIds as $missingId) {
+            $this->addError($attribute, Yii::t('app', 'author.error.id_not_found', ['id' => $missingId]));
         }
     }
 

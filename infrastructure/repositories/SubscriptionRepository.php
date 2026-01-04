@@ -6,9 +6,11 @@ namespace app\infrastructure\repositories;
 
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\domain\entities\Subscription as SubscriptionEntity;
+use app\domain\exceptions\AlreadyExistsException;
 use app\infrastructure\persistence\Subscription;
 use RuntimeException;
 use yii\db\Connection;
+use yii\db\IntegrityException;
 use yii\db\Query;
 
 final readonly class SubscriptionRepository implements SubscriptionRepositoryInterface
@@ -20,12 +22,16 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
 
     public function save(SubscriptionEntity $subscription): void
     {
-        $ar = Subscription::create($subscription->getPhone(), $subscription->getAuthorId());
+        $ar = Subscription::create($subscription->phone, $subscription->authorId);
 
-        if (!$ar->save()) {
-            $errors = $ar->getFirstErrors();
-            $message = $errors !== [] ? array_shift($errors) : 'subscription.error.save_failed';
-            throw new RuntimeException($message);
+        try {
+            if (!$ar->save()) {
+                $errors = $ar->getFirstErrors();
+                $message = $errors !== [] ? array_shift($errors) : 'subscription.error.save_failed';
+                throw new RuntimeException($message);
+            }
+        } catch (IntegrityException $e) {
+            throw new AlreadyExistsException(previous: $e); // @codeCoverageIgnore
         }
 
         $subscription->setId($ar->id);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** @var app\application\books\queries\BookReadDto $book */
+/** @var app\presentation\books\viewmodels\BookViewModel $book */
 
 use yii\helpers\Html;
 
@@ -68,7 +68,13 @@ $this->params['breadcrumbs'][] = $this->title;
         <?php if ($book->coverUrl): ?>
         <tr>
             <th>Обложка</th>
-            <td><?= Html::img($book->coverUrl, ['alt' => $book->title, 'style' => 'max-width: 300px;']) ?></td>
+            <td>
+                <?= Html::a(
+                    Html::img($book->coverUrl, ['alt' => $book->title, 'style' => 'max-width: 300px; cursor: pointer;', 'loading' => 'lazy']),
+                    $book->coverUrl,
+                    ['class' => 'glightbox', 'data-gallery' => 'book-gallery']
+                ) ?>
+            </td>
         </tr>
         <?php endif; ?>
     </table>

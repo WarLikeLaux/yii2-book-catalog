@@ -28,4 +28,14 @@ final class BookFormTest extends Unit
 
         $this->assertSame([], $result);
     }
+
+    public function testValidateAuthorsExistSkipsInvalidIds(): void
+    {
+        $form = new BookForm();
+        $form->authorIds = ['0', '-1', ''];
+
+        $form->validateAuthorsExist('authorIds');
+
+        $this->assertFalse($form->hasErrors('authorIds'));
+    }
 }

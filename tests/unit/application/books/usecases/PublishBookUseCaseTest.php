@@ -53,7 +53,7 @@ final class PublishBookUseCaseTest extends Unit
             year: new BookYear(2008, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'A Handbook',
-            coverUrl: null,
+            coverImage: null,
             authorIds: [1, 2],
             published: false,
             version: 1
@@ -96,7 +96,7 @@ final class PublishBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $b) => $b->isPublished() === true));
+            ->with($this->callback(fn (Book $b) => $b->published === true));
 
         $this->eventPublisher->expects($this->once())
             ->method('publishEvent')
@@ -115,7 +115,7 @@ final class PublishBookUseCaseTest extends Unit
             year: new BookYear(2024, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Test',
-            coverUrl: null,
+            coverImage: null,
             authorIds: [],
             published: false,
             version: 1
@@ -149,7 +149,7 @@ final class PublishBookUseCaseTest extends Unit
             year: new BookYear(2024, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Test',
-            coverUrl: null,
+            coverImage: null,
             authorIds: [1],
             published: false,
             version: 1
