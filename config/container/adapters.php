@@ -34,7 +34,7 @@ use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\YiiPsrLogger;
 use yii\di\Container;
 
-return static fn (array $params) => [
+return static fn (array $_params) => [
         'definitions' => [
             SmsSenderInterface::class => static function () {
                 $apiKey = (string)env('SMS_API_KEY', 'MOCK_KEY');
@@ -76,7 +76,7 @@ return static fn (array $params) => [
             SystemInfoProviderInterface::class => static fn() => new SystemInfoAdapter(Yii::$app->get('db')),
         ],
         'singletons' => [
-            TracerInterface::class => static function (Container $c): TracerInterface {
+            TracerInterface::class => static function (Container $_c): TracerInterface {
                 if (!env('INSPECTOR_INGESTION_KEY')) {
                     return new NullTracer();
                 }

@@ -25,7 +25,7 @@ use Psr\Log\LoggerInterface;
 use yii\di\Container;
 use yii\di\Instance;
 
-return static fn (array $params) => [
+return static fn (array $_params) => [
     IdempotencyRepository::class => [
         'class' => IdempotencyRepository::class,
         '__construct()' => [

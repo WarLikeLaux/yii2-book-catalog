@@ -15,7 +15,7 @@ $config = [
     'viewPath' => '@app/presentation/views',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
-        '@npm'   => '@vendor/npm-asset',
+        '@npm' => '@vendor/npm-asset',
     ],
     'language' => 'ru-RU',
     'container' => $container($params),
