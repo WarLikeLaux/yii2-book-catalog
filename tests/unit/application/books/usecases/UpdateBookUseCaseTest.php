@@ -13,9 +13,8 @@ use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\EntityNotFoundException;
-use app\domain\values\BookYear;
 use app\domain\values\Isbn;
-use app\domain\values\StoredFileReference;
+use BookTestHelper;
 use Codeception\Test\Unit;
 use DateTimeImmutable;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -64,16 +63,14 @@ final class UpdateBookUseCaseTest extends Unit
             cover: '/uploads/new-cover.jpg'
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Old Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Old description',
-            coverImage: new StoredFileReference('/uploads/old-cover.jpg'),
+            coverImage: '/uploads/old-cover.jpg',
             authorIds: [1],
-            published: false,
-            version: 1
+            published: false
         );
 
         $this->bookRepository->expects($this->once())
@@ -87,12 +84,12 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->title === 'Updated Title'
+            ->with($this->callback(fn (Book $book): bool => $book->title === 'Updated Title'
                     && $book->authorIds === [1, 2]));
 
         $this->eventPublisher->expects($this->once())
             ->method('publishAfterCommit')
-            ->with($this->callback(fn (BookUpdatedEvent $event) => $event->bookId === 42
+            ->with($this->callback(fn (BookUpdatedEvent $event): bool => $event->bookId === 42
                 && $event->oldYear === 2020
                 && $event->newYear === 2024
                 && $event->isPublished === false));
@@ -108,7 +105,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [],
+            authorIds: [1],
             version: 1
         );
 
@@ -133,20 +130,17 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [],
+            authorIds: [1],
             version: 1
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Old Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Description',
-            coverImage: null,
-            authorIds: [],
-            published: false,
-            version: 1
+            authorIds: [1],
+            published: false
         );
 
         $this->bookRepository->expects($this->once())
@@ -175,20 +169,17 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'New description',
             isbn: '9780132350884',
             authorIds: [1],
-            version: 1,
-            cover: null
+            version: 1
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Old Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Old description',
-            coverImage: new StoredFileReference('/uploads/old-cover.jpg'),
+            coverImage: '/uploads/old-cover.jpg',
             authorIds: [1],
-            published: false,
-            version: 1
+            published: false
         );
 
         $this->bookRepository->expects($this->once())
@@ -201,7 +192,7 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->title === 'Updated Title'
+            ->with($this->callback(fn (Book $book): bool => $book->title === 'Updated Title'
                     && $book->coverImage?->getPath() === '/uploads/old-cover.jpg'));
 
         $this->useCase->execute($command);
@@ -216,20 +207,16 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Description',
             isbn: '979-10-90636-07-1',
             authorIds: [1],
-            version: 1,
-            cover: null
+            version: 1
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Description',
-            coverImage: null,
             authorIds: [1],
-            published: false,
-            version: 1
+            published: false
         );
 
         $this->bookRepository->expects($this->once())
@@ -242,7 +229,7 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->isbn->equals(new Isbn('979-10-90636-07-1'))));
+            ->with($this->callback(fn (Book $book): bool => $book->isbn->equals(new Isbn('979-10-90636-07-1'))));
 
         $this->useCase->execute($command);
     }
@@ -260,16 +247,13 @@ final class UpdateBookUseCaseTest extends Unit
             cover: '/uploads/new-cover.png'
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Description',
-            coverImage: null,
             authorIds: [1],
-            published: false,
-            version: 1
+            published: false
         );
 
         $this->bookRepository->expects($this->once())
@@ -282,7 +266,7 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->coverImage?->getPath() === '/uploads/new-cover.png'));
+            ->with($this->callback(fn (Book $book): bool => $book->coverImage?->getPath() === '/uploads/new-cover.png'));
 
         $this->useCase->execute($command);
     }
@@ -296,20 +280,16 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'New description text',
             isbn: '9780132350884',
             authorIds: [1],
-            version: 1,
-            cover: null
+            version: 1
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Old description',
-            coverImage: null,
             authorIds: [1],
-            published: false,
-            version: 1
+            published: false
         );
 
         $this->bookRepository->expects($this->once())
@@ -322,7 +302,7 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->description === 'New description text'));
+            ->with($this->callback(fn (Book $book): bool => $book->description === 'New description text'));
 
         $this->useCase->execute($command);
     }

@@ -19,7 +19,7 @@ use Codeception\Actor;
  * @method \Codeception\Lib\Friend haveFriend($name, $actorClass = NULL)
  *
  * @SuppressWarnings(PHPMD)
-*/
+ */
 class UnitTester extends Actor
 {
     use UnitTesterActions;

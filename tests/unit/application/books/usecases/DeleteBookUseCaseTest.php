@@ -9,11 +9,9 @@ use app\application\books\usecases\DeleteBookUseCase;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
-use app\domain\entities\Book;
 use app\domain\events\BookDeletedEvent;
 use app\domain\exceptions\EntityNotFoundException;
-use app\domain\values\BookYear;
-use app\domain\values\Isbn;
+use BookTestHelper;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -43,16 +41,12 @@ final class DeleteBookUseCaseTest extends Unit
     {
         $command = new DeleteBookCommand(id: 42);
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Book to Delete',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
-            description: 'Description',
-            coverImage: null,
+            year: 2020,
             authorIds: [],
-            published: false,
-            version: 1
+            published: false
         );
 
         $this->bookRepository->expects($this->once())
@@ -84,11 +78,11 @@ final class DeleteBookUseCaseTest extends Unit
 
         $this->eventPublisher->expects($this->once())
             ->method('publishAfterCommit')
-            ->with($this->callback(fn (BookDeletedEvent $event) => $event->bookId === 42
+            ->with($this->callback(fn (BookDeletedEvent $event): bool => $event->bookId === 42
                 && $event->year === 2020
                 && $event->wasPublished === false))
-            ->willReturnCallback(function (BookDeletedEvent $event) use (&$afterCommitCallback): void {
-                $this->transaction->afterCommit(fn() => null);
+            ->willReturnCallback(function (BookDeletedEvent $event): void {
+                $this->transaction->afterCommit(fn(): null => null);
             });
 
         $this->useCase->execute($command);
@@ -116,16 +110,12 @@ final class DeleteBookUseCaseTest extends Unit
     {
         $command = new DeleteBookCommand(id: 42);
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Book to Delete',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
-            description: 'Description',
-            coverImage: null,
+            year: 2020,
             authorIds: [],
-            published: true,
-            version: 1
+            published: true
         );
 
         $this->bookRepository->expects($this->once())

@@ -13,8 +13,7 @@ use app\domain\entities\Book;
 use app\domain\events\BookPublishedEvent;
 use app\domain\exceptions\DomainException;
 use app\domain\services\BookPublicationPolicy;
-use app\domain\values\BookYear;
-use app\domain\values\Isbn;
+use BookTestHelper;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -47,16 +46,13 @@ final class PublishBookUseCaseTest extends Unit
     public function testPublishesBookSuccessfully(): void
     {
         $policy = $this->createMock(BookPublicationPolicy::class);
-        $book = Book::reconstitute(
+        $book = BookTestHelper::createBook(
             id: 42,
             title: 'Clean Code',
-            year: new BookYear(2008, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2008,
             description: 'A Handbook',
-            coverImage: null,
             authorIds: [1, 2],
-            published: false,
-            version: 1
+            published: false
         );
 
         $policy->expects($this->once())
@@ -96,15 +92,15 @@ final class PublishBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $b) => $b->published === true));
+            ->with($this->callback(fn (Book $b): bool => $b->published));
 
         $this->eventPublisher->expects($this->once())
             ->method('publishAfterCommit')
-            ->with($this->callback(fn (BookPublishedEvent $e) => $e->bookId === 42
+            ->with($this->callback(fn (BookPublishedEvent $e): bool => $e->bookId === 42
                     && $e->title === 'Clean Code'
                     && $e->year === 2008))
             ->willReturnCallback(function (): void {
-                $this->transaction->afterCommit(fn() => null);
+                $this->transaction->afterCommit(fn(): null => null);
             });
 
         $useCase->execute($command);
@@ -112,16 +108,13 @@ final class PublishBookUseCaseTest extends Unit
 
     public function testThrowsDomainExceptionWithoutAuthors(): void
     {
-        $book = Book::reconstitute(
+        $book = BookTestHelper::createBook(
             id: 42,
             title: 'Book Without Authors',
-            year: new BookYear(2024, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2024,
             description: 'Test',
-            coverImage: null,
             authorIds: [],
-            published: false,
-            version: 1
+            published: false
         );
 
         $command = new PublishBookCommand(bookId: 42);
@@ -146,16 +139,13 @@ final class PublishBookUseCaseTest extends Unit
 
     public function testRollsBackOnRepositoryException(): void
     {
-        $book = Book::reconstitute(
+        $book = BookTestHelper::createBook(
             id: 42,
             title: 'Test Book',
-            year: new BookYear(2024, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2024,
             description: 'Test',
-            coverImage: null,
             authorIds: [1],
-            published: false,
-            version: 1
+            published: false
         );
 
         $command = new PublishBookCommand(bookId: 42);
