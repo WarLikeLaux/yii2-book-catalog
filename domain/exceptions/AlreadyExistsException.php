@@ -6,6 +6,7 @@ namespace app\domain\exceptions;
 
 use Throwable;
 
+// phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
 class AlreadyExistsException extends DomainException
 {
     public function __construct(
