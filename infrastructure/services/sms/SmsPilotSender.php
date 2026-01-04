@@ -49,9 +49,11 @@ final readonly class SmsPilotSender implements SmsSenderInterface
         $send = $data['send'] ?? [];
 
         $status = null;
+
         if (is_array($send) && isset($send[0]) && is_array($send[0])) {
             $status = $send[0]['status'] ?? null;
         }
+
         if ($status === 'OK' || $status === '0') {
             $this->logger->info('SMS sent successfully', [
                 'phone' => $phone,

@@ -33,6 +33,7 @@ final readonly class YiiCacheAdapter implements CacheInterface
         }
 
         $redis = $this->cache->redis;
+
         if (!$redis instanceof Connection) {
             return;
         }

@@ -27,6 +27,7 @@ final readonly class AuthorSearchHandler
     {
         $response->format = Response::FORMAT_JSON;
         $form = $this->authorSearchCriteriaMapper->toForm($queryParams);
+
         if (!$form->validate()) {
             return $this->authorSelect2Mapper->emptyResult();
         }

@@ -34,11 +34,13 @@ final class RateLimitFilter extends ActionFilter
     public function beforeAction($action): bool
     {
         $request = Yii::$app->request;
+
         if (!$request instanceof Request) {
             return true; // @codeCoverageIgnore
         }
 
         $ip = $this->getClientIp($request);
+
         if ($ip === null) {
             return true; // @codeCoverageIgnore
         }
@@ -63,6 +65,7 @@ final class RateLimitFilter extends ActionFilter
     private function setRateLimitHeaders(int $current, int $limit, int $resetAt): void
     {
         $response = Yii::$app->response;
+
         if (!$response instanceof Response) {
             return; // @codeCoverageIgnore
         }
@@ -75,6 +78,7 @@ final class RateLimitFilter extends ActionFilter
     private function applyRateLimitExceeded(int $resetAt): void
     {
         $response = Yii::$app->response;
+
         if (!$response instanceof Response) {
             return; // @codeCoverageIgnore
         }

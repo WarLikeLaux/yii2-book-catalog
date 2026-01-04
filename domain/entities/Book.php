@@ -145,6 +145,7 @@ final class Book
     public function removeAuthor(int $authorId): void
     {
         $key = array_search($authorId, $this->authorIds, true);
+
         if ($key === false) {
             return;
         }
@@ -164,6 +165,7 @@ final class Book
     public function replaceAuthors(array $authorIds): void
     {
         $this->authorIds = [];
+
         foreach ($authorIds as $authorId) {
             $this->addAuthor($authorId);
         }

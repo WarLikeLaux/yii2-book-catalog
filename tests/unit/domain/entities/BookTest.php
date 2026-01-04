@@ -31,9 +31,11 @@ final class BookTest extends Unit
     private function createBookWithAuthors(int ...$authorIds): Book
     {
         $book = $this->createBook();
+
         if ($authorIds) {
             $book->replaceAuthors($authorIds);
         }
+
         return $book;
     }
 

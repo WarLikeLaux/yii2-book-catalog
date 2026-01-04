@@ -52,6 +52,7 @@ final readonly class BookCommandHandler
                 if ($permanentRef instanceof StoredFileReference) {
                     $this->fileStorage->delete((string)$permanentRef);
                 }
+
                 $this->addFormError($form, $e);
             }
         );
@@ -73,6 +74,7 @@ final readonly class BookCommandHandler
                 if ($permanentRef instanceof StoredFileReference) {
                     $this->fileStorage->delete((string)$permanentRef);
                 }
+
                 $this->addFormError($form, $e);
             }
         ) ?? false;
@@ -106,6 +108,7 @@ final readonly class BookCommandHandler
         if ($form->cover instanceof UploadedFile) {
             return $this->fileStorage->saveTemporary($form->cover->tempName, $form->cover->extension);
         }
+
         return null;
     }
 

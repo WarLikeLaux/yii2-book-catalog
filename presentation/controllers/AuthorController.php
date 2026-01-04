@@ -81,6 +81,7 @@ final class AuthorController extends Controller
 
         if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
             $authorId = $this->commandHandler->createAuthor($form);
+
             if ($authorId !== null) {
                 return $this->redirect(['view', 'id' => $authorId]);
             }
@@ -95,6 +96,7 @@ final class AuthorController extends Controller
 
         if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
             $success = $this->commandHandler->updateAuthor($id, $form);
+
             if ($success) {
                 return $this->redirect(['view', 'id' => $id]);
             }

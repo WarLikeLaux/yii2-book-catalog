@@ -32,6 +32,7 @@ final readonly class UpdateBookUseCase
         $isPublished = $book->published;
 
         $this->transaction->begin();
+
         try {
             $book->rename($command->title);
             $book->changeYear(new BookYear($command->year, $this->clock->now()));
@@ -40,9 +41,11 @@ final readonly class UpdateBookUseCase
 
             if ($command->cover !== null) {
                 $cover = $command->cover;
+
                 if (is_string($cover)) {
                     $cover = new StoredFileReference($cover);
                 }
+
                 $book->updateCover($cover);
             }
 

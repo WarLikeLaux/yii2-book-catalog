@@ -60,11 +60,13 @@ final readonly class Isbn implements \Stringable
         }
 
         $last = $isbn[9];
+
         if (!ctype_digit($last) && $last !== 'X' && $last !== 'x') {
             return false;
         }
 
         $weightedDigits = [];
+
         foreach (str_split($isbn) as $index => $digit) {
             $digitValue = $digit === 'X' || $digit === 'x' ? 10 : ord($digit) - 48;
             $weightedDigits[] = $digitValue * (10 - $index);
@@ -84,6 +86,7 @@ final readonly class Isbn implements \Stringable
         }
 
         $checksum = 0;
+
         for ($i = 0; $i < 13; $i++) {
             $weight = $i % 2 === 0 ? 1 : 3;
             $checksum += (int)$isbn[$i] * $weight;

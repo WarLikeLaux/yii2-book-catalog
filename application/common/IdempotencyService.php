@@ -37,14 +37,17 @@ final readonly class IdempotencyService implements IdempotencyServiceInterface
     public function getRecord(string $key): IdempotencyRecordDto|null
     {
         $saved = $this->repository->getRecord($key);
+
         if ($saved === null) {
             return null;
         }
 
         $status = IdempotencyKeyStatus::tryFrom($saved['status']);
+
         if (!$status instanceof IdempotencyKeyStatus) {
             return null;
         }
+
         if ($status === IdempotencyKeyStatus::Started) {
             return new IdempotencyRecordDto(
                 $status,

@@ -49,18 +49,22 @@ final readonly class BookViewDataFactory
     public function getBookForUpdate(int $id): BookForm
     {
         $dto = $this->bookQueryService->findById($id);
+
         if (!$dto instanceof BookReadDto) {
              throw new NotFoundHttpException();
         }
+
         return $this->mapper->toForm($dto);
     }
 
     public function getBookView(int $id): BookReadDto
     {
         $dto = $this->bookQueryService->findById($id);
+
         if (!$dto instanceof BookReadDto) {
              throw new NotFoundHttpException();
         }
+
         return $this->withResolvedUrl($dto);
     }
 

@@ -98,9 +98,11 @@ final class YiiCacheAdapterTest extends Unit
             ->method('executeCommand')
             ->willReturnCallback(function (string $command) use (&$callCount): mixed {
                 $callCount++;
+
                 if ($command === 'SCAN') {
                     return ['0', ['yii:prefix:key1']];
                 }
+
                 return 1; // DEL returns count of deleted keys
             });
 
@@ -151,11 +153,14 @@ final class YiiCacheAdapterTest extends Unit
             ->willReturnCallback(function (string $command) use (&$scanCount): mixed {
                 if ($command === 'SCAN') {
                     $scanCount++;
+
                     if ($scanCount === 1) {
                         return ['5', ['key1']]; // cursor 5, continue
                     }
+
                     return ['0', ['key2']]; // cursor 0, stop
                 }
+
                 return 1;
             });
 

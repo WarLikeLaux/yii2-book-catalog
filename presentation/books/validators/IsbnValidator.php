@@ -20,6 +20,7 @@ final class IsbnValidator extends Validator
     public function init(): void
     {
         parent::init();
+
         if ($this->message !== null) {
             return;
         }

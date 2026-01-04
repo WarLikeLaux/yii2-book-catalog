@@ -27,6 +27,7 @@ final readonly class DeleteBookUseCase
         $wasPublished = $book->published;
 
         $this->transaction->begin();
+
         try {
             $this->bookRepository->delete($book);
 

@@ -9,6 +9,7 @@ final readonly class BookSearchSpecificationFactory
     public function createFromSearchTerm(string $term): BookSpecificationInterface
     {
         $term = trim($term);
+
         if ($term === '') {
             return new FullTextSpecification('');
         }

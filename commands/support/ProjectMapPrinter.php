@@ -13,6 +13,7 @@ final readonly class ProjectMapPrinter
     public function print(Controller $output): void
     {
         $configPath = Yii::getAlias('@app/docs/structure.yaml');
+
         if (!is_string($configPath) || !file_exists($configPath)) {
             $output->stderr("Ошибка: Файл docs/structure.yaml не найден.\n");
             return;
@@ -44,6 +45,7 @@ final readonly class ProjectMapPrinter
 
         if (($data['type'] ?? '') === 'modules') {
             $output->stdout("  ├── {module}/         - См. раздел МОДУЛИ ниже\n");
+
             if (isset($data['module_structure'])) {
                 foreach ($data['module_structure'] as $subdir => $desc) {
                     $output->stdout(sprintf("  │   ├── %-13s - %s\n", $subdir . '/', $desc));
@@ -58,9 +60,11 @@ final readonly class ProjectMapPrinter
     {
         $output->stdout("МОДУЛИ СИСТЕМЫ\n");
         $output->stdout("==============\n");
+
         foreach ($modules as $name => $desc) {
             $output->stdout(sprintf("  %-21s - %s\n", $name, $desc));
         }
+
         $output->stdout("\n");
     }
 }

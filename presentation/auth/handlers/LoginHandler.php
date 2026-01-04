@@ -47,6 +47,7 @@ final class LoginHandler
         }
 
         $user = $form->getUser();
+
         if ($user === null || !$user->validatePassword($form->password)) {
             $form->addError('password', Yii::t('app', 'auth.error.invalid_credentials'));
             $form->password = '';

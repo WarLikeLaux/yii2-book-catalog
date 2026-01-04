@@ -76,12 +76,14 @@ final readonly class WebUseCaseRunner
             if ($onError !== null) {
                 $onError();
             }
+
             $onDomainError($e);
             return null;
         } catch (Throwable $e) {
             if ($onError !== null) {
                 $onError();
             }
+
             $this->logger->error($e->getMessage(), ['exception' => $e]);
             $this->notifier->error($this->translator->translate('app', 'error.unexpected'));
             return null;

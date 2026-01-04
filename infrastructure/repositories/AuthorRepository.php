@@ -23,6 +23,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             $ar = new Author();
         } else {
             $ar = Author::findOne($author->id);
+
             if ($ar === null) {
                 throw new EntityNotFoundException('author.error.not_found');
             }
@@ -42,6 +43,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
     public function get(int $id): AuthorEntity
     {
         $ar = Author::findOne($id);
+
         if ($ar === null) {
             throw new EntityNotFoundException('author.error.not_found');
         }
@@ -55,6 +57,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
     public function delete(AuthorEntity $author): void
     {
         $ar = Author::findOne($author->id);
+
         if ($ar === null) {
             throw new EntityNotFoundException('author.error.not_found');
         }
@@ -88,6 +91,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             if ($this->isDuplicateError($e)) {
                 throw new AlreadyExistsException('author.error.fio_exists', 409, $e);
             }
+
             throw $e;
         }
     }

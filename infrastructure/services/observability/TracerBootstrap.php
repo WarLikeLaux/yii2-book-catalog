@@ -88,9 +88,11 @@ final class TracerBootstrap extends Component implements BootstrapInterface
         $this->rootSpan->setAttribute('url', $request->getAbsoluteUrl());
         $this->rootSpan->setAttribute('method', $request->getMethod());
         $queryParams = $request->getQueryParams();
+
         if ($queryParams !== []) {
             $this->rootSpan->setAttribute('query_params', (string)json_encode($queryParams, JSON_UNESCAPED_UNICODE));
         }
+
         $this->rootSpan->setAttribute('headers', (string)json_encode($request->getHeaders()->toArray(), JSON_UNESCAPED_UNICODE));
     }
 

@@ -41,6 +41,7 @@ final readonly class DomainIsCleanRule implements Rule
     private function buildError(Scope $scope): array
     {
         $namespace = $scope->getNamespace();
+
         if ($namespace !== null && str_starts_with($namespace, 'app\domain')) {
             return [
                 RuleErrorBuilder::message('Domain layer must be clean. Do not use Yii::$app or other static Yii calls.')

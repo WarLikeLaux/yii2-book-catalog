@@ -28,6 +28,7 @@ final readonly class DomainEntitiesMustBePureRule implements Rule
         }
 
         $namespace = $scope->getNamespace();
+
         if ($namespace === null || !str_starts_with($namespace, 'app\domain\entities')) {
             return [];
         }

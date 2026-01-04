@@ -32,6 +32,7 @@ final class ClassScanner
         foreach ($this->targets as $relativeDir => $priority) {
             foreach ($this->scanClasses($relativeDir) as $fqcn) {
                 $shortName = substr($fqcn, (int) strrpos($fqcn, '\\') + 1);
+
                 if ($shortName === '') {
                     continue;
                 }
@@ -56,6 +57,7 @@ final class ClassScanner
     private function scanClasses(string $relativeDir): array
     {
         $directory = $this->basePath . DIRECTORY_SEPARATOR . $relativeDir;
+
         if (!is_dir($directory)) {
             return [];
         }
@@ -74,6 +76,7 @@ final class ClassScanner
             if (!$fileInfo instanceof SplFileInfo) {
                 continue;
             }
+
             if (!$fileInfo->isFile() || $fileInfo->getExtension() !== 'php') {
                 continue;
             }
@@ -92,6 +95,7 @@ final class ClassScanner
     private function extractClassesFromFile(string $filePath): array
     {
         $source = file_get_contents($filePath);
+
         if (!is_string($source) || $source === '') {
             return [];
         }
@@ -102,6 +106,7 @@ final class ClassScanner
 
         for ($i = 0, $count = count($tokens); $i < $count; $i++) {
             $token = $tokens[$i];
+
             if (!is_array($token)) {
                 continue;
             }
@@ -120,6 +125,7 @@ final class ClassScanner
             }
 
             $name = $this->collectClassName($tokens, $i + 1);
+
             if ($name === '') {
                 continue;
             }
@@ -139,10 +145,12 @@ final class ClassScanner
 
         for ($i = $start, $count = count($tokens); $i < $count; $i++) {
             $token = $tokens[$i];
+
             if (is_string($token)) {
                 if ($token === ';' || $token === '{') {
                     break;
                 }
+
                 continue;
             }
 
@@ -163,9 +171,11 @@ final class ClassScanner
     {
         for ($i = $start, $count = count($tokens); $i < $count; $i++) {
             $token = $tokens[$i];
+
             if (!is_array($token)) {
                 continue;
             }
+
             if ($token[0] === T_STRING) {
                 return $token[1];
             }
@@ -181,6 +191,7 @@ final class ClassScanner
     {
         for ($i = $index - 1; $i >= 0; $i--) {
             $token = $tokens[$i];
+
             if (is_array($token) && ($token[0] === T_WHITESPACE || $token[0] === T_COMMENT || $token[0] === T_DOC_COMMENT)) {
                 continue;
             }
@@ -202,6 +213,7 @@ final class ClassScanner
 
         foreach ($shortNameMap as $shortName => $entry) {
             $fqcn = $entry['fqcn'];
+
             if (class_exists($shortName, false) || interface_exists($shortName, false)) {
                 continue;
             }
@@ -211,6 +223,7 @@ final class ClassScanner
             }
 
             $reflection = new \ReflectionClass($fqcn);
+
             if ($reflection->isTrait()) {
                 continue;
             }

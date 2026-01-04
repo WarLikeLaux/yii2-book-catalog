@@ -27,15 +27,18 @@ final readonly class AuthorQueryService
     {
         $authors = $this->queryService->findAllOrderedByFio();
         $map = [];
+
         foreach ($authors as $author) {
             $map[$author->id] = $author->fio;
         }
+
         return $map;
     }
 
     public function getById(int $id): AuthorReadDto
     {
         $author = $this->queryService->findById($id);
+
         if (!$author instanceof AuthorReadDto) {
             throw new DomainException('author.error.not_found');
         }

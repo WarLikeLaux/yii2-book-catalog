@@ -86,9 +86,11 @@ final class IsbnTest extends Unit
     public function testThrowsOnInvalidFormat(string $invalidIsbn): void
     {
         $this->expectException(DomainException::class);
+
         if (in_array($invalidIsbn, ['invalid-isbn', '978-3-16-148410-1'])) {
             $this->expectExceptionMessage('isbn.error.invalid_format');
         }
+
         new Isbn($invalidIsbn);
     }
 

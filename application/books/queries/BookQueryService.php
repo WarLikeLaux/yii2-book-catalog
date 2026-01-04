@@ -23,6 +23,7 @@ final readonly class BookQueryService
     public function getById(int $id): BookReadDto
     {
         $book = $this->bookRepository->findByIdWithAuthors($id);
+
         if (!$book instanceof BookReadDto) {
             throw new DomainException('book.error.not_found');
         }

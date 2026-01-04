@@ -17,6 +17,7 @@ final class PagedResultDataProvider extends BaseDataProvider
     ) {
         if (!array_key_exists('pagination', $config)) {
             $paginationDto = $result->getPagination();
+
             if ($paginationDto instanceof PaginationDto) {
                 $pagination = new Pagination([
                     'page' => $paginationDto->page - 1,
@@ -49,6 +50,7 @@ final class PagedResultDataProvider extends BaseDataProvider
     {
         /** @var array<int|string> $keys */
         $keys = [];
+
         foreach ($models as $index => $model) {
             if (is_object($model) && property_exists($model, 'id')) {
                 /** @var object{id: int|string} $model */

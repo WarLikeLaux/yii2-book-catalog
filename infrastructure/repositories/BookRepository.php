@@ -32,14 +32,17 @@ final readonly class BookRepository implements BookRepositoryInterface
     public function save(BookEntity $book): void
     {
         $isNew = $book->id === null;
+
         if ($isNew) {
             $ar = new Book();
             $ar->version = $book->version;
         } else {
             $ar = Book::findOne($book->id);
+
             if ($ar === null) {
                 throw new EntityNotFoundException('book.error.not_found');
             }
+
             $ar->version = $book->version;
         }
 
@@ -64,6 +67,7 @@ final readonly class BookRepository implements BookRepositoryInterface
     public function get(int $id): BookEntity
     {
         $ar = Book::find()->where(['id' => $id])->with('authors')->one();
+
         if ($ar === null) {
             throw new EntityNotFoundException('book.error.not_found');
         }
@@ -78,6 +82,7 @@ final readonly class BookRepository implements BookRepositoryInterface
     public function getByIdAndVersion(int $id, int $expectedVersion): BookEntity
     {
         $ar = Book::find()->where(['id' => $id])->with('authors')->one();
+
         if ($ar === null) {
             throw new EntityNotFoundException('book.error.not_found');
         }
@@ -96,6 +101,7 @@ final readonly class BookRepository implements BookRepositoryInterface
     public function delete(BookEntity $book): void
     {
         $ar = Book::findOne($book->id);
+
         if ($ar === null) {
             throw new EntityNotFoundException('book.error.not_found');
         }
@@ -151,6 +157,7 @@ final readonly class BookRepository implements BookRepositoryInterface
             if ($this->isDuplicateError($e)) {
                 throw new AlreadyExistsException('book.error.isbn_exists', 409, $e);
             }
+
             throw $e;
         }
     }
@@ -158,6 +165,7 @@ final readonly class BookRepository implements BookRepositoryInterface
     private function syncAuthors(BookEntity $book): void
     {
         $bookId = $book->id;
+
         if ($bookId === null) {
             return; // @codeCoverageIgnore
         }

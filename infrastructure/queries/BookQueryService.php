@@ -27,6 +27,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
     public function findById(int $id): ?BookReadDto
     {
         $book = Book::findOne($id);
+
         if ($book === null) {
             return null;
         }
@@ -37,6 +38,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
     public function findByIdWithAuthors(int $id): ?BookReadDto
     {
         $book = Book::find()->byId($id)->withAuthors()->one();
+
         if ($book === null) {
             return null;
         }
@@ -124,6 +126,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
     private function mapToDto(Book $book): BookReadDto
     {
         $authorNames = [];
+
         foreach ($book->authors as $author) {
             $authorNames[$author->id] = $author->fio;
         }
@@ -156,6 +159,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
         $conditions[] = $this->buildAuthorCondition($term);
 
         $fulltextExpr = $this->buildBooksFulltextExpression($term);
+
         if ($fulltextExpr instanceof Expression) {
             $conditions[] = $fulltextExpr;
         }
@@ -187,6 +191,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
     private function buildMysqlFulltext(string $term, array $columns): Expression|null
     {
         $query = $this->prepareMysqlFulltextQuery($term);
+
         if ($query === '') {
             return null;
         }
@@ -202,6 +207,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
     private function buildPgsqlFulltext(string $term, string $columnExpression): Expression|null
     {
         $sanitized = trim((string)preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $term));
+
         if ($sanitized === '') {
             return null;
         }
@@ -232,6 +238,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
 
         $authorConditions = ['or', ['like', 'authors.fio', $term]];
         $fulltextExpr = $this->buildAuthorsFulltextExpression($term);
+
         if ($fulltextExpr instanceof Expression) {
             $authorConditions[] = $fulltextExpr;
         }
@@ -262,6 +269,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
     private function applyFulltextSpecification(ActiveQuery $query, string $term): void
     {
         $fulltextExpr = $this->buildBooksFulltextExpression($term);
+
         if (!$fulltextExpr instanceof Expression) {
             return; // @codeCoverageIgnore
         }
@@ -307,6 +315,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
     private function addFulltextCondition(array &$conditions, string $term): void
     {
         $fulltextExpr = $this->buildBooksFulltextExpression($term);
+
         if (!$fulltextExpr instanceof Expression) {
             return; // @codeCoverageIgnore
         }

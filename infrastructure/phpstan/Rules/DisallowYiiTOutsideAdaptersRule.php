@@ -32,6 +32,7 @@ final readonly class DisallowYiiTOutsideAdaptersRule implements Rule
         }
 
         $namespace = $scope->getNamespace();
+
         if ($namespace === null) {
             return [];
         }

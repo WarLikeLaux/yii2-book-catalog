@@ -48,10 +48,12 @@ final class InspectorTracer implements TracerInterface
         $item = $this->inspector->startTransaction($name);
 
         $item->markAsRequest();
+
         // http может быть null, но если он есть, request гарантированно существует
         if ($item->http instanceof Http) {
             $item->http->request->cookies = [];
         }
+
         $this->fillTransactionData($item, $attributes);
 
         $span = new InspectorSpan($item);
@@ -74,9 +76,11 @@ final class InspectorTracer implements TracerInterface
 
         $cleanHeaders = [];
         $decodedHeaders = json_decode($this->asString($attributes['http.headers'] ?? '[]'), true);
+
         if (is_array($decodedHeaders)) {
             foreach ($decodedHeaders as $k => $vals) {
                 $kStr = $this->asString($k);
+
                 if ($this->isUnsafeKey($kStr)) {
                     continue;
                 }
@@ -99,10 +103,12 @@ final class InspectorTracer implements TracerInterface
         $transaction->addContext('Headers', $cleanHeaders);
 
         $customData = [];
+
         foreach ($attributes as $key => $value) {
             if ($this->isUnsafeKey($this->asString($key))) {
                 continue;
             }
+
             $customData[$key] = $value;
         }
 
@@ -138,6 +144,7 @@ final class InspectorTracer implements TracerInterface
         $item = $this->inspector->startSegment('database', $name);
 
         $cleanAttributes = [];
+
         foreach ($attributes as $k => $v) {
             if ($this->isUnsafeKey($this->asString($k))) {
                 continue;
@@ -145,6 +152,7 @@ final class InspectorTracer implements TracerInterface
 
             $cleanAttributes[$k] = $v;
         }
+
         $item->addContext('Custom', $cleanAttributes);
 
         $span = new InspectorSpan($item);

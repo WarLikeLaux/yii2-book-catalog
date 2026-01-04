@@ -28,6 +28,7 @@ final readonly class ValueObjectMustBeFinalRule implements Rule
         }
 
         $namespace = $scope->getNamespace();
+
         if ($namespace !== null && str_starts_with($namespace, 'app\domain\values') && !$node->isFinal()) {
             return [
                 RuleErrorBuilder::message(sprintf('Value Object %s must be final.', (string)$node->name))

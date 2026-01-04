@@ -27,8 +27,10 @@ final readonly class CreateBookUseCase
     public function execute(CreateBookCommand $command): int
     {
         $this->transaction->begin();
+
         try {
             $cover = $command->cover;
+
             if (is_string($cover)) {
                 $cover = new StoredFileReference($cover);
             }

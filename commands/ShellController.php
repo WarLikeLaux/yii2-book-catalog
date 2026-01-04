@@ -24,6 +24,7 @@ final class ShellController extends Controller
         if ($aliased !== []) {
             echo 'Автоалиасы: ' . count($aliased) . PHP_EOL;
         }
+
         if ($conflicts !== []) {
             echo 'Конфликты алиасов: ' . count($conflicts) . PHP_EOL;
         }

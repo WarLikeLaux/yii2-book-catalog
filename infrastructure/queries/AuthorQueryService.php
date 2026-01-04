@@ -23,6 +23,7 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
     public function findById(int $id): ?AuthorReadDto
     {
         $author = Author::findOne($id);
+
         if ($author === null) {
             return null;
         }

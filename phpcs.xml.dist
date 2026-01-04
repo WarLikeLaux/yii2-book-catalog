@@ -39,6 +39,9 @@
             <property name="allowFallbackGlobalFunctions" value="true"/>
             <property name="allowFallbackGlobalConstants" value="true"/>
         </properties>
+        <exclude-pattern>config/*</exclude-pattern>
+        <exclude-pattern>web/index.php</exclude-pattern>
+        <exclude-pattern>web/index-test.php</exclude-pattern>
     </rule>
 
     <!-- Строгая типизация файлов -->
@@ -107,6 +110,23 @@
     <!-- Читаемость и контроль конструкций -->
     <rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
     <rule ref="SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses"/>
+    <rule ref="SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing">
+        <properties>
+            <property name="linesCountBefore" value="1"/>
+            <property name="linesCountAfter" value="1"/>
+            <property name="controlStructures" type="array">
+                <element value="if"/>
+                <element value="switch"/>
+                <element value="for"/>
+                <element value="foreach"/>
+                <element value="while"/>
+                <element value="do"/>
+                <element value="try"/>
+            </property>
+        </properties>
+        <exclude-pattern>views/*</exclude-pattern>
+        <exclude-pattern>config/*</exclude-pattern>
+    </rule>
     <rule ref="SlevomatCodingStandard.PHP.UselessParentheses"/>
     <rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/>
     <rule ref="SlevomatCodingStandard.Commenting.EmptyComment"/>
@@ -145,13 +165,6 @@
     </rule>
     <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
         <exclude-pattern>config/__autocomplete.php</exclude-pattern>
-    </rule>
-
-    <!-- Разрешения FQCN в конфигах и entry scripts -->
-    <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
-        <exclude-pattern>config/*</exclude-pattern>
-        <exclude-pattern>web/index.php</exclude-pattern>
-        <exclude-pattern>web/index-test.php</exclude-pattern>
     </rule>
 
     <!-- Side Effects в bootstrap -->

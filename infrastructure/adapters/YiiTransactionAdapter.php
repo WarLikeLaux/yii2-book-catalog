@@ -27,6 +27,7 @@ final class YiiTransactionAdapter implements TransactionInterface
     {
         if ($this->nestingLevel === 0) {
             $existingTransaction = $this->db->getTransaction();
+
             if ($existingTransaction !== null && $existingTransaction->getIsActive()) {
                 $this->transaction = $existingTransaction;
                 $this->isOwner = false;
@@ -55,6 +56,7 @@ final class YiiTransactionAdapter implements TransactionInterface
             if (!$this->transaction instanceof Transaction || !$this->transaction->getIsActive()) {
                 throw new RuntimeException('Transaction not active during commit'); // @codeCoverageIgnore
             }
+
             $this->transaction->commit();
         }
 

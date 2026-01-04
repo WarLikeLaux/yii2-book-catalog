@@ -22,6 +22,7 @@ final class BuggregatorLogTarget extends Target
     public function export(): void
     {
         $socket = @fsockopen($this->host, $this->port, $errno, $errstr, 2);
+
         if ($socket === false) {
             return;
         }

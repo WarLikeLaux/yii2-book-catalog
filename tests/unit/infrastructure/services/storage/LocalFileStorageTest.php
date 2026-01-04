@@ -118,10 +118,12 @@ final class LocalFileStorageTest extends Unit
         }
 
         $files = array_diff(scandir($dir), ['.', '..']);
+
         foreach ($files as $file) {
             $path = $dir . '/' . $file;
             is_dir($path) ? $this->removeDir($path) : unlink($path);
         }
+
         rmdir($dir);
     }
 }

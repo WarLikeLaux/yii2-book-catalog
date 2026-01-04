@@ -88,6 +88,7 @@ final class WebUseCaseRunnerTest extends Unit
                     if (!isset($context['foo']) || !isset($context['exception'])) {
                         return false;
                     }
+
                     return $context['foo'] === 'bar' && $context['exception'] instanceof \Throwable;
                 })
             );
@@ -123,6 +124,7 @@ final class WebUseCaseRunnerTest extends Unit
                 if (!isset($context['requestId']) || !isset($context['exception'])) {
                     return false;
                 }
+
                 return $context['requestId'] === '123' && $context['exception'] === $exception;
             }));
 

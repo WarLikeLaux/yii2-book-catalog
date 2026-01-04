@@ -89,6 +89,7 @@ final class BookController extends Controller
 
             if ($form->validate()) {
                 $bookId = $this->commandHandler->createBook($form);
+
                 if ($bookId !== null) {
                     return $this->redirect(['view', 'id' => $bookId]);
                 }
@@ -118,6 +119,7 @@ final class BookController extends Controller
 
             if ($form->validate()) {
                 $success = $this->commandHandler->updateBook($id, $form);
+
                 if ($success) {
                     return $this->redirect(['view', 'id' => $id]);
                 }

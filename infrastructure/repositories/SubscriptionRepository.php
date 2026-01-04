@@ -55,6 +55,7 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
 
         /** @var iterable<array<mixed>> $batches */
         $batches = $query->batch($batchSize, $this->db);
+
         foreach ($batches as $batch) {
             /** @var array<string, mixed> $row */
             foreach ($batch as $row) {
@@ -79,6 +80,7 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
             if ($this->isDuplicateError($e)) {
                 throw new AlreadyExistsException(previous: $e);
             }
+
             throw $e;
         }
     }

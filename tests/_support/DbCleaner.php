@@ -17,6 +17,7 @@ final class DbCleaner
 
         $db = Yii::$app->db;
         $transaction = $db->getTransaction();
+
         if ($transaction !== null && $transaction->getIsActive()) {
             $transaction->rollBack();
         }
