@@ -17,6 +17,7 @@
 - **#29** - реализован **Graceful Shutdown** для корректного завершения воркеров очереди ([6771295](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6771295))
 - **#29** - добавлена фабрика `BookYearFactory` для создания ValueObject года с учетом текущего времени ([42e1738](https://github.com/WarLikeLaux/yii2-book-catalog/commit/42e1738))
 - **#29** - добавлен класс `StoredFileReference` для работы с файлами ([aaa427e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/aaa427e))
+- **#29** - внедрен **навык README** ([a8d7cf5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a8d7cf5))
 
 ### 🐛 Исправления
 - **#29** - исправлена обработка исключений в `SubscribeUseCase` ([481ef12](https://github.com/WarLikeLaux/yii2-book-catalog/commit/481ef12))
@@ -29,6 +30,7 @@
 - **#29** - оптимизирована проверка существования авторов (batch processing) ([561e455](https://github.com/WarLikeLaux/yii2-book-catalog/commit/561e455))
 - **#29** - обновлены Use Cases и Mapper для работы с фабрикой `BookYear` ([265fe1a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/265fe1a), [ed0ecce](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ed0ecce), [3236c80](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3236c80))
 - **#29** - удалено избыточное событие `BookCreatedEvent` ([96b10e7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/96b10e7))
+- **#29** - оптимизирована загрузка изображений с использованием атрибута **lazy** ([a028426](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a028426))
 
 ### 🧪 Тестирование
 - **#29** - добавлены тесты для функционала Rate Limiting ([40a26e9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/40a26e9))
@@ -37,11 +39,15 @@
 ### 📝 Документация
 - **#29** - обновлен README.md информацией о PSR-20 Clock ([edb3e41](https://github.com/WarLikeLaux/yii2-book-catalog/commit/edb3e41))
 - **#29** - добавлен PHPDoc для `HandlerAwareQueue` и `RequestIdProvider` ([586ce9d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/586ce9d))
+- **#29** - обновлены примеры архитектуры и рекомендации по документации ([213ad83](https://github.com/WarLikeLaux/yii2-book-catalog/commit/213ad83))
+- **#29** - обновлен контракт ([89afe74](https://github.com/WarLikeLaux/yii2-book-catalog/commit/89afe74))
 
 ### ⚙️ Инфраструктура
 - **#29** - зарегистрированы `ClockInterface` и `BookYearFactory` в DI контейнере ([19efe02](https://github.com/WarLikeLaux/yii2-book-catalog/commit/19efe02))
 - **#29** - обновлена конфигурация `repomix` ([e3dd398](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e3dd398))
 - **#29** - обновлены зависимости проекта ([b635ba0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b635ba0))
+- **#29** - улучшена валидация документации и **workflow для readme** ([f1a7cc3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f1a7cc3))
+- **#29** - обновлены метаданные и заголовки **workflow** ([60b0cf8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/60b0cf8))
 
 ## [0.14.0] - 2026-01-03 — "PostgreSQL, PsySH и Observability"
 
