@@ -18,9 +18,12 @@ use yii\queue\db\Queue;
  */
 final class HandlerAwareQueue extends Queue
 {
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(
         private readonly JobHandlerRegistry $jobHandlerRegistry,
-        $config = [],
+        array $config = [],
     ) {
         parent::__construct($config);
     }

@@ -19,6 +19,9 @@ final class NullTracer implements TracerInterface
         return new NullSpan();
     }
 
+    /**
+     * @param array<string, mixed> $_attributes
+     */
     #[\Override]
     public function trace(string $_name, callable $callback, array $_attributes = []): mixed
     {

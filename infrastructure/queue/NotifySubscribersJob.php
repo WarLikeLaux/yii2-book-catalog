@@ -18,6 +18,10 @@ final readonly class NotifySubscribersJob implements JobInterface, RetryableJobI
     ) {
     }
 
+    /**
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
+     * @param \yii\queue\Queue $queue
+     */
     public function execute($queue): void
     {
         $this->getRegistry($queue)->handle($this, $queue);
@@ -28,6 +32,11 @@ final readonly class NotifySubscribersJob implements JobInterface, RetryableJobI
         return self::TTR_SECONDS;
     }
 
+    /**
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
+     * @param int $attempt
+     * @param \Throwable $_error
+     */
     public function canRetry($attempt, $_error): bool
     {
         return $attempt < 3;

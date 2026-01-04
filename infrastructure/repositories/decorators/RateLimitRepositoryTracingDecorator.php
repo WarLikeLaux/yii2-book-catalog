@@ -15,6 +15,9 @@ final readonly class RateLimitRepositoryTracingDecorator implements RateLimitInt
     ) {
     }
 
+    /**
+     * @return array{allowed: bool, current: int, limit: int, resetAt: int}
+     */
     public function checkLimit(string $key, int $limit, int $windowSeconds): array
     {
         return $this->tracer->trace(

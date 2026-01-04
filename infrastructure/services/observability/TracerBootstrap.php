@@ -23,6 +23,9 @@ final class TracerBootstrap extends Component implements BootstrapInterface
     private TracerInterface|null $tracer = null;
     private SpanInterface|null $rootSpan = null;
 
+    /**
+     * @param \yii\base\Application $app
+     */
     #[\Override]
     public function bootstrap($app): void
     {
