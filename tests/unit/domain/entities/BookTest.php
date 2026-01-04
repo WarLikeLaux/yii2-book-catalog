@@ -237,6 +237,17 @@ final class BookTest extends Unit
         $this->assertSame('New Title', $book->title);
     }
 
+    public function testCorrectIsbnWithSameIsbnDoesNotChange(): void
+    {
+        $isbn = new Isbn('978-3-16-148410-0');
+        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), $isbn, null, null);
+
+        $sameIsbn = new Isbn('978-3-16-148410-0');
+        $book->correctIsbn($sameIsbn);
+
+        $this->assertTrue($book->isbn->equals($isbn));
+    }
+
     public function testThrowsExceptionOnEmptyTitle(): void
     {
         $this->expectException(DomainException::class);

@@ -179,4 +179,221 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->useCase->execute($command);
     }
+
+    public function testExecuteDoesNotUpdateCoverWhenCoverIsNull(): void
+    {
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Updated Title',
+            year: 2024,
+            description: 'New description',
+            isbn: '9780132350884',
+            authorIds: [1],
+            version: 1,
+            cover: null
+        );
+
+        $existingBook = Book::reconstitute(
+            id: 42,
+            title: 'Old Title',
+            year: new BookYear(2020, new \DateTimeImmutable()),
+            isbn: new Isbn('9780132350884'),
+            description: 'Old description',
+            coverImage: new StoredFileReference('/uploads/old-cover.jpg'),
+            authorIds: [1],
+            published: false,
+            version: 1
+        );
+
+        $this->bookRepository->expects($this->once())
+            ->method('get')
+            ->with(42)
+            ->willReturn($existingBook);
+
+        $afterCommitCallback = null;
+        $this->transaction->expects($this->once())->method('begin');
+        $this->transaction->expects($this->once())
+            ->method('afterCommit')
+            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
+                $afterCommitCallback = $callback;
+            });
+        $this->transaction->expects($this->once())
+            ->method('commit')
+            ->willReturnCallback(function () use (&$afterCommitCallback): void {
+                if ($afterCommitCallback === null) {
+                    return;
+                }
+
+                $afterCommitCallback();
+            });
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
+            ->with($this->callback(fn (Book $book) => $book->title === 'Updated Title'
+                    && $book->coverImage?->getPath() === '/uploads/old-cover.jpg'));
+
+        $this->useCase->execute($command);
+    }
+
+    public function testExecuteUpdatesIsbnCorrectly(): void
+    {
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Title',
+            year: 2024,
+            description: 'Description',
+            isbn: '979-10-90636-07-1',
+            authorIds: [1],
+            version: 1,
+            cover: null
+        );
+
+        $existingBook = Book::reconstitute(
+            id: 42,
+            title: 'Title',
+            year: new BookYear(2020, new \DateTimeImmutable()),
+            isbn: new Isbn('9780132350884'),
+            description: 'Description',
+            coverImage: null,
+            authorIds: [1],
+            published: false,
+            version: 1
+        );
+
+        $this->bookRepository->expects($this->once())
+            ->method('get')
+            ->with(42)
+            ->willReturn($existingBook);
+
+        $afterCommitCallback = null;
+        $this->transaction->expects($this->once())->method('begin');
+        $this->transaction->expects($this->once())
+            ->method('afterCommit')
+            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
+                $afterCommitCallback = $callback;
+            });
+        $this->transaction->expects($this->once())
+            ->method('commit')
+            ->willReturnCallback(function () use (&$afterCommitCallback): void {
+                if ($afterCommitCallback === null) {
+                    return;
+                }
+
+                $afterCommitCallback();
+            });
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
+            ->with($this->callback(fn (Book $book) => $book->isbn->equals(new Isbn('979-10-90636-07-1'))));
+
+        $this->useCase->execute($command);
+    }
+
+    public function testExecuteUpdatesCoverWithString(): void
+    {
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Title',
+            year: 2024,
+            description: 'Description',
+            isbn: '9780132350884',
+            authorIds: [1],
+            version: 1,
+            cover: '/uploads/new-cover.png'
+        );
+
+        $existingBook = Book::reconstitute(
+            id: 42,
+            title: 'Title',
+            year: new BookYear(2020, new \DateTimeImmutable()),
+            isbn: new Isbn('9780132350884'),
+            description: 'Description',
+            coverImage: null,
+            authorIds: [1],
+            published: false,
+            version: 1
+        );
+
+        $this->bookRepository->expects($this->once())
+            ->method('get')
+            ->with(42)
+            ->willReturn($existingBook);
+
+        $afterCommitCallback = null;
+        $this->transaction->expects($this->once())->method('begin');
+        $this->transaction->expects($this->once())
+            ->method('afterCommit')
+            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
+                $afterCommitCallback = $callback;
+            });
+        $this->transaction->expects($this->once())
+            ->method('commit')
+            ->willReturnCallback(function () use (&$afterCommitCallback): void {
+                if ($afterCommitCallback === null) {
+                    return;
+                }
+
+                $afterCommitCallback();
+            });
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
+            ->with($this->callback(fn (Book $book) => $book->coverImage?->getPath() === '/uploads/new-cover.png'));
+
+        $this->useCase->execute($command);
+    }
+
+    public function testExecuteUpdatesDescriptionCorrectly(): void
+    {
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Title',
+            year: 2024,
+            description: 'New description text',
+            isbn: '9780132350884',
+            authorIds: [1],
+            version: 1,
+            cover: null
+        );
+
+        $existingBook = Book::reconstitute(
+            id: 42,
+            title: 'Title',
+            year: new BookYear(2020, new \DateTimeImmutable()),
+            isbn: new Isbn('9780132350884'),
+            description: 'Old description',
+            coverImage: null,
+            authorIds: [1],
+            published: false,
+            version: 1
+        );
+
+        $this->bookRepository->expects($this->once())
+            ->method('get')
+            ->with(42)
+            ->willReturn($existingBook);
+
+        $afterCommitCallback = null;
+        $this->transaction->expects($this->once())->method('begin');
+        $this->transaction->expects($this->once())
+            ->method('afterCommit')
+            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
+                $afterCommitCallback = $callback;
+            });
+        $this->transaction->expects($this->once())
+            ->method('commit')
+            ->willReturnCallback(function () use (&$afterCommitCallback): void {
+                if ($afterCommitCallback === null) {
+                    return;
+                }
+
+                $afterCommitCallback();
+            });
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
+            ->with($this->callback(fn (Book $book) => $book->description === 'New description text'));
+
+        $this->useCase->execute($command);
+    }
 }
