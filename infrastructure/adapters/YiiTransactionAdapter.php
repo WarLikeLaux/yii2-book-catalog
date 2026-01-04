@@ -12,9 +12,7 @@ use yii\db\Transaction;
 final class YiiTransactionAdapter implements TransactionInterface
 {
     private Transaction|null $transaction = null;
-
     private int $nestingLevel = 0;
-
     private bool $isOwner = false;
 
     /** @var array<callable(): void> */

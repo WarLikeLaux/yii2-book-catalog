@@ -8,10 +8,8 @@ final class DatabaseErrorCode
 {
     public const MYSQL_DUPLICATE_ENTRY = 1062;
     public const MYSQL_FOREIGN_KEY_VIOLATION = 1452;
-
     public const PGSQL_UNIQUE_VIOLATION = '23505';
     public const PGSQL_FOREIGN_KEY_VIOLATION = '23503';
-
     public const SQLITE_CONSTRAINT_UNIQUE = 19;
     public const SQLITE_CONSTRAINT_FOREIGNKEY = 787;
 

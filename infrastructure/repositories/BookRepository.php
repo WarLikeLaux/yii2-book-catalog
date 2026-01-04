@@ -50,10 +50,6 @@ final readonly class BookRepository implements BookRepositoryInterface
         $ar->cover_url = $book->coverImage?->getPath();
         $ar->is_published = (int)$book->published;
 
-        if ($this->existsByIsbn($book->isbn->value, $book->id)) {
-            throw new AlreadyExistsException('book.error.isbn_exists', 409);
-        }
-
         $this->persistBook($ar);
 
         if ($isNew) {

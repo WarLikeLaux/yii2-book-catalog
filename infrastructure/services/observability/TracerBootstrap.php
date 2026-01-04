@@ -17,15 +17,10 @@ use yii\web\Application as WebApplication;
 final class TracerBootstrap extends Component implements BootstrapInterface
 {
     public bool $enabled = true;
-
     public string $endpoint = 'http://buggregator:8000';
-
     public string $ingestionKey = 'buggregator';
-
     public string $serviceName = 'yii2-book-catalog';
-
     private TracerInterface|null $tracer = null;
-
     private SpanInterface|null $rootSpan = null;
 
     #[\Override]

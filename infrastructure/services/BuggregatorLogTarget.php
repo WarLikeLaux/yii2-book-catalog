@@ -16,7 +16,6 @@ use yii\log\Target;
 final class BuggregatorLogTarget extends Target
 {
     public string $host = 'buggregator';
-
     public int $port = 9913;
 
     #[\Override]

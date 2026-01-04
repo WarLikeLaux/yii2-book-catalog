@@ -18,7 +18,6 @@ use Inspector\Models\Transaction;
 final class InspectorTracer implements TracerInterface
 {
     private readonly Inspector $inspector;
-
     private InspectorSpan|null $currentSpan = null;
 
     public function __construct(

@@ -30,10 +30,6 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
 
         $ar->fio = $author->fio;
 
-        if ($this->existsByFio($author->fio, $author->id)) {
-            throw new AlreadyExistsException('author.error.fio_exists', 409);
-        }
-
         $this->persistAuthor($ar);
 
         if ($author->id !== null) {
