@@ -10,7 +10,6 @@ use app\application\common\dto\QueryResult;
 use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookFormMapper;
-use app\presentation\books\viewmodels\BookViewModel;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
 use yii\data\DataProviderInterface;
@@ -31,15 +30,15 @@ final readonly class BookViewDataFactory
     {
         $queryResult = $this->bookQueryService->search('', $page, $pageSize);
 
-        $viewModels = array_map(
-            fn(mixed $dto): BookViewModel => $dto instanceof BookReadDto
-                ? new BookViewModel($dto, $this->resolver)
+        $dtos = array_map(
+            fn(mixed $dto): BookReadDto => $dto instanceof BookReadDto
+                ? $this->withResolvedUrl($dto)
                 : throw new \LogicException('Expected BookReadDto'),
             $queryResult->getModels()
         );
 
         $newResult = new QueryResult(
-            $viewModels,
+            $dtos,
             $queryResult->getTotalCount(),
             $queryResult->getPagination()
         );
@@ -56,13 +55,13 @@ final readonly class BookViewDataFactory
         return $this->mapper->toForm($dto);
     }
 
-    public function getBookView(int $id): BookViewModel
+    public function getBookView(int $id): BookReadDto
     {
         $dto = $this->bookQueryService->findById($id);
         if (!$dto instanceof BookReadDto) {
              throw new NotFoundHttpException();
         }
-        return new BookViewModel($dto, $this->resolver);
+        return $this->withResolvedUrl($dto);
     }
 
     /**
@@ -71,5 +70,21 @@ final readonly class BookViewDataFactory
     public function getAuthorsList(): array
     {
         return $this->authorQueryService->getAuthorsMap();
+    }
+
+    private function withResolvedUrl(BookReadDto $dto): BookReadDto
+    {
+        return new BookReadDto(
+            $dto->id,
+            $dto->title,
+            $dto->year,
+            $dto->description,
+            $dto->isbn,
+            $dto->authorIds,
+            $dto->authorNames,
+            $this->resolver->resolve($dto->coverUrl),
+            $dto->isPublished,
+            $dto->version
+        );
     }
 }
