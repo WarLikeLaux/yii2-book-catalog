@@ -238,6 +238,7 @@ _dev_full: fix ci
 _dev_file:
 	@echo "🔍 Проверяем: $(FILE_ARG)"
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf $(FILE_ARG) || true
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process $(FILE_ARG) || true
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs $(FILE_ARG) || true
 	@echo "✅ Готово"
 check: dev deptrac test
