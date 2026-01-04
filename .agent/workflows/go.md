@@ -1,6 +1,7 @@
 ---
-description: AI Bootloader Instructions
+description: Критические инструкции AI Bootloader - прочитать контракт, остановиться при недоступности файла и неукоснительно следовать конституции как единственному источнику правил.
 ---
+
 # AI BOOTLOADER
 
 > ⚠️ **CRITICAL INSTRUCTION**
