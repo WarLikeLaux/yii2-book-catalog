@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
-use app\application\books\factories\BookYearFactory;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
+use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
+use Psr\Clock\ClockInterface;
 use RuntimeException;
 use Throwable;
 
@@ -19,7 +20,7 @@ final readonly class CreateBookUseCase
     public function __construct(
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
-        private BookYearFactory $bookYearFactory,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -34,7 +35,7 @@ final readonly class CreateBookUseCase
 
             $book = Book::create(
                 title: $command->title,
-                year: $this->bookYearFactory->create($command->year),
+                year: new BookYear($command->year, $this->clock->now()),
                 isbn: new Isbn($command->isbn),
                 description: $command->description,
                 coverImage: $cover

@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
-use app\application\books\factories\BookYearFactory;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookUpdatedEvent;
+use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
+use Psr\Clock\ClockInterface;
 use Throwable;
 
 final readonly class UpdateBookUseCase
@@ -20,7 +21,7 @@ final readonly class UpdateBookUseCase
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
         private TransactionalEventPublisher $eventPublisher,
-        private BookYearFactory $bookYearFactory,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -33,7 +34,7 @@ final readonly class UpdateBookUseCase
         $this->transaction->begin();
         try {
             $book->rename($command->title);
-            $book->changeYear($this->bookYearFactory->create($command->year));
+            $book->changeYear(new BookYear($command->year, $this->clock->now()));
             $book->correctIsbn(new Isbn($command->isbn));
             $book->updateDescription($command->description);
 
