@@ -156,7 +156,7 @@ final class BookCommandHandlerTest extends Unit
 
         $this->useCaseRunner->expects($this->once())
             ->method('executeWithFormErrors')
-            ->willReturnCallback(static function ($action, $msg, $onError) use ($exception) {
+            ->willReturnCallback(static function ($_action, $_msg, $onError) use ($exception): null {
                 $onError($exception);
                 return null;
             });
@@ -244,7 +244,7 @@ final class BookCommandHandlerTest extends Unit
 
         $this->useCaseRunner->expects($this->once())
             ->method('execute')
-            ->willReturnCallback(static function (callable $useCase, string $message, array $context): bool {
+            ->willReturnCallback(static function (callable $useCase, string $_message, array $_context): bool {
                 $useCase();
                 return true;
             });
@@ -264,7 +264,7 @@ final class BookCommandHandlerTest extends Unit
 
         $this->useCaseRunner->expects($this->once())
             ->method('execute')
-            ->willReturnCallback(static function (callable $useCase, string $message, array $context): bool {
+            ->willReturnCallback(static function (callable $useCase, string $_message, array $_context): bool {
                 $useCase();
                 return true;
             });
@@ -320,7 +320,7 @@ final class BookCommandHandlerTest extends Unit
     {
         $this->useCaseRunner->expects($this->once())
             ->method('executeWithFormErrors')
-            ->willReturnCallback(static function (callable $action, string $msg, callable $onError) {
+            ->willReturnCallback(static function (callable $action, string $_msg, callable $onError) {
                 try {
                     return $action();
                 } catch (DomainException $e) {

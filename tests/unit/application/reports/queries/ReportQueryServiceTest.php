@@ -94,7 +94,7 @@ final class ReportQueryServiceTest extends Unit
 
         $this->cache->expects($this->once())
             ->method('getOrSet')
-            ->willReturnCallback(function ($key, $callback) use ($expectedData) {
+            ->willReturnCallback(function ($_key, $callback) use ($expectedData) {
                 $this->repository->expects($this->once())
                     ->method('getTopAuthorsByYear')
                     ->with(2022, 10)

@@ -22,7 +22,7 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $cache = $this->createMock(CacheInterface::class);
         $cache->expects($this->once())
             ->method('getOrSet')
-            ->willReturnCallback(static fn(string $key, callable $callback, int $ttl): string => $callback());
+            ->willReturnCallback(static fn(string $_key, callable $callback, int $_ttl): string => $callback());
         $cache->expects($this->never())
             ->method('delete');
 
@@ -57,7 +57,7 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $cache = $this->createMock(CacheInterface::class);
         $cache->expects($this->once())
             ->method('getOrSet')
-            ->willReturnCallback(static fn(string $key, callable $callback, int $ttl): string => $callback());
+            ->willReturnCallback(static fn(string $_key, callable $callback, int $_ttl): string => $callback());
         $cache->expects($this->once())
             ->method('delete');
 

@@ -149,7 +149,7 @@ final class CreateBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(Book::class))
-            ->willReturnCallback(static function (Book $book): void {
+            ->willReturnCallback(static function (Book $_book): void {
             });
 
         $this->expectException(\RuntimeException::class);

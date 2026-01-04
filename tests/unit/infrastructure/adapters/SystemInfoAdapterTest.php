@@ -15,7 +15,7 @@ final class SystemInfoAdapterTest extends TestCase
         $db = new class extends Connection {
             public $driverName = 'mysql';
 
-            public function getSlavePdo($fallbackToMaster = true)
+            public function getSlavePdo($_fallbackToMaster = true)
             {
                 return null;
             }

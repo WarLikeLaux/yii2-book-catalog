@@ -78,7 +78,7 @@ final class DeleteBookUseCaseTest extends Unit
             ->with($this->callback(static fn (BookDeletedEvent $event): bool => $event->bookId === 42
                 && $event->year === 2020
                 && $event->wasPublished === false))
-            ->willReturnCallback(function (BookDeletedEvent $event): void {
+            ->willReturnCallback(function (BookDeletedEvent $_event): void {
                 $this->transaction->afterCommit(static fn(): null => null);
             });
 

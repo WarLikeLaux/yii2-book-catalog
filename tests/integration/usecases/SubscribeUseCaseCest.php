@@ -10,7 +10,7 @@ use app\infrastructure\persistence\Subscription;
 
 final class SubscribeUseCaseCest
 {
-    public function _before(IntegrationTester $I): void
+    public function _before(IntegrationTester $_I): void
     {
         DbCleaner::clear(['subscriptions', 'book_authors', 'authors']);
     }

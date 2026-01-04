@@ -12,7 +12,7 @@ use yii\queue\db\Queue;
 
 final class CreateBookUseCaseCest
 {
-    public function _before(IntegrationTester $I): void
+    public function _before(IntegrationTester $_I): void
     {
         DbCleaner::clear(['book_authors', 'books', 'authors', 'queue']);
     }
