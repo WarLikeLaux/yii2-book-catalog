@@ -52,7 +52,6 @@ return static fn (array $_params) => [
         BookRepositoryTracingDecorator::class,
     ),
 
-    AuthorRepository::class => static fn() => new AuthorRepository(Yii::$app->get('db')),
     AuthorRepositoryInterface::class => static fn(Container $c): AuthorRepositoryInterface => TracingFactory::create(
         $c,
         AuthorRepository::class,
