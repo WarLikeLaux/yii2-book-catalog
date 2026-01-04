@@ -11,7 +11,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Tests](https://img.shields.io/badge/Tests-521_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![Mutation Score](https://img.shields.io/badge/MSI-99%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![AI Governance](https://img.shields.io/badge/AI-Governance-8A2BE2?style=for-the-badge&logo=googlegemini&logoColor=white)](docs/AI_WORKFLOW.md)
 
 ---
@@ -102,7 +102,7 @@
 | **🧪 Качество кода** | **🐳 DevOps Ready** |
 | ✅ **521 тестов** (1194 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Кастомные правила (Custom Rules) | 🛠 **Makefile**<br>Автоматизация рутины |
-| ✅ **Мутационное тестирование**<br>Infection PHP (MSI 99%) | 📚 **Генерация документации**<br>Yii2 API + OpenAPI |
+| ✅ **Мутационное тестирование**<br>Infection PHP (MSI 100%) | 📚 **Генерация документации**<br>Yii2 API + OpenAPI |
 | ✅ **Авто-рефакторинг**<br>Rector | 🏗 **Контроль архитектуры**<br>Deptrac |
 
 [↑ К навигации](#-навигация)
@@ -272,7 +272,7 @@ make env   # или make configure
 #### 🦠 Мутационное тестирование (Infection)
 Мы идем дальше простого покрытия строк (Line Coverage). Проект проходит **Infection Testing** - это "тестирование тестов".
 *   Infection вносит ошибки в исходный код (мутанты) и проверяет, "заметят" ли это тесты.
-*   **Mutation Code Coverage 100%** и **MSI (Mutation Score Indicator) 99%** означают, что большая часть изменений логики не пройдет незамеченной.
+*   **Mutation Code Coverage 100%** и **MSI (Mutation Score Indicator) 100%** означают, что большая часть изменений логики не пройдет незамеченной.
 ```bash
 make test-infection
 ```
