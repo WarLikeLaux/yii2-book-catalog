@@ -29,8 +29,7 @@ final readonly class PublishBookUseCase
         try {
             $book = $this->bookRepository->get($command->bookId);
 
-            $this->publicationPolicy->ensureCanPublish($book);
-            $book->publish();
+            $book->publish($this->publicationPolicy);
 
             $this->bookRepository->save($book);
 

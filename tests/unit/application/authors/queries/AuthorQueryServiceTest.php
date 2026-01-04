@@ -7,8 +7,7 @@ namespace app\tests\unit\application\authors\queries;
 use app\application\authors\queries\AuthorQueryService;
 use app\application\authors\queries\AuthorReadDto;
 use app\application\authors\queries\AuthorSearchCriteria;
-use app\application\authors\queries\AuthorSearchResponse;
-use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
@@ -16,19 +15,19 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 final class AuthorQueryServiceTest extends Unit
 {
-    private AuthorRepositoryInterface&MockObject $repository;
+    private AuthorQueryServiceInterface&MockObject $queryPort;
 
     private AuthorQueryService $service;
 
     protected function _before(): void
     {
-        $this->repository = $this->createMock(AuthorRepositoryInterface::class);
-        $this->service = new AuthorQueryService($this->repository);
+        $this->queryPort = $this->createMock(AuthorQueryServiceInterface::class);
+        $this->service = new AuthorQueryService($this->queryPort);
     }
 
     public function testGetIndexProvider(): void
     {
-        $this->repository->expects($this->once())
+        $this->queryPort->expects($this->once())
             ->method('search')
             ->with('', 1, 20)
             ->willReturn($this->createMock(PagedResultInterface::class));
@@ -38,7 +37,7 @@ final class AuthorQueryServiceTest extends Unit
 
     public function testGetAuthorsMap(): void
     {
-        $this->repository->expects($this->once())
+        $this->queryPort->expects($this->once())
             ->method('findAllOrderedByFio')
             ->willReturn([
                 new AuthorReadDto(1, 'Author 1'),
@@ -52,7 +51,7 @@ final class AuthorQueryServiceTest extends Unit
     public function testGetById(): void
     {
         $dto = new AuthorReadDto(1, 'Test');
-        $this->repository->expects($this->once())
+        $this->queryPort->expects($this->once())
             ->method('findById')
             ->with(1)
             ->willReturn($dto);
@@ -63,7 +62,7 @@ final class AuthorQueryServiceTest extends Unit
 
     public function testGetByIdThrowsExceptionWhenNotFound(): void
     {
-        $this->repository->expects($this->once())
+        $this->queryPort->expects($this->once())
             ->method('findById')
             ->with(999)
             ->willReturn(null);
@@ -81,12 +80,27 @@ final class AuthorQueryServiceTest extends Unit
         $pagedResult->method('getModels')->willReturn([]);
         $pagedResult->method('getTotalCount')->willReturn(0);
 
-        $this->repository->expects($this->once())
+        $this->queryPort->expects($this->once())
             ->method('search')
             ->with('term', 1, 10)
             ->willReturn($pagedResult);
 
         $response = $this->service->search($criteria);
-        $this->assertInstanceOf(AuthorSearchResponse::class, $response);
+        $this->assertSame(0, $response->total);
+    }
+
+    public function testFindMissingIds(): void
+    {
+        $ids = [1, 2, 3];
+        $missing = [2];
+
+        $this->queryPort->expects($this->once())
+            ->method('findMissingIds')
+            ->with($ids)
+            ->willReturn($missing);
+
+        $result = $this->service->findMissingIds($ids);
+
+        $this->assertSame($missing, $result);
     }
 }

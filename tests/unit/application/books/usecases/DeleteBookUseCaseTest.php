@@ -49,7 +49,7 @@ final class DeleteBookUseCaseTest extends Unit
             year: new BookYear(2020, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Description',
-            coverUrl: null,
+            coverImage: null,
             authorIds: [],
             published: false,
             version: 1
@@ -119,7 +119,7 @@ final class DeleteBookUseCaseTest extends Unit
             year: new BookYear(2020, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Description',
-            coverUrl: null,
+            coverImage: null,
             authorIds: [],
             published: true,
             version: 1

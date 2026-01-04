@@ -9,11 +9,10 @@ use app\application\ports\ReportRepositoryInterface;
 
 final readonly class ReportQueryService
 {
-    private const int CACHE_TTL_SECONDS = 3600;
-
     public function __construct(
         private ReportRepositoryInterface $reportRepository,
-        private CacheInterface $cache
+        private CacheInterface $cache,
+        private int $cacheTtl = 3600
     ) {
     }
 
@@ -22,11 +21,15 @@ final readonly class ReportQueryService
         $year = $criteria->year ?? (int)date('Y');
         $cacheKey = sprintf('report:top_authors:%d', $year);
 
+        if ($this->cacheTtl <= 0) {
+            return new ReportDto($this->reportRepository->getTopAuthorsByYear($year, 10), $year);
+        }
+
         /** @var array<array<string, mixed>> $topAuthors */
         $topAuthors = $this->cache->getOrSet(
             $cacheKey,
             fn(): array => $this->reportRepository->getTopAuthorsByYear($year, 10),
-            self::CACHE_TTL_SECONDS
+            $this->cacheTtl
         );
 
         return new ReportDto($topAuthors, $year);

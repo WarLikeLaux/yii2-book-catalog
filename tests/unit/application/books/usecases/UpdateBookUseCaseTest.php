@@ -15,6 +15,7 @@ use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
+use app\domain\values\StoredFileReference;
 use Codeception\Test\Unit;
 use DateTimeImmutable;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -69,7 +70,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: new BookYear(2020, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Old description',
-            coverUrl: '/uploads/old-cover.jpg',
+            coverImage: new StoredFileReference('/uploads/old-cover.jpg'),
             authorIds: [1],
             published: false,
             version: 1
@@ -156,7 +157,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: new BookYear(2020, new \DateTimeImmutable()),
             isbn: new Isbn('9780132350884'),
             description: 'Description',
-            coverUrl: null,
+            coverImage: null,
             authorIds: [],
             published: false,
             version: 1

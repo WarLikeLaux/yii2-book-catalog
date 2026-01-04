@@ -8,6 +8,7 @@ use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
+use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\EntityNotFoundException;
 use Codeception\Test\Unit;
@@ -76,6 +77,26 @@ final class UpdateAuthorUseCaseTest extends Unit
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('author.error.update_failed');
+
+        $this->useCase->execute($command);
+    }
+
+    public function testExecuteRethrowsAlreadyExistsException(): void
+    {
+        $command = new UpdateAuthorCommand(id: 42, fio: 'Duplicated Name');
+
+        $existingAuthor = new Author(id: 42, fio: 'Old Name');
+
+        $this->authorRepository->expects($this->once())
+            ->method('get')
+            ->willReturn($existingAuthor);
+
+        $this->authorRepository->expects($this->once())
+            ->method('save')
+            ->willThrowException(new AlreadyExistsException('author.error.already_exists'));
+
+        $this->expectException(AlreadyExistsException::class);
+        $this->expectExceptionMessage('author.error.already_exists');
 
         $this->useCase->execute($command);
     }

@@ -10,6 +10,7 @@ use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\values\Isbn;
+use app\domain\values\StoredFileReference;
 use RuntimeException;
 use Throwable;
 
@@ -26,12 +27,17 @@ final readonly class CreateBookUseCase
     {
         $this->transaction->begin();
         try {
+            $cover = $command->cover;
+            if (is_string($cover)) {
+                $cover = new StoredFileReference($cover);
+            }
+
             $book = Book::create(
                 title: $command->title,
                 year: $this->bookYearFactory->create($command->year),
                 isbn: new Isbn($command->isbn),
                 description: $command->description,
-                coverUrl: null
+                coverImage: $cover
             );
             $book->replaceAuthors($command->authorIds);
 

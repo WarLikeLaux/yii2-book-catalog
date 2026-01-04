@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace app\application\authors\queries;
 
-use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\exceptions\DomainException;
 
 final readonly class AuthorQueryService
 {
     public function __construct(
-        private AuthorRepositoryInterface $authorRepository
+        private AuthorQueryServiceInterface $queryService
     ) {
     }
 
     public function getIndexProvider(int $page = 1, int $pageSize = 20): PagedResultInterface
     {
-        return $this->authorRepository->search('', $page, $pageSize);
+        return $this->queryService->search('', $page, $pageSize);
     }
 
     /**
@@ -25,7 +25,7 @@ final readonly class AuthorQueryService
      */
     public function getAuthorsMap(): array
     {
-        $authors = $this->authorRepository->findAllOrderedByFio();
+        $authors = $this->queryService->findAllOrderedByFio();
         $map = [];
         foreach ($authors as $author) {
             $map[$author->id] = $author->fio;
@@ -35,7 +35,7 @@ final readonly class AuthorQueryService
 
     public function getById(int $id): AuthorReadDto
     {
-        $author = $this->authorRepository->findById($id);
+        $author = $this->queryService->findById($id);
         if (!$author instanceof AuthorReadDto) {
             throw new DomainException('author.error.not_found');
         }
@@ -45,7 +45,7 @@ final readonly class AuthorQueryService
 
     public function search(AuthorSearchCriteria $criteria): AuthorSearchResponse
     {
-        $result = $this->authorRepository->search(
+        $result = $this->queryService->search(
             $criteria->search,
             $criteria->page,
             $criteria->pageSize
@@ -60,5 +60,14 @@ final readonly class AuthorQueryService
             page: $criteria->page,
             pageSize: $criteria->pageSize
         );
+    }
+
+    /**
+     * @param array<int> $ids
+     * @return array<int>
+     */
+    public function findMissingIds(array $ids): array
+    {
+        return $this->queryService->findMissingIds($ids);
     }
 }

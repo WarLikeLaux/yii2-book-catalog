@@ -6,7 +6,9 @@ namespace app\application\authors\usecases;
 
 use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\ports\AuthorRepositoryInterface;
+use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainException;
+use Throwable;
 
 final readonly class UpdateAuthorUseCase
 {
@@ -22,7 +24,9 @@ final readonly class UpdateAuthorUseCase
         try {
             $author->update($command->fio);
             $this->authorRepository->save($author);
-        } catch (\RuntimeException) {
+        } catch (AlreadyExistsException $e) {
+            throw $e;
+        } catch (Throwable) {
             throw new DomainException('author.error.update_failed');
         }
     }

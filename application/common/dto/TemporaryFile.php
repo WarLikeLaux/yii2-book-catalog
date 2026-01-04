@@ -8,7 +8,7 @@ final readonly class TemporaryFile
 {
     public function __construct(
         public string $tempPath,
-        public string $url
+        public string $filename
     ) {
     }
 }

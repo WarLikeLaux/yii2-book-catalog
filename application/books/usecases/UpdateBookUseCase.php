@@ -11,6 +11,7 @@ use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookUpdatedEvent;
 use app\domain\values\Isbn;
+use app\domain\values\StoredFileReference;
 use Throwable;
 
 final readonly class UpdateBookUseCase
@@ -35,6 +36,14 @@ final readonly class UpdateBookUseCase
             $book->changeYear($this->bookYearFactory->create($command->year));
             $book->correctIsbn(new Isbn($command->isbn));
             $book->updateDescription($command->description);
+
+            if ($command->cover !== null) {
+                $cover = $command->cover;
+                if (is_string($cover)) {
+                    $cover = new StoredFileReference($cover);
+                }
+                $book->updateCover($cover);
+            }
 
             $book->replaceAuthors($command->authorIds);
 
