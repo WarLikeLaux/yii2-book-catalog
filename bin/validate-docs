@@ -3,9 +3,6 @@
 
 declare(strict_types=1);
 
-/**
- * Валидатор документации README.md на актуальность метрик и ссылок.
- */
 
 final class DocsValidator
 {
@@ -54,7 +51,21 @@ final class DocsValidator
         $srcSloc = 0;
         $testSloc = 0;
 
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->rootPath));
+        $directoryIterator = new RecursiveDirectoryIterator(
+            $this->rootPath,
+            FilesystemIterator::SKIP_DOTS
+        );
+        $filter = new RecursiveCallbackFilterIterator(
+            $directoryIterator,
+            static function (SplFileInfo $current): bool {
+                if ($current->isDir()) {
+                    return !preg_match('#/(vendor|runtime|tests/_output|db-data|db-data-pgsql)$#', $current->getPathname());
+                }
+
+                return true;
+            }
+        );
+        $iterator = new RecursiveIteratorIterator($filter);
 
         /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
@@ -63,8 +74,7 @@ final class DocsValidator
             }
 
             $path = $file->getPathname();
-            // Игнорируем vendor, runtime и output тестов
-            if (preg_match('#/(vendor|runtime|tests/_output)/#', $path)) {
+            if (preg_match('#/(vendor|runtime|tests/_output|db-data|db-data-pgsql)/#', $path)) {
                 continue;
             }
 
@@ -76,7 +86,6 @@ final class DocsValidator
             $count = 0;
             foreach ($lines as $line) {
                 $line = trim($line);
-                // Считаем непустые строки, не являющиеся комментариями
                 if ($line !== "" && !preg_match('/^(\/\/|\/\*|\*|#)/', $line)) {
                     $count++;
                 }
