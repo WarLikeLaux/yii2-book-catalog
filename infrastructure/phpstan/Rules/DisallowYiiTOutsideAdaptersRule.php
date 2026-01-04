@@ -37,7 +37,10 @@ final readonly class DisallowYiiTOutsideAdaptersRule implements Rule
             return [];
         }
 
-        if (str_starts_with($namespace, 'app\presentation') || str_starts_with($namespace, 'app\infrastructure\adapters')) {
+        if (
+            str_starts_with($namespace, 'app\presentation')
+            || str_starts_with($namespace, 'app\infrastructure\adapters')
+        ) {
             return [];
         }
 

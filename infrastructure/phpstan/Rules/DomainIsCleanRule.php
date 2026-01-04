@@ -24,7 +24,11 @@ final readonly class DomainIsCleanRule implements Rule
 
     public function processNode(Node $node, Scope $scope): array
     {
-        if ($node instanceof StaticPropertyFetch && ($node->class instanceof Node\Name && $node->class->toString() === 'Yii')) {
+        if (
+            $node instanceof StaticPropertyFetch
+            && $node->class instanceof Node\Name
+            && $node->class->toString() === 'Yii'
+        ) {
             return $this->buildError($scope);
         }
 

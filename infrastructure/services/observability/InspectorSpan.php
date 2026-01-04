@@ -89,7 +89,12 @@ final readonly class InspectorSpan implements SpanInterface
         if ($this->item instanceof Segment) {
             $data = $this->item->transaction;
 
-            if (is_array($data) && isset($data['timestamp']) && is_numeric($data['timestamp']) && $data['timestamp'] < 9999999999) {
+            if (
+                is_array($data)
+                && isset($data['timestamp'])
+                && is_numeric($data['timestamp'])
+                && $data['timestamp'] < 9999999999
+            ) {
                 $timestamp = (float)$data['timestamp'];
                 $data['timestamp'] = $timestamp * 1000;
                 $this->item->transaction = $data;
