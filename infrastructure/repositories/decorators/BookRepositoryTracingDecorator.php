@@ -29,6 +29,15 @@ final readonly class BookRepositoryTracingDecorator implements BookRepositoryInt
     }
 
     #[\Override]
+    public function getByIdAndVersion(int $id, int $expectedVersion): Book
+    {
+        return $this->tracer->trace(
+            'BookRepo::' . __FUNCTION__,
+            fn(): Book => $this->repository->getByIdAndVersion($id, $expectedVersion)
+        );
+    }
+
+    #[\Override]
     public function delete(Book $book): void
     {
         $this->tracer->trace('BookRepo::' . __FUNCTION__, fn() => $this->repository->delete($book));

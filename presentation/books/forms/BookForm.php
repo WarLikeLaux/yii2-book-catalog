@@ -61,6 +61,7 @@ final class BookForm extends RepositoryAwareForm
             [['isbn'], 'validateIsbnUnique'],
             [['authorIds'], 'each', 'rule' => ['integer']],
             [['authorIds'], 'validateAuthorsExist'],
+            [['version'], 'integer', 'min' => 1],
             [
                 ['cover'],
                 'file',

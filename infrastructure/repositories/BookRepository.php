@@ -73,24 +73,31 @@ final readonly class BookRepository implements BookRepositoryInterface
             throw new EntityNotFoundException('book.error.not_found');
         }
 
-        /** @var Author[] $authors */
-        $authors = $ar->authors;
-        $authorIds = array_map(fn(Author $a) => $a->id, $authors);
-
-        return BookEntity::reconstitute(
-            id: $ar->id,
-            title: $ar->title,
-            /** @reconstitution Валидация времени не требуется, так как данные загружаются из хранилища */
-            year: new BookYear($ar->year, new DateTimeImmutable()),
-            isbn: new Isbn($ar->isbn),
-            description: $ar->description,
-            coverImage: $ar->cover_url !== null ? new StoredFileReference($ar->cover_url) : null,
-            authorIds: $authorIds,
-            published: (bool)$ar->is_published,
-            version: $ar->version
-        );
+        return $this->mapToEntity($ar);
     }
 
+    /**
+     * @throws \app\domain\exceptions\EntityNotFoundException
+     * @throws \app\domain\exceptions\StaleDataException
+     */
+    public function getByIdAndVersion(int $id, int $expectedVersion): BookEntity
+    {
+        $ar = Book::find()->where(['id' => $id])->with('authors')->one();
+        if ($ar === null) {
+            throw new EntityNotFoundException('book.error.not_found');
+        }
+
+        if ($ar->version !== $expectedVersion) {
+            throw new StaleDataException();
+        }
+
+        return $this->mapToEntity($ar);
+    }
+
+    /**
+     * @throws \app\domain\exceptions\EntityNotFoundException
+     * @throws \yii\base\InvalidConfigException
+     */
     public function delete(BookEntity $book): void
     {
         $ar = Book::findOne($book->id);
@@ -112,6 +119,26 @@ final readonly class BookRepository implements BookRepositoryInterface
         }
 
         return $query->exists();
+    }
+
+    private function mapToEntity(Book $ar): BookEntity
+    {
+        /** @var Author[] $authors */
+        $authors = $ar->authors;
+        $authorIds = array_map(fn(Author $a) => $a->id, $authors);
+
+        return BookEntity::reconstitute(
+            id: $ar->id,
+            title: $ar->title,
+            /** @reconstitution Валидация времени не требуется, так как данные загружаются из хранилища */
+            year: new BookYear($ar->year, new DateTimeImmutable()),
+            isbn: new Isbn($ar->isbn),
+            description: $ar->description,
+            coverImage: $ar->cover_url !== null ? new StoredFileReference($ar->cover_url) : null,
+            authorIds: $authorIds,
+            published: (bool)$ar->is_published,
+            version: $ar->version
+        );
     }
 
     /** @codeCoverageIgnore Защитный код (недостижим из-за валидации домена) */

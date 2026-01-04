@@ -12,7 +12,7 @@ use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookUpdatedEvent;
-use app\domain\exceptions\EntityNotFoundException;
+use app\domain\exceptions\StaleDataException;
 use app\domain\values\Isbn;
 use BookTestHelper;
 use Codeception\Test\Unit;
@@ -70,12 +70,13 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Old description',
             coverImage: '/uploads/old-cover.jpg',
             authorIds: [1],
-            published: false
+            published: false,
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
         $this->transaction->expects($this->once())->method('begin');
@@ -97,7 +98,7 @@ final class UpdateBookUseCaseTest extends Unit
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsExceptionWhenBookNotFound(): void
+    public function testExecuteThrowsStaleDataExceptionWhenVersionMismatchOrNotFound(): void
     {
         $command = new UpdateBookCommand(
             id: 999,
@@ -110,14 +111,13 @@ final class UpdateBookUseCaseTest extends Unit
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(999)
-            ->willThrowException(new EntityNotFoundException('book.error.not_found'));
+            ->method('getByIdAndVersion')
+            ->with(999, 1)
+            ->willThrowException(new StaleDataException());
 
         $this->transaction->expects($this->never())->method('begin');
 
-        $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage('book.error.not_found');
+        $this->expectException(StaleDataException::class);
 
         $this->useCase->execute($command);
     }
@@ -140,11 +140,13 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2020,
             description: 'Description',
             authorIds: [1],
-            published: false
+            published: false,
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
         $this->transaction->expects($this->once())->method('begin');
@@ -179,12 +181,13 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Old description',
             coverImage: '/uploads/old-cover.jpg',
             authorIds: [1],
-            published: false
+            published: false,
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
         $this->transaction->expects($this->once())->method('begin');
@@ -216,12 +219,13 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2020,
             description: 'Description',
             authorIds: [1],
-            published: false
+            published: false,
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
         $this->transaction->expects($this->once())->method('begin');
@@ -253,12 +257,13 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2020,
             description: 'Description',
             authorIds: [1],
-            published: false
+            published: false,
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
         $this->transaction->expects($this->once())->method('begin');
@@ -289,12 +294,13 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2020,
             description: 'Old description',
             authorIds: [1],
-            published: false
+            published: false,
+            version: 1
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
         $this->transaction->expects($this->once())->method('begin');

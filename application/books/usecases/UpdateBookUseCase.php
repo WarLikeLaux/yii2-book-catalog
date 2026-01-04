@@ -26,7 +26,7 @@ final readonly class UpdateBookUseCase
 
     public function execute(UpdateBookCommand $command): void
     {
-        $book = $this->bookRepository->get($command->id);
+        $book = $this->bookRepository->getByIdAndVersion($command->id, $command->version);
         $oldYear = $book->year->value;
         $isPublished = $book->published;
 
