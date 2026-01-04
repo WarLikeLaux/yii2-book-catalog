@@ -10,189 +10,110 @@ use Codeception\Test\Unit;
 
 final class IsbnTest extends Unit
 {
-    public function testCanCreateValidIsbn13(): void
+    public static function validIsbnProvider(): array
     {
-        $isbn = new Isbn('978-3-16-148410-0');
-        $this->assertSame('9783161484100', $isbn->value);
+        return [
+            'isbn13-with-dashes' => ['978-3-16-148410-0', '9783161484100'],
+            'isbn10-with-dashes' => ['0-306-40615-2', '0306406152'],
+            'isbn10-with-x-checkdigit' => ['0-8044-2957-X', '080442957X'],
+            'isbn10-with-lowercase-x' => ['080442957x', '080442957x'],
+            'isbn13-with-979-prefix' => ['979-10-90636-07-1', '9791090636071'],
+            'isbn13-with-spaces' => ['978 3 16 148410 0', '9783161484100'],
+        ];
     }
 
-    public function testCanCreateValidIsbn10(): void
+    public static function invalidFormatProvider(): array
     {
-        $isbn = new Isbn('0-306-40615-2');
-        $this->assertSame('0306406152', $isbn->value);
+        return [
+            'completely-invalid' => ['invalid-isbn'],
+            'isbn13-with-prefix-garbage' => ['abc9783161484100'],
+            'isbn13-with-suffix-garbage' => ['9783161484100xyz'],
+            'isbn10-with-prefix-garbage' => ['a0306406152'],
+            'isbn10-with-suffix-garbage' => ['0306406152x'],
+            'isbn10-with-invalid-ninth-char' => ['00000000B8'],
+            'isbn13-invalid-prefix' => ['9773161484100'],
+            'isbn13-valid-checksum-invalid-prefix' => ['9771234567898'],
+            'isbn13-invalid-checksum' => ['978-3-16-148410-1'],
+            'isbn10-invalid-checksum' => ['0306406151'],
+            'too-short' => ['123'],
+            'too-long' => ['12345678901234'],
+            'isbn10-letters-in-middle' => ['12345ABCD0'],
+            'isbn13-letter-in-middle' => ['978a000000002'],
+            'isbn10-letter-instead-of-zero' => ['a306406152'],
+            'isbn10-letter-y-at-end' => ['000000000Y'],
+            'isbn10-invalid-checkdigit' => ['000000000F'],
+            'isbn10-letter-y-at-position-8' => ['00000000Y0'],
+        ];
     }
 
-    public function testThrowsExceptionOnInvalidFormat(): void
+    public static function equalsProvider(): array
+    {
+        return [
+            'same-isbn-different-formats' => [
+                '978-3-16-148410-0',
+                '9783161484100',
+                true,
+            ],
+            'different-isbns' => [
+                '978-3-16-148410-0',
+                '979-10-90636-07-1',
+                false,
+            ],
+        ];
+    }
+
+    public static function formattedProvider(): array
+    {
+        return [
+            'isbn13-formatted' => ['9783161484100', '978-3-16-148410-0'],
+            'isbn10-raw' => ['0306406152', '0306406152'],
+            'isbn13-distinct-last-digits' => ['979-10-90636-07-1', '979-1-09-063607-1'],
+        ];
+    }
+
+    /**
+     * @dataProvider validIsbnProvider
+     */
+    public function testCanCreateValidIsbn(string $input, string $expected): void
+    {
+        $isbn = new Isbn($input);
+        $this->assertSame($expected, $isbn->value);
+    }
+
+    /**
+     * @dataProvider invalidFormatProvider
+     */
+    public function testThrowsOnInvalidFormat(string $invalidIsbn): void
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('isbn.error.invalid_format');
-        new Isbn('invalid-isbn');
+        if (in_array($invalidIsbn, ['invalid-isbn', '978-3-16-148410-1'])) {
+            $this->expectExceptionMessage('isbn.error.invalid_format');
+        }
+        new Isbn($invalidIsbn);
     }
 
-    public function testThrowsExceptionOnIsbn13WithPrefixGarbage(): void
+    /**
+     * @dataProvider equalsProvider
+     */
+    public function testEqualsWorks(string $isbn1Input, string $isbn2Input, bool $expected): void
     {
-        $this->expectException(DomainException::class);
-        new Isbn('abc9783161484100');
+        $isbn1 = new Isbn($isbn1Input);
+        $isbn2 = new Isbn($isbn2Input);
+        $this->assertSame($expected, $isbn1->equals($isbn2));
     }
 
-    public function testThrowsExceptionOnIsbn13WithSuffixGarbage(): void
+    /**
+     * @dataProvider formattedProvider
+     */
+    public function testGetFormattedWorks(string $input, string $expected): void
     {
-        $this->expectException(DomainException::class);
-        new Isbn('9783161484100xyz');
-    }
-
-    public function testThrowsExceptionOnIsbn10WithPrefixGarbage(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('a0306406152');
-    }
-
-    public function testThrowsExceptionOnIsbn10WithSuffixGarbage(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('0306406152x');
-    }
-
-    public function testThrowsExceptionOnIsbn10WithInvalidNinthCharButValidChecksum(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('00000000B8');
-    }
-
-    public function testThrowsExceptionOnInvalidIsbn13Prefix(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('9773161484100');
-    }
-
-    public function testThrowsExceptionOnValidChecksumWithInvalidPrefix(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('9771234567898');
-    }
-
-    public function testThrowsExceptionOnInvalidChecksum(): void
-    {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('isbn.error.invalid_format');
-        new Isbn('978-3-16-148410-1');
+        $isbn = new Isbn($input);
+        $this->assertSame($expected, $isbn->getFormatted());
     }
 
     public function testToStringReturnsValue(): void
     {
         $isbn = new Isbn('978-3-16-148410-0');
         $this->assertSame('9783161484100', (string)$isbn);
-    }
-
-    public function testIsbn10WithXCheckDigit(): void
-    {
-        $isbn = new Isbn('0-8044-2957-X');
-        $this->assertSame('080442957X', $isbn->value);
-    }
-
-    public function testIsbn10WithLowercaseXCheckDigit(): void
-    {
-        $isbn = new Isbn('080442957x');
-        $this->assertSame('080442957x', $isbn->value);
-    }
-
-    public function testIsbn13WithPrefix979(): void
-    {
-        $isbn = new Isbn('979-10-90636-07-1');
-        $this->assertSame('9791090636071', $isbn->value);
-    }
-
-    public function testThrowsExceptionOnInvalidIsbn10Checksum(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('0306406151');
-    }
-
-    public function testThrowsExceptionOnTooShortIsbn(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('123');
-    }
-
-    public function testThrowsExceptionOnTooLongIsbn(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('12345678901234');
-    }
-
-    public function testNormalizesIsbnWithSpaces(): void
-    {
-        $isbn = new Isbn('978 3 16 148410 0');
-        $this->assertSame('9783161484100', $isbn->value);
-    }
-
-    public function testThrowsExceptionOnIsbn10WithLettersInMiddle(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('12345ABCD0');
-    }
-
-    public function testGetFormattedReturnsFormattedIsbn13(): void
-    {
-        $isbn = new Isbn('9783161484100');
-        $this->assertSame('978-3-16-148410-0', $isbn->getFormatted());
-    }
-
-    public function testGetFormattedReturnsRawValueForIsbn10(): void
-    {
-        $isbn = new Isbn('0306406152');
-        $this->assertSame('0306406152', $isbn->getFormatted());
-    }
-
-    public function testGetFormattedReturnsFormattedIsbn13WithDistinctLastDigits(): void
-    {
-        $isbn = new Isbn('979-10-90636-07-1');
-        $this->assertSame('979-1-09-063607-1', $isbn->getFormatted());
-    }
-
-    public function testThrowsExceptionOnIsbn13WithLetterInMiddle(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('978a000000002');
-    }
-
-    public function testThrowsExceptionOnIsbn10WithLetterInsteadOfZero(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('a306406152');
-    }
-
-    public function testThrowsExceptionOnIsbn10WithLetterYInsteadOfZeroAtEnd(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('000000000Y');
-    }
-
-    public function testThrowsExceptionOnIsbn10WithInvalidCheckDigitButValidChecksum(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('000000000F');
-    }
-
-    public function testThrowsExceptionOnIsbn10WithLetterYAtPosition8(): void
-    {
-        $this->expectException(DomainException::class);
-        new Isbn('00000000Y0');
-    }
-
-    public function testEqualsReturnsTrueForSameIsbn(): void
-    {
-        $isbn1 = new Isbn('978-3-16-148410-0');
-        $isbn2 = new Isbn('9783161484100');
-
-        $this->assertTrue($isbn1->equals($isbn2));
-    }
-
-    public function testEqualsReturnsFalseForDifferentIsbn(): void
-    {
-        $isbn1 = new Isbn('978-3-16-148410-0');
-        $isbn2 = new Isbn('979-10-90636-07-1');
-
-        $this->assertFalse($isbn1->equals($isbn2));
     }
 }
