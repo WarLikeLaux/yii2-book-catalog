@@ -6,7 +6,6 @@ namespace app\presentation\auth\handlers;
 
 use app\presentation\auth\forms\LoginForm;
 use Yii;
-use yii\web\Request;
 
 final class LoginHandler
 {
@@ -24,14 +23,15 @@ final class LoginHandler
 
     /**
      * @codeCoverageIgnore Зависит от Yii::$app->user->login()
+     * @param array<string, mixed> $postData
      * @return array{success: bool, viewData: array<string, mixed>}
      */
-    public function processLoginRequest(Request $request): array
+    public function processLoginRequest(array $postData): array
     {
         $viewData = $this->prepareLoginViewData();
         $form = $viewData['model'];
 
-        if (!$form->load((array)$request->post())) {
+        if (!$form->load($postData)) {
             return [
                 'success' => false,
                 'viewData' => $viewData,

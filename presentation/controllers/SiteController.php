@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\application\common\dto\PaginationRequest;
 use app\application\ports\AuthServiceInterface;
 use app\presentation\auth\handlers\LoginHandler;
 use app\presentation\books\handlers\BookSearchHandler;
+use app\presentation\common\dto\IndexPaginationRequest;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -64,10 +64,7 @@ final class SiteController extends Controller
 
     public function actionIndex(): string
     {
-        $pagination = new PaginationRequest(
-            $this->request->get('page'),
-            $this->request->get('pageSize') ?? 9
-        );
+        $pagination = IndexPaginationRequest::fromRequest($this->request);
         /** @var array<string, mixed> $params */
         $params = (array)$this->request->get();
         $viewData = $this->bookSearchHandler->prepareIndexViewData($params, $pagination);
@@ -85,7 +82,9 @@ final class SiteController extends Controller
             return $this->render('login', $viewData);
         }
 
-        $result = $this->loginHandler->processLoginRequest($this->request);
+        /** @var array<string, mixed> $postData */
+        $postData = (array) $this->request->post();
+        $result = $this->loginHandler->processLoginRequest($postData);
 
         if ($result['success']) {
             return $this->goBack();
