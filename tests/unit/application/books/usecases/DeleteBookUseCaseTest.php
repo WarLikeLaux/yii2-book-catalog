@@ -18,11 +18,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class DeleteBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-
     private TransactionInterface&MockObject $transaction;
-
     private TransactionalEventPublisher&MockObject $eventPublisher;
-
     private DeleteBookUseCase $useCase;
 
     protected function _before(): void

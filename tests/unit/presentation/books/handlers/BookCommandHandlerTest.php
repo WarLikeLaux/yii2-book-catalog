@@ -28,21 +28,13 @@ use yii\web\UploadedFile;
 final class BookCommandHandlerTest extends Unit
 {
     private BookFormMapper&MockObject $mapper;
-
     private DomainErrorToFormMapper&MockObject $errorMapper;
-
     private CreateBookUseCase&MockObject $createBookUseCase;
-
     private UpdateBookUseCase&MockObject $updateBookUseCase;
-
     private DeleteBookUseCase&MockObject $deleteBookUseCase;
-
     private PublishBookUseCase&MockObject $publishBookUseCase;
-
     private WebUseCaseRunner&MockObject $useCaseRunner;
-
     private FileStorageInterface&MockObject $fileStorage;
-
     private BookCommandHandler $handler;
 
     protected function _before(): void

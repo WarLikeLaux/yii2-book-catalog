@@ -20,13 +20,9 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class PublishBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-
     private TransactionInterface&MockObject $transaction;
-
     private TransactionalEventPublisher&MockObject $eventPublisher;
-
     private BookPublicationPolicy $publicationPolicy;
-
     private PublishBookUseCase $useCase;
 
     protected function _before(): void

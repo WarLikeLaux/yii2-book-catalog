@@ -19,7 +19,6 @@ use Yii;
 final class BookRepositoryTest extends Unit
 {
     protected \UnitTester $tester;
-
     private BookRepositoryInterface $repository;
 
     protected function _before(): void

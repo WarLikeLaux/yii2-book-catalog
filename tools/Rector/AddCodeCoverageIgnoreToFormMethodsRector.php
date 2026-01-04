@@ -21,7 +21,6 @@ final class AddCodeCoverageIgnoreToFormMethodsRector extends AbstractRector
     private const COVERAGE_IGNORE_ATTRIBUTE = 'PHPUnit\\Framework\\Attributes\\CodeCoverageIgnore';
 
     private PhpAttributeAnalyzer $phpAttributeAnalyzer;
-
     private bool $hasChanged = false;
 
     public function __construct(PhpAttributeAnalyzer $phpAttributeAnalyzer)

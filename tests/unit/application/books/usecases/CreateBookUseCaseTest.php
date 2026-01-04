@@ -19,11 +19,8 @@ use Psr\Clock\ClockInterface;
 final class CreateBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-
     private TransactionInterface&MockObject $transaction;
-
     private ClockInterface&MockObject $clock;
-
     private CreateBookUseCase $useCase;
 
     protected function _before(): void

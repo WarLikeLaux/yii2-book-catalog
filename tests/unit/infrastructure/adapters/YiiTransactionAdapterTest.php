@@ -13,7 +13,6 @@ use yii\db\Transaction;
 final class YiiTransactionAdapterTest extends Unit
 {
     private Connection&MockObject $db;
-
     private YiiTransactionAdapter $adapter;
 
     protected function _before(): void

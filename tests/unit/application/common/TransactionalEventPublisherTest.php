@@ -14,9 +14,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class TransactionalEventPublisherTest extends Unit
 {
     private TransactionInterface&MockObject $transaction;
-
     private EventPublisherInterface&MockObject $publisher;
-
     private TransactionalEventPublisher $publisherService;
 
     protected function _before(): void

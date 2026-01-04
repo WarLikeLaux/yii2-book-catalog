@@ -25,9 +25,7 @@ use yii\db\Expression;
 final class BookQueryServiceTest extends Unit
 {
     protected \UnitTester $tester;
-
     private BookRepositoryInterface $repository;
-
     private BookQueryServiceInterface $queryService;
 
     protected function _before(): void

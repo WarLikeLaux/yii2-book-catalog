@@ -15,7 +15,6 @@ use Yii;
 final class SubscriptionRepositoryTest extends Unit
 {
     protected \UnitTester $tester;
-
     private SubscriptionRepositoryInterface $repository;
 
     protected function _before(): void

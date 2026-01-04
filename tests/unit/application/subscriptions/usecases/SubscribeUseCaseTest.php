@@ -16,7 +16,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class SubscribeUseCaseTest extends Unit
 {
     private SubscriptionRepositoryInterface&MockObject $repository;
-
     private SubscribeUseCase $useCase;
 
     protected function _before(): void

@@ -18,7 +18,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class YiiEventPublisherAdapterTest extends Unit
 {
     private QueueInterface&MockObject $queue;
-
     private EventToJobMapperInterface $jobMapper;
 
     protected function _before(): void

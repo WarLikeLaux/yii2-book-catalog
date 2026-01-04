@@ -16,7 +16,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class AuthorQueryServiceTest extends Unit
 {
     private AuthorQueryServiceInterface&MockObject $queryPort;
-
     private AuthorQueryService $service;
 
     protected function _before(): void

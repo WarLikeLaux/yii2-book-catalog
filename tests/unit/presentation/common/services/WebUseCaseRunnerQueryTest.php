@@ -15,11 +15,8 @@ use RuntimeException;
 final class WebUseCaseRunnerQueryTest extends Unit
 {
     private NotificationInterface $notifier;
-
     private LoggerInterface $logger;
-
     private TranslatorInterface $translator;
-
     private WebUseCaseRunner $runner;
 
     protected function _before(): void

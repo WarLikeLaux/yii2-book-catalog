@@ -19,15 +19,10 @@ use yii\web\NotFoundHttpException;
 final class BookViewDataFactoryTest extends Unit
 {
     private BookQueryServiceInterface&MockObject $bookQueryService;
-
     private AuthorQueryService&MockObject $authorQueryService;
-
     private BookFormMapper&MockObject $mapper;
-
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
-
     private FileUrlResolver $resolver;
-
     private BookViewDataFactory $factory;
 
     protected function _before(): void

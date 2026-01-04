@@ -13,7 +13,6 @@ use Codeception\Test\Unit;
 final class LocalFileStorageTest extends Unit
 {
     private string $tempDir;
-
     private LocalFileStorage $storage;
 
     protected function _before(): void

@@ -15,11 +15,8 @@ use Psr\Log\LoggerInterface;
 final class WebUseCaseRunnerTest extends Unit
 {
     private NotificationInterface&MockObject $notifier;
-
     private LoggerInterface&MockObject $logger;
-
     private TranslatorInterface&MockObject $translator;
-
     private WebUseCaseRunner $runner;
 
     protected function _before(): void

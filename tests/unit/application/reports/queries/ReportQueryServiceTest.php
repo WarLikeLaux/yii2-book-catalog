@@ -14,9 +14,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class ReportQueryServiceTest extends Unit
 {
     private ReportRepositoryInterface&MockObject $repository;
-
     private CacheInterface&MockObject $cache;
-
     private ReportQueryService $service;
 
     protected function _before(): void

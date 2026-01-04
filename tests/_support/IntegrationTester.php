@@ -1,5 +1,8 @@
 <?php
 
+// phpcs:ignoreFile
+// NOTE: Файл игнорируется из-за фатальной ошибки в Slevomat Sniffs (Undefined array key "scope_closer")
+
 declare(strict_types=1);
 
 use _generated\IntegrationTesterActions;
