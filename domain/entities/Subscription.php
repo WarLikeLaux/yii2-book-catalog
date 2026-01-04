@@ -6,9 +6,8 @@ namespace app\domain\entities;
 
 final class Subscription
 {
-    public private(set) ?int $id = null;
-
     public function __construct(
+        public private(set) ?int $id,
         public private(set) string $phone,
         public private(set) int $authorId
     ) {
@@ -16,11 +15,6 @@ final class Subscription
 
     public static function create(string $phone, int $authorId): self
     {
-        return new self($phone, $authorId);
-    }
-
-    public function setId(int $id): void
-    {
-        $this->id = $id;
+        return new self(null, $phone, $authorId);
     }
 }

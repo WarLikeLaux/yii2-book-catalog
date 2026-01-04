@@ -9,13 +9,10 @@ use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
-use RuntimeException;
 
 final class Book
 {
     private const int MAX_TITLE_LENGTH = 255;
-
-    public private(set) ?int $id = null;
 
     /** @var int[] */
     public private(set) array $authorIds = [];
@@ -24,6 +21,7 @@ final class Book
      * @param int[] $authorIds
      */
     private function __construct(
+        public private(set) ?int $id,
         public private(set) string $title,
         public private(set) BookYear $year,
         public private(set) Isbn $isbn,
@@ -58,6 +56,7 @@ final class Book
         ?StoredFileReference $coverImage
     ): self {
         return new self(
+            id: null,
             title: $title,
             year: $year,
             isbn: $isbn,
@@ -83,7 +82,8 @@ final class Book
         bool $published,
         int $version
     ): self {
-        $book = new self(
+        return new self(
+            id: $id,
             title: $title,
             year: $year,
             isbn: $isbn,
@@ -93,8 +93,6 @@ final class Book
             published: $published,
             version: $version
         );
-
-        return $book->withId($id);
     }
 
     public function rename(string $title): void
@@ -169,20 +167,6 @@ final class Book
         foreach ($authorIds as $authorId) {
             $this->addAuthor($authorId);
         }
-    }
-
-    private function setId(int $id): void
-    {
-        if ($this->id !== null && $this->id !== $id) {
-            throw new RuntimeException('Cannot overwrite ID');
-        }
-        $this->id = $id;
-    }
-
-    private function withId(int $id): self
-    {
-        $this->setId($id);
-        return $this;
     }
 
     /**

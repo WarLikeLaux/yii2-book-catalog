@@ -45,12 +45,4 @@ final class Author
         $this->validateFio($fio);
         $this->fio = $fio;
     }
-
-    /**
-     * @internal Только для использования репозиторием
-     */
-    public function setId(int $id): void
-    {
-        $this->id = $id;
-    }
 }

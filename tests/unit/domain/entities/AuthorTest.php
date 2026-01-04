@@ -16,9 +16,6 @@ final class AuthorTest extends Unit
 
         $this->assertNull($author->id);
         $this->assertSame('Test FIO', $author->fio);
-
-        $author->setId(123);
-        $this->assertSame(123, $author->id);
     }
 
     public function testUpdate(): void

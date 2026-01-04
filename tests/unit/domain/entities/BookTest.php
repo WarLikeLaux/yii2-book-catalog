@@ -130,19 +130,6 @@ final class BookTest extends Unit
         $this->assertSame([1, 2, 3], $book->authorIds);
     }
 
-    public function testSetId(): void
-    {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-
-        $this->assignBookId($book, 100);
-        $this->assertSame(100, $book->id);
-
-        $this->assignBookId($book, 100);
-
-        $this->expectException(\RuntimeException::class);
-        $this->assignBookId($book, 200);
-    }
-
     public function testIncrementVersion(): void
     {
         $book = Book::reconstitute(
@@ -248,8 +235,7 @@ final class BookTest extends Unit
 
     private function assignBookId(Book $book, int $id): void
     {
-        $method = new \ReflectionMethod(Book::class, 'setId');
-        $method->setAccessible(true);
-        $method->invoke($book, $id);
+        $property = new \ReflectionProperty(Book::class, 'id');
+        $property->setValue($book, $id);
     }
 }
