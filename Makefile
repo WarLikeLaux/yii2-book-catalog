@@ -272,7 +272,7 @@ audit:
 _test-init:
 	@echo "🔧 Подготовка тестовой базы ($(DB_DRIVER))..."
 ifeq ($(DB_DRIVER),pgsql)
-	@$(COMPOSE) exec -T pgsql sh -c 'psql -U "$$POSTGRES_USER" -d postgres -c "SELECT 1 FROM pg_database WHERE datname = '\''$(DB_TEST_NAME)'\'''" | grep -q 1 || psql -U "$$POSTGRES_USER" -d postgres -c "CREATE DATABASE $(DB_TEST_NAME)"' 2>/dev/null || true
+	@$(COMPOSE) exec -T pgsql sh -c 'psql -U "$$POSTGRES_USER" -d postgres -c "SELECT 1 FROM pg_database WHERE datname = '\''$(DB_TEST_NAME)'\''" | grep -q 1 || psql -U "$$POSTGRES_USER" -d postgres -c "CREATE DATABASE $(DB_TEST_NAME)"' 2>/dev/null || true
 else
 	@$(COMPOSE) exec -T db sh -c 'mysql -uroot -p"$$MYSQL_ROOT_PASSWORD" -h127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS $(DB_TEST_NAME); GRANT ALL PRIVILEGES ON $(DB_TEST_NAME).* TO \"$$MYSQL_USER\"@\"%\"; FLUSH PRIVILEGES;"' 2>&1 | grep -v "Using a password" || true
 endif
