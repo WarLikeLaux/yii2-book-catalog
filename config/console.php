@@ -74,7 +74,7 @@ $config = [
     'controllerMap' => [
         'queue' => \yii\queue\db\Command::class,
     ],
-    'container' => require __DIR__ . '/container.php',
+    'container' => (require __DIR__ . '/container.php')($params),
     'params' => $params,
 ];
 

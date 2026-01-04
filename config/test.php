@@ -18,7 +18,7 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'language' => 'ru-RU',
-    'container' => $container,
+    'container' => $container($params),
     'components' => [
         'db' => $db,
         'redis' => [

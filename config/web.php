@@ -136,7 +136,7 @@ $config = [
             'serviceName' => 'yii2-book-catalog',
         ],
     ],
-    'container' => require __DIR__ . '/container.php',
+    'container' => (require __DIR__ . '/container.php')($params),
     'params' => $params,
 ];
 
