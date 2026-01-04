@@ -18,15 +18,6 @@ final readonly class SmsPilotSender implements SmsSenderInterface
 
     public function send(string $phone, string $message): bool
     {
-        if ($this->apiKey === 'MOCK_KEY') {
-            $this->logger->info('SMS emulated', [
-                'phone' => $phone,
-                'message' => $message,
-                'mode' => 'mock',
-            ]);
-            return true;
-        }
-
         $url = 'https://smspilot.ru/api.php';
         $params = [
             'send' => $message,
