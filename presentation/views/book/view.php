@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** @var app\presentation\books\viewmodels\BookViewModel $book */
+/** @var app\application\books\queries\BookReadDto $book */
 
 use yii\helpers\Html;
 
