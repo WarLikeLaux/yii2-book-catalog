@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace app\presentation\books\handlers;
 
 use app\application\books\queries\BookQueryService;
+use app\application\common\dto\PaginationRequest;
 use app\presentation\books\mappers\BookSearchCriteriaMapper;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
-use yii\web\Request;
 
 final readonly class BookSearchHandler
 {
@@ -19,19 +19,13 @@ final readonly class BookSearchHandler
     }
 
     /**
+     * @param array<string, mixed> $params
      * @return array<string, mixed>
      */
-    public function prepareIndexViewData(Request $request): array
+    public function prepareIndexViewData(array $params, PaginationRequest $pagination): array
     {
-        /** @var array<string, mixed> $params */
-        $params = (array)$request->get();
         $form = $this->bookSearchCriteriaMapper->toForm($params);
-
-        $p = $request->get('page', 1);
-        $ps = $request->get('pageSize', 9);
-        $page = max(1, is_numeric($p) ? (int)$p : 1);
-        $pageSize = max(1, is_numeric($ps) ? (int)$ps : 9);
-        $criteria = $this->bookSearchCriteriaMapper->toCriteria($form, $page, $pageSize);
+        $criteria = $this->bookSearchCriteriaMapper->toCriteria($form, $pagination->page, $pagination->limit);
         $result = $this->bookQueryService->search($criteria);
         $dataProvider = $this->dataProviderFactory->create($result);
 

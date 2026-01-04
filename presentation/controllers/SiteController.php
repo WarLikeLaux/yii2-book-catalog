@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\common\dto\PaginationRequest;
 use app\application\ports\AuthServiceInterface;
 use app\presentation\auth\handlers\LoginHandler;
 use app\presentation\books\handlers\BookSearchHandler;
@@ -63,7 +64,13 @@ final class SiteController extends Controller
 
     public function actionIndex(): string
     {
-        $viewData = $this->bookSearchHandler->prepareIndexViewData($this->request);
+        $pagination = new PaginationRequest(
+            $this->request->get('page'),
+            $this->request->get('pageSize') ?? 9
+        );
+        /** @var array<string, mixed> $params */
+        $params = (array)$this->request->get();
+        $viewData = $this->bookSearchHandler->prepareIndexViewData($params, $pagination);
         return $this->render('index', $viewData);
     }
 
