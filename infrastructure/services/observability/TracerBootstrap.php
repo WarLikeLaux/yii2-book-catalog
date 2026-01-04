@@ -60,6 +60,8 @@ final class TracerBootstrap extends Component implements BootstrapInterface
             return;
         }
 
+        RequestIdProvider::reset();
+
         $request = $app->getRequest();
         $pathInfo = $request->getPathInfo();
 
