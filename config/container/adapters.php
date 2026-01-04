@@ -29,16 +29,23 @@ use app\infrastructure\listeners\ReportCacheInvalidationListener;
 use app\infrastructure\services\notifications\FlashNotificationService;
 use app\infrastructure\services\observability\InspectorTracer;
 use app\infrastructure\services\observability\NullTracer;
+use app\infrastructure\services\sms\LogSmsSender;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\YiiPsrLogger;
 use yii\di\Container;
 
 return static fn (array $params) => [
         'definitions' => [
-            SmsSenderInterface::class => static fn() => new SmsPilotSender(
-                (string)env('SMS_API_KEY', 'MOCK_KEY'),
-                new YiiPsrLogger('sms')
-            ),
+            SmsSenderInterface::class => static function () {
+                $apiKey = (string)env('SMS_API_KEY', 'MOCK_KEY');
+                $logger = new YiiPsrLogger('sms');
+
+                if ($apiKey === 'MOCK_KEY') {
+                    return new LogSmsSender($logger);
+                }
+
+                return new SmsPilotSender($apiKey, $logger);
+            },
 
             AuthServiceInterface::class => YiiAuthAdapter::class,
             NotificationInterface::class => FlashNotificationService::class,

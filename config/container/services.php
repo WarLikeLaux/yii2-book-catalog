@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use app\application\books\factories\BookYearFactory;
 use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
 use app\application\common\RateLimitService;
@@ -31,16 +30,11 @@ use app\infrastructure\services\storage\LocalFileStorage;
 use app\infrastructure\services\storage\StorageConfig;
 use app\infrastructure\services\YiiPsrLogger;
 use app\presentation\services\FileUrlResolver;
-use Psr\Clock\ClockInterface;
 use yii\di\Container;
 use yii\di\Instance;
 
 return static fn (array $params) => [
     'definitions' => [
-        BookYearFactory::class => static fn(Container $c): BookYearFactory => new BookYearFactory(
-            $c->get(ClockInterface::class)
-        ),
-
         BookQueryService::class => static fn() => new BookQueryService(Yii::$app->get('db')),
         BookQueryServiceInterface::class => static fn(Container $c): BookQueryServiceInterface => TracingFactory::create(
             $c,
