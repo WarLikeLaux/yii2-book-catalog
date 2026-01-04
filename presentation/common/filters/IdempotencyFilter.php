@@ -16,11 +16,8 @@ final class IdempotencyFilter extends ActionFilter
     private const string HEADER_KEY = 'Idempotency-Key';
 
     private string|null $lockedKey = null;
-
     public int $ttl = 86400;
-
     public int $lockTimeout = 1;
-
     public int $waitSeconds = 1;
 
     public function __construct(

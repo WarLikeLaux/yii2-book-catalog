@@ -8,6 +8,7 @@ use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\handlers\AuthorSearchHandler;
 use app\presentation\authors\handlers\AuthorViewDataFactory;
+use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -60,12 +61,8 @@ final class AuthorController extends Controller
 
     public function actionIndex(): string
     {
-        $p = $this->request->get('page', 1);
-        $ps = $this->request->get('pageSize', 20);
-        $page = max(1, is_numeric($p) ? (int)$p : 1);
-        $pageSize = max(1, is_numeric($ps) ? (int)$ps : 20);
-
-        $dataProvider = $this->viewDataFactory->getIndexDataProvider($page, $pageSize);
+        $pagination = CrudPaginationRequest::fromRequest($this->request);
+        $dataProvider = $this->viewDataFactory->getIndexDataProvider($pagination->page, $pagination->limit);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -121,6 +118,8 @@ final class AuthorController extends Controller
      */
     public function actionSearch(): array
     {
-        return $this->authorSearchHandler->search($this->request, $this->response);
+        /** @var array<string, mixed> $params */
+        $params = $this->request->get();
+        return $this->authorSearchHandler->search($params, $this->response);
     }
 }

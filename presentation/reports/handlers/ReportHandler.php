@@ -9,7 +9,6 @@ use app\application\reports\queries\ReportQueryService;
 use app\presentation\common\services\WebUseCaseRunner;
 use app\presentation\reports\mappers\ReportCriteriaMapper;
 use Yii;
-use yii\web\Request;
 
 final readonly class ReportHandler
 {
@@ -21,12 +20,13 @@ final readonly class ReportHandler
     }
 
     /**
+     * @param array<string, mixed> $queryParams
      * @codeCoverageIgnore Использует Yii::t() и WebUseCaseRunner с flash-сообщениями
      * @return array<string, mixed>
      */
-    public function prepareIndexViewData(Request $request): array
+    public function prepareIndexViewData(array $queryParams): array
     {
-        $form = $this->reportCriteriaMapper->toForm($request);
+        $form = $this->reportCriteriaMapper->toForm($queryParams);
 
         if (!$form->validate()) {
             $data = $this->reportQueryService->getEmptyTopAuthorsReport();

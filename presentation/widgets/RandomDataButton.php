@@ -10,11 +10,8 @@ use yii\helpers\Html;
 final class RandomDataButton extends Widget
 {
     public string $type;
-
     public string $targetSelector;
-
     public string $title = 'Сгенерировать данные';
-
     public string $text = '🎲';
 
     /** @var array<string, mixed> */

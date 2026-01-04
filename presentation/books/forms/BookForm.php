@@ -35,7 +35,6 @@ final class BookForm extends RepositoryAwareForm
 
     /** @var \yii\web\UploadedFile|string|null */
     public $cover;
-
     public int $version = 1;
 
     #[CodeCoverageIgnore]

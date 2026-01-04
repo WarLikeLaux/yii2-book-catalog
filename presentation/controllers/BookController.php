@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\application\common\dto\PaginationRequest;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
 use app\presentation\books\handlers\BookViewDataFactory;
+use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -53,10 +53,7 @@ final class BookController extends Controller
 
     public function actionIndex(): string
     {
-        $pagination = new PaginationRequest(
-            $this->request->get('page'),
-            $this->request->get('pageSize')
-        );
+        $pagination = CrudPaginationRequest::fromRequest($this->request);
 
         $dataProvider = $this->viewDataFactory->getIndexDataProvider(
             $pagination->page,

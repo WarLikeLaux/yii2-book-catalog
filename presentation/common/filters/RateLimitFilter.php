@@ -13,7 +13,6 @@ use yii\web\Response;
 final class RateLimitFilter extends ActionFilter
 {
     public int $limit = 60;
-
     public int $window = 60;
 
     public function __construct(

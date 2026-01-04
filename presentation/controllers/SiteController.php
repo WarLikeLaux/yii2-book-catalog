@@ -7,7 +7,7 @@ namespace app\presentation\controllers;
 use app\application\ports\AuthServiceInterface;
 use app\presentation\auth\handlers\LoginHandler;
 use app\presentation\books\handlers\BookSearchHandler;
-use app\presentation\common\dto\IndexPaginationRequest;
+use app\presentation\common\dto\CatalogPaginationRequest;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -64,7 +64,7 @@ final class SiteController extends Controller
 
     public function actionIndex(): string
     {
-        $pagination = IndexPaginationRequest::fromRequest($this->request);
+        $pagination = CatalogPaginationRequest::fromRequest($this->request);
         /** @var array<string, mixed> $params */
         $params = (array)$this->request->get();
         $viewData = $this->bookSearchHandler->prepareIndexViewData($params, $pagination);

@@ -7,7 +7,6 @@ namespace app\presentation\authors\handlers;
 use app\application\authors\queries\AuthorQueryService;
 use app\presentation\authors\mappers\AuthorSearchCriteriaMapper;
 use app\presentation\authors\mappers\AuthorSelect2Mapper;
-use yii\web\Request;
 use yii\web\Response;
 
 final readonly class AuthorSearchHandler
@@ -20,15 +19,14 @@ final readonly class AuthorSearchHandler
     }
 
     /**
+     * @param array<string, mixed> $queryParams
      * @codeCoverageIgnore Мутирует Yii Response, тестируется функционально
      * @return array<string, mixed>
      */
-    public function search(Request $request, Response $response): array
+    public function search(array $queryParams, Response $response): array
     {
         $response->format = Response::FORMAT_JSON;
-        /** @var array<string, mixed> $requestParams */
-        $requestParams = (array)$request->get();
-        $form = $this->authorSearchCriteriaMapper->toForm($requestParams);
+        $form = $this->authorSearchCriteriaMapper->toForm($queryParams);
         if (!$form->validate()) {
             return $this->authorSelect2Mapper->emptyResult();
         }
