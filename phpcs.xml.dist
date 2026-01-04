@@ -8,6 +8,7 @@
     <arg name="colors"/>
     <arg name="parallel" value="4"/>
 
+    <!-- Исключения для служебных директорий -->
     <exclude-pattern>vendor/*</exclude-pattern>
     <exclude-pattern>runtime/*</exclude-pattern>
     <exclude-pattern>web/assets/*</exclude-pattern>
@@ -16,9 +17,10 @@
     <exclude-pattern>db-data/*</exclude-pattern>
     <exclude-pattern>db-data-pgsql/*</exclude-pattern>
 
+    <!-- Базовый стандарт Yii2 -->
     <rule ref="vendor/yiisoft/yii2-coding-standards/Yii2"/>
-    
-    <!-- Сортировка и очистка use импортов -->
+
+    <!-- Импорты и использование имён -->
     <rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses">
         <properties>
             <property name="caseSensitive" value="false"/>
@@ -26,15 +28,42 @@
     </rule>
     <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses"/>
     <rule ref="SlevomatCodingStandard.Namespaces.UselessAlias"/>
+    <rule ref="SlevomatCodingStandard.Namespaces.UseFromSameNamespace"/>
 
-    <!-- Требование declare(strict_types=1) -->
+    <!-- Запрет FQCN и контроль used names -->
+    <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
+        <properties>
+            <property name="allowFullyQualifiedGlobalClasses" value="true"/>
+            <property name="allowFullyQualifiedGlobalFunctions" value="true"/>
+            <property name="allowFullyQualifiedGlobalConstants" value="true"/>
+            <property name="allowFallbackGlobalFunctions" value="true"/>
+            <property name="allowFallbackGlobalConstants" value="true"/>
+        </properties>
+    </rule>
+
+    <!-- Строгая типизация файлов -->
     <rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes">
         <properties>
             <property name="spacesCountAroundEqualsSign" value="0"/>
         </properties>
     </rule>
 
-    <!-- Правила отступов в классах -->
+    <!-- Структура и отступы в классах -->
+    <rule ref="SlevomatCodingStandard.Classes.ClassStructure">
+        <properties>
+            <property name="groups" type="array">
+                <element value="uses"/>
+                <element value="enum cases"/>
+                <element value="public constants, protected constants, private constants"/>
+                <element value="public static properties, protected static properties, private static properties"/>
+                <element value="public properties, protected properties, private properties"/>
+                <element value="constructor"/>
+                <element value="static methods"/>
+                <element value="methods"/>
+                <element value="magic methods"/>
+            </property>
+        </properties>
+    </rule>
     <rule ref="SlevomatCodingStandard.Classes.ConstantSpacing">
         <properties>
             <property name="minLinesCountBeforeWithComment" value="1"/>
@@ -68,74 +97,46 @@
         </properties>
     </rule>
 
-    <!-- Порядок элементов в классе -->
-    <rule ref="SlevomatCodingStandard.Classes.ClassStructure">
-        <properties>
-            <property name="groups" type="array">
-                <element value="uses"/>
-                <element value="enum cases"/>
-                <element value="public constants, protected constants, private constants"/>
-                <element value="public static properties, protected static properties, private static properties"/>
-                <element value="public properties, protected properties, private properties"/>
-                <element value="constructor"/>
-                <element value="static methods"/>
-                <element value="methods"/>
-                <element value="magic methods"/>
-            </property>
-        </properties>
-    </rule>
-
-    <!-- Чистка лишних пустых строк и пробелов -->
+    <!-- Пробелы и пустые строки -->
     <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace">
         <properties>
             <property name="ignoreBlankLines" value="false"/>
         </properties>
     </rule>
 
-    <!-- Улучшение читаемости -->
+    <!-- Читаемость и контроль конструкций -->
     <rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
     <rule ref="SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses"/>
-
     <rule ref="SlevomatCodingStandard.PHP.UselessParentheses"/>
     <rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/>
-
-    <rule ref="SlevomatCodingStandard.Namespaces.UseFromSameNamespace"/>
-
     <rule ref="SlevomatCodingStandard.Commenting.EmptyComment"/>
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator"/>
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator"/>
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator"/>
+    <rule ref="SlevomatCodingStandard.ControlStructures.AssignmentInCondition"/>
 
-    <!-- Запрет FQCN (Fully Qualified Class Names), требуем use -->
-    <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
-        <properties>
-            <property name="allowFullyQualifiedGlobalClasses" value="true"/>
-            <property name="allowFullyQualifiedGlobalFunctions" value="true"/>
-            <property name="allowFullyQualifiedGlobalConstants" value="true"/>
-            <property name="allowFallbackGlobalFunctions" value="true"/>
-            <property name="allowFallbackGlobalConstants" value="true"/>
-        </properties>
-    </rule>
-
-    <!-- Modern PHP syntax (стрелочные функции, типизированные константы) -->
+    <!-- Современный синтаксис -->
     <rule ref="SlevomatCodingStandard.Functions.RequireArrowFunction"/>
     <rule ref="SlevomatCodingStandard.Classes.ClassConstantVisibility"/>
+    <rule ref="SlevomatCodingStandard.Classes.ModernClassNameReference"/>
 
-    <!-- Clean Code (удаление мертвого кода и неиспользуемых переменных) -->
+    <!-- Чистота кода -->
     <rule ref="SlevomatCodingStandard.Variables.UnusedVariable">
         <exclude-pattern>tests/*</exclude-pattern>
     </rule>
     <rule ref="SlevomatCodingStandard.Exceptions.DeadCatch"/>
 
-    <!-- Отключаем требование underscore для приватных свойств (используем camelCase) -->
+    <!-- Именование и исключения -->
     <rule ref="Squiz.NamingConventions.ValidVariableName.PrivateNoUnderscore">
         <severity>0</severity>
     </rule>
 
-    <!-- Исключаем миграции из проверок имен классов (Yii2 использует mXXXXXX_name) -->
     <rule ref="Squiz.Classes.ValidClassName.NotPascalCase">
         <exclude-pattern>migrations/*</exclude-pattern>
         <exclude-pattern>config/__autocomplete.php</exclude-pattern>
     </rule>
 
-    <!-- Исключаем системные файлы Yii2 из строгих проверок (namespace, one class per file) -->
+    <!-- Ослабления для системных файлов -->
     <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
         <exclude-pattern>migrations/*</exclude-pattern>
         <exclude-pattern>config/*</exclude-pattern>
@@ -145,16 +146,30 @@
     <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
         <exclude-pattern>config/__autocomplete.php</exclude-pattern>
     </rule>
-    
-    <!-- Разрешаем FQCN в конфигах и entry scripts (там это необходимо или удобно) -->
+
+    <!-- Разрешения FQCN в конфигах и entry scripts -->
     <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
         <exclude-pattern>config/*</exclude-pattern>
         <exclude-pattern>web/index.php</exclude-pattern>
         <exclude-pattern>web/index-test.php</exclude-pattern>
     </rule>
 
-    <!-- Исключаем правило "Side Effects" для bootstrap файлов, где логично смешивать логику и объявления -->
+    <!-- Side Effects в bootstrap -->
     <rule ref="PSR1.Files.SideEffects">
         <exclude-pattern>phpstan-bootstrap.php</exclude-pattern>
     </rule>
+
+    <!-- Типы и подсказки -->
+    <rule ref="SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue"/>
+    <rule ref="SlevomatCodingStandard.TypeHints.LongTypeHints"/>
+    <rule ref="SlevomatCodingStandard.TypeHints.UselessConstantTypeHint"/>
+
+    <!-- Конкатенация строк -->
+    <rule ref="Squiz.Strings.ConcatenationSpacing">
+        <properties>
+            <property name="spacing" value="1"/>
+            <property name="ignoreNewlines" value="true"/>
+        </properties>
+    </rule>
+
 </ruleset>

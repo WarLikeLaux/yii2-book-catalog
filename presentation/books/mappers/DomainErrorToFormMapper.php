@@ -6,7 +6,6 @@ namespace app\presentation\books\mappers;
 
 final class DomainErrorToFormMapper
 {
-    /** @var array<string, string> */
     private const array ERROR_TO_FIELD_MAP = [
         'isbn.error.invalid_format' => 'isbn',
         'year.error.too_old' => 'year',
