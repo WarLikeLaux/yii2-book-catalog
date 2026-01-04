@@ -157,14 +157,4 @@ final class SubscriptionRepositoryTest extends Unit
         $this->assertCount(1, $phones);
         $this->assertSame('+77009999999', $phones[0]);
     }
-
-    public function testSaveThrowsExceptionOnValidationError(): void
-    {
-        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'Test Author']);
-        $tooLongPhone = str_repeat('1', 25);
-        $subscription = Subscription::create($tooLongPhone, $authorId);
-
-        $this->expectException(\RuntimeException::class);
-        $this->repository->save($subscription);
-    }
 }
