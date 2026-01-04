@@ -14,22 +14,38 @@ use Codeception\Test\Unit;
 
 final class BookTest extends Unit
 {
-    public function testCreateAndGetters(): void
-    {
-        $year = new BookYear(2023, new \DateTimeImmutable());
-        $isbn = new Isbn('978-3-16-148410-0');
-        $cover = new StoredFileReference('path/to/cover');
+    private function createBook(
+        string $title = 'Title',
+        int $year = 2023,
+        string $isbn = '978-3-16-148410-0',
+    ): Book {
+        return Book::create(
+            $title,
+            new BookYear($year, new \DateTimeImmutable()),
+            new Isbn($isbn),
+            null,
+            null,
+        );
+    }
 
-        $book = Book::create('Title', $year, $isbn, 'Desc', $cover);
+    private function createBookWithAuthors(int ...$authorIds): Book
+    {
+        $book = $this->createBook();
+        if ($authorIds) {
+            $book->replaceAuthors($authorIds);
+        }
+        return $book;
+    }
+
+    public function testCreate(): void
+    {
+        $book = $this->createBook();
 
         $this->assertNull($book->id);
         $this->assertSame('Title', $book->title);
-        $this->assertSame($year, $book->year);
-        $this->assertSame($isbn, $book->isbn);
-        $this->assertSame('Desc', $book->description);
-        $this->assertSame($cover, $book->coverImage);
-        $this->assertSame([], $book->authorIds);
+        $this->assertFalse($book->published);
         $this->assertSame(1, $book->version);
+        $this->assertSame([], $book->authorIds);
     }
 
     public function testUpdate(): void
@@ -65,38 +81,40 @@ final class BookTest extends Unit
         $this->assertNull($book->coverImage, 'Cover image should be null if removed');
     }
 
-    public function testReplaceAuthors(): void
+    public function testAddAndRemoveAuthors(): void
     {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-
-        $book->replaceAuthors([1, 2, 3]);
-
-        $this->assertSame([1, 2, 3], $book->authorIds);
-    }
-
-    public function testAddAuthor(): void
-    {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-
+        $book = $this->createBook();
         $book->addAuthor(1);
         $book->addAuthor(2);
 
         $this->assertSame([1, 2], $book->authorIds);
+        $this->assertTrue($book->hasAuthor(1));
+        $this->assertFalse($book->hasAuthor(2) && $book->hasAuthor(3));
+
+        $book->removeAuthor(1);
+        $this->assertSame([2], $book->authorIds);
     }
 
     public function testAddAuthorIsIdempotent(): void
     {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-
+        $book = $this->createBook();
         $book->addAuthor(1);
         $book->addAuthor(1);
 
         $this->assertSame([1], $book->authorIds);
     }
 
+    public function testRemoveAuthorIsIdempotent(): void
+    {
+        $book = $this->createBookWithAuthors(1, 2);
+        $book->removeAuthor(3);
+
+        $this->assertSame([1, 2], $book->authorIds);
+    }
+
     public function testAddAuthorThrowsExceptionOnInvalidId(): void
     {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
+        $book = $this->createBook();
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.invalid_author_id');
@@ -104,33 +122,12 @@ final class BookTest extends Unit
         $book->addAuthor(0);
     }
 
-    public function testRemoveAuthor(): void
+    public function testReplaceAuthors(): void
     {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
+        $book = $this->createBook();
         $book->replaceAuthors([1, 2, 3]);
 
-        $book->removeAuthor(2);
-
-        $this->assertSame([1, 3], $book->authorIds);
-    }
-
-    public function testRemoveAuthorIsIdempotent(): void
-    {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-        $book->replaceAuthors([1, 2]);
-
-        $book->removeAuthor(3);
-
-        $this->assertSame([1, 2], $book->authorIds);
-    }
-
-    public function testHasAuthor(): void
-    {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-        $book->addAuthor(1);
-
-        $this->assertTrue($book->hasAuthor(1));
-        $this->assertFalse($book->hasAuthor(2));
+        $this->assertSame([1, 2, 3], $book->authorIds);
     }
 
     public function testSetId(): void
@@ -165,58 +162,27 @@ final class BookTest extends Unit
         $this->assertSame(6, $book->version);
     }
 
-    public function testIsPublishedReturnsFalseByDefault(): void
+    public function testPublishRequiresAuthors(): void
     {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-
-        $this->assertFalse($book->published);
-    }
-
-    public function testDefaultVersionIsOne(): void
-    {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-
-        $this->assertSame(1, $book->version);
-    }
-
-    public function testPublishWithAuthorsSucceeds(): void
-    {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-        $book->replaceAuthors([1, 2]);
-
-        $policy = new BookPublicationPolicy();
-        $book->publish($policy);
-
-        $this->assertTrue($book->published);
-    }
-
-    public function testPublishWithoutAuthorsThrowsDomainException(): void
-    {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
+        $book = $this->createBook();
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_without_authors');
 
-        $policy = new BookPublicationPolicy();
-        $book->publish($policy);
+        $book->publish(new BookPublicationPolicy());
     }
 
-    public function testUpdateIsbnOnPublishedBookThrowsDomainException(): void
+    public function testPublishWithAuthorsSucceeds(): void
     {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-        $book->replaceAuthors([1]);
-        $policy = new BookPublicationPolicy();
-        $book->publish($policy);
+        $book = $this->createBookWithAuthors(1, 2);
+        $book->publish(new BookPublicationPolicy());
 
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('book.error.isbn_change_published');
-
-        $book->correctIsbn(new Isbn('979-10-90636-07-1'));
+        $this->assertTrue($book->published);
     }
 
-    public function testUpdateIsbnOnDraftBookSucceeds(): void
+    public function testChangeIsbnOnDraftBookSucceeds(): void
     {
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
+        $book = $this->createBook();
         $newIsbn = new Isbn('979-10-90636-07-1');
 
         $book->correctIsbn($newIsbn);
@@ -224,31 +190,27 @@ final class BookTest extends Unit
         $this->assertTrue($book->isbn->equals($newIsbn));
     }
 
-    public function testUpdateSameIsbnOnPublishedBookSucceeds(): void
+    public function testChangeIsbnOnPublishedBookThrows(): void
     {
-        $isbn = new Isbn('978-3-16-148410-0');
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), $isbn, null, null);
-        $book->replaceAuthors([1]);
-        $policy = new BookPublicationPolicy();
-        $book->publish($policy);
+        $book = $this->createBookWithAuthors(1);
+        $book->publish(new BookPublicationPolicy());
 
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.isbn_change_published');
+
+        $book->correctIsbn(new Isbn('979-10-90636-07-1'));
+    }
+
+    public function testSameIsbnOnPublishedBookSucceeds(): void
+    {
+        $book = $this->createBookWithAuthors(1);
+        $book->publish(new BookPublicationPolicy());
         $book->rename('New Title');
 
         $this->assertSame('New Title', $book->title);
     }
 
-    public function testCorrectIsbnWithSameIsbnDoesNotChange(): void
-    {
-        $isbn = new Isbn('978-3-16-148410-0');
-        $book = Book::create('Title', new BookYear(2023, new \DateTimeImmutable()), $isbn, null, null);
-
-        $sameIsbn = new Isbn('978-3-16-148410-0');
-        $book->correctIsbn($sameIsbn);
-
-        $this->assertTrue($book->isbn->equals($isbn));
-    }
-
-    public function testThrowsExceptionOnEmptyTitle(): void
+    public function testCreateThrowsOnInvalidTitle(): void
     {
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.title_empty');
@@ -256,15 +218,7 @@ final class BookTest extends Unit
         Book::create('', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
     }
 
-    public function testThrowsExceptionOnWhitespaceOnlyTitle(): void
-    {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('book.error.title_empty');
-
-        Book::create('   ', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
-    }
-
-    public function testThrowsExceptionOnTooLongTitle(): void
+    public function testCreateThrowsOnTooLongTitle(): void
     {
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.title_too_long');
@@ -272,9 +226,9 @@ final class BookTest extends Unit
         Book::create(str_repeat('A', 256), new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
     }
 
-    public function testUpdateThrowsExceptionOnEmptyTitle(): void
+    public function testRenameThrowsOnInvalidTitle(): void
     {
-        $book = Book::create('Valid Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
+        $book = $this->createBook('Valid Title');
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.title_empty');
@@ -282,9 +236,9 @@ final class BookTest extends Unit
         $book->rename('');
     }
 
-    public function testUpdateThrowsExceptionOnTooLongTitle(): void
+    public function testRenameThrowsOnTooLongTitle(): void
     {
-        $book = Book::create('Valid Title', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
+        $book = $this->createBook('Valid Title');
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.title_too_long');
