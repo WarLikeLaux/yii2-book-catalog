@@ -13,16 +13,18 @@ final readonly class BookYear implements \Stringable
 
     public function __construct(
         int $year,
-        DateTimeImmutable $now
+        ?DateTimeImmutable $now = null
     ) {
-        $currentYear = (int)$now->format('Y');
+        if ($now instanceof DateTimeImmutable) {
+            $currentYear = (int)$now->format('Y');
 
-        if ($year <= 1000) {
-            throw new DomainException('year.error.too_old');
-        }
+            if ($year <= 1000) {
+                throw new DomainException('year.error.too_old');
+            }
 
-        if ($year > $currentYear + 1) {
-            throw new DomainException('year.error.future');
+            if ($year > $currentYear + 1) {
+                throw new DomainException('year.error.future');
+            }
         }
 
         $this->value = $year;

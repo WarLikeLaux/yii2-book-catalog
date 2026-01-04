@@ -14,7 +14,6 @@ use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
-use DateTimeImmutable;
 use ReflectionMethod;
 use RuntimeException;
 use yii\db\Connection;
@@ -130,8 +129,8 @@ final readonly class BookRepository implements BookRepositoryInterface
         return BookEntity::reconstitute(
             id: $ar->id,
             title: $ar->title,
-            /** @reconstitution Валидация времени не требуется, так как данные загружаются из хранилища */
-            year: new BookYear($ar->year, new DateTimeImmutable()),
+            /** @reconstitution Доверяем данным из БД, обходим валидацию текущего года */
+            year: new BookYear($ar->year),
             isbn: new Isbn($ar->isbn),
             description: $ar->description,
             coverImage: $ar->cover_url !== null ? new StoredFileReference($ar->cover_url) : null,
