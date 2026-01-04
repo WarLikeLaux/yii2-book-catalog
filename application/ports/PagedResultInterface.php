@@ -9,7 +9,7 @@ use app\application\common\dto\PaginationDto;
 interface PagedResultInterface
 {
     /**
-     * @return array<mixed>
+     * @return array<int, object>
      */
     public function getModels(): array;
 
