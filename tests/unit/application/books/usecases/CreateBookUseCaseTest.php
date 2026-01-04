@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
-use app\application\books\factories\BookYearFactory;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
@@ -23,7 +22,7 @@ final class CreateBookUseCaseTest extends Unit
 
     private TransactionInterface&MockObject $transaction;
 
-    private BookYearFactory $bookYearFactory;
+    private ClockInterface&MockObject $clock;
 
     private CreateBookUseCase $useCase;
 
@@ -31,15 +30,13 @@ final class CreateBookUseCaseTest extends Unit
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
-
-        $clock = $this->createMock(ClockInterface::class);
-        $clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
-        $this->bookYearFactory = new BookYearFactory($clock);
+        $this->clock = $this->createMock(ClockInterface::class);
+        $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
         $this->useCase = new CreateBookUseCase(
             $this->bookRepository,
             $this->transaction,
-            $this->bookYearFactory
+            $this->clock
         );
     }
 
