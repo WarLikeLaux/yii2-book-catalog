@@ -23,7 +23,7 @@ use yii\web\UploadedFile;
 
 /**
  * NOTE: Прагматичный компромисс: группировка всех команд сущности в одном классе.
- * @see docs/DECISIONS.md (см. пункт "4. Группировка Handlers по сущностям")
+ * @see docs/DECISIONS.md (см. пункт "3. Группировка хендлеров по сущностям")
  */
 final readonly class BookCommandHandler
 {

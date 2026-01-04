@@ -9,7 +9,7 @@ use RuntimeException;
 
 /**
  * NOTE: Используем рефлексию свойств для установки ID, чтобы сохранить инкапсуляцию домена.
- * @see docs/DECISIONS.md (см. пункт "5. Рефлексия для установки ID")
+ * @see docs/DECISIONS.md (см. пункт "4. Рефлексия для установки ID")
  */
 trait IdentityAssignmentTrait
 {
