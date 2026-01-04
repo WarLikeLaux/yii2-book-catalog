@@ -1,4 +1,4 @@
-.PHONY: help init up down restart logs shell sms-logs tinker perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-unit test-integration test-e2e test-coverage coverage cov infection load-test migrate seed db-info queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached req require req-dev require-dev ai
+.PHONY: help init up down restart logs shell sms-logs tinker perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-unit test-integration test-e2e test-coverage coverage cov infection load-test migrate seed db-info queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached req require req-dev require-dev ai _dev_full _dev_file
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -7,7 +7,12 @@ DB_TEST_NAME=yii2basic_test
 
 ifeq ($(firstword $(MAKECMDGOALS)),$(filter $(firstword $(MAKECMDGOALS)),req require req-dev require-dev))
   COMPOSER_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
-  $(eval $(COMPOSER_ARGS):;@:) 
+  $(eval $(COMPOSER_ARGS):;@:)
+endif
+
+ifeq ($(firstword $(MAKECMDGOALS)),$(filter $(firstword $(MAKECMDGOALS)),dev))
+  FILE_ARG := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(FILE_ARG):;@:)
 endif
 
 ifneq (,$(wildcard .env))
@@ -30,13 +35,14 @@ help:
 	@echo "  test             ✅ Запуск тестов (unit + integration + coverage)"
 	@echo "  test-e2e         🎭 Только E2E-тесты (acceptance)"
 	@echo "  cov              📊 Отчет покрытия (из последнего запуска)"
-	@echo "  infection        🧟 Мутационное тестирование"
+	@echo "  infection        🧟 Мутационное тестирование (только полный прогон)"
 	@echo "  deptrac          🏗️  Архитектурный анализ"
 	@echo "  check            🛡️  Экспресс-проверка (dev + deptrac + test)"
 	@echo "  pr               🚀 Полная проверка (check + e2e + infection)"
 	@echo ""
 	@echo "💻 РАЗРАБОТКА:"
 	@echo "  dev              🛠️  Полный цикл (CS Fixer + Rector + PHPStan)"
+	@echo "  dev [FILE]       🔍 Быстрая проверка файла (только CS Fixer)"
 	@echo "  comments         📝 Показать TODO и заметки"
 	@echo "  d                🔎 Показать изменения (вкл. новые файлы)"
 	@echo "  dc               📌 Показать изменения в индексе (staged)"
@@ -222,7 +228,18 @@ req-dev require-dev:
 
 ci: lint analyze
 fix: lint-fix rector-fix
-dev: fix ci
+dev:
+	@if [ -z "$(FILE_ARG)" ]; then \
+		$(MAKE) _dev_full; \
+	else \
+		$(MAKE) _dev_file; \
+	fi
+_dev_full: fix ci
+_dev_file:
+	@echo "🔍 Проверяем: $(FILE_ARG)"
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf $(FILE_ARG) || true
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs $(FILE_ARG) || true
+	@echo "✅ Готово"
 check: dev deptrac test
 pr: docs check test-e2e infection
 
