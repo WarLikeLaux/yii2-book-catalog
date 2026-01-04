@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use app\application\books\queries\BookReadDto;
+use app\presentation\books\viewmodels\BookViewModel;
 use yii\bootstrap5\LinkPager;
 use yii\grid\GridView;
 use yii\helpers\Html;
@@ -32,7 +32,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'isbn',
             [
                 'attribute' => 'authors',
-                'value' => fn (BookReadDto $model) => implode(', ', $model->authorNames),
+                'value' => fn (BookViewModel $model) => implode(', ', $model->authorNames),
             ],
             [
                 'class' => 'yii\grid\ActionColumn',

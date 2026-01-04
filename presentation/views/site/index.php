@@ -45,7 +45,11 @@ $this->title = 'Каталог книг';
                 <div class="card h-100 shadow-sm">
                     <?php if ($book->coverUrl): ?>
                         <div style="height: 200px; overflow: hidden;">
-                            <?= Html::img($book->coverUrl, ['class' => 'card-img-top', 'alt' => $book->title, 'style' => 'width: 100%; height: 100%; object-fit: cover;']) ?>
+                            <?= Html::a(
+                                Html::img($book->coverUrl, ['class' => 'card-img-top', 'alt' => $book->title, 'style' => 'width: 100%; height: 100%; object-fit: cover; cursor: pointer;']),
+                                $book->coverUrl,
+                                ['class' => 'glightbox', 'data-gallery' => 'books-gallery']
+                            ) ?>
                         </div>
                     <?php endif; ?>
                     <div class="card-body">

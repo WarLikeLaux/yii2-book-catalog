@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\subscriptions\forms;
 
-use app\application\authors\queries\AuthorReadDto;
-use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\common\forms\RepositoryAwareForm;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
@@ -79,9 +78,9 @@ final class SubscriptionForm extends RepositoryAwareForm
             return;
         }
 
-        $repository = $this->resolve(AuthorRepositoryInterface::class);
+        $service = $this->resolve(AuthorQueryServiceInterface::class);
 
-        if ($repository->findById($authorId) instanceof AuthorReadDto) {
+        if ($service->findById($authorId) !== null) {
             return;
         }
 

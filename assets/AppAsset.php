@@ -22,6 +22,7 @@ class AppAsset extends AssetBundle
     public $js = [
         'js/faker-extensions.js',
         'js/main.js',
+        'js/glightbox-init.js',
     ];
 
     public $depends = [
@@ -29,5 +30,6 @@ class AppAsset extends AssetBundle
         BootstrapAsset::class,
         BootstrapIconAsset::class,
         FakerAsset::class,
+        GLightboxAsset::class,
     ];
 }

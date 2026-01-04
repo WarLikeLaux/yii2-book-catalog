@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\books\forms;
 
-use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\presentation\books\validators\IsbnValidator;
 use app\presentation\common\forms\RepositoryAwareForm;
@@ -128,8 +128,8 @@ final class BookForm extends RepositoryAwareForm
             return;
         }
 
-        $repository = $this->resolve(AuthorRepositoryInterface::class);
-        $missingIds = $repository->findMissingIds($ids);
+        $service = $this->resolve(AuthorQueryServiceInterface::class);
+        $missingIds = $service->findMissingIds($ids);
 
         foreach ($missingIds as $missingId) {
             $this->addError($attribute, Yii::t('app', 'author.error.id_not_found', ['id' => $missingId]));

@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+/** @var app\presentation\books\viewmodels\BookViewModel $book */
+/** @var app\presentation\books\forms\BookForm $model */
+/** @var array<int, string> $authors */
+
 use yii\helpers\Html;
 
 $this->title = 'Обновить книгу';
