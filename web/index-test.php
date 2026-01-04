@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 // Важно: этот файл не должен быть доступен в production
 if (!in_array(@$_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])) {
-    die('You are not allowed to access this file.');
+    throw new RuntimeException('Доступ запрещен.');
 }
 
 defined('YII_DEBUG') or define('YII_DEBUG', true);
