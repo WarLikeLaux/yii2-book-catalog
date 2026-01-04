@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace app\application\common\dto;
 
-use yii\web\Request;
-
 readonly class PaginationRequest
 {
     protected const int DEFAULT_PAGE = 1;
@@ -13,16 +11,7 @@ readonly class PaginationRequest
     protected const int MAX_LIMIT = 100;
 
     public int $page;
-
     public int $limit;
-
-    public static function fromRequest(Request $request): static
-    {
-        return new static(
-            $request->get('page'),
-            $request->get('pageSize')
-        );
-    }
 
     final public function __construct(mixed $page, mixed $limit)
     {

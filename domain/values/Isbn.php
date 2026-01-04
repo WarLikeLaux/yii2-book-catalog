@@ -32,11 +32,6 @@ final readonly class Isbn implements \Stringable
         return $this->value;
     }
 
-    public function __toString(): string
-    {
-        return $this->value;
-    }
-
     public function equals(self $other): bool
     {
         return $this->value === $other->value;
@@ -106,5 +101,10 @@ final readonly class Isbn implements \Stringable
         }
 
         return false;
+    }
+
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

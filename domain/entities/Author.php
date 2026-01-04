@@ -18,6 +18,11 @@ final class Author
         $this->validateFio($fio);
     }
 
+    public static function create(string $fio): self
+    {
+        return new self(null, $fio);
+    }
+
     private function validateFio(string $fio): void
     {
         $trimmed = trim($fio);
@@ -33,11 +38,6 @@ final class Author
         if (mb_strlen($trimmed) > self::MAX_FIO_LENGTH) {
             throw new DomainException('author.error.fio_too_long');
         }
-    }
-
-    public static function create(string $fio): self
-    {
-        return new self(null, $fio);
     }
 
     public function update(string $fio): void

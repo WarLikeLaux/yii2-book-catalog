@@ -35,19 +35,6 @@ final class Book
         $this->authorIds = array_map(intval(...), $authorIds);
     }
 
-    private function validateTitle(string $title): void
-    {
-        $trimmed = trim($title);
-
-        if ($trimmed === '') {
-            throw new DomainException('book.error.title_empty');
-        }
-
-        if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
-            throw new DomainException('book.error.title_too_long');
-        }
-    }
-
     public static function create(
         string $title,
         BookYear $year,
@@ -93,6 +80,19 @@ final class Book
             published: $published,
             version: $version
         );
+    }
+
+    private function validateTitle(string $title): void
+    {
+        $trimmed = trim($title);
+
+        if ($trimmed === '') {
+            throw new DomainException('book.error.title_empty');
+        }
+
+        if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
+            throw new DomainException('book.error.title_too_long');
+        }
     }
 
     public function rename(string $title): void
