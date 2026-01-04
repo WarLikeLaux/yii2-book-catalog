@@ -26,7 +26,7 @@ final readonly class LocalFileStorage implements FileStorageInterface
         $filename = uniqid('', true) . '.' . $extension;
         $path = $dir . DIRECTORY_SEPARATOR . $filename;
 
-        if (file_put_contents($path, file_get_contents($tempPath)) === false) {
+        if (!copy($tempPath, $path)) {
              throw new RuntimeException('Failed to save temporary file'); // @codeCoverageIgnore
         }
 
