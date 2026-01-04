@@ -33,7 +33,7 @@ final readonly class ProjectMapPrinter
         $this->renderModulesSection($output, $modules);
     }
 
-    private function renderLayer(Controller $output, string $dir, array $data, array $modulesConfig): void
+    private function renderLayer(Controller $output, string $dir, array $data, array $_modulesConfig): void
     {
         $output->stdout(sprintf("%-23s - %s\n", $dir . '/', $data['description'] ?? ''));
 
