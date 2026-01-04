@@ -22,7 +22,9 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
 
     public function save(SubscriptionEntity $subscription): void
     {
-        $ar = Subscription::create($subscription->phone, $subscription->authorId);
+        $ar = new Subscription();
+        $ar->phone = $subscription->phone;
+        $ar->author_id = $subscription->authorId;
 
         try {
             if (!$ar->save()) {

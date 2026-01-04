@@ -19,14 +19,15 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
     public function save(AuthorEntity $author): void
     {
         if ($author->id === null) {
-            $ar = Author::create($author->fio);
+            $ar = new Author();
         } else {
             $ar = Author::findOne($author->id);
             if ($ar === null) {
                 throw new EntityNotFoundException('author.error.not_found');
             }
-            $ar->edit($author->fio);
         }
+
+        $ar->fio = $author->fio;
 
         if ($this->existsByFio($author->fio, $author->id)) {
             throw new AlreadyExistsException('author.error.fio_exists', 409);

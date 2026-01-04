@@ -29,41 +29,6 @@ final class Book extends ActiveRecord
         return new BookQuery(static::class);
     }
 
-    public static function create(
-        string $title,
-        int $year,
-        string $isbn,
-        ?string $description,
-        ?string $coverUrl
-    ): self {
-        $book = new self();
-        $book->title = $title;
-        $book->year = $year;
-        $book->isbn = $isbn;
-        $book->description = $description;
-        $book->cover_url = $coverUrl;
-
-        return $book;
-    }
-
-    public function edit(
-        string $title,
-        int $year,
-        string $isbn,
-        ?string $description,
-        ?string $coverUrl
-    ): void {
-        $this->title = $title;
-        $this->year = $year;
-        $this->isbn = $isbn;
-        $this->description = $description;
-        if ($coverUrl === null) {
-            return;
-        }
-
-        $this->cover_url = $coverUrl;
-    }
-
     public static function tableName(): string
     {
         return 'books';
