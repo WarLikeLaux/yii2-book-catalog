@@ -20,7 +20,7 @@ use yii\db\Expression;
 final readonly class BookQueryService implements BookQueryServiceInterface
 {
     public function __construct(
-        private Connection $db
+        private Connection $db,
     ) {
     }
 
@@ -64,7 +64,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
 
         $models = array_map(
             $this->mapToDto(...),
-            $dataProvider->getModels()
+            $dataProvider->getModels(),
         );
 
         $totalCount = $dataProvider->getTotalCount();
@@ -74,20 +74,20 @@ final readonly class BookQueryService implements BookQueryServiceInterface
             page: $page,
             pageSize: $pageSize,
             totalCount: $totalCount,
-            totalPages: $totalPages
+            totalPages: $totalPages,
         );
 
         return new QueryResult(
             models: $models,
             totalCount: $totalCount,
-            pagination: $pagination
+            pagination: $pagination,
         );
     }
 
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
-        int $pageSize
+        int $pageSize,
     ): PagedResultInterface {
         $query = Book::find()->withAuthors()->orderedByCreatedAt();
 
@@ -103,7 +103,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
 
         $models = array_map(
             $this->mapToDto(...),
-            $dataProvider->getModels()
+            $dataProvider->getModels(),
         );
 
         $totalCount = $dataProvider->getTotalCount();
@@ -113,13 +113,13 @@ final readonly class BookQueryService implements BookQueryServiceInterface
             page: $page,
             pageSize: $pageSize,
             totalCount: $totalCount,
-            totalPages: $totalPages
+            totalPages: $totalPages,
         );
 
         return new QueryResult(
             models: $models,
             totalCount: $totalCount,
-            pagination: $pagination
+            pagination: $pagination,
         );
     }
 
@@ -141,7 +141,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
             authorNames: $authorNames,
             coverUrl: $book->cover_url,
             isPublished: (bool)$book->is_published,
-            version: $book->version
+            version: $book->version,
         );
     }
 
@@ -200,7 +200,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
 
         return new Expression(
             "MATCH($columnList) AGAINST(:query IN BOOLEAN MODE)",
-            [':query' => $query]
+            [':query' => $query],
         );
     }
 
@@ -214,14 +214,14 @@ final readonly class BookQueryService implements BookQueryServiceInterface
 
         return new Expression(
             "to_tsvector('english', $columnExpression) @@ plainto_tsquery('english', :query)",
-            [':query' => $sanitized]
+            [':query' => $sanitized],
         );
     }
 
     private function prepareMysqlFulltextQuery(string $term): string
     {
         $term = (string)preg_replace('/[+\-><()~*\"@]+/', ' ', $term);
-        $words = array_filter(explode(' ', trim($term)), fn($w): bool => $w !== '');
+        $words = array_filter(explode(' ', trim($term)), static fn($w): bool => $w !== '');
 
         return $words === [] ? '' : '+' . implode('* +', $words) . '*';
     }
@@ -285,21 +285,19 @@ final readonly class BookQueryService implements BookQueryServiceInterface
         $conditions = ['or'];
 
         foreach ($specs as $spec) {
-            if (!is_array($spec)) {
+            $normalized = $this->normalizeSpec($spec);
+
+            if ($normalized === null) {
                 continue; // @codeCoverageIgnore
             }
 
-            $type = $spec['type'] ?? null;
-            $value = $spec['value'] ?? null;
-            $stringValue = is_scalar($value) ? (string)$value : '';
+            $condition = $this->buildOrCondition($normalized);
 
-            match ($type) {
-                'year' => $conditions[] = ['year' => $value],
-                'isbn_prefix' => $conditions[] = ['like', 'isbn', $stringValue . '%', false],
-                'fulltext' => $this->addFulltextCondition($conditions, $stringValue),
-                'author' => $conditions[] = $this->buildAuthorCondition($stringValue),
-                default => null, // @codeCoverageIgnore
-            };
+            if (!($condition instanceof Expression) && !is_array($condition)) {
+                continue; // @codeCoverageIgnore
+            }
+
+            $conditions[] = $condition;
         }
 
         if (count($conditions) <= 1) {
@@ -310,16 +308,36 @@ final readonly class BookQueryService implements BookQueryServiceInterface
     }
 
     /**
-     * @param array<mixed> $conditions
+     * @param array{type: mixed, value: mixed} $spec
+     * @return array<int|string, mixed>|Expression|null
      */
-    private function addFulltextCondition(array &$conditions, string $term): void
+    private function buildOrCondition(array $spec): array|Expression|null
     {
-        $fulltextExpr = $this->buildBooksFulltextExpression($term);
+        $type = $spec['type'] ?? null;
+        $value = $spec['value'] ?? null;
+        $stringValue = is_scalar($value) ? (string)$value : '';
 
-        if (!$fulltextExpr instanceof Expression) {
-            return; // @codeCoverageIgnore
+        return match ($type) {
+            'year' => ['year' => $value],
+            'isbn_prefix' => ['like', 'isbn', $stringValue . '%', false],
+            'fulltext' => $this->buildBooksFulltextExpression($stringValue),
+            'author' => $this->buildAuthorCondition($stringValue),
+            default => null, // @codeCoverageIgnore
+        };
+    }
+
+    /**
+     * @return array{type: mixed, value: mixed}|null
+     */
+    private function normalizeSpec(mixed $spec): array|null
+    {
+        if (!is_array($spec)) {
+            return null; // @codeCoverageIgnore
         }
 
-        $conditions[] = $fulltextExpr;
+        return [
+            'type' => $spec['type'] ?? null,
+            'value' => $spec['value'] ?? null,
+        ];
     }
 }
