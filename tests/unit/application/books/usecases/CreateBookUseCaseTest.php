@@ -33,7 +33,7 @@ final class CreateBookUseCaseTest extends Unit
         $this->useCase = new CreateBookUseCase(
             $this->bookRepository,
             $this->transaction,
-            $this->clock
+            $this->clock,
         );
     }
 
@@ -45,7 +45,7 @@ final class CreateBookUseCaseTest extends Unit
             description: 'A Handbook of Agile Software Craftsmanship',
             isbn: '9780132350884',
             authorIds: [1, 2],
-            cover: '/uploads/cover.jpg'
+            cover: '/uploads/cover.jpg',
         );
 
         $this->transaction->expects($this->once())->method('begin');
@@ -54,9 +54,9 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book): bool => $book->title === 'Clean Code'
+            ->with($this->callback(static fn (Book $book): bool => $book->title === 'Clean Code'
                     && $book->authorIds === [1, 2]))
-            ->willReturnCallback(function (Book $book): void {
+            ->willReturnCallback(static function (Book $book): void {
                 BookTestHelper::assignBookId($book, 42);
             });
 
@@ -72,7 +72,7 @@ final class CreateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [1]
+            authorIds: [1],
         );
 
         $this->transaction->expects($this->once())->method('begin');
@@ -96,7 +96,7 @@ final class CreateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: 'invalid-isbn',
-            authorIds: [1]
+            authorIds: [1],
         );
 
         $this->transaction->expects($this->once())->method('begin');
@@ -115,7 +115,7 @@ final class CreateBookUseCaseTest extends Unit
             year: 2024,
             description: 'A book without cover',
             isbn: '9780132350884',
-            authorIds: []
+            authorIds: [],
         );
 
         $this->transaction->expects($this->once())->method('begin');
@@ -123,7 +123,7 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->willReturnCallback(function (Book $book): void {
+            ->willReturnCallback(static function (Book $book): void {
                 BookTestHelper::assignBookId($book, 1);
             });
 
@@ -140,7 +140,7 @@ final class CreateBookUseCaseTest extends Unit
             description: 'Desc',
             isbn: '978-3-16-148410-0',
             authorIds: [1, 2],
-            cover: 'http://cover.com'
+            cover: 'http://cover.com',
         );
 
         $this->transaction->expects($this->once())->method('begin');
@@ -149,7 +149,7 @@ final class CreateBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(Book::class))
-            ->willReturnCallback(function (Book $book): void {
+            ->willReturnCallback(static function (Book $book): void {
             });
 
         $this->expectException(\RuntimeException::class);

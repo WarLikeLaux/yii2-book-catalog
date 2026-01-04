@@ -14,7 +14,7 @@ final readonly class BookQueryServiceTracingDecorator implements BookQueryServic
 {
     public function __construct(
         private BookQueryServiceInterface $service,
-        private TracerInterface $tracer
+        private TracerInterface $tracer,
     ) {
     }
 
@@ -32,18 +32,18 @@ final readonly class BookQueryServiceTracingDecorator implements BookQueryServic
     {
         return $this->tracer->trace(
             'BookQuery::' . __FUNCTION__,
-            fn(): PagedResultInterface => $this->service->search($term, $page, $pageSize)
+            fn(): PagedResultInterface => $this->service->search($term, $page, $pageSize),
         );
     }
 
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
-        int $pageSize
+        int $pageSize,
     ): PagedResultInterface {
         return $this->tracer->trace(
             'BookQuery::' . __FUNCTION__,
-            fn(): PagedResultInterface => $this->service->searchBySpecification($specification, $page, $pageSize)
+            fn(): PagedResultInterface => $this->service->searchBySpecification($specification, $page, $pageSize),
         );
     }
 }

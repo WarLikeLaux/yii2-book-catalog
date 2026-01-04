@@ -10,7 +10,7 @@ use yii\db\Connection;
 final readonly class ReportRepository implements ReportRepositoryInterface
 {
     public function __construct(
-        private Connection $db
+        private Connection $db,
     ) {
     }
 

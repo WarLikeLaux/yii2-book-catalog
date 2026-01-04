@@ -23,7 +23,7 @@ final class AuthorController extends Controller
         private readonly AuthorCommandHandler $commandHandler,
         private readonly AuthorViewDataFactory $viewDataFactory,
         private readonly AuthorSearchHandler $authorSearchHandler,
-        $config = []
+        $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }

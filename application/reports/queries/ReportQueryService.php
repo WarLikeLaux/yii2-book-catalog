@@ -12,7 +12,7 @@ final readonly class ReportQueryService
     public function __construct(
         private ReportRepositoryInterface $reportRepository,
         private CacheInterface $cache,
-        private int $cacheTtl = 3600
+        private int $cacheTtl = 3600,
     ) {
     }
 
@@ -29,7 +29,7 @@ final readonly class ReportQueryService
         $topAuthors = $this->cache->getOrSet(
             $cacheKey,
             fn(): array => $this->reportRepository->getTopAuthorsByYear($year, 10),
-            $this->cacheTtl
+            $this->cacheTtl,
         );
 
         return new ReportDto($topAuthors, $year);

@@ -127,6 +127,7 @@
         <exclude-pattern>views/*</exclude-pattern>
         <exclude-pattern>config/*</exclude-pattern>
     </rule>
+    <rule ref="SlevomatCodingStandard.ControlStructures.DisallowEmpty"/>
     <rule ref="SlevomatCodingStandard.PHP.UselessParentheses"/>
     <rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/>
     <rule ref="SlevomatCodingStandard.Commenting.EmptyComment"/>
@@ -137,6 +138,7 @@
 
     <!-- Современный синтаксис -->
     <rule ref="SlevomatCodingStandard.Functions.RequireArrowFunction"/>
+    <rule ref="SlevomatCodingStandard.Functions.StaticClosure"/>
     <rule ref="SlevomatCodingStandard.Classes.ClassConstantVisibility"/>
     <rule ref="SlevomatCodingStandard.Classes.ModernClassNameReference"/>
 
@@ -145,6 +147,20 @@
         <exclude-pattern>tests/*</exclude-pattern>
     </rule>
     <rule ref="SlevomatCodingStandard.Exceptions.DeadCatch"/>
+    <rule ref="Generic.PHP.ForbiddenFunctions">
+        <properties>
+            <property name="forbiddenFunctions" type="array">
+                <element key="sizeof" value="count"/>
+                <element key="delete" value="unset"/>
+                <element key="print" value="echo"/>
+                <element key="var_dump" value="null"/>
+                <element key="print_r" value="null"/>
+                <element key="dd" value="null"/>
+                <element key="dump" value="null"/>
+                <element key="die" value="null"/>
+            </property>
+        </properties>
+    </rule>
 
     <!-- Именование и исключения -->
     <rule ref="Squiz.NamingConventions.ValidVariableName.PrivateNoUnderscore">
@@ -183,6 +199,23 @@
             <property name="spacing" value="1"/>
             <property name="ignoreNewlines" value="true"/>
         </properties>
+    </rule>
+    <rule ref="Squiz.Strings.DoubleQuoteUsage">
+        <exclude name="Squiz.Strings.DoubleQuoteUsage.ContainsVar"/>
+    </rule>
+
+    <!-- Массивы и запятые -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInCall"/>
+    <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration"/>
+
+    <!-- Метрики сложности -->
+    <rule ref="Generic.Metrics.CyclomaticComplexity">
+        <properties>
+            <property name="complexity" value="10"/>
+            <property name="absoluteComplexity" value="20"/>
+        </properties>
+        <exclude-pattern>migrations/*</exclude-pattern>
     </rule>
 
 </ruleset>

@@ -22,7 +22,7 @@ final readonly class BookViewDataFactory
         private AuthorQueryService $authorQueryService,
         private BookFormMapper $mapper,
         private PagedResultDataProviderFactory $dataProviderFactory,
-        private FileUrlResolver $resolver
+        private FileUrlResolver $resolver,
     ) {
     }
 
@@ -34,13 +34,13 @@ final readonly class BookViewDataFactory
             fn(mixed $dto): BookReadDto => $dto instanceof BookReadDto
                 ? $this->withResolvedUrl($dto)
                 : throw new \LogicException('Expected BookReadDto'),
-            $queryResult->getModels()
+            $queryResult->getModels(),
         );
 
         $newResult = new QueryResult(
             $dtos,
             $queryResult->getTotalCount(),
-            $queryResult->getPagination()
+            $queryResult->getPagination(),
         );
 
         return $this->dataProviderFactory->create($newResult);
@@ -88,7 +88,7 @@ final readonly class BookViewDataFactory
             $dto->authorNames,
             $this->resolver->resolve($dto->coverUrl),
             $dto->isPublished,
-            $dto->version
+            $dto->version,
         );
     }
 }

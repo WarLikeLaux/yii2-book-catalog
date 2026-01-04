@@ -14,7 +14,7 @@ use Throwable;
 final readonly class SubscribeUseCase
 {
     public function __construct(
-        private SubscriptionRepositoryInterface $subscriptionRepository
+        private SubscriptionRepositoryInterface $subscriptionRepository,
     ) {
     }
 

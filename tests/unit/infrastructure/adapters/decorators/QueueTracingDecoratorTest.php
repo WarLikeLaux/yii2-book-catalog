@@ -23,9 +23,9 @@ final class QueueTracingDecoratorTest extends Unit
             ->with(
                 'Queue::push',
                 $this->isType('callable'),
-                ['job_class' => \stdClass::class]
+                ['job_class' => \stdClass::class],
             )
-            ->willReturnCallback(fn(string $name, callable $callback) => $callback());
+            ->willReturnCallback(static fn(string $name, callable $callback) => $callback());
 
         $innerQueue->expects($this->once())
             ->method('push')

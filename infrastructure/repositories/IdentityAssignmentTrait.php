@@ -24,7 +24,7 @@ trait IdentityAssignmentTrait
                 'Cannot overwrite ID for %s (current: %s, new: %d)',
                 $entity::class,
                 is_scalar($currentValue) ? (string)$currentValue : gettype($currentValue),
-                $id
+                $id,
             ));
         }
 

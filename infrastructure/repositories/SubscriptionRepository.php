@@ -19,7 +19,7 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
     use IdentityAssignmentTrait;
 
     public function __construct(
-        private Connection $db
+        private Connection $db,
     ) {
     }
 

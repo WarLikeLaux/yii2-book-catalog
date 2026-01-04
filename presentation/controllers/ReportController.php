@@ -13,7 +13,7 @@ final class ReportController extends Controller
         $id,
         $module,
         private readonly ReportHandler $reportHandler,
-        $config = []
+        $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }

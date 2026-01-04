@@ -30,7 +30,7 @@ final class DeleteBookUseCaseTest extends Unit
         $this->useCase = new DeleteBookUseCase(
             $this->bookRepository,
             $this->transaction,
-            $this->eventPublisher
+            $this->eventPublisher,
         );
     }
 
@@ -43,7 +43,7 @@ final class DeleteBookUseCaseTest extends Unit
             title: 'Book to Delete',
             year: 2020,
             authorIds: [],
-            published: false
+            published: false,
         );
 
         $this->bookRepository->expects($this->once())
@@ -55,12 +55,12 @@ final class DeleteBookUseCaseTest extends Unit
         $this->transaction->expects($this->once())->method('begin');
         $this->transaction->expects($this->once())
             ->method('afterCommit')
-            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
+            ->willReturnCallback(static function (callable $callback) use (&$afterCommitCallback): void {
                 $afterCommitCallback = $callback;
             });
         $this->transaction->expects($this->once())
             ->method('commit')
-            ->willReturnCallback(function () use (&$afterCommitCallback): void {
+            ->willReturnCallback(static function () use (&$afterCommitCallback): void {
                 if ($afterCommitCallback === null) {
                     return;
                 }
@@ -75,11 +75,11 @@ final class DeleteBookUseCaseTest extends Unit
 
         $this->eventPublisher->expects($this->once())
             ->method('publishAfterCommit')
-            ->with($this->callback(fn (BookDeletedEvent $event): bool => $event->bookId === 42
+            ->with($this->callback(static fn (BookDeletedEvent $event): bool => $event->bookId === 42
                 && $event->year === 2020
                 && $event->wasPublished === false))
             ->willReturnCallback(function (BookDeletedEvent $event): void {
-                $this->transaction->afterCommit(fn(): null => null);
+                $this->transaction->afterCommit(static fn(): null => null);
             });
 
         $this->useCase->execute($command);
@@ -112,7 +112,7 @@ final class DeleteBookUseCaseTest extends Unit
             title: 'Book to Delete',
             year: 2020,
             authorIds: [],
-            published: true
+            published: true,
         );
 
         $this->bookRepository->expects($this->once())

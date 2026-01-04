@@ -10,7 +10,7 @@ use app\application\authors\queries\AuthorReadDto;
 final readonly class SubscriptionViewDataFactory
 {
     public function __construct(
-        private AuthorQueryService $authorQueryService
+        private AuthorQueryService $authorQueryService,
     ) {
     }
 

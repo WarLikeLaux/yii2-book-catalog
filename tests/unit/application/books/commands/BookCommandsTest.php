@@ -19,7 +19,7 @@ final class BookCommandsTest extends Unit
             description: 'A book about clean code',
             isbn: '9780132350884',
             authorIds: [1, 2, 3],
-            cover: '/uploads/cover.jpg'
+            cover: '/uploads/cover.jpg',
         );
 
         $this->assertSame('Clean Code', $command->title);
@@ -37,7 +37,7 @@ final class BookCommandsTest extends Unit
             year: 2024,
             description: 'Desc',
             isbn: '9780132350884',
-            authorIds: []
+            authorIds: [],
         );
 
         $this->assertNull($command->cover);
@@ -53,7 +53,7 @@ final class BookCommandsTest extends Unit
             isbn: '9780132350884',
             authorIds: [1],
             version: 5,
-            cover: '/uploads/new.jpg'
+            cover: '/uploads/new.jpg',
         );
 
         $this->assertSame(42, $command->id);

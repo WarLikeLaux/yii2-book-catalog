@@ -36,7 +36,7 @@ final class TracingFactoryTest extends Unit
         $decorator = new class ($service, $tracer) {
             public function __construct(
                 public object $service,
-                public TracerInterface $tracer
+                public TracerInterface $tracer,
             ) {
             }
         };

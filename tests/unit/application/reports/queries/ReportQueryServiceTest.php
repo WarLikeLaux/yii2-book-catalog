@@ -33,7 +33,7 @@ final class ReportQueryServiceTest extends Unit
             ->with(
                 "report:top_authors:{$currentYear}",
                 $this->isType('callable'),
-                3600
+                3600,
             )
             ->willReturn([]);
 
@@ -53,7 +53,7 @@ final class ReportQueryServiceTest extends Unit
             ->with(
                 "report:top_authors:{$year}",
                 $this->isType('callable'),
-                3600
+                3600,
             )
             ->willReturn([]);
 

@@ -19,7 +19,7 @@ final class YiiTransactionAdapter implements TransactionInterface
     private array $afterCommitCallbacks = [];
 
     public function __construct(
-        private readonly Connection $db
+        private readonly Connection $db,
     ) {
     }
 

@@ -20,7 +20,7 @@ final class HandlerAwareQueue extends Queue
 {
     public function __construct(
         private readonly JobHandlerRegistry $jobHandlerRegistry,
-        $config = []
+        $config = [],
     ) {
         parent::__construct($config);
     }

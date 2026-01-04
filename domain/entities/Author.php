@@ -13,7 +13,7 @@ final class Author
 
     public function __construct(
         public private(set) ?int $id,
-        public private(set) string $fio
+        public private(set) string $fio,
     ) {
         $this->validateFio($fio);
     }

@@ -18,7 +18,7 @@ final class BookReadDtoTest extends Unit
             description: null,
             isbn: '9780132350884',
             authorIds: [1],
-            authorNames: [1 => 'Robert C. Martin']
+            authorNames: [1 => 'Robert C. Martin'],
         );
 
         $this->assertSame('Clean Code (2008)', $dto->getFullTitle());
@@ -33,7 +33,7 @@ final class BookReadDtoTest extends Unit
             description: null,
             isbn: '9780000000000',
             authorIds: [],
-            authorNames: []
+            authorNames: [],
         );
 
         $this->assertSame('Unknown Year Book', $dto->getFullTitle());
@@ -47,7 +47,7 @@ final class BookReadDtoTest extends Unit
             year: null,
             description: null,
             isbn: '9780000000000',
-            authorIds: []
+            authorIds: [],
         );
 
         $this->assertFalse($dto->isPublished);

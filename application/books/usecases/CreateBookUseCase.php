@@ -40,7 +40,7 @@ final readonly class CreateBookUseCase
                 year: new BookYear($command->year, $this->clock->now()),
                 isbn: new Isbn($command->isbn),
                 description: $command->description,
-                coverImage: $cover
+                coverImage: $cover,
             );
             $book->replaceAuthors($command->authorIds);
 

@@ -16,7 +16,7 @@ final readonly class ReportCacheInvalidationListener implements EventListenerInt
     private const string CACHE_KEY_FORMAT = 'report:top_authors:%d';
 
     public function __construct(
-        private CacheInterface $cache
+        private CacheInterface $cache,
     ) {
     }
 

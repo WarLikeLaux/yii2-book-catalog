@@ -15,7 +15,7 @@ final readonly class IdempotencyService implements IdempotencyServiceInterface
 
     public function __construct(
         private IdempotencyInterface $repository,
-        private MutexInterface $mutex
+        private MutexInterface $mutex,
     ) {
     }
 
@@ -53,7 +53,7 @@ final readonly class IdempotencyService implements IdempotencyServiceInterface
                 $status,
                 null,
                 [],
-                null
+                null,
             );
         }
 
@@ -66,7 +66,7 @@ final readonly class IdempotencyService implements IdempotencyServiceInterface
             $status,
             $saved['status_code'],
             $data,
-            is_string($redirectUrl) ? $redirectUrl : null
+            is_string($redirectUrl) ? $redirectUrl : null,
         );
     }
 
@@ -75,7 +75,7 @@ final readonly class IdempotencyService implements IdempotencyServiceInterface
         int $statusCode,
         mixed $result,
         string|null $redirectUrl,
-        int $ttl
+        int $ttl,
     ): void {
         $dataToCache = $this->serializeResult($result, $redirectUrl);
 
@@ -83,7 +83,7 @@ final readonly class IdempotencyService implements IdempotencyServiceInterface
             $key,
             $statusCode,
             (string)json_encode($dataToCache),
-            $ttl
+            $ttl,
         );
     }
 

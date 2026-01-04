@@ -12,7 +12,7 @@ final readonly class SubscriptionRepositoryTracingDecorator implements Subscript
 {
     public function __construct(
         private SubscriptionRepositoryInterface $repository,
-        private TracerInterface $tracer
+        private TracerInterface $tracer,
     ) {
     }
 
@@ -36,7 +36,7 @@ final readonly class SubscriptionRepositoryTracingDecorator implements Subscript
     {
         return $this->tracer->trace(
             'SubRepo::' . __FUNCTION__,
-            fn(): iterable => $this->repository->getSubscriberPhonesForBook($bookId, $batchSize)
+            fn(): iterable => $this->repository->getSubscriberPhonesForBook($bookId, $batchSize),
         );
     }
 }

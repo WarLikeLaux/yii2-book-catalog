@@ -153,7 +153,7 @@ final class BookForm extends RepositoryAwareForm
 
         return array_map(
             static fn(int $authorId): string => $authors[$authorId] ?? (string)$authorId,
-            $authorIds
+            $authorIds,
         );
     }
 

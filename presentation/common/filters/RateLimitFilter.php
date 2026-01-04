@@ -17,7 +17,7 @@ final class RateLimitFilter extends ActionFilter
 
     public function __construct(
         private readonly RateLimitServiceInterface $service,
-        array $config = []
+        array $config = [],
     ) {
         parent::__construct($config);
     }

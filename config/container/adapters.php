@@ -60,7 +60,7 @@ return static fn (array $params) => [
             QueueInterface::class => static fn(Container $c): QueueInterface => TracingFactory::create(
                 $c,
                 YiiQueueAdapter::class,
-                QueueTracingDecorator::class
+                QueueTracingDecorator::class,
             ),
 
             CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
@@ -70,7 +70,7 @@ return static fn (array $params) => [
             EventPublisherInterface::class => static fn(Container $c): EventPublisherInterface => new YiiEventPublisherAdapter(
                 $c->get(QueueInterface::class),
                 $c->get(EventToJobMapperInterface::class),
-                $c->get(ReportCacheInvalidationListener::class)
+                $c->get(ReportCacheInvalidationListener::class),
             ),
 
             SystemInfoProviderInterface::class => static fn() => new SystemInfoAdapter(Yii::$app->get('db')),
@@ -83,7 +83,7 @@ return static fn (array $params) => [
 
                 return new InspectorTracer(
                     (string)env('INSPECTOR_INGESTION_KEY'),
-                    (string)env('INSPECTOR_URL', 'http://buggregator:8000')
+                    (string)env('INSPECTOR_URL', 'http://buggregator:8000'),
                 );
             },
         ],

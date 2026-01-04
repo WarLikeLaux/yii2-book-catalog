@@ -54,7 +54,7 @@ final readonly class UpdateBookUseCase
             $this->bookRepository->save($book);
 
             $this->eventPublisher->publishAfterCommit(
-                new BookUpdatedEvent($command->id, $oldYear, $command->year, $isPublished)
+                new BookUpdatedEvent($command->id, $oldYear, $command->year, $isPublished),
             );
 
             $this->transaction->commit();

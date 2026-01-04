@@ -14,7 +14,7 @@ use yii\helpers\FileHelper;
 final readonly class LocalFileStorage implements FileStorageInterface
 {
     public function __construct(
-        private StorageConfig $config
+        private StorageConfig $config,
     ) {
     }
 

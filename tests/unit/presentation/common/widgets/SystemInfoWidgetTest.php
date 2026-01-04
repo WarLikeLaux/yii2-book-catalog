@@ -26,7 +26,7 @@ final class SystemInfoWidgetTest extends TestCase
             '8.2.0',
             '2.0.48',
             'MYSQL',
-            '8.0.32'
+            '8.0.32',
         ));
 
         Yii::$container->set(SystemInfoProviderInterface::class, $provider);
@@ -50,7 +50,7 @@ final class SystemInfoWidgetTest extends TestCase
             '8.2.0',
             '2.0.48',
             'PGSQL',
-            '15.2'
+            '15.2',
         ));
 
         Yii::$container->set(SystemInfoProviderInterface::class, $provider);

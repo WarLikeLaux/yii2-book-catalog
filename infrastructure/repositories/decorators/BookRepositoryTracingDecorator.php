@@ -12,7 +12,7 @@ final readonly class BookRepositoryTracingDecorator implements BookRepositoryInt
 {
     public function __construct(
         private BookRepositoryInterface $repository,
-        private TracerInterface $tracer
+        private TracerInterface $tracer,
     ) {
     }
 
@@ -33,7 +33,7 @@ final readonly class BookRepositoryTracingDecorator implements BookRepositoryInt
     {
         return $this->tracer->trace(
             'BookRepo::' . __FUNCTION__,
-            fn(): Book => $this->repository->getByIdAndVersion($id, $expectedVersion)
+            fn(): Book => $this->repository->getByIdAndVersion($id, $expectedVersion),
         );
     }
 
@@ -48,7 +48,7 @@ final readonly class BookRepositoryTracingDecorator implements BookRepositoryInt
     {
         return $this->tracer->trace(
             'BookRepo::' . __FUNCTION__,
-            fn(): bool => $this->repository->existsByIsbn($isbn, $excludeId)
+            fn(): bool => $this->repository->existsByIsbn($isbn, $excludeId),
         );
     }
 }

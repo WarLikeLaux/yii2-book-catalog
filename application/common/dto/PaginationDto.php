@@ -10,7 +10,7 @@ final readonly class PaginationDto
         public int $page,
         public int $pageSize,
         public int $totalCount,
-        public int $totalPages
+        public int $totalPages,
     ) {
     }
 }

@@ -38,7 +38,7 @@ final class BookViewDataFactoryTest extends Unit
             $this->authorQueryService,
             $this->mapper,
             $this->dataProviderFactory,
-            $this->resolver
+            $this->resolver,
         );
     }
 
@@ -66,7 +66,7 @@ final class BookViewDataFactoryTest extends Unit
             authorNames: [],
             coverUrl: null,
             isPublished: false,
-            version: 1
+            version: 1,
         );
 
         $form = $this->createMock(BookForm::class);
@@ -110,7 +110,7 @@ final class BookViewDataFactoryTest extends Unit
             authorNames: ['Robert Martin'],
             coverUrl: 'cover.jpg',
             isPublished: true,
-            version: 1
+            version: 1,
         );
 
         $this->bookQueryService->expects($this->once())

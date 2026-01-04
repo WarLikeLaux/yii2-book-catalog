@@ -25,8 +25,8 @@ final class LocalFileStorageTest extends Unit
                 $this->tempDir,
                 '/uploads',
                 $this->tempDir . '/tmp',
-                '/tmp_uploads'
-            )
+                '/tmp_uploads',
+            ),
         );
     }
 
@@ -75,7 +75,7 @@ final class LocalFileStorageTest extends Unit
     {
         $file = new TemporaryFile(
             $this->tempDir . '/missing.txt',
-            'missing.txt'
+            'missing.txt',
         );
 
         $this->storage->deleteTemporary($file);

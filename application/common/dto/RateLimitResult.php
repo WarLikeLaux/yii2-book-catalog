@@ -10,7 +10,7 @@ final readonly class RateLimitResult
         public bool $allowed,
         public int $current,
         public int $limit,
-        public int $resetAt
+        public int $resetAt,
     ) {
     }
 }

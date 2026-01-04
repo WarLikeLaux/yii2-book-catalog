@@ -53,9 +53,9 @@ final class BookForm extends Model
         return [];
     }
 }
-CODE_SAMPLE
+CODE_SAMPLE,
                 ),
-            ]
+            ],
         );
     }
 

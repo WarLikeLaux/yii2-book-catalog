@@ -11,7 +11,7 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
 {
     public function __construct(
         private IdempotencyInterface $repository,
-        private TracerInterface $tracer
+        private TracerInterface $tracer,
     ) {
     }
 
@@ -21,7 +21,7 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
     {
         return $this->tracer->trace(
             'IdempotencyRepo::' . __FUNCTION__,
-            fn(): array|null => $this->repository->getRecord($key)
+            fn(): array|null => $this->repository->getRecord($key),
         );
     }
 
@@ -30,7 +30,7 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
     {
         return $this->tracer->trace(
             'IdempotencyRepo::' . __FUNCTION__,
-            fn(): bool => $this->repository->saveStarted($key, $ttl)
+            fn(): bool => $this->repository->saveStarted($key, $ttl),
         );
     }
 
@@ -39,7 +39,7 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
     {
         $this->tracer->trace(
             'IdempotencyRepo::' . __FUNCTION__,
-            fn() => $this->repository->saveResponse($key, $statusCode, $body, $ttl)
+            fn() => $this->repository->saveResponse($key, $statusCode, $body, $ttl),
         );
     }
 }

@@ -10,7 +10,7 @@ final readonly class CompositeOrSpecification implements BookSpecificationInterf
      * @param BookSpecificationInterface[] $specifications
      */
     public function __construct(
-        private array $specifications
+        private array $specifications,
     ) {
     }
 
@@ -20,7 +20,7 @@ final readonly class CompositeOrSpecification implements BookSpecificationInterf
             'type' => 'or',
             'value' => array_map(
                 static fn(BookSpecificationInterface $spec): array => $spec->toSearchCriteria(),
-                $this->specifications
+                $this->specifications,
             ),
         ];
     }

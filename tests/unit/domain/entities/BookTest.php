@@ -61,7 +61,7 @@ final class BookTest extends Unit
             null,
             [],
             false,
-            1
+            1,
         );
 
         $newYear = new BookYear(2024, new \DateTimeImmutable());
@@ -143,7 +143,7 @@ final class BookTest extends Unit
             null,
             [],
             false,
-            5
+            5,
         );
 
         $book->incrementVersion();

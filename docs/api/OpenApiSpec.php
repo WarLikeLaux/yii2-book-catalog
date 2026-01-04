@@ -23,11 +23,11 @@ use OpenApi\Attributes as OA;
             property: 'authorNames',
             type: 'object',
             additionalProperties: new OA\AdditionalProperties(type: 'string'),
-            example: ['1' => 'Роберт Мартин']
+            example: ['1' => 'Роберт Мартин'],
         ),
         new OA\Property(property: 'coverUrl', type: 'string', nullable: true, example: '/uploads/covers/clean-code.jpg'),
     ],
-    type: 'object'
+    type: 'object',
 )]
 #[OA\Schema(
     schema: 'PaginationMeta',
@@ -39,7 +39,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'currentPage', type: 'integer', example: 1),
         new OA\Property(property: 'perPage', type: 'integer', example: 10),
     ],
-    type: 'object'
+    type: 'object',
 )]
 class OpenApiSpec
 {

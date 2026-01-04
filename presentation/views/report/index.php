@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
     </div>
 
-    <?php if (empty($topAuthors)): ?>
+    <?php if ($topAuthors === []): ?>
         <div class="alert alert-warning">
             Нет данных о книгах за <?= Html::encode($year) ?> год. Попробуйте сгенерировать данные командой <code>php yii seed</code>.
         </div>

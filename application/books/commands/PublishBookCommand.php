@@ -7,7 +7,7 @@ namespace app\application\books\commands;
 final readonly class PublishBookCommand
 {
     public function __construct(
-        public int $bookId
+        public int $bookId,
     ) {
     }
 }

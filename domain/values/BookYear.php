@@ -13,7 +13,7 @@ final readonly class BookYear implements \Stringable
 
     public function __construct(
         int $year,
-        ?DateTimeImmutable $now = null
+        ?DateTimeImmutable $now = null,
     ) {
         if ($now instanceof DateTimeImmutable) {
             $currentYear = (int)$now->format('Y');

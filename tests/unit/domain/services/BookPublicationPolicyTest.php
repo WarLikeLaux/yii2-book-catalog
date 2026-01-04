@@ -27,7 +27,7 @@ final class BookPublicationPolicyTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Description',
-            null
+            null,
         );
         $book->replaceAuthors([1, 2]);
 
@@ -43,7 +43,7 @@ final class BookPublicationPolicyTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Description',
-            null
+            null,
         );
 
         $this->expectException(DomainException::class);
@@ -59,7 +59,7 @@ final class BookPublicationPolicyTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $book->replaceAuthors([1]);
 
@@ -73,7 +73,7 @@ final class BookPublicationPolicyTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
 
         $this->assertFalse($this->policy->canPublish($book));

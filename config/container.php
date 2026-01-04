@@ -20,11 +20,11 @@ return static function (array $params) {
             $common,
             $repositories,
             $services['definitions'] ?? [],
-            $adapters['definitions'] ?? []
+            $adapters['definitions'] ?? [],
         ),
         'singletons' => ArrayHelper::merge(
             $services['singletons'] ?? [],
-            $adapters['singletons'] ?? []
+            $adapters['singletons'] ?? [],
         ),
     ];
 };

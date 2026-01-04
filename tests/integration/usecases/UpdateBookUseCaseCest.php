@@ -38,7 +38,7 @@ final class UpdateBookUseCaseCest
             description: 'Updated description',
             authorIds: [$authorId],
             version: 1,
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);
@@ -73,11 +73,11 @@ final class UpdateBookUseCaseCest
             description: 'Updated description',
             authorIds: [$authorId],
             version: 1,
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);
-        $I->expectThrowable(StaleDataException::class, function () use ($useCase, $command): void {
+        $I->expectThrowable(StaleDataException::class, static function () use ($useCase, $command): void {
             $useCase->execute($command);
         });
 
@@ -98,11 +98,11 @@ final class UpdateBookUseCaseCest
             description: 'Updated description',
             authorIds: [],
             version: 1,
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);
-        $I->expectThrowable(EntityNotFoundException::class, function () use ($useCase, $command): void {
+        $I->expectThrowable(EntityNotFoundException::class, static function () use ($useCase, $command): void {
             $useCase->execute($command);
         });
     }

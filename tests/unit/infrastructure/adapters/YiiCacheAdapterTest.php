@@ -24,7 +24,7 @@ final class YiiCacheAdapterTest extends Unit
 
     public function testGetOrSetDelegatesToYiiCache(): void
     {
-        $callback = fn(): string => 'value';
+        $callback = static fn(): string => 'value';
 
         $this->yiiCache->expects($this->once())
             ->method('getOrSet')
@@ -38,7 +38,7 @@ final class YiiCacheAdapterTest extends Unit
 
     public function testGetOrSetWithCustomTtl(): void
     {
-        $callback = fn(): string => 'value';
+        $callback = static fn(): string => 'value';
 
         $this->yiiCache->expects($this->once())
             ->method('getOrSet')
@@ -96,7 +96,7 @@ final class YiiCacheAdapterTest extends Unit
         $callCount = 0;
         $redisConnection->expects($this->exactly(2))
             ->method('executeCommand')
-            ->willReturnCallback(function (string $command) use (&$callCount): mixed {
+            ->willReturnCallback(static function (string $command) use (&$callCount): mixed {
                 $callCount++;
 
                 if ($command === 'SCAN') {
@@ -150,7 +150,7 @@ final class YiiCacheAdapterTest extends Unit
         $scanCount = 0;
         $redisConnection->expects($this->exactly(4))
             ->method('executeCommand')
-            ->willReturnCallback(function (string $command) use (&$scanCount): mixed {
+            ->willReturnCallback(static function (string $command) use (&$scanCount): mixed {
                 if ($command === 'SCAN') {
                     $scanCount++;
 

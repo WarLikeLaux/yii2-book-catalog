@@ -50,7 +50,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
 
         return new AuthorEntity(
             $ar->id,
-            $ar->fio
+            $ar->fio,
         );
     }
 

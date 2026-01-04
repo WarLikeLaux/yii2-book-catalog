@@ -9,7 +9,7 @@ use app\application\ports\SubscriptionRepositoryInterface;
 final readonly class SubscriptionQueryService
 {
     public function __construct(
-        private SubscriptionRepositoryInterface $subscriptionRepository
+        private SubscriptionRepositoryInterface $subscriptionRepository,
     ) {
     }
 

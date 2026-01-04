@@ -21,7 +21,7 @@ final class m251202_000003_create_book_authors_table extends Migration
             'books',
             'id',
             'CASCADE',
-            'CASCADE'
+            'CASCADE',
         );
         $this->addForeignKey(
             'fk_book_authors_author',
@@ -30,7 +30,7 @@ final class m251202_000003_create_book_authors_table extends Migration
             'authors',
             'id',
             'CASCADE',
-            'CASCADE'
+            'CASCADE',
         );
     }
 

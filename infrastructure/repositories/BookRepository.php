@@ -25,7 +25,7 @@ final readonly class BookRepository implements BookRepositoryInterface
     use IdentityAssignmentTrait;
 
     public function __construct(
-        private Connection $db
+        private Connection $db,
     ) {
     }
 
@@ -126,7 +126,7 @@ final readonly class BookRepository implements BookRepositoryInterface
     {
         /** @var Author[] $authors */
         $authors = $ar->authors;
-        $authorIds = array_map(fn(Author $a) => $a->id, $authors);
+        $authorIds = array_map(static fn(Author $a) => $a->id, $authors);
 
         return BookEntity::reconstitute(
             id: $ar->id,
@@ -138,7 +138,7 @@ final readonly class BookRepository implements BookRepositoryInterface
             coverImage: $ar->cover_url !== null ? new StoredFileReference($ar->cover_url) : null,
             authorIds: $authorIds,
             published: (bool)$ar->is_published,
-            version: $ar->version
+            version: $ar->version,
         );
     }
 
@@ -191,13 +191,13 @@ final readonly class BookRepository implements BookRepositoryInterface
         }
 
         $rows = array_map(
-            fn(int $authorId): array => [$bookId, $authorId],
-            $toAdd
+            static fn(int $authorId): array => [$bookId, $authorId],
+            $toAdd,
         );
         $this->db->createCommand()->batchInsert(
             'book_authors',
             ['book_id', 'author_id'],
-            $rows
+            $rows,
         )->execute();
     }
 
@@ -207,7 +207,7 @@ final readonly class BookRepository implements BookRepositoryInterface
     private function getStoredAuthorIds(int $bookId): array
     {
         $ids = $this->db->createCommand(
-            'SELECT author_id FROM book_authors WHERE book_id = :bookId'
+            'SELECT author_id FROM book_authors WHERE book_id = :bookId',
         )->bindValue(':bookId', $bookId)->queryColumn();
 
         return array_map(intval(...), $ids);

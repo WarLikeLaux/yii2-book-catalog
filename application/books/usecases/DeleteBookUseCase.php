@@ -32,7 +32,7 @@ final readonly class DeleteBookUseCase
             $this->bookRepository->delete($book);
 
             $this->eventPublisher->publishAfterCommit(
-                new BookDeletedEvent($command->id, $year, $wasPublished)
+                new BookDeletedEvent($command->id, $year, $wasPublished),
             );
 
             $this->transaction->commit();

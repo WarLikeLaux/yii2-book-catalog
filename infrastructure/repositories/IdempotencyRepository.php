@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 final readonly class IdempotencyRepository implements IdempotencyInterface
 {
     public function __construct(
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 

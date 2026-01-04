@@ -23,7 +23,7 @@ final class TransactionalEventPublisherTest extends Unit
         $this->publisher = $this->createMock(EventPublisherInterface::class);
         $this->publisherService = new TransactionalEventPublisher(
             $this->transaction,
-            $this->publisher
+            $this->publisher,
         );
     }
 
@@ -34,7 +34,7 @@ final class TransactionalEventPublisherTest extends Unit
 
         $this->transaction->expects($this->once())
             ->method('afterCommit')
-            ->willReturnCallback(function (callable $callback) use (&$capturedCallback): void {
+            ->willReturnCallback(static function (callable $callback) use (&$capturedCallback): void {
                 $capturedCallback = $callback;
             });
 
@@ -56,7 +56,7 @@ final class TransactionalEventPublisherTest extends Unit
 
         $this->transaction->expects($this->once())
             ->method('afterCommit')
-            ->willReturnCallback(function (callable $callback) use (&$capturedCallback): void {
+            ->willReturnCallback(static function (callable $callback) use (&$capturedCallback): void {
                 $capturedCallback = $callback;
             });
 

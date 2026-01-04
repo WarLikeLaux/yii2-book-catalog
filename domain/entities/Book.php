@@ -29,7 +29,7 @@ final class Book
         public private(set) ?StoredFileReference $coverImage,
         array $authorIds,
         public private(set) bool $published,
-        public private(set) int $version
+        public private(set) int $version,
     ) {
         $this->validateTitle($title);
         $this->authorIds = array_map(intval(...), $authorIds);
@@ -40,7 +40,7 @@ final class Book
         BookYear $year,
         Isbn $isbn,
         ?string $description,
-        ?StoredFileReference $coverImage
+        ?StoredFileReference $coverImage,
     ): self {
         return new self(
             id: null,
@@ -51,7 +51,7 @@ final class Book
             coverImage: $coverImage,
             authorIds: [],
             published: false,
-            version: 1
+            version: 1,
         );
     }
 
@@ -67,7 +67,7 @@ final class Book
         ?StoredFileReference $coverImage,
         array $authorIds,
         bool $published,
-        int $version
+        int $version,
     ): self {
         return new self(
             id: $id,
@@ -78,7 +78,7 @@ final class Book
             coverImage: $coverImage,
             authorIds: $authorIds,
             published: $published,
-            version: $version
+            version: $version,
         );
     }
 

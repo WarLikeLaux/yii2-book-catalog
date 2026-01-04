@@ -23,7 +23,7 @@ final class SiteController extends Controller
         private readonly AuthServiceInterface $authService,
         private readonly BookSearchHandler $bookSearchHandler,
         private readonly LoginHandler $loginHandler,
-        $config = []
+        $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }

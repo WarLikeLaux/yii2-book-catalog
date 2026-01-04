@@ -16,7 +16,7 @@ use yii\db\Connection;
 final readonly class AuthorQueryService implements AuthorQueryServiceInterface
 {
     public function __construct(
-        private Connection $db
+        private Connection $db,
     ) {
     }
 
@@ -30,7 +30,7 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
 
         return new AuthorReadDto(
             id: $author->id,
-            fio: $author->fio
+            fio: $author->fio,
         );
     }
 
@@ -41,11 +41,11 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
     {
         $authors = Author::find()->orderBy(['fio' => SORT_ASC])->all();
         return array_map(
-            fn(Author $author): AuthorReadDto => new AuthorReadDto(
+            static fn(Author $author): AuthorReadDto => new AuthorReadDto(
                 id: $author->id,
-                fio: $author->fio
+                fio: $author->fio,
             ),
-            $authors
+            $authors,
         );
     }
 
@@ -67,11 +67,11 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
         ]);
 
         $models = array_map(
-            fn(Author $author): AuthorReadDto => new AuthorReadDto(
+            static fn(Author $author): AuthorReadDto => new AuthorReadDto(
                 id: $author->id,
-                fio: $author->fio
+                fio: $author->fio,
             ),
-            $dataProvider->getModels()
+            $dataProvider->getModels(),
         );
 
         $totalCount = $dataProvider->getTotalCount();
@@ -81,13 +81,13 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
             page: $page,
             pageSize: $pageSize,
             totalCount: $totalCount,
-            totalPages: $totalPages
+            totalPages: $totalPages,
         );
 
         return new QueryResult(
             models: $models,
             totalCount: $totalCount,
-            pagination: $pagination
+            pagination: $pagination,
         );
     }
 
@@ -110,7 +110,7 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
 
         return array_values(array_filter(
             $ids,
-            static fn(int $id): bool => !isset($existingIdsMap[$id])
+            static fn(int $id): bool => !isset($existingIdsMap[$id]),
         ));
     }
 }

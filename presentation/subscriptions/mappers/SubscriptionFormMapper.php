@@ -13,7 +13,7 @@ final class SubscriptionFormMapper
     {
         return new SubscribeCommand(
             phone: (string)$form->phone,
-            authorId: (int)$form->authorId
+            authorId: (int)$form->authorId,
         );
     }
 }

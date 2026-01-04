@@ -22,7 +22,7 @@ final class BookController extends Controller
         $module,
         private readonly BookCommandHandler $commandHandler,
         private readonly BookViewDataFactory $viewDataFactory,
-        $config = []
+        $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }
@@ -57,7 +57,7 @@ final class BookController extends Controller
 
         $dataProvider = $this->viewDataFactory->getIndexDataProvider(
             $pagination->page,
-            $pagination->limit
+            $pagination->limit,
         );
 
         return $this->render('index', [

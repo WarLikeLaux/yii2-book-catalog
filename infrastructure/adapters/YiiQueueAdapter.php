@@ -10,7 +10,7 @@ use yii\queue\db\Queue;
 final readonly class YiiQueueAdapter implements QueueInterface
 {
     public function __construct(
-        private Queue $queue
+        private Queue $queue,
     ) {
     }
 

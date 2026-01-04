@@ -22,7 +22,7 @@ use yii\bootstrap5\Html;
                 'class' => 'system-info-item',
                 'target' => '_blank',
                 'title' => "Official {$item['label']} Site",
-            ]
+            ],
         ) ?>
     <?php endforeach; ?>
 </div>

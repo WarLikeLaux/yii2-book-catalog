@@ -11,7 +11,7 @@ final readonly class ReportRepositoryTracingDecorator implements ReportRepositor
 {
     public function __construct(
         private ReportRepositoryInterface $repository,
-        private TracerInterface $tracer
+        private TracerInterface $tracer,
     ) {
     }
 
@@ -23,7 +23,7 @@ final readonly class ReportRepositoryTracingDecorator implements ReportRepositor
     {
         return $this->tracer->trace(
             'ReportRepo::' . __FUNCTION__,
-            fn(): array => $this->repository->getTopAuthorsByYear($year, $limit)
+            fn(): array => $this->repository->getTopAuthorsByYear($year, $limit),
         );
     }
 }

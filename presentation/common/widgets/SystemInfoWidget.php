@@ -13,7 +13,7 @@ final class SystemInfoWidget extends Widget
     private readonly SystemInfoProviderInterface $provider;
 
     public function __construct(
-        $config = []
+        $config = [],
     ) {
         /** @var SystemInfoProviderInterface $provider */
         $provider = Yii::$container->get(SystemInfoProviderInterface::class);

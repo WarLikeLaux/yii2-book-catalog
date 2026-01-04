@@ -12,7 +12,7 @@ use yii\redis\Connection;
 final readonly class YiiCacheAdapter implements CacheInterface
 {
     public function __construct(
-        private YiiCache $cache
+        private YiiCache $cache,
     ) {
     }
 

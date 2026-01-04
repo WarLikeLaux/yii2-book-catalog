@@ -14,7 +14,7 @@ final class AuthorSearchCriteriaMapper
         return new AuthorSearchCriteria(
             search: $form->q,
             page: $form->page,
-            pageSize: $form->pageSize
+            pageSize: $form->pageSize,
         );
     }
 

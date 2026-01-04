@@ -12,7 +12,7 @@ final readonly class TransactionalEventPublisher
 {
     public function __construct(
         private TransactionInterface $transaction,
-        private EventPublisherInterface $publisher
+        private EventPublisherInterface $publisher,
     ) {
     }
 
@@ -23,7 +23,7 @@ final readonly class TransactionalEventPublisher
     public function publishAfterCommit(DomainEvent $event): void
     {
         $this->transaction->afterCommit(
-            fn() => $this->publisher->publishEvent($event)
+            fn() => $this->publisher->publishEvent($event),
         );
     }
 }

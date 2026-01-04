@@ -13,7 +13,7 @@ use Throwable;
 final readonly class CreateAuthorUseCase
 {
     public function __construct(
-        private AuthorRepositoryInterface $authorRepository
+        private AuthorRepositoryInterface $authorRepository,
     ) {
     }
 

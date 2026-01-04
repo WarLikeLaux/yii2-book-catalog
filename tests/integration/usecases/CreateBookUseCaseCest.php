@@ -28,7 +28,7 @@ final class CreateBookUseCaseCest
             isbn: '9783161484100',
             description: 'Test description',
             authorIds: [$author1Id, $author2Id],
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
@@ -57,7 +57,7 @@ final class CreateBookUseCaseCest
             isbn: '9780306406157',
             description: 'Test',
             authorIds: [$authorId],
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
@@ -93,12 +93,12 @@ final class CreateBookUseCaseCest
             isbn: '9783161484100',
             description: 'Should fail',
             authorIds: [$authorId],
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
 
-        $I->expectThrowable(AlreadyExistsException::class, function () use ($useCase, $command): void {
+        $I->expectThrowable(AlreadyExistsException::class, static function () use ($useCase, $command): void {
             $useCase->execute($command);
         });
     }
@@ -115,7 +115,7 @@ final class CreateBookUseCaseCest
             isbn: '9780306406157',
             description: 'Test',
             authorIds: [99999],
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);

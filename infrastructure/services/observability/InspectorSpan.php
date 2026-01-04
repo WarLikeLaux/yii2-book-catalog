@@ -16,7 +16,7 @@ use Throwable;
 final readonly class InspectorSpan implements SpanInterface
 {
     public function __construct(
-        private Transaction|Segment $item
+        private Transaction|Segment $item,
     ) {
     }
 

@@ -14,7 +14,7 @@ final readonly class BookSearchHandler
     public function __construct(
         private BookSearchCriteriaMapper $bookSearchCriteriaMapper,
         private BookQueryService $bookQueryService,
-        private PagedResultDataProviderFactory $dataProviderFactory
+        private PagedResultDataProviderFactory $dataProviderFactory,
     ) {
     }
 

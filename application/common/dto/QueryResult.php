@@ -14,7 +14,7 @@ final readonly class QueryResult implements PagedResultInterface
     public function __construct(
         private array $models,
         private int $totalCount,
-        private ?PaginationDto $pagination = null
+        private ?PaginationDto $pagination = null,
     ) {
     }
 

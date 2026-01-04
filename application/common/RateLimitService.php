@@ -10,7 +10,7 @@ use app\application\ports\RateLimitInterface;
 final readonly class RateLimitService implements RateLimitServiceInterface
 {
     public function __construct(
-        private RateLimitInterface $repository
+        private RateLimitInterface $repository,
     ) {
     }
 
@@ -22,7 +22,7 @@ final readonly class RateLimitService implements RateLimitServiceInterface
             allowed: $result['allowed'],
             current: $result['current'],
             limit: $result['limit'],
-            resetAt: $result['resetAt']
+            resetAt: $result['resetAt'],
         );
     }
 }

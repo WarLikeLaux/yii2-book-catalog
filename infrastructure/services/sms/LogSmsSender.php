@@ -10,7 +10,7 @@ use Psr\Log\LoggerInterface;
 final readonly class LogSmsSender implements SmsSenderInterface
 {
     public function __construct(
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 

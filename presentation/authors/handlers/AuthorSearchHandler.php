@@ -14,7 +14,7 @@ final readonly class AuthorSearchHandler
     public function __construct(
         private AuthorSearchCriteriaMapper $authorSearchCriteriaMapper,
         private AuthorSelect2Mapper $authorSelect2Mapper,
-        private AuthorQueryService $authorQueryService
+        private AuthorQueryService $authorQueryService,
     ) {
     }
 

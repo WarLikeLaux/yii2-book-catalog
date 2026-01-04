@@ -39,7 +39,7 @@ final class WebUseCaseRunnerTest extends Unit
 
         $called = false;
 
-        $result = $this->runner->execute(function () use (&$called): void {
+        $result = $this->runner->execute(static function () use (&$called): void {
             $called = true;
         }, 'ok');
 
@@ -61,7 +61,7 @@ final class WebUseCaseRunnerTest extends Unit
         $this->logger->expects($this->never())
             ->method('error');
 
-        $result = $this->runner->execute(function (): void {
+        $result = $this->runner->execute(static function (): void {
             throw new DomainException('domain.error.key');
         }, 'ok');
 
@@ -84,16 +84,16 @@ final class WebUseCaseRunnerTest extends Unit
             ->method('error')
             ->with(
                 'boom',
-                $this->callback(function (array $context): bool {
+                $this->callback(static function (array $context): bool {
                     if (!isset($context['foo']) || !isset($context['exception'])) {
                         return false;
                     }
 
                     return $context['foo'] === 'bar' && $context['exception'] instanceof \Throwable;
-                })
+                }),
             );
 
-        $result = $this->runner->execute(function (): void {
+        $result = $this->runner->execute(static function (): void {
             throw new \RuntimeException('boom');
         }, 'ok', ['foo' => 'bar']);
 
@@ -105,7 +105,7 @@ final class WebUseCaseRunnerTest extends Unit
         $this->logger->expects($this->never())
             ->method('error');
 
-        $result = $this->runner->executeForApi(function (): void {
+        $result = $this->runner->executeForApi(static function (): void {
         }, 'done');
 
         $this->assertSame(['success' => true, 'message' => 'done'], $result);
@@ -120,7 +120,7 @@ final class WebUseCaseRunnerTest extends Unit
 
         $this->logger->expects($this->once())
             ->method('error')
-            ->with('api boom', $this->callback(function (array $context) use ($exception): bool {
+            ->with('api boom', $this->callback(static function (array $context) use ($exception): bool {
                 if (!isset($context['requestId']) || !isset($context['exception'])) {
                     return false;
                 }
@@ -128,7 +128,7 @@ final class WebUseCaseRunnerTest extends Unit
                 return $context['requestId'] === '123' && $context['exception'] === $exception;
             }));
 
-        $result = $this->runner->executeForApi(function () use ($exception): void {
+        $result = $this->runner->executeForApi(static function () use ($exception): void {
             throw $exception;
         }, 'ok', $logContext);
 
@@ -144,11 +144,11 @@ final class WebUseCaseRunnerTest extends Unit
         $onDomainErrorCalled = false;
 
         $result = $this->runner->executeWithFormErrors(
-            fn() => 42,
+            static fn() => 42,
             'created',
-            function () use (&$onDomainErrorCalled): void {
+            static function () use (&$onDomainErrorCalled): void {
                 $onDomainErrorCalled = true;
-            }
+            },
         );
 
         $this->assertSame(42, $result);
@@ -163,13 +163,13 @@ final class WebUseCaseRunnerTest extends Unit
         $this->notifier->expects($this->never())->method('success');
 
         $result = $this->runner->executeWithFormErrors(
-            function () use ($exception): void {
+            static function () use ($exception): void {
                 throw $exception;
             },
             'ok',
-            function (DomainException $e) use (&$receivedException): void {
+            static function (DomainException $e) use (&$receivedException): void {
                 $receivedException = $e;
-            }
+            },
         );
 
         $this->assertNull($result);
@@ -181,15 +181,15 @@ final class WebUseCaseRunnerTest extends Unit
         $onErrorCalled = false;
 
         $this->runner->executeWithFormErrors(
-            function (): void {
+            static function (): void {
                 throw new DomainException('test.error');
             },
             'ok',
-            function (): void {
+            static function (): void {
             },
-            function () use (&$onErrorCalled): void {
+            static function () use (&$onErrorCalled): void {
                 $onErrorCalled = true;
-            }
+            },
         );
 
         $this->assertTrue($onErrorCalled);
@@ -204,15 +204,15 @@ final class WebUseCaseRunnerTest extends Unit
         $this->notifier->expects($this->once())->method('error');
 
         $this->runner->executeWithFormErrors(
-            function (): void {
+            static function (): void {
                 throw new \RuntimeException('boom');
             },
             'ok',
-            function (): void {
+            static function (): void {
             },
-            function () use (&$onErrorCalled): void {
+            static function () use (&$onErrorCalled): void {
                 $onErrorCalled = true;
-            }
+            },
         );
 
         $this->assertTrue($onErrorCalled);

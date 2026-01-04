@@ -39,7 +39,7 @@ return static fn (array $params) => [
         BookQueryServiceInterface::class => static fn(Container $c): BookQueryServiceInterface => TracingFactory::create(
             $c,
             BookQueryService::class,
-            BookQueryServiceTracingDecorator::class
+            BookQueryServiceTracingDecorator::class,
         ),
 
         AuthorQueryService::class => static fn() => new AuthorQueryService(Yii::$app->get('db')),
@@ -60,7 +60,7 @@ return static fn (array $params) => [
                 $storageParams['basePath'],
                 $storageParams['baseUrl'],
                 $storageParams['tempBasePath'],
-                $storageParams['tempBaseUrl']
+                $storageParams['tempBaseUrl'],
             );
             return new LocalFileStorage($config);
         },
@@ -68,7 +68,7 @@ return static fn (array $params) => [
         NotifySubscribersHandler::class => static fn(Container $c): NotifySubscribersHandler => new NotifySubscribersHandler(
             $c->get(SubscriptionQueryService::class),
             $c->get(TranslatorInterface::class),
-            new YiiPsrLogger(LogCategory::SMS)
+            new YiiPsrLogger(LogCategory::SMS),
         ),
 
         FileUrlResolver::class => static function () use ($params) {
@@ -79,14 +79,14 @@ return static fn (array $params) => [
     'singletons' => [
         IdempotencyServiceInterface::class => static fn(Container $c): IdempotencyServiceInterface => new IdempotencyService(
             $c->get(IdempotencyInterface::class),
-            $c->get(MutexInterface::class)
+            $c->get(MutexInterface::class),
         ),
         RateLimitServiceInterface::class => static fn(Container $c): RateLimitServiceInterface => new RateLimitService(
-            $c->get(RateLimitInterface::class)
+            $c->get(RateLimitInterface::class),
         ),
         TransactionalEventPublisher::class => static fn(Container $c): TransactionalEventPublisher => new TransactionalEventPublisher(
             $c->get(TransactionInterface::class),
-            $c->get(EventPublisherInterface::class)
+            $c->get(EventPublisherInterface::class),
         ),
     ],
 ];

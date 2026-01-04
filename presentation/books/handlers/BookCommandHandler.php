@@ -35,7 +35,7 @@ final readonly class BookCommandHandler
         private DeleteBookUseCase $deleteBookUseCase,
         private PublishBookUseCase $publishBookUseCase,
         private WebUseCaseRunner $useCaseRunner,
-        private FileStorageInterface $fileStorage
+        private FileStorageInterface $fileStorage,
     ) {
     }
 
@@ -54,7 +54,7 @@ final readonly class BookCommandHandler
                 }
 
                 $this->addFormError($form, $e);
-            }
+            },
         );
     }
 
@@ -76,7 +76,7 @@ final readonly class BookCommandHandler
                 }
 
                 $this->addFormError($form, $e);
-            }
+            },
         ) ?? false;
     }
 
@@ -87,7 +87,7 @@ final readonly class BookCommandHandler
         return $this->useCaseRunner->execute(
             fn() => $this->deleteBookUseCase->execute($command),
             Yii::t('app', 'book.success.deleted'),
-            ['book_id' => $id]
+            ['book_id' => $id],
         );
     }
 
@@ -98,7 +98,7 @@ final readonly class BookCommandHandler
         return $this->useCaseRunner->execute(
             fn() => $this->publishBookUseCase->execute($command),
             Yii::t('app', 'book.success.published'),
-            ['book_id' => $id]
+            ['book_id' => $id],
         );
     }
 

@@ -66,7 +66,7 @@ final class ClassScanner
 
         try {
             $iterator = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)
+                new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS),
             );
         } catch (UnexpectedValueException) {
             return [];

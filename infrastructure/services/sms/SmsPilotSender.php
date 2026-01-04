@@ -12,7 +12,7 @@ final readonly class SmsPilotSender implements SmsSenderInterface
 {
     public function __construct(
         private string $apiKey,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 

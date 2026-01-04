@@ -73,7 +73,7 @@ class SearchBookCest
         IntegrationTester $I,
         string $isbn,
         string $authorName,
-        string $title
+        string $title,
     ): void {
         $I->haveRecord(Author::class, ['fio' => $authorName]);
         $author = $I->grabRecord(Author::class, ['fio' => $authorName]);

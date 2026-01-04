@@ -39,7 +39,7 @@ final class UpdateBookUseCaseTest extends Unit
             $this->bookRepository,
             $this->transaction,
             $this->eventPublisher,
-            $this->clock
+            $this->clock,
         );
     }
 
@@ -53,7 +53,7 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: [1, 2],
             version: 1,
-            cover: '/uploads/new-cover.jpg'
+            cover: '/uploads/new-cover.jpg',
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -64,7 +64,7 @@ final class UpdateBookUseCaseTest extends Unit
             coverImage: '/uploads/old-cover.jpg',
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
@@ -78,12 +78,12 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book): bool => $book->title === 'Updated Title'
+            ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
                     && $book->authorIds === [1, 2]));
 
         $this->eventPublisher->expects($this->once())
             ->method('publishAfterCommit')
-            ->with($this->callback(fn (BookUpdatedEvent $event): bool => $event->bookId === 42
+            ->with($this->callback(static fn (BookUpdatedEvent $event): bool => $event->bookId === 42
                 && $event->oldYear === 2020
                 && $event->newYear === 2024
                 && $event->isPublished === false));
@@ -100,7 +100,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Description',
             isbn: '9780132350884',
             authorIds: [1],
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
@@ -124,7 +124,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Description',
             isbn: '9780132350884',
             authorIds: [1],
-            version: 1
+            version: 1,
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -134,7 +134,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Description',
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
@@ -164,7 +164,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'New description',
             isbn: '9780132350884',
             authorIds: [1],
-            version: 1
+            version: 1,
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -175,7 +175,7 @@ final class UpdateBookUseCaseTest extends Unit
             coverImage: '/uploads/old-cover.jpg',
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
@@ -188,7 +188,7 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book): bool => $book->title === 'Updated Title'
+            ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
                     && $book->coverImage?->getPath() === '/uploads/old-cover.jpg'));
 
         $this->useCase->execute($command);
@@ -203,7 +203,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Description',
             isbn: '979-10-90636-07-1',
             authorIds: [1],
-            version: 1
+            version: 1,
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -213,7 +213,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Description',
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
@@ -226,7 +226,7 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book): bool => $book->isbn->equals(new Isbn('979-10-90636-07-1'))));
+            ->with($this->callback(static fn (Book $book): bool => $book->isbn->equals(new Isbn('979-10-90636-07-1'))));
 
         $this->useCase->execute($command);
     }
@@ -241,7 +241,7 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: [1],
             version: 1,
-            cover: '/uploads/new-cover.png'
+            cover: '/uploads/new-cover.png',
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -251,7 +251,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Description',
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
@@ -264,7 +264,7 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book): bool => $book->coverImage?->getPath() === '/uploads/new-cover.png'));
+            ->with($this->callback(static fn (Book $book): bool => $book->coverImage?->getPath() === '/uploads/new-cover.png'));
 
         $this->useCase->execute($command);
     }
@@ -278,7 +278,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'New description text',
             isbn: '9780132350884',
             authorIds: [1],
-            version: 1
+            version: 1,
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -288,7 +288,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Old description',
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
@@ -301,7 +301,7 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book): bool => $book->description === 'New description text'));
+            ->with($this->callback(static fn (Book $book): bool => $book->description === 'New description text'));
 
         $this->useCase->execute($command);
     }

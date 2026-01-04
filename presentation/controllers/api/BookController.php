@@ -23,7 +23,7 @@ final class BookController extends Controller
         $id,
         $module,
         private readonly BookViewDataFactory $viewDataFactory,
-        array $config = []
+        array $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }
@@ -83,14 +83,14 @@ final class BookController extends Controller
                         new OA\Property(
                             property: 'items',
                             type: 'array',
-                            items: new OA\Items(ref: '#/components/schemas/Book')
+                            items: new OA\Items(ref: '#/components/schemas/Book'),
                         ),
                         new OA\Property(property: '_meta', ref: '#/components/schemas/PaginationMeta'),
                     ],
-                    type: 'object'
-                )
+                    type: 'object',
+                ),
             ),
-        ]
+        ],
     )]
 
 
@@ -100,7 +100,7 @@ final class BookController extends Controller
 
         return $this->viewDataFactory->getIndexDataProvider(
             $pagination->page,
-            $pagination->limit
+            $pagination->limit,
         );
     }
 }

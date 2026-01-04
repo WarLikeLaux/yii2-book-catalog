@@ -13,7 +13,7 @@ final readonly class JobHandlerRegistry
 {
     public function __construct(
         private NotifySubscribersHandler $notifySubscribersHandler,
-        private NotifySingleSubscriberHandler $notifySingleSubscriberHandler
+        private NotifySingleSubscriberHandler $notifySingleSubscriberHandler,
     ) {
     }
 

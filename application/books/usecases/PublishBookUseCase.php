@@ -34,7 +34,7 @@ final readonly class PublishBookUseCase
             $this->bookRepository->save($book);
 
             $this->eventPublisher->publishAfterCommit(
-                new BookPublishedEvent($command->bookId, $book->title, $book->year->value)
+                new BookPublishedEvent($command->bookId, $book->title, $book->year->value),
             );
 
             $this->transaction->commit();

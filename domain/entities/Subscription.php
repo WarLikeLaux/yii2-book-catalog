@@ -9,7 +9,7 @@ final class Subscription
     public function __construct(
         public private(set) ?int $id,
         public private(set) string $phone,
-        public private(set) int $authorId
+        public private(set) int $authorId,
     ) {
     }
 

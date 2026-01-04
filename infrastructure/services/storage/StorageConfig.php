@@ -10,7 +10,7 @@ final readonly class StorageConfig
         public string $basePath,
         public string $baseUrl,
         public string $tempBasePath,
-        public string $tempBaseUrl
+        public string $tempBaseUrl,
     ) {
     }
 }

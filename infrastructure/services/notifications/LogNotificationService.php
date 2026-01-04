@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
 final readonly class LogNotificationService implements NotificationInterface
 {
     public function __construct(
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 

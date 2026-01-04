@@ -11,7 +11,7 @@ use app\domain\exceptions\DomainException;
 final readonly class AuthorQueryService
 {
     public function __construct(
-        private AuthorQueryServiceInterface $queryService
+        private AuthorQueryServiceInterface $queryService,
     ) {
     }
 
@@ -51,7 +51,7 @@ final readonly class AuthorQueryService
         $result = $this->queryService->search(
             $criteria->search,
             $criteria->page,
-            $criteria->pageSize
+            $criteria->pageSize,
         );
 
         /** @var AuthorReadDto[] $items */
@@ -61,7 +61,7 @@ final readonly class AuthorQueryService
             items: $items,
             total: $result->getTotalCount(),
             page: $criteria->page,
-            pageSize: $criteria->pageSize
+            pageSize: $criteria->pageSize,
         );
     }
 

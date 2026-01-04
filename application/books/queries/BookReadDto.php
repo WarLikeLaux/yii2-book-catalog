@@ -22,7 +22,7 @@ final readonly class BookReadDto implements JsonSerializable
         public array $authorNames = [],
         public string|null $coverUrl = null,
         public bool $isPublished = false,
-        public int $version = 1
+        public int $version = 1,
     ) {
     }
 

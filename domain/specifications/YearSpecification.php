@@ -8,7 +8,7 @@ namespace app\domain\specifications;
 final readonly class YearSpecification implements BookSpecificationInterface
 {
     public function __construct(
-        private int $year
+        private int $year,
     ) {
     }
 

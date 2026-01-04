@@ -22,7 +22,7 @@ final class IdempotencyFilter extends ActionFilter
 
     public function __construct(
         private readonly IdempotencyServiceInterface $service,
-        array $config = []
+        array $config = [],
     ) {
         parent::__construct($config);
     }
@@ -103,7 +103,7 @@ final class IdempotencyFilter extends ActionFilter
                     $response->statusCode,
                     $result,
                     is_string($location) ? $location : null,
-                    $this->ttl
+                    $this->ttl,
                 );
                 $response->getHeaders()->set('X-Idempotency-Cache', 'MISS');
             }

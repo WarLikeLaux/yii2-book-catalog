@@ -13,7 +13,7 @@ final class PagedResultDataProvider extends BaseDataProvider
 {
     public function __construct(
         private readonly PagedResultInterface $result,
-        array $config = []
+        array $config = [],
     ) {
         if (!array_key_exists('pagination', $config)) {
             $paginationDto = $result->getPagination();

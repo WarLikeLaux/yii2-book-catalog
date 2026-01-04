@@ -11,7 +11,7 @@ final readonly class QueueTracingDecorator implements QueueInterface
 {
     public function __construct(
         private QueueInterface $queue,
-        private TracerInterface $tracer
+        private TracerInterface $tracer,
     ) {
     }
 
@@ -21,7 +21,7 @@ final readonly class QueueTracingDecorator implements QueueInterface
         $this->tracer->trace(
             'Queue::' . __FUNCTION__,
             fn() => $this->queue->push($job),
-            ['job_class' => $job::class]
+            ['job_class' => $job::class],
         );
     }
 }

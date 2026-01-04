@@ -35,7 +35,7 @@ final class PublishBookUseCaseTest extends Unit
             $this->bookRepository,
             $this->transaction,
             $this->eventPublisher,
-            $this->publicationPolicy
+            $this->publicationPolicy,
         );
     }
 
@@ -48,7 +48,7 @@ final class PublishBookUseCaseTest extends Unit
             year: 2008,
             description: 'A Handbook',
             authorIds: [1, 2],
-            published: false
+            published: false,
         );
 
         $policy->expects($this->once())
@@ -60,19 +60,19 @@ final class PublishBookUseCaseTest extends Unit
             $this->bookRepository,
             $this->transaction,
             $this->eventPublisher,
-            $policy
+            $policy,
         );
 
         $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
         $this->transaction->expects($this->once())
             ->method('afterCommit')
-            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
+            ->willReturnCallback(static function (callable $callback) use (&$afterCommitCallback): void {
                 $afterCommitCallback = $callback;
             });
         $this->transaction->expects($this->once())
             ->method('commit')
-            ->willReturnCallback(function () use (&$afterCommitCallback): void {
+            ->willReturnCallback(static function () use (&$afterCommitCallback): void {
                 if ($afterCommitCallback === null) {
                     return;
                 }
@@ -88,15 +88,15 @@ final class PublishBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $b): bool => $b->published));
+            ->with($this->callback(static fn (Book $b): bool => $b->published));
 
         $this->eventPublisher->expects($this->once())
             ->method('publishAfterCommit')
-            ->with($this->callback(fn (BookPublishedEvent $e): bool => $e->bookId === 42
+            ->with($this->callback(static fn (BookPublishedEvent $e): bool => $e->bookId === 42
                     && $e->title === 'Clean Code'
                     && $e->year === 2008))
             ->willReturnCallback(function (): void {
-                $this->transaction->afterCommit(fn(): null => null);
+                $this->transaction->afterCommit(static fn(): null => null);
             });
 
         $useCase->execute($command);
@@ -110,7 +110,7 @@ final class PublishBookUseCaseTest extends Unit
             year: 2024,
             description: 'Test',
             authorIds: [],
-            published: false
+            published: false,
         );
 
         $command = new PublishBookCommand(bookId: 42);
@@ -141,7 +141,7 @@ final class PublishBookUseCaseTest extends Unit
             year: 2024,
             description: 'Test',
             authorIds: [1],
-            published: false
+            published: false,
         );
 
         $command = new PublishBookCommand(bookId: 42);

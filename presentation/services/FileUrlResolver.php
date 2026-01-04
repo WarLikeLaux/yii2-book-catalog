@@ -9,7 +9,7 @@ use app\domain\values\StoredFileReference;
 final readonly class FileUrlResolver
 {
     public function __construct(
-        private string $baseUrl
+        private string $baseUrl,
     ) {
     }
 

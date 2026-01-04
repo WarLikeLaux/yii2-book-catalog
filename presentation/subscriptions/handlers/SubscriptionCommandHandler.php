@@ -15,7 +15,7 @@ final readonly class SubscriptionCommandHandler
     public function __construct(
         private SubscriptionFormMapper $mapper,
         private SubscribeUseCase $useCase,
-        private WebUseCaseRunner $useCaseRunner
+        private WebUseCaseRunner $useCaseRunner,
     ) {
     }
 
@@ -29,7 +29,7 @@ final readonly class SubscriptionCommandHandler
         return $this->useCaseRunner->executeForApi(
             fn() => $this->useCase->execute($command),
             Yii::t('app', 'subscription.success.subscribed'),
-            ['author_id' => $form->authorId]
+            ['author_id' => $form->authorId],
         );
     }
 }

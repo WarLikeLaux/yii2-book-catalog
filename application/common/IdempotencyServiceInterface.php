@@ -21,6 +21,6 @@ interface IdempotencyServiceInterface
         int $statusCode,
         mixed $result,
         string|null $redirectUrl,
-        int $ttl
+        int $ttl,
     ): void;
 }

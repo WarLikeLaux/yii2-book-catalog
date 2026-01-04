@@ -11,7 +11,7 @@ final readonly class RateLimitRepositoryTracingDecorator implements RateLimitInt
 {
     public function __construct(
         private RateLimitInterface $decorated,
-        private TracerInterface $tracer
+        private TracerInterface $tracer,
     ) {
     }
 
@@ -19,7 +19,7 @@ final readonly class RateLimitRepositoryTracingDecorator implements RateLimitInt
     {
         return $this->tracer->trace(
             'RateLimitRepository::checkLimit',
-            fn(): array => $this->decorated->checkLimit($key, $limit, $windowSeconds)
+            fn(): array => $this->decorated->checkLimit($key, $limit, $windowSeconds),
         );
     }
 }

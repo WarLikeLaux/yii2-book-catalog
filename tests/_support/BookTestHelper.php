@@ -18,7 +18,7 @@ final class BookTestHelper
         ?string $coverImage = null,
         array $authorIds = [1],
         bool $published = false,
-        int $version = 1
+        int $version = 1,
     ): Book {
         return Book::reconstitute(
             id: $id,
@@ -29,7 +29,7 @@ final class BookTestHelper
             coverImage: $coverImage ? new StoredFileReference($coverImage) : null,
             authorIds: $authorIds,
             published: $published,
-            version: $version
+            version: $version,
         );
     }
 

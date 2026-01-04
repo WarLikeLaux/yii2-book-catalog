@@ -11,7 +11,7 @@ use app\domain\exceptions\DomainException;
 final readonly class BookQueryService
 {
     public function __construct(
-        private BookQueryServiceInterface $bookRepository
+        private BookQueryServiceInterface $bookRepository,
     ) {
     }
 
@@ -36,7 +36,7 @@ final readonly class BookQueryService
         return $this->bookRepository->search(
             $criteria->globalSearch,
             $criteria->page,
-            $criteria->pageSize
+            $criteria->pageSize,
         );
     }
 }

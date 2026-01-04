@@ -32,7 +32,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'isbn',
             [
                 'attribute' => 'authors',
-                'value' => fn (BookReadDto $model) => implode(', ', $model->authorNames),
+                'value' => static fn (BookReadDto $model) => implode(', ', $model->authorNames),
             ],
             [
                 'class' => 'yii\grid\ActionColumn',
