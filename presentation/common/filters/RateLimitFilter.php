@@ -31,7 +31,7 @@ final class RateLimitFilter extends ActionFilter
     }
 
     #[\Override]
-    public function beforeAction($action): bool
+    public function beforeAction($_action): bool
     {
         $request = Yii::$app->request;
 

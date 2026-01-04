@@ -38,7 +38,7 @@ final class IdempotencyFilter extends ActionFilter
     }
 
     #[\Override]
-    public function beforeAction($action): bool
+    public function beforeAction($_action): bool
     {
         $request = Yii::$app->request;
 
@@ -79,7 +79,7 @@ final class IdempotencyFilter extends ActionFilter
     }
 
     #[\Override]
-    public function afterAction($action, $result): mixed
+    public function afterAction($_action, $result): mixed
     {
         $request = Yii::$app->request;
 
