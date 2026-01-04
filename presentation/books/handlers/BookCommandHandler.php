@@ -13,6 +13,7 @@ use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\dto\TemporaryFile;
 use app\application\ports\FileStorageInterface;
 use app\domain\exceptions\DomainException;
+use app\domain\values\StoredFileReference;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookFormMapper;
 use app\presentation\books\mappers\DomainErrorToFormMapper;
@@ -36,44 +37,41 @@ final readonly class BookCommandHandler
 
     public function createBook(BookForm $form): int|null
     {
-        $coverFile = $this->uploadCover($form);
-        $command = $this->mapper->toCreateCommand($form, $coverFile?->url);
+        $tempFile = $this->uploadCover($form);
+        $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
+        $command = $this->mapper->toCreateCommand($form, $permanentRef);
 
-        $result = $this->useCaseRunner->executeWithFormErrors(
+        return $this->useCaseRunner->executeWithFormErrors(
             fn(): int => $this->createBookUseCase->execute($command),
             Yii::t('app', 'book.success.created'),
-            fn(DomainException $e) => $this->addFormError($form, $e),
-            fn() => $this->cleanupTempFile($coverFile)
+            function (DomainException $e) use ($form, $permanentRef): void {
+                if ($permanentRef instanceof StoredFileReference) {
+                    $this->fileStorage->delete((string)$permanentRef);
+                }
+                $this->addFormError($form, $e);
+            }
         );
-
-        if ($result !== null) {
-            $this->finalizeCover($coverFile);
-        }
-
-        return $result;
     }
 
     public function updateBook(int $id, BookForm $form): bool
     {
-        $coverFile = $this->uploadCover($form);
-        $command = $this->mapper->toUpdateCommand($id, $form, $coverFile?->url);
+        $tempFile = $this->uploadCover($form);
+        $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
+        $command = $this->mapper->toUpdateCommand($id, $form, $permanentRef);
 
-        $result = $this->useCaseRunner->executeWithFormErrors(
+        return $this->useCaseRunner->executeWithFormErrors(
             function () use ($command): bool {
                 $this->updateBookUseCase->execute($command);
                 return true;
             },
             Yii::t('app', 'book.success.updated'),
-            fn(DomainException $e) => $this->addFormError($form, $e),
-            fn() => $this->cleanupTempFile($coverFile)
-        );
-
-        if ($result === null) {
-            return false;
-        }
-
-        $this->finalizeCover($coverFile);
-        return $result;
+            function (DomainException $e) use ($form, $permanentRef): void {
+                if ($permanentRef instanceof StoredFileReference) {
+                    $this->fileStorage->delete((string)$permanentRef);
+                }
+                $this->addFormError($form, $e);
+            }
+        ) ?? false;
     }
 
     public function deleteBook(int $id): bool
@@ -113,23 +111,5 @@ final readonly class BookCommandHandler
         $message = Yii::t('app', $e->getMessage());
 
         $form->addError($field ?? 'title', $message);
-    }
-
-    private function cleanupTempFile(TemporaryFile|null $file): void
-    {
-        if (!$file instanceof TemporaryFile) {
-            return;
-        }
-
-        $this->fileStorage->deleteTemporary($file);
-    }
-
-    private function finalizeCover(TemporaryFile|null $file): void
-    {
-        if (!$file instanceof TemporaryFile) {
-            return;
-        }
-
-        $this->fileStorage->moveToPermanent($file);
     }
 }
