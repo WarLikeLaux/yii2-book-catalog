@@ -106,6 +106,8 @@
             <property name="ignoreBlankLines" value="false"/>
         </properties>
     </rule>
+    <!-- Запрет дублированных пробелов -->
+    <rule ref="SlevomatCodingStandard.Whitespaces.DuplicateSpaces"/>
 
     <!-- Читаемость и контроль конструкций -->
     <rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
@@ -135,6 +137,9 @@
     <rule ref="SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator"/>
     <rule ref="SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator"/>
     <rule ref="SlevomatCodingStandard.ControlStructures.AssignmentInCondition"/>
+    <!-- Запрет Yoda-условий и нестрогих сравнений -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.DisallowYodaComparison"/>
+    <rule ref="SlevomatCodingStandard.Operators.DisallowEqualOperators"/>
 
     <!-- Современный синтаксис -->
     <rule ref="SlevomatCodingStandard.Functions.RequireArrowFunction"/>
@@ -147,6 +152,15 @@
         <exclude-pattern>tests/*</exclude-pattern>
     </rule>
     <rule ref="SlevomatCodingStandard.Exceptions.DeadCatch"/>
+    <!-- Отсев пустых override-конструкторов/методов -->
+    <rule ref="Generic.CodeAnalysis.UselessOverridingMethod"/>
+    <rule ref="SlevomatCodingStandard.Functions.UnusedParameter">
+        <properties>
+            <property name="allowedParameterPatterns" type="array">
+                <element value="/^_/"/>
+            </property>
+        </properties>
+    </rule>
     <rule ref="Generic.PHP.ForbiddenFunctions">
         <properties>
             <property name="forbiddenFunctions" type="array">
