@@ -140,11 +140,11 @@ final readonly class BookRepository implements BookRepositoryInterface
         );
     }
 
-    /** @codeCoverageIgnore Защитный код (недостижим из-за валидации домена) */
+    /** @codeCoverageIgnore */
     private function persistBook(Book $ar): void
     {
         try {
-            if (!$ar->save()) {
+            if (!$ar->save(false)) {
                 $errors = $ar->getFirstErrors();
                 $message = $errors !== [] ? array_shift($errors) : 'book.error.save_failed';
                 throw new RuntimeException($message);

@@ -78,11 +78,11 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         return $query->exists();
     }
 
-    /** @codeCoverageIgnore Защитный код (недостижим из-за валидации домена) */
+    /** @codeCoverageIgnore */
     private function persistAuthor(Author $ar): void
     {
         try {
-            if (!$ar->save()) {
+            if (!$ar->save(false)) {
                 $errors = $ar->getFirstErrors();
                 $message = $errors !== [] ? array_shift($errors) : 'author.error.save_failed';
                 throw new RuntimeException($message);

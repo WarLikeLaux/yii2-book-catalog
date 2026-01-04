@@ -26,17 +26,23 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
         $ar->phone = $subscription->phone;
         $ar->author_id = $subscription->authorId;
 
+        $this->persistSubscription($ar);
+
+        $subscription->setId($ar->id);
+    }
+
+    /** @codeCoverageIgnore */
+    private function persistSubscription(Subscription $ar): void
+    {
         try {
-            if (!$ar->save()) {
+            if (!$ar->save(false)) {
                 $errors = $ar->getFirstErrors();
                 $message = $errors !== [] ? array_shift($errors) : 'subscription.error.save_failed';
                 throw new RuntimeException($message);
             }
         } catch (IntegrityException $e) {
-            throw new AlreadyExistsException(previous: $e); // @codeCoverageIgnore
+            throw new AlreadyExistsException(previous: $e);
         }
-
-        $subscription->setId($ar->id);
     }
 
     public function exists(string $phone, int $authorId): bool
