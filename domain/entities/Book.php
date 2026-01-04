@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace app\domain\entities;
 
 use app\domain\exceptions\DomainException;
+use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
+use app\domain\values\StoredFileReference;
 use RuntimeException;
 
 final class Book
@@ -26,7 +28,7 @@ final class Book
         public private(set) BookYear $year,
         public private(set) Isbn $isbn,
         public private(set) ?string $description,
-        public private(set) ?string $coverUrl,
+        public private(set) ?StoredFileReference $coverImage,
         array $authorIds,
         public private(set) bool $published,
         public private(set) int $version
@@ -53,14 +55,14 @@ final class Book
         BookYear $year,
         Isbn $isbn,
         ?string $description,
-        ?string $coverUrl
+        ?StoredFileReference $coverImage
     ): self {
         return new self(
             title: $title,
             year: $year,
             isbn: $isbn,
             description: $description,
-            coverUrl: $coverUrl,
+            coverImage: $coverImage,
             authorIds: [],
             published: false,
             version: 1
@@ -76,7 +78,7 @@ final class Book
         BookYear $year,
         Isbn $isbn,
         ?string $description,
-        ?string $coverUrl,
+        ?StoredFileReference $coverImage,
         array $authorIds,
         bool $published,
         int $version
@@ -86,7 +88,7 @@ final class Book
             year: $year,
             isbn: $isbn,
             description: $description,
-            coverUrl: $coverUrl,
+            coverImage: $coverImage,
             authorIds: $authorIds,
             published: $published,
             version: $version
@@ -124,9 +126,9 @@ final class Book
         $this->description = $description;
     }
 
-    public function updateCover(?string $coverUrl): void
+    public function updateCover(?StoredFileReference $coverImage): void
     {
-        $this->coverUrl = $coverUrl;
+        $this->coverImage = $coverImage;
     }
 
     public function addAuthor(int $authorId): void
@@ -186,11 +188,9 @@ final class Book
     /**
      * @throws DomainException
      */
-    public function publish(): void
+    public function publish(BookPublicationPolicy $policy): void
     {
-        if ($this->authorIds === []) {
-            throw new DomainException('book.error.publish_without_authors');
-        }
+        $policy->ensureCanPublish($this);
         $this->published = true;
     }
 
