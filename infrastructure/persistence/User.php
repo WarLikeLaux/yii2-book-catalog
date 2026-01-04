@@ -43,7 +43,7 @@ final class User extends BaseObject implements IdentityInterface
     /**
      * {@inheritdoc}
      */
-    public static function findIdentityByAccessToken($token, $type = null)
+    public static function findIdentityByAccessToken($token, $_type = null)
     {
         foreach (self::$_users as $user) {
             if ($user['accessToken'] === $token) {

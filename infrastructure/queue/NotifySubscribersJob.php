@@ -28,7 +28,7 @@ final readonly class NotifySubscribersJob implements JobInterface, RetryableJobI
         return self::TTR_SECONDS;
     }
 
-    public function canRetry($attempt, $error): bool
+    public function canRetry($attempt, $_error): bool
     {
         return $attempt < 3;
     }
