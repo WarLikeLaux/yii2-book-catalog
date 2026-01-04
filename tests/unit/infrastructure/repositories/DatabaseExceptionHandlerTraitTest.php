@@ -45,4 +45,11 @@ final class DatabaseExceptionHandlerTraitTest extends Unit
 
         $this->assertFalse($this->testerObject->testIsDuplicate($exception));
     }
+
+    public function testIsDuplicateErrorReturnsTrueForPgsqlSqlState(): void
+    {
+        $exception = new IntegrityException('Unique violation', ['23505', 7, 'Duplicate entry']);
+
+        $this->assertTrue($this->testerObject->testIsDuplicate($exception));
+    }
 }

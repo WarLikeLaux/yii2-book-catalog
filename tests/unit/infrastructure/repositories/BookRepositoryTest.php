@@ -11,8 +11,8 @@ use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
-use app\infrastructure\persistence\Book;
 use Codeception\Test\Unit;
+use DbCleaner;
 use ReflectionProperty;
 use Yii;
 
@@ -35,8 +35,7 @@ final class BookRepositoryTest extends Unit
 
     private function cleanup(): void
     {
-        Book::deleteAll();
-        Author::deleteAll();
+        DbCleaner::clear(['book_authors', 'books', 'authors']);
     }
 
     public function testCreateAndFindById(): void

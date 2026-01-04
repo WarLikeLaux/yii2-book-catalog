@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
+use app\domain\exceptions\AlreadyExistsException;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use yii\db\Query;
@@ -97,7 +98,7 @@ final class CreateBookUseCaseCest
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
 
-        $I->expectThrowable(RuntimeException::class, function () use ($useCase, $command): void {
+        $I->expectThrowable(AlreadyExistsException::class, function () use ($useCase, $command): void {
             $useCase->execute($command);
         });
     }

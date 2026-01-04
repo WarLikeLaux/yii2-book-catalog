@@ -16,6 +16,10 @@ final class DbCleaner
         }
 
         $db = Yii::$app->db;
+        $transaction = $db->getTransaction();
+        if ($transaction !== null && $transaction->getIsActive()) {
+            $transaction->rollBack();
+        }
 
         if ($db->driverName === 'pgsql') {
             self::truncatePostgres($db, $tables);
