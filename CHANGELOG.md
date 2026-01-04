@@ -6,6 +6,43 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.15.0] - 2026-01-04 — "Rate Limiting и Readonly"
+
+> Внедрено ограничение скорости запросов (Rate Limiting) для защиты API. Доменные сущности стали иммутабельными благодаря readonly свойствам PHP 8.2+. Добавлен драйвер PSR-20 Clock и View Models для разделения логики представления. Интеграция GLightbox оживила галерею, а Graceful Shutdown сделал воркеры надежнее.
+
+### 🚀 Новые функции и возможности
+- **#29** - реализована система **Rate Limiting** (сервис, фильтр, репозиторий) для защиты API ([0b6f985](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0b6f985), [4fcf918](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4fcf918), [dc3f4eb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dc3f4eb), [f1503c7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f1503c7))
+- **#29** - внедрена интеграция **GLightbox** для просмотра галереи изображений ([f2a7142](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f2a7142))
+- **#29** - добавлен **SystemClock** с реализацией `PSR-20 ClockInterface` ([7572afb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7572afb))
+- **#29** - реализован **Graceful Shutdown** для корректного завершения воркеров очереди ([6771295](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6771295))
+- **#29** - добавлена фабрика `BookYearFactory` для создания ValueObject года с учетом текущего времени ([42e1738](https://github.com/WarLikeLaux/yii2-book-catalog/commit/42e1738))
+- **#29** - добавлен класс `StoredFileReference` для работы с файлами ([aaa427e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/aaa427e))
+
+### 🐛 Исправления
+- **#29** - исправлена обработка исключений в `SubscribeUseCase` ([481ef12](https://github.com/WarLikeLaux/yii2-book-catalog/commit/481ef12))
+
+### 🛠 Рефакторинг и архитектура
+- **#29** - доменные сущности переведены на использование **readonly public properties** ([a216a93](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a216a93), [1ef2ac1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1ef2ac1))
+- **#29** - внедрены **View Models** для разделения логики представления ([a1897cd](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a1897cd))
+- **#29** - рефакторинг Query Services и инфраструктурного слоя ([8110549](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8110549))
+- **#29** - упрощена спецификация `YearSpecification` ([1a0ca60](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1a0ca60))
+- **#29** - оптимизирована проверка существования авторов (batch processing) ([561e455](https://github.com/WarLikeLaux/yii2-book-catalog/commit/561e455))
+- **#29** - обновлены Use Cases и Mapper для работы с фабрикой `BookYear` ([265fe1a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/265fe1a), [ed0ecce](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ed0ecce), [3236c80](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3236c80))
+- **#29** - удалено избыточное событие `BookCreatedEvent` ([96b10e7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/96b10e7))
+
+### 🧪 Тестирование
+- **#29** - добавлены тесты для функционала Rate Limiting ([40a26e9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/40a26e9))
+- **#29** - добавлены тесты для декоратора трассировки RateLimitRepository ([315cfaa](https://github.com/WarLikeLaux/yii2-book-catalog/commit/315cfaa))
+
+### 📝 Документация
+- **#29** - обновлен README.md информацией о PSR-20 Clock ([edb3e41](https://github.com/WarLikeLaux/yii2-book-catalog/commit/edb3e41))
+- **#29** - добавлен PHPDoc для `HandlerAwareQueue` и `RequestIdProvider` ([586ce9d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/586ce9d))
+
+### ⚙️ Инфраструктура
+- **#29** - зарегистрированы `ClockInterface` и `BookYearFactory` в DI контейнере ([19efe02](https://github.com/WarLikeLaux/yii2-book-catalog/commit/19efe02))
+- **#29** - обновлена конфигурация `repomix` ([e3dd398](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e3dd398))
+- **#29** - обновлены зависимости проекта ([b635ba0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b635ba0))
+
 ## [0.14.0] - 2026-01-03 — "PostgreSQL, PsySH и Observability"
 
 > Ключевой релиз, внедряющий полноценную поддержку PostgreSQL и мульти-базовую архитектуру. Система стала полностью агностик к базе данных. Инструментарий разработчика вышел на новый уровень с интеграцией PsySH и расширенными возможностями отладки. Значительно улучшена наблюдаемость (Observability) благодаря сквозной трассировке асинхронных операций. Добавлен виджет системной информации и устранены архитектурные ограничения в адаптерах. Весь проект прошел через визуальное обновление документации с новым hero-баннером и улучшенной структурой README.
