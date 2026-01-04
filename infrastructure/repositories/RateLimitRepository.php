@@ -24,7 +24,8 @@ final readonly class RateLimitRepository implements RateLimitInterface
         $fullKey = 'ratelimit:' . $key;
 
         $this->redis->executeCommand('ZREMRANGEBYSCORE', [$fullKey, '-inf', (string)$windowStart]);
-        $this->redis->executeCommand('ZADD', [$fullKey, (string)$now, (string)$now]);
+        $uniqueMember = sprintf('%.6f_%s', microtime(true), bin2hex(random_bytes(4)));
+        $this->redis->executeCommand('ZADD', [$fullKey, (string)$now, $uniqueMember]);
         $current = (int)$this->redis->executeCommand('ZCARD', [$fullKey]);
         $this->redis->executeCommand('EXPIRE', [$fullKey, (string)($windowSeconds * 2)]);
 
