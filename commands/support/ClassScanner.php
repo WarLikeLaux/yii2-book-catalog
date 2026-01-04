@@ -192,7 +192,14 @@ final class ClassScanner
         for ($i = $index - 1; $i >= 0; $i--) {
             $token = $tokens[$i];
 
-            if (is_array($token) && ($token[0] === T_WHITESPACE || $token[0] === T_COMMENT || $token[0] === T_DOC_COMMENT)) {
+            if (
+                is_array($token)
+                && (
+                    $token[0] === T_WHITESPACE
+                    || $token[0] === T_COMMENT
+                    || $token[0] === T_DOC_COMMENT
+                )
+            ) {
                 continue;
             }
 

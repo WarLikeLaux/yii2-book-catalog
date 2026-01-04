@@ -140,6 +140,14 @@
     <!-- Запрет Yoda-условий и нестрогих сравнений -->
     <rule ref="SlevomatCodingStandard.ControlStructures.DisallowYodaComparison"/>
     <rule ref="SlevomatCodingStandard.Operators.DisallowEqualOperators"/>
+    <!-- Форматирование сложных условий -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition">
+        <properties>
+            <property name="minLineLength" value="120"/>
+            <property name="alwaysSplitAllConditionParts" value="true"/>
+            <property name="booleanOperatorOnPreviousLine" value="false"/>
+        </properties>
+    </rule>
 
     <!-- Современный синтаксис -->
     <rule ref="SlevomatCodingStandard.Functions.RequireArrowFunction"/>
@@ -206,6 +214,19 @@
     <rule ref="SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue"/>
     <rule ref="SlevomatCodingStandard.TypeHints.LongTypeHints"/>
     <rule ref="SlevomatCodingStandard.TypeHints.UselessConstantTypeHint"/>
+    <!-- Запрет лишних аннотаций в PHPDoc -->
+    <rule ref="SlevomatCodingStandard.Commenting.ForbiddenAnnotations">
+        <properties>
+            <property name="forbiddenAnnotations" type="array">
+                <element value="@author"/>
+                <element value="@created"/>
+                <element value="@version"/>
+                <element value="@package"/>
+                <element value="@copyright"/>
+                <element value="@license"/>
+            </property>
+        </properties>
+    </rule>
 
     <!-- Конкатенация строк -->
     <rule ref="Squiz.Strings.ConcatenationSpacing">
@@ -222,6 +243,7 @@
     <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
     <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInCall"/>
     <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration"/>
+    <rule ref="SlevomatCodingStandard.PHP.RequireNowdoc"/>
 
     <!-- Метрики сложности -->
     <rule ref="Generic.Metrics.CyclomaticComplexity">
