@@ -1,8 +1,5 @@
 <?php
 
-// phpcs:ignoreFile
-// NOTE: Файл игнорируется из-за фатальной ошибки в Slevomat Sniffs (Undefined array key "scope_closer")
-
 declare(strict_types=1);
 
 namespace app\tests\unit\infrastructure\repositories;
@@ -14,12 +11,13 @@ use RuntimeException;
 final class IdentityAssignmentTraitTest extends Unit
 {
     private object $entity;
-    private $traitObject;
+    private ?object $traitObject = null;
 
     protected function _before(): void
     {
         $this->entity = new class {
-            private ?int $id = null;
+            public ?int $id = null;
+
             public function getId(): ?int
             {
                 return $this->id;
@@ -61,7 +59,11 @@ final class IdentityAssignmentTraitTest extends Unit
     public function testAssignIdHandlesNonScalarCurrentValueInException(): void
     {
         $entityWithObject = new class {
-            private $id;
+            /**
+             * @var \stdClass
+             */
+            public $id;
+
             public function __construct()
             {
                 $this->id = new \stdClass();
