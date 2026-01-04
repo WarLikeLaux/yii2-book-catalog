@@ -70,7 +70,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <th>Обложка</th>
             <td>
                 <?= Html::a(
-                    Html::img($book->coverUrl, ['alt' => $book->title, 'style' => 'max-width: 300px; cursor: pointer;']),
+                    Html::img($book->coverUrl, ['alt' => $book->title, 'style' => 'max-width: 300px; cursor: pointer;', 'loading' => 'lazy']),
                     $book->coverUrl,
                     ['class' => 'glightbox', 'data-gallery' => 'book-gallery']
                 ) ?>
