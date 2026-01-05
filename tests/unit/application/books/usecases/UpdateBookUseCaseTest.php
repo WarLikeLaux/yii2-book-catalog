@@ -11,6 +11,7 @@ use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookUpdatedEvent;
+use app\domain\exceptions\DomainException;
 use app\domain\exceptions\StaleDataException;
 use app\domain\values\Isbn;
 use BookTestHelper;
@@ -302,6 +303,44 @@ final class UpdateBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn (Book $book): bool => $book->description === 'New description text'));
+
+        $this->useCase->execute($command);
+    }
+
+    public function testExecuteThrowsExceptionOnFutureYear(): void
+    {
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Title',
+            year: 2026,
+            description: 'Description',
+            isbn: '9780132350884',
+            authorIds: [1],
+            version: 1,
+        );
+
+        $existingBook = BookTestHelper::createBook(
+            id: 42,
+            title: 'Old Title',
+            year: 2020,
+            description: 'Description',
+            authorIds: [1],
+            published: false,
+            version: 1,
+        );
+
+        $this->bookRepository->expects($this->once())
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
+            ->willReturn($existingBook);
+
+        $this->transaction->expects($this->once())->method('begin');
+        $this->transaction->expects($this->never())->method('commit');
+        $this->transaction->expects($this->once())->method('rollBack');
+        $this->bookRepository->expects($this->never())->method('save');
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('year.error.future');
 
         $this->useCase->execute($command);
     }

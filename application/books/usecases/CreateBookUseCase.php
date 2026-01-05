@@ -26,6 +26,8 @@ final readonly class CreateBookUseCase
 
     public function execute(CreateBookCommand $command): int
     {
+        $currentYear = (int) $this->clock->now()->format('Y');
+
         $this->transaction->begin();
 
         try {
@@ -37,7 +39,7 @@ final readonly class CreateBookUseCase
 
             $book = Book::create(
                 title: $command->title,
-                year: new BookYear($command->year, $this->clock->now()),
+                year: new BookYear($command->year, $currentYear),
                 isbn: new Isbn($command->isbn),
                 description: $command->description,
                 coverImage: $cover,

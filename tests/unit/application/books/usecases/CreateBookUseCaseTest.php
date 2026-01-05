@@ -157,4 +157,25 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->useCase->execute($command);
     }
+
+    public function testExecuteThrowsExceptionOnFutureYear(): void
+    {
+        $command = new CreateBookCommand(
+            title: 'Future Book',
+            year: 2026,
+            description: 'A book from the future',
+            isbn: '9780132350884',
+            authorIds: [1],
+        );
+
+        $this->transaction->expects($this->once())->method('begin');
+        $this->transaction->expects($this->never())->method('commit');
+        $this->transaction->expects($this->once())->method('rollBack');
+        $this->bookRepository->expects($this->never())->method('save');
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('year.error.future');
+
+        $this->useCase->execute($command);
+    }
 }

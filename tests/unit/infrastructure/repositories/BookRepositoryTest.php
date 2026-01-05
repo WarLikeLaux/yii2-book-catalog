@@ -42,7 +42,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Test Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9783161484100'),
             'Desc',
             null,
@@ -60,7 +60,7 @@ final class BookRepositoryTest extends Unit
         $book = BookEntity::reconstitute(
             999,
             'Title',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9783161484100'),
             null,
             null,
@@ -79,7 +79,7 @@ final class BookRepositoryTest extends Unit
 
         $book = BookEntity::create(
             'Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9783161484100'),
             null,
             null,
@@ -97,7 +97,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Get Test',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             'Description',
             null,
@@ -120,7 +120,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Original Title',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -129,7 +129,7 @@ final class BookRepositoryTest extends Unit
 
         $updated = $this->repository->get($book->id);
         $updated->rename('Updated Title');
-        $updated->changeYear(new BookYear(2025, new \DateTimeImmutable()));
+        $updated->changeYear(new BookYear(2025));
         $updated->correctIsbn(new Isbn('9783161484100'));
         $updated->updateDescription('New desc');
         $this->repository->save($updated);
@@ -143,7 +143,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'To Delete',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -161,7 +161,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'ISBN Test',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -180,7 +180,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'ISBN Exclude Test',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -195,7 +195,7 @@ final class BookRepositoryTest extends Unit
     {
         $book = BookEntity::create(
             'Non-existent',
-            new BookYear(2023, new \DateTimeImmutable()),
+            new BookYear(2023),
             new Isbn('978-3-16-148410-0'),
             null,
             null,
@@ -213,7 +213,7 @@ final class BookRepositoryTest extends Unit
 
         $book = BookEntity::create(
             'Book with Authors',
-            new BookYear(2023, new \DateTimeImmutable()),
+            new BookYear(2023),
             new Isbn('978-3-16-148410-0'),
             null,
             null,
@@ -234,7 +234,7 @@ final class BookRepositoryTest extends Unit
         $isbn = '9783161484100';
         $book1 = BookEntity::create(
             'First Book',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn($isbn),
             null,
             null,
@@ -243,7 +243,7 @@ final class BookRepositoryTest extends Unit
 
         $book2 = BookEntity::create(
             'Duplicate ISBN Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn($isbn),
             null,
             null,

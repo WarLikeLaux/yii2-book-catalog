@@ -51,7 +51,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'Test Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9783161484100'),
             'Desc',
             null,
@@ -76,7 +76,7 @@ final class BookQueryServiceTest extends Unit
 
         $book = BookEntity::create(
             'Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9783161484100'),
             null,
             null,
@@ -102,7 +102,7 @@ final class BookQueryServiceTest extends Unit
 
         $book = BookEntity::create(
             'Author Search Book',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -122,7 +122,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'ISBN Search',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -138,7 +138,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'Year Search',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -154,7 +154,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'Empty Search',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -172,7 +172,7 @@ final class BookQueryServiceTest extends Unit
 
         $book = BookEntity::create(
             'SearchableBookTitle',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             'Some description',
             null,
@@ -192,7 +192,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'Year Spec Test',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -209,7 +209,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'ISBN Prefix Spec Test',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -226,7 +226,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'FullTextSpecificationTestBook',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             'Unique description for fulltext search',
             null,
@@ -247,7 +247,7 @@ final class BookQueryServiceTest extends Unit
 
         $book = BookEntity::create(
             'Author Spec Test',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -267,7 +267,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book1 = BookEntity::create(
             'Composite Spec Year Book',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -276,7 +276,7 @@ final class BookQueryServiceTest extends Unit
 
         $book2 = BookEntity::create(
             'Composite Spec ISBN Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9780132350884'),
             null,
             null,
@@ -298,7 +298,7 @@ final class BookQueryServiceTest extends Unit
 
         $book1 = BookEntity::create(
             'CompositeFulltextTestBook',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             'Some unique description',
             null,
@@ -307,7 +307,7 @@ final class BookQueryServiceTest extends Unit
 
         $book2 = BookEntity::create(
             'Another Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9780132350884'),
             null,
             null,

@@ -27,6 +27,8 @@ final readonly class UpdateBookUseCase
 
     public function execute(UpdateBookCommand $command): void
     {
+        $currentYear = (int) $this->clock->now()->format('Y');
+
         $book = $this->bookRepository->getByIdAndVersion($command->id, $command->version);
         $oldYear = $book->year->value;
         $isPublished = $book->published;
@@ -35,7 +37,7 @@ final readonly class UpdateBookUseCase
 
         try {
             $book->rename($command->title);
-            $book->changeYear(new BookYear($command->year, $this->clock->now()));
+            $book->changeYear(new BookYear($command->year, $currentYear));
             $book->correctIsbn(new Isbn($command->isbn));
             $book->updateDescription($command->description);
 

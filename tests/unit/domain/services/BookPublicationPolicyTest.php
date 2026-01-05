@@ -11,7 +11,6 @@ use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
 use Codeception\Test\Unit;
-use DateTimeImmutable;
 
 final class BookPublicationPolicyTest extends Unit
 {
@@ -35,7 +34,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024, new DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             $this->validDescription(),
             new StoredFileReference('covers/test.jpg'),
@@ -51,7 +50,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024, new DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             $this->validDescription(),
             null,
@@ -68,7 +67,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024, new DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             new StoredFileReference('covers/test.jpg'),
@@ -85,7 +84,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024, new DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             'Short description less than 50 chars',
             new StoredFileReference('covers/test.jpg'),
@@ -102,7 +101,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024, new DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             str_repeat(' ', 60),
             new StoredFileReference('covers/test.jpg'),
@@ -126,7 +125,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024, new DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             $this->validDescription(),
             new StoredFileReference('covers/test.jpg'),
@@ -139,7 +138,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024, new DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             $this->validDescription(),
             null,
@@ -153,7 +152,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024, new DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             'Too short',
             new StoredFileReference('covers/test.jpg'),
@@ -167,7 +166,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024, new DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             str_repeat('a', 50),
             new StoredFileReference('covers/test.jpg'),
@@ -181,7 +180,7 @@ final class BookPublicationPolicyTest extends Unit
     {
         $book = Book::create(
             'Test Book',
-            new BookYear(2024, new DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             $this->validDescription(),
             new StoredFileReference('covers/test.jpg'),
