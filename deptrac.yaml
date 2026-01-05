@@ -77,10 +77,7 @@ deptrac:
       - Framework
       - GlobalState
 
-  skip_violations:
-    app\presentation\auth\forms\LoginForm:
-      - app\infrastructure\persistence\User
-    
+  skip_violations:   
     # Адаптеры (разрешен доступ к Yii)
     app\infrastructure\adapters\YiiTranslatorAdapter:
       - Yii

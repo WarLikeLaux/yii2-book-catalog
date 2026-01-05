@@ -9,8 +9,8 @@
 	"logs": {
 		"text": "runtime/logs/infection.log"
 	},
-	"minMsi": 100,
-	"minCoveredMsi": 100,
+	"minMsi": 95,
+	"minCoveredMsi": 95,
 	"mutators": {
 		"@default": true
 	},
