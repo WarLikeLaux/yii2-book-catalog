@@ -19,10 +19,7 @@ final class EventToJobMapperTest extends Unit
     protected function _before(): void
     {
         $registry = new EventJobMappingRegistry([
-            BookPublishedEvent::class => static fn(BookPublishedEvent $e): NotifySubscribersJob => new NotifySubscribersJob(
-                bookId: $e->bookId,
-                title: $e->title,
-            ),
+            BookPublishedEvent::class => NotifySubscribersJob::class,
         ]);
 
         $this->mapper = new EventToJobMapper($registry);

@@ -26,10 +26,7 @@ final class YiiEventPublisherAdapterTest extends Unit
         $this->queue = $this->createMock(QueueInterface::class);
 
         $registry = new EventJobMappingRegistry([
-            BookPublishedEvent::class => static fn(BookPublishedEvent $e): NotifySubscribersJob => new NotifySubscribersJob(
-                bookId: $e->bookId,
-                title: $e->title,
-            ),
+            BookPublishedEvent::class => NotifySubscribersJob::class,
         ]);
         $this->jobMapper = new EventToJobMapper($registry);
     }

@@ -67,10 +67,7 @@ return static fn (array $_params) => [
             CacheInterface::class => YiiCacheAdapter::class,
 
             EventJobMappingRegistry::class => static fn(): EventJobMappingRegistry => new EventJobMappingRegistry([
-                BookPublishedEvent::class => static fn(BookPublishedEvent $e): NotifySubscribersJob => new NotifySubscribersJob(
-                    bookId: $e->bookId,
-                    title: $e->title,
-                ),
+                BookPublishedEvent::class => NotifySubscribersJob::class,
             ]),
 
             EventToJobMapperInterface::class => EventToJobMapper::class,
