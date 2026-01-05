@@ -56,6 +56,7 @@ final class CreateAuthorUseCaseTest extends Unit
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('author.error.create_failed');
+        $this->expectExceptionCode(0);
 
         $this->useCase->execute($command);
     }

@@ -76,6 +76,7 @@ final class UpdateAuthorUseCaseTest extends Unit
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('author.error.update_failed');
+        $this->expectExceptionCode(0);
 
         $this->useCase->execute($command);
     }
