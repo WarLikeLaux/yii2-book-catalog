@@ -6,8 +6,5 @@ namespace app\domain\specifications;
 
 interface BookSpecificationInterface
 {
-    /**
-     * @return array{type: string, value: mixed}
-     */
-    public function toSearchCriteria(): array;
+    public function accept(BookSpecificationVisitorInterface $visitor): void;
 }

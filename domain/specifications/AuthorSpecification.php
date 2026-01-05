@@ -11,14 +11,13 @@ final readonly class AuthorSpecification implements BookSpecificationInterface
     ) {
     }
 
-    /**
-     * @return array{type: string, value: mixed}
-     */
-    public function toSearchCriteria(): array
+    public function accept(BookSpecificationVisitorInterface $visitor): void
     {
-        return [
-            'type' => 'author',
-            'value' => $this->authorName,
-        ];
+        $visitor->visitAuthor($this);
+    }
+
+    public function getAuthorName(): string
+    {
+        return $this->authorName;
     }
 }
