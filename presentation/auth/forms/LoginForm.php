@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace app\presentation\auth\forms;
 
-use app\infrastructure\persistence\User;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
 use yii\base\Model;
@@ -14,7 +13,6 @@ final class LoginForm extends Model
     public string $username = '';
     public string $password = '';
     public bool $rememberMe = true;
-    private User|false|null $_user = false;
 
     #[\Override]
     #[CodeCoverageIgnore]
@@ -23,7 +21,6 @@ final class LoginForm extends Model
         return [
             [['username', 'password'], 'required'],
             ['rememberMe', 'boolean'],
-            ['password', 'validatePassword'],
         ];
     }
 
@@ -36,29 +33,5 @@ final class LoginForm extends Model
             'password' => Yii::t('app', 'ui.password'),
             'rememberMe' => Yii::t('app', 'ui.remember_me'),
         ];
-    }
-
-    public function validatePassword(string $attribute): void
-    {
-        if ($this->hasErrors()) {
-            return;
-        }
-
-        $user = $this->getUser();
-
-        if ($user instanceof User && $user->validatePassword($this->password)) {
-            return;
-        }
-
-        $this->addError($attribute, Yii::t('app', 'auth.error.invalid_credentials'));
-    }
-
-    public function getUser(): ?User
-    {
-        if ($this->_user === false) {
-            $this->_user = User::findByUsername($this->username);
-        }
-
-        return $this->_user;
     }
 }

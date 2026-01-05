@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\controllers;
 
 use app\application\ports\AuthServiceInterface;
-use app\presentation\auth\handlers\LoginHandler;
+use app\presentation\auth\handlers\AuthViewDataFactory;
 use app\presentation\books\handlers\BookSearchHandler;
 use app\presentation\common\dto\CatalogPaginationRequest;
 use Yii;
@@ -22,7 +22,7 @@ final class SiteController extends Controller
         $module,
         private readonly AuthServiceInterface $authService,
         private readonly BookSearchHandler $bookSearchHandler,
-        private readonly LoginHandler $loginHandler,
+        private readonly AuthViewDataFactory $authViewDataFactory,
         $config = [],
     ) {
         parent::__construct($id, $module, $config);
@@ -77,20 +77,28 @@ final class SiteController extends Controller
             return $this->goHome();
         }
 
+        $form = $this->authViewDataFactory->createLoginForm();
+
         if (!$this->request->isPost) {
-            $viewData = $this->loginHandler->prepareLoginViewData();
-            return $this->render('login', $viewData);
+            return $this->render('login', ['model' => $form]);
         }
 
         /** @var array<string, mixed> $postData */
         $postData = (array) $this->request->post();
-        $result = $this->loginHandler->processLoginRequest($postData);
 
-        if ($result['success']) {
+        if (!$form->load($postData) || !$form->validate()) {
+            $form->password = '';
+            return $this->render('login', ['model' => $form]);
+        }
+
+        if ($this->authService->login($form->username, $form->password, $form->rememberMe)) {
             return $this->goBack();
         }
 
-        return $this->render('login', $result['viewData']);
+        $form->addError('password', Yii::t('app', 'auth.error.invalid_credentials'));
+        $form->password = '';
+
+        return $this->render('login', ['model' => $form]);
     }
 
     public function actionLogout(): Response
