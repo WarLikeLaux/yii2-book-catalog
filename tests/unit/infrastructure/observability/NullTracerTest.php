@@ -56,4 +56,11 @@ final class NullTracerTest extends Unit
 
         $this->assertTrue(true);
     }
+
+    public function testTraceCallsCallbackAndReturnsResult(): void
+    {
+        $result = $this->tracer->trace('test-trace', static fn () => 'hello');
+
+        $this->assertEquals('hello', $result);
+    }
 }
