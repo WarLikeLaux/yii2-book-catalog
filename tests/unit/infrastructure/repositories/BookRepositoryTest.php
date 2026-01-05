@@ -11,14 +11,14 @@ use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
-use app\infrastructure\persistence\Book;
 use Codeception\Test\Unit;
+use DbCleaner;
+use ReflectionProperty;
 use Yii;
 
 final class BookRepositoryTest extends Unit
 {
     protected \UnitTester $tester;
-
     private BookRepositoryInterface $repository;
 
     protected function _before(): void
@@ -35,8 +35,7 @@ final class BookRepositoryTest extends Unit
 
     private function cleanup(): void
     {
-        Book::deleteAll();
-        Author::deleteAll();
+        DbCleaner::clear(['book_authors', 'books', 'authors']);
     }
 
     public function testCreateAndFindById(): void
@@ -46,7 +45,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Desc',
-            null
+            null,
         );
 
         $this->repository->save($book);
@@ -67,7 +66,7 @@ final class BookRepositoryTest extends Unit
             null,
             [],
             false,
-            1
+            1,
         );
 
         $this->expectException(EntityNotFoundException::class);
@@ -83,7 +82,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $book->replaceAuthors([$authorId]);
 
@@ -101,7 +100,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Description',
-            null
+            null,
         );
         $this->repository->save($book);
 
@@ -124,7 +123,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $this->repository->save($book);
 
@@ -147,7 +146,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $this->repository->save($book);
         $bookId = $book->id;
@@ -165,7 +164,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $this->repository->save($book);
 
@@ -184,7 +183,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $this->repository->save($book);
 
@@ -199,7 +198,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2023, new \DateTimeImmutable()),
             new Isbn('978-3-16-148410-0'),
             null,
-            null
+            null,
         );
         $this->assignBookId($book, 99999);
 
@@ -217,7 +216,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2023, new \DateTimeImmutable()),
             new Isbn('978-3-16-148410-0'),
             null,
-            null
+            null,
         );
         $book->replaceAuthors([$author1, $author2]);
         $this->repository->save($book);
@@ -238,7 +237,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn($isbn),
             null,
-            null
+            null,
         );
         $this->repository->save($book1);
 
@@ -247,7 +246,7 @@ final class BookRepositoryTest extends Unit
             new BookYear(2025, new \DateTimeImmutable()),
             new Isbn($isbn),
             null,
-            null
+            null,
         );
 
         $this->expectException(AlreadyExistsException::class);
@@ -257,8 +256,7 @@ final class BookRepositoryTest extends Unit
 
     private function assignBookId(BookEntity $book, int $id): void
     {
-        $method = new \ReflectionMethod(BookEntity::class, 'setId');
-        $method->setAccessible(true);
-        $method->invoke($book, $id);
+        $property = new ReflectionProperty(BookEntity::class, 'id');
+        $property->setValue($book, $id);
     }
 }

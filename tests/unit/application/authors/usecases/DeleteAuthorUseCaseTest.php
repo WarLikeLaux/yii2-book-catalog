@@ -15,7 +15,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class DeleteAuthorUseCaseTest extends Unit
 {
     private AuthorRepositoryInterface&MockObject $authorRepository;
-
     private DeleteAuthorUseCase $useCase;
 
     protected function _before(): void

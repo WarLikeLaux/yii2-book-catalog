@@ -24,7 +24,11 @@ final readonly class DomainIsCleanRule implements Rule
 
     public function processNode(Node $node, Scope $scope): array
     {
-        if ($node instanceof StaticPropertyFetch && ($node->class instanceof Node\Name && $node->class->toString() === 'Yii')) {
+        if (
+            $node instanceof StaticPropertyFetch
+            && $node->class instanceof Node\Name
+            && $node->class->toString() === 'Yii'
+        ) {
             return $this->buildError($scope);
         }
 
@@ -41,6 +45,7 @@ final readonly class DomainIsCleanRule implements Rule
     private function buildError(Scope $scope): array
     {
         $namespace = $scope->getNamespace();
+
         if ($namespace !== null && str_starts_with($namespace, 'app\domain')) {
             return [
                 RuleErrorBuilder::message('Domain layer must be clean. Do not use Yii::$app or other static Yii calls.')

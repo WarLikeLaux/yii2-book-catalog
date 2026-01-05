@@ -16,7 +16,7 @@ final readonly class NotifySingleSubscriberHandler
 
     public function __construct(
         private SmsSenderInterface $sender,
-        private CacheInterface $cache
+        private CacheInterface $cache,
     ) {
     }
 
@@ -27,7 +27,7 @@ final readonly class NotifySingleSubscriberHandler
         $storedToken = $this->cache->getOrSet(
             $idempotencyKey,
             static fn(): string => $token,
-            self::IDEMPOTENCY_TTL
+            self::IDEMPOTENCY_TTL,
         );
 
         if ($storedToken !== $token) {

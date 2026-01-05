@@ -32,7 +32,7 @@ final class RateLimitFilterTest extends Unit
                 allowed: true,
                 current: 30,
                 limit: 60,
-                resetAt: $resetTime
+                resetAt: $resetTime,
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
@@ -53,7 +53,7 @@ final class RateLimitFilterTest extends Unit
                 allowed: false,
                 current: 61,
                 limit: 60,
-                resetAt: $resetTime
+                resetAt: $resetTime,
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
@@ -74,7 +74,7 @@ final class RateLimitFilterTest extends Unit
                 allowed: true,
                 current: 25,
                 limit: 100,
-                resetAt: $resetTime
+                resetAt: $resetTime,
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
@@ -95,7 +95,7 @@ final class RateLimitFilterTest extends Unit
                 allowed: false,
                 current: 101,
                 limit: 100,
-                resetAt: $resetTime
+                resetAt: $resetTime,
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
@@ -116,7 +116,7 @@ final class RateLimitFilterTest extends Unit
                 allowed: false,
                 current: 101,
                 limit: 100,
-                resetAt: $resetTime
+                resetAt: $resetTime,
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
@@ -152,7 +152,7 @@ final class RateLimitFilterTest extends Unit
                 allowed: false,
                 current: 101,
                 limit: 100,
-                resetAt: $resetTime
+                resetAt: $resetTime,
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';

@@ -10,7 +10,7 @@ use yii\mutex\Mutex;
 final readonly class YiiMutexAdapter implements MutexInterface
 {
     public function __construct(
-        private Mutex $mutex
+        private Mutex $mutex,
     ) {
     }
 

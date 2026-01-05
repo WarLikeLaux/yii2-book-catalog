@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** @var app\presentation\books\viewmodels\BookViewModel $book */
+/** @var app\application\books\queries\BookReadDto $book */
 /** @var app\presentation\books\forms\BookForm $model */
 /** @var array<int, string> $authors */
 

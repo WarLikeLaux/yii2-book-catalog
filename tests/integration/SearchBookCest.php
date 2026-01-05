@@ -10,11 +10,11 @@ use IntegrationTester;
 
 class SearchBookCest
 {
-    public function _before(IntegrationTester $I): void
+    public function _before(IntegrationTester $_I): void
     {
     }
 
-    public function _after(IntegrationTester $I): void
+    public function _after(IntegrationTester $_I): void
     {
         Book::deleteAll();
         Author::deleteAll();
@@ -73,7 +73,7 @@ class SearchBookCest
         IntegrationTester $I,
         string $isbn,
         string $authorName,
-        string $title
+        string $title,
     ): void {
         $I->haveRecord(Author::class, ['fio' => $authorName]);
         $author = $I->grabRecord(Author::class, ['fio' => $authorName]);

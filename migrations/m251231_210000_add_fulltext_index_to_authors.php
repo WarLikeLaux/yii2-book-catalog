@@ -13,7 +13,7 @@ final class m251231_210000_add_fulltext_index_to_authors extends Migration
         match ($this->db->driverName) {
             'mysql' => $this->execute('ALTER TABLE authors ADD FULLTEXT INDEX ' . self::INDEX_NAME . ' (fio)'),
             'pgsql' => $this->execute(
-                'CREATE INDEX ' . self::INDEX_NAME . " ON authors USING gin(to_tsvector('english', coalesce(fio, '')))"
+                'CREATE INDEX ' . self::INDEX_NAME . " ON authors USING gin(to_tsvector('english', coalesce(fio, '')))",
             ),
             default => null,
         };

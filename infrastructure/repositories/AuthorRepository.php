@@ -15,22 +15,21 @@ use yii\db\IntegrityException;
 final readonly class AuthorRepository implements AuthorRepositoryInterface
 {
     use DatabaseExceptionHandlerTrait;
+    use IdentityAssignmentTrait;
 
     public function save(AuthorEntity $author): void
     {
         if ($author->id === null) {
-            $ar = Author::create($author->fio);
+            $ar = new Author();
         } else {
             $ar = Author::findOne($author->id);
+
             if ($ar === null) {
                 throw new EntityNotFoundException('author.error.not_found');
             }
-            $ar->edit($author->fio);
         }
 
-        if ($this->existsByFio($author->fio, $author->id)) {
-            throw new AlreadyExistsException('author.error.fio_exists', 409);
-        }
+        $ar->fio = $author->fio;
 
         $this->persistAuthor($ar);
 
@@ -38,25 +37,27 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             return;
         }
 
-        $author->setId($ar->id);
+        $this->assignId($author, $ar->id);
     }
 
     public function get(int $id): AuthorEntity
     {
         $ar = Author::findOne($id);
+
         if ($ar === null) {
             throw new EntityNotFoundException('author.error.not_found');
         }
 
         return new AuthorEntity(
             $ar->id,
-            $ar->fio
+            $ar->fio,
         );
     }
 
     public function delete(AuthorEntity $author): void
     {
         $ar = Author::findOne($author->id);
+
         if ($ar === null) {
             throw new EntityNotFoundException('author.error.not_found');
         }
@@ -77,11 +78,11 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         return $query->exists();
     }
 
-    /** @codeCoverageIgnore Защитный код (недостижим из-за валидации домена) */
+    /** @codeCoverageIgnore */
     private function persistAuthor(Author $ar): void
     {
         try {
-            if (!$ar->save()) {
+            if (!$ar->save(false)) {
                 $errors = $ar->getFirstErrors();
                 $message = $errors !== [] ? array_shift($errors) : 'author.error.save_failed';
                 throw new RuntimeException($message);
@@ -90,6 +91,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             if ($this->isDuplicateError($e)) {
                 throw new AlreadyExistsException('author.error.fio_exists', 409, $e);
             }
+
             throw $e;
         }
     }

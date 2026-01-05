@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\PublishBookCommand;
+use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookPublishedEvent;
 use app\domain\services\BookPublicationPolicy;
@@ -17,7 +17,7 @@ final readonly class PublishBookUseCase
     public function __construct(
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
-        private EventPublisherInterface $eventPublisher,
+        private TransactionalEventPublisher $eventPublisher,
         private BookPublicationPolicy $publicationPolicy,
     ) {
     }
@@ -33,14 +33,9 @@ final readonly class PublishBookUseCase
 
             $this->bookRepository->save($book);
 
-            $title = $book->title;
-            $year = $book->year->value;
-
-            $this->transaction->afterCommit(function () use ($command, $title, $year): void {
-                $this->eventPublisher->publishEvent(
-                    new BookPublishedEvent($command->bookId, $title, $year)
-                );
-            });
+            $this->eventPublisher->publishAfterCommit(
+                new BookPublishedEvent($command->bookId, $book->title, $book->year->value),
+            );
 
             $this->transaction->commit();
         } catch (Throwable $e) {

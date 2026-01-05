@@ -10,9 +10,7 @@ use yii\base\Model;
 final class AuthorSearchForm extends Model
 {
     public string $q = '';
-
     public int $page = 1;
-
     public int $pageSize = 20;
 
     #[\Override]

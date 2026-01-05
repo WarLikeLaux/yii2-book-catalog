@@ -18,6 +18,6 @@ interface BookQueryServiceInterface
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
-        int $pageSize
+        int $pageSize,
     ): PagedResultInterface;
 }

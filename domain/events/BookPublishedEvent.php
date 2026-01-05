@@ -11,7 +11,7 @@ final readonly class BookPublishedEvent implements QueueableEvent
     public function __construct(
         public int $bookId,
         public string $title,
-        public int $year
+        public int $year,
     ) {
     }
 

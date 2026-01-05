@@ -11,7 +11,7 @@ readonly class ReportDto
      */
     public function __construct(
         public array $topAuthors,
-        public int $year
+        public int $year,
     ) {
     }
 }

@@ -12,7 +12,7 @@ final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositor
 {
     public function __construct(
         private AuthorRepositoryInterface $repository,
-        private TracerInterface $tracer
+        private TracerInterface $tracer,
     ) {
     }
 
@@ -39,7 +39,7 @@ final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositor
     {
         return $this->tracer->trace(
             'AuthorRepo::' . __FUNCTION__,
-            fn(): bool => $this->repository->existsByFio($fio, $excludeId)
+            fn(): bool => $this->repository->existsByFio($fio, $excludeId),
         );
     }
 }

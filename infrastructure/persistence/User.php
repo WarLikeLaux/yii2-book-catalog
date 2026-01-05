@@ -9,16 +9,6 @@ use yii\web\IdentityInterface;
 
 final class User extends BaseObject implements IdentityInterface
 {
-    public string $id;
-
-    public string $username;
-
-    public string $password;
-
-    public string $authKey;
-
-    public string $accessToken;
-
     /** @var array<int|string, array<string, string>> */
     private static $_users = [
         '100' => [
@@ -36,7 +26,11 @@ final class User extends BaseObject implements IdentityInterface
             'accessToken' => '101-token',
         ],
     ];
-
+    public string $id;
+    public string $username;
+    public string $password;
+    public string $authKey;
+    public string $accessToken;
 
     /**
      * {@inheritdoc}
@@ -49,7 +43,7 @@ final class User extends BaseObject implements IdentityInterface
     /**
      * {@inheritdoc}
      */
-    public static function findIdentityByAccessToken($token, $type = null)
+    public static function findIdentityByAccessToken($token, $_type = null)
     {
         foreach (self::$_users as $user) {
             if ($user['accessToken'] === $token) {

@@ -11,49 +11,56 @@ use app\infrastructure\queue\NotifySingleSubscriberJob;
 use app\infrastructure\queue\NotifySubscribersJob;
 use Codeception\Test\Unit;
 use InvalidArgumentException;
+use yii\di\Container;
 use yii\queue\Queue;
 
 final class JobHandlerRegistryTest extends Unit
 {
     public function testHandleDispatchesNotifySubscribersJob(): void
     {
-        $notifySubscribersHandler = $this->createMock(NotifySubscribersHandler::class);
-        $notifySingleSubscriberHandler = $this->createMock(NotifySingleSubscriberHandler::class);
+        $handler = $this->createMock(NotifySubscribersHandler::class);
+        $container = $this->createMock(Container::class);
         $queue = $this->createMock(Queue::class);
+        $job = new NotifySubscribersJob(10, 'Title');
 
-        $notifySubscribersHandler->expects($this->once())
+        $container->expects($this->once())
+            ->method('get')
+            ->with(NotifySubscribersHandler::class)
+            ->willReturn($handler);
+
+        $handler->expects($this->once())
             ->method('handle')
             ->with(10, 'Title', $queue);
-        $notifySingleSubscriberHandler->expects($this->never())
-            ->method('handle');
 
-        $registry = new JobHandlerRegistry($notifySubscribersHandler, $notifySingleSubscriberHandler);
-        $registry->handle(new NotifySubscribersJob(10, 'Title'), $queue);
+        $registry = new JobHandlerRegistry($container);
+        $registry->handle($job, $queue);
     }
 
     public function testHandleDispatchesNotifySingleSubscriberJob(): void
     {
-        $notifySubscribersHandler = $this->createMock(NotifySubscribersHandler::class);
-        $notifySingleSubscriberHandler = $this->createMock(NotifySingleSubscriberHandler::class);
+        $handler = $this->createMock(NotifySingleSubscriberHandler::class);
+        $container = $this->createMock(Container::class);
         $queue = $this->createMock(Queue::class);
+        $job = new NotifySingleSubscriberJob('+7900', 'Message', 5);
 
-        $notifySubscribersHandler->expects($this->never())
-            ->method('handle');
-        $notifySingleSubscriberHandler->expects($this->once())
+        $container->expects($this->once())
+            ->method('get')
+            ->with(NotifySingleSubscriberHandler::class)
+            ->willReturn($handler);
+
+        $handler->expects($this->once())
             ->method('handle')
             ->with('+7900', 'Message', 5);
 
-        $registry = new JobHandlerRegistry($notifySubscribersHandler, $notifySingleSubscriberHandler);
-        $registry->handle(new NotifySingleSubscriberJob('+7900', 'Message', 5), $queue);
+        $registry = new JobHandlerRegistry($container);
+        $registry->handle($job, $queue);
     }
 
     public function testHandleThrowsOnUnsupportedJob(): void
     {
-        $notifySubscribersHandler = $this->createMock(NotifySubscribersHandler::class);
-        $notifySingleSubscriberHandler = $this->createMock(NotifySingleSubscriberHandler::class);
+        $container = $this->createMock(Container::class);
         $queue = $this->createMock(Queue::class);
-
-        $registry = new JobHandlerRegistry($notifySubscribersHandler, $notifySingleSubscriberHandler);
+        $registry = new JobHandlerRegistry($container);
 
         $this->expectException(InvalidArgumentException::class);
         $registry->handle(new \stdClass(), $queue);

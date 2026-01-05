@@ -13,7 +13,7 @@ use Throwable;
 final readonly class CreateAuthorUseCase
 {
     public function __construct(
-        private AuthorRepositoryInterface $authorRepository
+        private AuthorRepositoryInterface $authorRepository,
     ) {
     }
 
@@ -24,8 +24,8 @@ final readonly class CreateAuthorUseCase
             $this->authorRepository->save($author);
 
             return (int)$author->id;
-        } catch (Throwable) {
-            throw new DomainException('author.error.create_failed');
+        } catch (Throwable $e) {
+            throw new DomainException('author.error.create_failed', 0, $e);
         }
     }
 }

@@ -5,17 +5,15 @@ declare(strict_types=1);
 namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
-use app\application\books\factories\BookYearFactory;
 use app\application\books\usecases\UpdateBookUseCase;
+use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookUpdatedEvent;
-use app\domain\exceptions\EntityNotFoundException;
-use app\domain\values\BookYear;
+use app\domain\exceptions\StaleDataException;
 use app\domain\values\Isbn;
-use app\domain\values\StoredFileReference;
+use BookTestHelper;
 use Codeception\Test\Unit;
 use DateTimeImmutable;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -24,30 +22,24 @@ use Psr\Clock\ClockInterface;
 final class UpdateBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-
     private TransactionInterface&MockObject $transaction;
-
-    private EventPublisherInterface&MockObject $eventPublisher;
-
-    private BookYearFactory $bookYearFactory;
-
+    private TransactionalEventPublisher&MockObject $eventPublisher;
+    private ClockInterface&MockObject $clock;
     private UpdateBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
-        $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
-
-        $clock = $this->createMock(ClockInterface::class);
-        $clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
-        $this->bookYearFactory = new BookYearFactory($clock);
+        $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
+        $this->clock = $this->createMock(ClockInterface::class);
+        $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
         $this->useCase = new UpdateBookUseCase(
             $this->bookRepository,
             $this->transaction,
             $this->eventPublisher,
-            $this->bookYearFactory
+            $this->clock,
         );
     }
 
@@ -61,52 +53,37 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: [1, 2],
             version: 1,
-            cover: '/uploads/new-cover.jpg'
+            cover: '/uploads/new-cover.jpg',
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Old Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Old description',
-            coverImage: new StoredFileReference('/uploads/old-cover.jpg'),
+            coverImage: '/uploads/old-cover.jpg',
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
-        $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())
-            ->method('afterCommit')
-            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
-                $afterCommitCallback = $callback;
-            });
-        $this->transaction->expects($this->once())
-            ->method('commit')
-            ->willReturnCallback(function () use (&$afterCommitCallback): void {
-                if ($afterCommitCallback === null) {
-                    return;
-                }
-
-                $afterCommitCallback();
-            });
+        $this->transaction->expects($this->once())->method('commit');
         $this->transaction->expects($this->never())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->title === 'Updated Title'
+            ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
                     && $book->authorIds === [1, 2]));
 
         $this->eventPublisher->expects($this->once())
-            ->method('publishEvent')
-            ->with($this->callback(fn (BookUpdatedEvent $event) => $event->bookId === 42
+            ->method('publishAfterCommit')
+            ->with($this->callback(static fn (BookUpdatedEvent $event): bool => $event->bookId === 42
                 && $event->oldYear === 2020
                 && $event->newYear === 2024
                 && $event->isPublished === false));
@@ -114,7 +91,7 @@ final class UpdateBookUseCaseTest extends Unit
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsExceptionWhenBookNotFound(): void
+    public function testExecuteThrowsStaleDataExceptionWhenVersionMismatchOrNotFound(): void
     {
         $command = new UpdateBookCommand(
             id: 999,
@@ -122,19 +99,18 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [],
-            version: 1
+            authorIds: [1],
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(999)
-            ->willThrowException(new EntityNotFoundException('book.error.not_found'));
+            ->method('getByIdAndVersion')
+            ->with(999, 1)
+            ->willThrowException(new StaleDataException());
 
         $this->transaction->expects($this->never())->method('begin');
 
-        $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage('book.error.not_found');
+        $this->expectException(StaleDataException::class);
 
         $this->useCase->execute($command);
     }
@@ -147,24 +123,23 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [],
-            version: 1
+            authorIds: [1],
+            version: 1,
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Old Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Description',
-            coverImage: null,
-            authorIds: [],
+            authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
         $this->transaction->expects($this->once())->method('begin');
@@ -190,46 +165,30 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: [1],
             version: 1,
-            cover: null
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Old Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Old description',
-            coverImage: new StoredFileReference('/uploads/old-cover.jpg'),
+            coverImage: '/uploads/old-cover.jpg',
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
-        $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())
-            ->method('afterCommit')
-            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
-                $afterCommitCallback = $callback;
-            });
-        $this->transaction->expects($this->once())
-            ->method('commit')
-            ->willReturnCallback(function () use (&$afterCommitCallback): void {
-                if ($afterCommitCallback === null) {
-                    return;
-                }
-
-                $afterCommitCallback();
-            });
+        $this->transaction->expects($this->once())->method('commit');
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->title === 'Updated Title'
+            ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
                     && $book->coverImage?->getPath() === '/uploads/old-cover.jpg'));
 
         $this->useCase->execute($command);
@@ -245,46 +204,29 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '979-10-90636-07-1',
             authorIds: [1],
             version: 1,
-            cover: null
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Description',
-            coverImage: null,
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
-        $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())
-            ->method('afterCommit')
-            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
-                $afterCommitCallback = $callback;
-            });
-        $this->transaction->expects($this->once())
-            ->method('commit')
-            ->willReturnCallback(function () use (&$afterCommitCallback): void {
-                if ($afterCommitCallback === null) {
-                    return;
-                }
-
-                $afterCommitCallback();
-            });
+        $this->transaction->expects($this->once())->method('commit');
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->isbn->equals(new Isbn('979-10-90636-07-1'))));
+            ->with($this->callback(static fn (Book $book): bool => $book->isbn->equals(new Isbn('979-10-90636-07-1'))));
 
         $this->useCase->execute($command);
     }
@@ -299,46 +241,30 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: [1],
             version: 1,
-            cover: '/uploads/new-cover.png'
+            cover: '/uploads/new-cover.png',
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Description',
-            coverImage: null,
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
-        $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())
-            ->method('afterCommit')
-            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
-                $afterCommitCallback = $callback;
-            });
-        $this->transaction->expects($this->once())
-            ->method('commit')
-            ->willReturnCallback(function () use (&$afterCommitCallback): void {
-                if ($afterCommitCallback === null) {
-                    return;
-                }
-
-                $afterCommitCallback();
-            });
+        $this->transaction->expects($this->once())->method('commit');
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->coverImage?->getPath() === '/uploads/new-cover.png'));
+            ->with($this->callback(static fn (Book $book): bool => $book->coverImage?->getPath() === '/uploads/new-cover.png'));
 
         $this->useCase->execute($command);
     }
@@ -353,46 +279,29 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: [1],
             version: 1,
-            cover: null
         );
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Title',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
+            year: 2020,
             description: 'Old description',
-            coverImage: null,
             authorIds: [1],
             published: false,
-            version: 1
+            version: 1,
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('get')
-            ->with(42)
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
             ->willReturn($existingBook);
 
-        $afterCommitCallback = null;
         $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())
-            ->method('afterCommit')
-            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
-                $afterCommitCallback = $callback;
-            });
-        $this->transaction->expects($this->once())
-            ->method('commit')
-            ->willReturnCallback(function () use (&$afterCommitCallback): void {
-                if ($afterCommitCallback === null) {
-                    return;
-                }
-
-                $afterCommitCallback();
-            });
+        $this->transaction->expects($this->once())->method('commit');
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->description === 'New description text'));
+            ->with($this->callback(static fn (Book $book): bool => $book->description === 'New description text'));
 
         $this->useCase->execute($command);
     }

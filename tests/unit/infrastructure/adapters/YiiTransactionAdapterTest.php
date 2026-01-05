@@ -13,7 +13,6 @@ use yii\db\Transaction;
 final class YiiTransactionAdapterTest extends Unit
 {
     private Connection&MockObject $db;
-
     private YiiTransactionAdapter $adapter;
 
     protected function _before(): void
@@ -80,7 +79,7 @@ final class YiiTransactionAdapterTest extends Unit
 
         $executed = false;
         $this->adapter->begin();
-        $this->adapter->afterCommit(function () use (&$executed): void {
+        $this->adapter->afterCommit(static function () use (&$executed): void {
             $executed = true;
         });
         $this->adapter->commit();
@@ -96,7 +95,7 @@ final class YiiTransactionAdapterTest extends Unit
 
         $executed = false;
         $this->adapter->begin();
-        $this->adapter->afterCommit(function () use (&$executed): void {
+        $this->adapter->afterCommit(static function () use (&$executed): void {
             $executed = true;
         });
         $this->adapter->rollBack();
@@ -112,10 +111,10 @@ final class YiiTransactionAdapterTest extends Unit
 
         $order = [];
         $this->adapter->begin();
-        $this->adapter->afterCommit(function () use (&$order): void {
+        $this->adapter->afterCommit(static function () use (&$order): void {
             $order[] = 'first';
         });
-        $this->adapter->afterCommit(function () use (&$order): void {
+        $this->adapter->afterCommit(static function () use (&$order): void {
             $order[] = 'second';
         });
         $this->adapter->commit();

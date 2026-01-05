@@ -16,7 +16,7 @@ use Throwable;
 final readonly class InspectorSpan implements SpanInterface
 {
     public function __construct(
-        private Transaction|Segment $item
+        private Transaction|Segment $item,
     ) {
     }
 
@@ -24,6 +24,7 @@ final readonly class InspectorSpan implements SpanInterface
     public function setAttribute(string $key, string|int|float|bool $value): self
     {
         $k = strtolower($key);
+
         if (str_contains($k, 'header') || str_contains($k, 'cookie')) {
             return $this;
         }
@@ -48,9 +49,11 @@ final readonly class InspectorSpan implements SpanInterface
 
         if (!$ok) {
             $this->item->setResult('error');
+
             if ($description !== '') {
                 $this->item->addContext('Status', ['description' => $description]);
             }
+
             return $this;
         }
 
@@ -85,7 +88,13 @@ final readonly class InspectorSpan implements SpanInterface
 
         if ($this->item instanceof Segment) {
             $data = $this->item->transaction;
-            if (is_array($data) && isset($data['timestamp']) && is_numeric($data['timestamp']) && $data['timestamp'] < 9999999999) {
+
+            if (
+                is_array($data)
+                && isset($data['timestamp'])
+                && is_numeric($data['timestamp'])
+                && $data['timestamp'] < 9999999999
+            ) {
                 $timestamp = (float)$data['timestamp'];
                 $data['timestamp'] = $timestamp * 1000;
                 $this->item->transaction = $data;

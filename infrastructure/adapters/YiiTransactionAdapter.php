@@ -12,16 +12,14 @@ use yii\db\Transaction;
 final class YiiTransactionAdapter implements TransactionInterface
 {
     private Transaction|null $transaction = null;
-
     private int $nestingLevel = 0;
-
     private bool $isOwner = false;
 
     /** @var array<callable(): void> */
     private array $afterCommitCallbacks = [];
 
     public function __construct(
-        private readonly Connection $db
+        private readonly Connection $db,
     ) {
     }
 
@@ -29,6 +27,7 @@ final class YiiTransactionAdapter implements TransactionInterface
     {
         if ($this->nestingLevel === 0) {
             $existingTransaction = $this->db->getTransaction();
+
             if ($existingTransaction !== null && $existingTransaction->getIsActive()) {
                 $this->transaction = $existingTransaction;
                 $this->isOwner = false;
@@ -57,6 +56,7 @@ final class YiiTransactionAdapter implements TransactionInterface
             if (!$this->transaction instanceof Transaction || !$this->transaction->getIsActive()) {
                 throw new RuntimeException('Transaction not active during commit'); // @codeCoverageIgnore
             }
+
             $this->transaction->commit();
         }
 

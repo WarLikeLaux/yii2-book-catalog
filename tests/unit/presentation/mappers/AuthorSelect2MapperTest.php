@@ -38,7 +38,7 @@ final class AuthorSelect2MapperTest extends Unit
             ],
             page: 1,
             pageSize: 10,
-            total: 2
+            total: 2,
         );
 
         $result = $this->mapper->mapToSelect2($response);
@@ -55,7 +55,7 @@ final class AuthorSelect2MapperTest extends Unit
             items: [new AuthorReadDto(1, 'Author')],
             page: 1,
             pageSize: 10,
-            total: 25
+            total: 25,
         );
 
         $result = $this->mapper->mapToSelect2($response);

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\application\common\dto\PaginationRequest;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
 use app\presentation\books\handlers\BookViewDataFactory;
+use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -22,7 +22,7 @@ final class BookController extends Controller
         $module,
         private readonly BookCommandHandler $commandHandler,
         private readonly BookViewDataFactory $viewDataFactory,
-        $config = []
+        $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }
@@ -53,14 +53,11 @@ final class BookController extends Controller
 
     public function actionIndex(): string
     {
-        $pagination = new PaginationRequest(
-            $this->request->get('page'),
-            $this->request->get('pageSize')
-        );
+        $pagination = CrudPaginationRequest::fromRequest($this->request);
 
         $dataProvider = $this->viewDataFactory->getIndexDataProvider(
             $pagination->page,
-            $pagination->limit
+            $pagination->limit,
         );
 
         return $this->render('index', [
@@ -92,6 +89,7 @@ final class BookController extends Controller
 
             if ($form->validate()) {
                 $bookId = $this->commandHandler->createBook($form);
+
                 if ($bookId !== null) {
                     return $this->redirect(['view', 'id' => $bookId]);
                 }
@@ -121,6 +119,7 @@ final class BookController extends Controller
 
             if ($form->validate()) {
                 $success = $this->commandHandler->updateBook($id, $form);
+
                 if ($success) {
                     return $this->redirect(['view', 'id' => $id]);
                 }

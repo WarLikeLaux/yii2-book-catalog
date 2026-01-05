@@ -10,7 +10,6 @@ use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookViewDataFactory;
 use app\presentation\books\mappers\BookFormMapper;
-use app\presentation\books\viewmodels\BookViewModel;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
 use Codeception\Test\Unit;
@@ -20,15 +19,10 @@ use yii\web\NotFoundHttpException;
 final class BookViewDataFactoryTest extends Unit
 {
     private BookQueryServiceInterface&MockObject $bookQueryService;
-
     private AuthorQueryService&MockObject $authorQueryService;
-
     private BookFormMapper&MockObject $mapper;
-
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
-
     private FileUrlResolver $resolver;
-
     private BookViewDataFactory $factory;
 
     protected function _before(): void
@@ -44,7 +38,7 @@ final class BookViewDataFactoryTest extends Unit
             $this->authorQueryService,
             $this->mapper,
             $this->dataProviderFactory,
-            $this->resolver
+            $this->resolver,
         );
     }
 
@@ -72,7 +66,7 @@ final class BookViewDataFactoryTest extends Unit
             authorNames: [],
             coverUrl: null,
             isPublished: false,
-            version: 1
+            version: 1,
         );
 
         $form = $this->createMock(BookForm::class);
@@ -104,7 +98,7 @@ final class BookViewDataFactoryTest extends Unit
         $this->factory->getBookView(888);
     }
 
-    public function testGetBookViewReturnsViewModel(): void
+    public function testGetBookViewReturnsDtoWithResolvedUrl(): void
     {
         $dto = new BookReadDto(
             id: 2,
@@ -116,7 +110,7 @@ final class BookViewDataFactoryTest extends Unit
             authorNames: ['Robert Martin'],
             coverUrl: 'cover.jpg',
             isPublished: true,
-            version: 1
+            version: 1,
         );
 
         $this->bookQueryService->expects($this->once())
@@ -126,9 +120,10 @@ final class BookViewDataFactoryTest extends Unit
 
         $result = $this->factory->getBookView(2);
 
-        $this->assertInstanceOf(BookViewModel::class, $result);
+        $this->assertInstanceOf(BookReadDto::class, $result);
         $this->assertSame(2, $result->id);
         $this->assertSame('Clean Code', $result->title);
+        $this->assertSame('/uploads/cover.jpg', $result->coverUrl);
     }
 
     public function testGetAuthorsListDelegatesToQueryService(): void

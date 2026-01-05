@@ -35,7 +35,6 @@ final class BookForm extends RepositoryAwareForm
 
     /** @var \yii\web\UploadedFile|string|null */
     public $cover;
-
     public int $version = 1;
 
     #[CodeCoverageIgnore]
@@ -61,6 +60,7 @@ final class BookForm extends RepositoryAwareForm
             [['isbn'], 'validateIsbnUnique'],
             [['authorIds'], 'each', 'rule' => ['integer']],
             [['authorIds'], 'validateAuthorsExist'],
+            [['version'], 'integer', 'min' => 1],
             [
                 ['cover'],
                 'file',
@@ -112,11 +112,14 @@ final class BookForm extends RepositoryAwareForm
         }
 
         $ids = [];
+
         foreach ($value as $rawId) {
             if (!is_int($rawId) && !is_string($rawId)) {
                 continue; // @codeCoverageIgnore
             }
+
             $id = (int)$rawId;
+
             if ($id <= 0) {
                 continue;
             }
@@ -143,13 +146,14 @@ final class BookForm extends RepositoryAwareForm
     public function getAuthorInitValueText(array $authors): array
     {
         $authorIds = $this->normalizeAuthorIds();
+
         if ($authorIds === []) {
             return [];
         }
 
         return array_map(
             static fn(int $authorId): string => $authors[$authorId] ?? (string)$authorId,
-            $authorIds
+            $authorIds,
         );
     }
 
@@ -159,16 +163,20 @@ final class BookForm extends RepositoryAwareForm
     private function normalizeAuthorIds(): array
     {
         $authorIds = $this->authorIds;
+
         if (!is_array($authorIds)) {
             $authorIds = $authorIds === null ? [] : [$authorIds];
         }
 
         $normalized = [];
+
         foreach ($authorIds as $authorId) {
             $id = filter_var($authorId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
             if ($id === false) {
                 continue;
             }
+
             $normalized[] = $id;
         }
 

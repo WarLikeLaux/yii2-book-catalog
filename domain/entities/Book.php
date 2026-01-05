@@ -9,13 +9,10 @@ use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
-use RuntimeException;
 
 final class Book
 {
     private const int MAX_TITLE_LENGTH = 255;
-
-    public private(set) ?int $id = null;
 
     /** @var int[] */
     public private(set) array $authorIds = [];
@@ -24,6 +21,7 @@ final class Book
      * @param int[] $authorIds
      */
     private function __construct(
+        public private(set) ?int $id,
         public private(set) string $title,
         public private(set) BookYear $year,
         public private(set) Isbn $isbn,
@@ -31,23 +29,10 @@ final class Book
         public private(set) ?StoredFileReference $coverImage,
         array $authorIds,
         public private(set) bool $published,
-        public private(set) int $version
+        public private(set) int $version,
     ) {
         $this->validateTitle($title);
         $this->authorIds = array_map(intval(...), $authorIds);
-    }
-
-    private function validateTitle(string $title): void
-    {
-        $trimmed = trim($title);
-
-        if ($trimmed === '') {
-            throw new DomainException('book.error.title_empty');
-        }
-
-        if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
-            throw new DomainException('book.error.title_too_long');
-        }
     }
 
     public static function create(
@@ -55,9 +40,10 @@ final class Book
         BookYear $year,
         Isbn $isbn,
         ?string $description,
-        ?StoredFileReference $coverImage
+        ?StoredFileReference $coverImage,
     ): self {
         return new self(
+            id: null,
             title: $title,
             year: $year,
             isbn: $isbn,
@@ -65,7 +51,7 @@ final class Book
             coverImage: $coverImage,
             authorIds: [],
             published: false,
-            version: 1
+            version: 1,
         );
     }
 
@@ -81,9 +67,10 @@ final class Book
         ?StoredFileReference $coverImage,
         array $authorIds,
         bool $published,
-        int $version
+        int $version,
     ): self {
-        $book = new self(
+        return new self(
+            id: $id,
             title: $title,
             year: $year,
             isbn: $isbn,
@@ -91,10 +78,21 @@ final class Book
             coverImage: $coverImage,
             authorIds: $authorIds,
             published: $published,
-            version: $version
+            version: $version,
         );
+    }
 
-        return $book->withId($id);
+    private function validateTitle(string $title): void
+    {
+        $trimmed = trim($title);
+
+        if ($trimmed === '') {
+            throw new DomainException('book.error.title_empty');
+        }
+
+        if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
+            throw new DomainException('book.error.title_too_long');
+        }
     }
 
     public function rename(string $title): void
@@ -147,6 +145,7 @@ final class Book
     public function removeAuthor(int $authorId): void
     {
         $key = array_search($authorId, $this->authorIds, true);
+
         if ($key === false) {
             return;
         }
@@ -166,23 +165,10 @@ final class Book
     public function replaceAuthors(array $authorIds): void
     {
         $this->authorIds = [];
+
         foreach ($authorIds as $authorId) {
             $this->addAuthor($authorId);
         }
-    }
-
-    private function setId(int $id): void
-    {
-        if ($this->id !== null && $this->id !== $id) {
-            throw new RuntimeException('Cannot overwrite ID');
-        }
-        $this->id = $id;
-    }
-
-    private function withId(int $id): self
-    {
-        $this->setId($id);
-        return $this;
     }
 
     /**

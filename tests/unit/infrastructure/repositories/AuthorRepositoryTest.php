@@ -8,8 +8,8 @@ use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author as AuthorEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
-use app\infrastructure\persistence\Author;
 use Codeception\Test\Unit;
+use DbCleaner;
 use Yii;
 
 final class AuthorRepositoryTest extends Unit
@@ -20,7 +20,17 @@ final class AuthorRepositoryTest extends Unit
     {
         Yii::$app->language = 'en-US';
         $this->repository = Yii::$container->get(AuthorRepositoryInterface::class);
-        Author::deleteAll();
+        $this->cleanup();
+    }
+
+    protected function _after(): void
+    {
+        $this->cleanup();
+    }
+
+    private function cleanup(): void
+    {
+        DbCleaner::clear(['authors']);
     }
 
     public function testSaveAndGet(): void

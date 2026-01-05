@@ -16,7 +16,7 @@ final class DocsController extends Controller
         $module,
         private readonly AutoDocService $autoDocService,
         private readonly ProjectMapPrinter $mapPrinter,
-        array $config = []
+        array $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }

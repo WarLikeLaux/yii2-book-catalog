@@ -22,6 +22,7 @@ final readonly class AutoDocService
         foreach ($schema->getTableSchemas() as $tableSchema) {
             $tables[$tableSchema->name] = $this->mapTable($tableSchema);
         }
+
         ksort($tables);
 
         $this->saveYaml('db.yaml', [
@@ -64,17 +65,20 @@ final readonly class AutoDocService
 
         foreach ($files as $file) {
             $content = file_get_contents($file);
+
             if ($content === false) {
                 continue;
             }
 
             $model = $this->parseModelFile($content);
+
             if ($model === null) {
                 continue;
             }
 
             $models[$model['name']] = $model;
         }
+
         ksort($models);
 
         $this->saveYaml('models.yaml', [
@@ -94,6 +98,7 @@ final readonly class AutoDocService
 
         foreach ($files as $file) {
             $content = (string)file_get_contents($file);
+
             if (!preg_match('/class\s+(\w+)\b/', $content, $matches)) {
                 continue;
             }
@@ -105,6 +110,7 @@ final readonly class AutoDocService
                 'module' => basename(dirname($file, 2)),
             ];
         }
+
         ksort($useCases);
 
         $this->saveYaml('usecases.yaml', [
@@ -124,6 +130,7 @@ final readonly class AutoDocService
 
         foreach ($files as $file) {
             $content = (string)file_get_contents($file);
+
             if (!preg_match('/class\s+(\w+)\b/', $content, $matches)) {
                 continue;
             }
@@ -135,6 +142,7 @@ final readonly class AutoDocService
                 'payload' => $this->extractPublicProps($content),
             ];
         }
+
         ksort($events);
 
         $this->saveYaml('events.yaml', [
@@ -149,6 +157,7 @@ final readonly class AutoDocService
     private function mapTable(TableSchema $tableSchema): array
     {
         $columns = [];
+
         foreach ($tableSchema->columns as $column) {
             $columns[] = [
                 'name' => $column->name,
@@ -159,15 +168,19 @@ final readonly class AutoDocService
         }
 
         $foreignKeys = [];
+
         foreach ($tableSchema->foreignKeys as $foreignKey) {
             $referenceTable = $foreignKey[0] ?? null;
+
             if ($referenceTable === null) {
                 continue;
             }
+
             foreach ($foreignKey as $localColumn => $refColumn) {
                 if (is_int($localColumn)) {
                     continue;
                 }
+
                 $foreignKeys[] = [
                     'column' => $localColumn,
                     'references' => $referenceTable . '.' . $refColumn,
@@ -185,6 +198,7 @@ final readonly class AutoDocService
     private function parseControllerRoutes(string $file): array
     {
         $content = (string)file_get_contents($file);
+
         if (!preg_match('/class\s+(\w+)Controller\b/', $content, $matches)) {
             return [];
         }
@@ -195,11 +209,14 @@ final readonly class AutoDocService
         $behaviors = $this->extractBehaviorsFromCode($content);
 
         $routes = [];
+
         foreach ($actionBodies as $actionName => $body) {
             $entry = $this->buildRouteEntry($controllerName, $actionName, $verbMap, $body);
+
             if ($behaviors !== []) {
                 $entry['guards'] = $behaviors;
             }
+
             $routes[] = $entry;
         }
 
@@ -209,16 +226,19 @@ final readonly class AutoDocService
     private function extractVerbMap(string $content): array
     {
         $actions = [];
+
         if (!preg_match("/'actions'\s*=>\s*\[(.*?)]/s", $content, $matches)) {
             return $actions;
         }
 
         $block = $matches[1];
         preg_match_all("/'([a-zA-Z0-9_-]+)'\s*=>\s*\[(.*?)]/s", $block, $actionMatches, PREG_SET_ORDER);
+
         foreach ($actionMatches as $match) {
             $action = $match[1];
             preg_match_all("/'([a-zA-Z]+)'/", $match[2], $methodMatches);
             $methods = array_map('strtoupper', $methodMatches[1] ?? []);
+
             if ($methods === []) {
                 continue;
             }
@@ -233,12 +253,14 @@ final readonly class AutoDocService
     {
         preg_match_all('/function\s+action([A-Z]\w*)\s*\(/', $content, $matches, PREG_OFFSET_CAPTURE);
         $positions = $matches[1] ?? [];
+
         if ($positions === []) {
             return [];
         }
 
         $result = [];
         $count = count($positions);
+
         for ($i = 0; $i < $count; $i++) {
             $actionName = $positions[$i][0];
             $start = $positions[$i][1];
@@ -266,6 +288,7 @@ final readonly class AutoDocService
 
         if (preg_match("/render\('\s*([a-z0-9_-]+)\s*'\)/i", $body, $m)) {
             $viewFile = 'presentation/views/' . $controllerId . '/' . $m[1] . '.php';
+
             if (file_exists(Yii::getAlias('@app/' . $viewFile))) {
                 $entry['view'] = $viewFile;
             }
@@ -277,15 +300,19 @@ final readonly class AutoDocService
     private function extractBehaviorsFromCode(string $content): array
     {
         $found = [];
+
         if (str_contains($content, 'IdempotencyFilter::class')) {
             $found[] = 'Idempotency';
         }
+
         if (str_contains($content, 'AccessControl::class')) {
             $found[] = 'Auth';
         }
+
         if (str_contains($content, 'HttpCache::class')) {
             $found[] = 'Cache';
         }
+
         return $found;
     }
 
@@ -319,14 +346,17 @@ final readonly class AutoDocService
         $summary = [];
 
         preg_match_all("/\[\s*\[\s*(.*?)\s*\]\s*,\s*'(\w+)'/", $rulesBlock, $ruleMatches, PREG_SET_ORDER);
+
         foreach ($ruleMatches as $m) {
             $fields = str_replace(["'", ' ', '"', '[', ']'], '', $m[1]);
             $summary[] = sprintf('%s (%s)', $fields, $m[2]);
         }
 
         preg_match_all("/\[\s*'(\w+)'\s*,\s*'(\w+)'/", $rulesBlock, $simpleMatches, PREG_SET_ORDER);
+
         foreach ($simpleMatches as $m) {
             $entry = sprintf('%s (%s)', $m[1], $m[2]);
+
             if (in_array($entry, $summary, true)) {
                 continue;
             }
@@ -341,9 +371,11 @@ final readonly class AutoDocService
     {
         $relations = [];
         preg_match_all('/function\s+(get\w+)\s*\(\)\s*:\s*ActiveQuery\s*\{(.*?)\}/s', $content, $matches, PREG_SET_ORDER);
+
         foreach ($matches as $match) {
             $method = $match[1];
             $body = $match[2];
+
             if (!preg_match('/has(One|Many)\s*\(\s*(\w+)::class/', $body, $m)) {
                 continue;
             }
@@ -358,6 +390,7 @@ final readonly class AutoDocService
                 'via' => $via,
             ];
         }
+
         return $relations;
     }
 
@@ -375,6 +408,7 @@ final readonly class AutoDocService
     private function saveYaml(string $filename, array $data): void
     {
         $path = Yii::getAlias(self::DOCS_PATH . '/' . $filename);
+
         if (!is_string($path)) {
             return;
         }

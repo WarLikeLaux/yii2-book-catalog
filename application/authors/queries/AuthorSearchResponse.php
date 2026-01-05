@@ -11,7 +11,7 @@ readonly class AuthorSearchResponse
         public array $items,
         public int $total,
         public int $page,
-        public int $pageSize
+        public int $pageSize,
     ) {
     }
 }

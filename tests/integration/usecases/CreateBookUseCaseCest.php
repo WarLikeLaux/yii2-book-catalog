@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
+use app\domain\exceptions\AlreadyExistsException;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use yii\db\Query;
@@ -11,7 +12,7 @@ use yii\queue\db\Queue;
 
 final class CreateBookUseCaseCest
 {
-    public function _before(IntegrationTester $I): void
+    public function _before(IntegrationTester $_I): void
     {
         DbCleaner::clear(['book_authors', 'books', 'authors', 'queue']);
     }
@@ -27,7 +28,7 @@ final class CreateBookUseCaseCest
             isbn: '9783161484100',
             description: 'Test description',
             authorIds: [$author1Id, $author2Id],
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
@@ -56,7 +57,7 @@ final class CreateBookUseCaseCest
             isbn: '9780306406157',
             description: 'Test',
             authorIds: [$authorId],
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
@@ -92,12 +93,12 @@ final class CreateBookUseCaseCest
             isbn: '9783161484100',
             description: 'Should fail',
             authorIds: [$authorId],
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
 
-        $I->expectThrowable(RuntimeException::class, function () use ($useCase, $command): void {
+        $I->expectThrowable(AlreadyExistsException::class, static function () use ($useCase, $command): void {
             $useCase->execute($command);
         });
     }
@@ -114,7 +115,7 @@ final class CreateBookUseCaseCest
             isbn: '9780306406157',
             description: 'Test',
             authorIds: [99999],
-            cover: null
+            cover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);

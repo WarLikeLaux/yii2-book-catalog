@@ -72,7 +72,7 @@ final class PagedResultDataProviderTest extends Unit
             page: 2,
             pageSize: 20,
             totalCount: 100,
-            totalPages: 5
+            totalPages: 5,
         );
 
         $result = $this->createMock(PagedResultInterface::class);

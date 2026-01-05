@@ -14,9 +14,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class ReportQueryServiceTest extends Unit
 {
     private ReportRepositoryInterface&MockObject $repository;
-
     private CacheInterface&MockObject $cache;
-
     private ReportQueryService $service;
 
     protected function _before(): void
@@ -35,7 +33,7 @@ final class ReportQueryServiceTest extends Unit
             ->with(
                 "report:top_authors:{$currentYear}",
                 $this->isType('callable'),
-                3600
+                3600,
             )
             ->willReturn([]);
 
@@ -55,7 +53,7 @@ final class ReportQueryServiceTest extends Unit
             ->with(
                 "report:top_authors:{$year}",
                 $this->isType('callable'),
-                3600
+                3600,
             )
             ->willReturn([]);
 
@@ -96,7 +94,7 @@ final class ReportQueryServiceTest extends Unit
 
         $this->cache->expects($this->once())
             ->method('getOrSet')
-            ->willReturnCallback(function ($key, $callback) use ($expectedData) {
+            ->willReturnCallback(function ($_key, $callback) use ($expectedData) {
                 $this->repository->expects($this->once())
                     ->method('getTopAuthorsByYear')
                     ->with(2022, 10)

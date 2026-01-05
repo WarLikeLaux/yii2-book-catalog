@@ -13,14 +13,16 @@ final class ReportController extends Controller
         $id,
         $module,
         private readonly ReportHandler $reportHandler,
-        $config = []
+        $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }
 
     public function actionIndex(): string
     {
-        $viewData = $this->reportHandler->prepareIndexViewData($this->request);
+        /** @var array<string, mixed> $params */
+        $params = $this->request->get();
+        $viewData = $this->reportHandler->prepareIndexViewData($params);
         return $this->render('index', $viewData);
     }
 }

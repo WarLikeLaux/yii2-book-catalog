@@ -14,18 +14,6 @@ use yii\db\ActiveRecord;
  */
 final class Author extends ActiveRecord
 {
-    public static function create(string $fio): self
-    {
-        $author = new self();
-        $author->fio = $fio;
-        return $author;
-    }
-
-    public function edit(string $fio): void
-    {
-        $this->fio = $fio;
-    }
-
     public static function tableName(): string
     {
         return 'authors';

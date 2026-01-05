@@ -13,6 +13,10 @@ use app\presentation\authors\mappers\AuthorFormMapper;
 use app\presentation\common\services\WebUseCaseRunner;
 use Yii;
 
+/**
+ * NOTE: Прагматичный компромисс: группировка всех команд сущности в одном классе.
+ * @see docs/DECISIONS.md (см. пункт "3. Группировка хендлеров по сущностям")
+ */
 final readonly class AuthorCommandHandler
 {
     public function __construct(
@@ -20,7 +24,7 @@ final readonly class AuthorCommandHandler
         private CreateAuthorUseCase $createAuthorUseCase,
         private UpdateAuthorUseCase $updateAuthorUseCase,
         private DeleteAuthorUseCase $deleteAuthorUseCase,
-        private WebUseCaseRunner $useCaseRunner
+        private WebUseCaseRunner $useCaseRunner,
     ) {
     }
 
@@ -43,7 +47,7 @@ final readonly class AuthorCommandHandler
         return $this->useCaseRunner->execute(
             fn() => $this->updateAuthorUseCase->execute($command),
             Yii::t('app', 'author.success.updated'),
-            ['author_id' => $id]
+            ['author_id' => $id],
         );
     }
 
@@ -54,7 +58,7 @@ final readonly class AuthorCommandHandler
         return $this->useCaseRunner->execute(
             fn() => $this->deleteAuthorUseCase->execute($command),
             Yii::t('app', 'author.success.deleted'),
-            ['author_id' => $id]
+            ['author_id' => $id],
         );
     }
 }

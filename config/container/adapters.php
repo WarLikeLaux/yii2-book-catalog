@@ -29,54 +29,59 @@ use app\infrastructure\listeners\ReportCacheInvalidationListener;
 use app\infrastructure\services\notifications\FlashNotificationService;
 use app\infrastructure\services\observability\InspectorTracer;
 use app\infrastructure\services\observability\NullTracer;
+use app\infrastructure\services\sms\LogSmsSender;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\YiiPsrLogger;
 use yii\di\Container;
 
-return static fn (array $params) => [
+return static fn (array $_params) => [
         'definitions' => [
-            SmsSenderInterface::class => static fn() => new SmsPilotSender(
-                (string)env('SMS_API_KEY', 'MOCK_KEY'),
-                new YiiPsrLogger('sms')
-            ),
+            SmsSenderInterface::class => static function () {
+                $apiKey = (string)env('SMS_API_KEY', 'MOCK_KEY');
+                $logger = new YiiPsrLogger('sms');
+
+                if ($apiKey === 'MOCK_KEY') {
+                    return new LogSmsSender($logger);
+                }
+
+                return new SmsPilotSender($apiKey, $logger);
+            },
 
             AuthServiceInterface::class => YiiAuthAdapter::class,
             NotificationInterface::class => FlashNotificationService::class,
             TranslatorInterface::class => YiiTranslatorAdapter::class,
 
-            MutexInterface::class => static fn() => new YiiMutexAdapter(Yii::$app->get('mutex')),
+            MutexInterface::class => YiiMutexAdapter::class,
 
-            TransactionInterface::class => static fn() => new YiiTransactionAdapter(Yii::$app->get('db')),
-
-            YiiQueueAdapter::class => static fn() => new YiiQueueAdapter(Yii::$app->get('queue')),
+            TransactionInterface::class => YiiTransactionAdapter::class,
 
             QueueInterface::class => static fn(Container $c): QueueInterface => TracingFactory::create(
                 $c,
                 YiiQueueAdapter::class,
-                QueueTracingDecorator::class
+                QueueTracingDecorator::class,
             ),
 
-            CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
+            CacheInterface::class => YiiCacheAdapter::class,
 
             EventToJobMapperInterface::class => EventToJobMapper::class,
 
             EventPublisherInterface::class => static fn(Container $c): EventPublisherInterface => new YiiEventPublisherAdapter(
                 $c->get(QueueInterface::class),
                 $c->get(EventToJobMapperInterface::class),
-                $c->get(ReportCacheInvalidationListener::class)
+                $c->get(ReportCacheInvalidationListener::class),
             ),
 
-            SystemInfoProviderInterface::class => static fn() => new SystemInfoAdapter(Yii::$app->get('db')),
+            SystemInfoProviderInterface::class => SystemInfoAdapter::class,
         ],
         'singletons' => [
-            TracerInterface::class => static function (Container $c): TracerInterface {
+            TracerInterface::class => static function (Container $_c): TracerInterface {
                 if (!env('INSPECTOR_INGESTION_KEY')) {
                     return new NullTracer();
                 }
 
                 return new InspectorTracer(
                     (string)env('INSPECTOR_INGESTION_KEY'),
-                    (string)env('INSPECTOR_URL', 'http://buggregator:8000')
+                    (string)env('INSPECTOR_URL', 'http://buggregator:8000'),
                 );
             },
         ],

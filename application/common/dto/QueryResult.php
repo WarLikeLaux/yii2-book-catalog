@@ -9,15 +9,18 @@ use app\application\ports\PagedResultInterface;
 final readonly class QueryResult implements PagedResultInterface
 {
     /**
-     * @param array<mixed> $models
+     * @param array<int, object> $models
      */
     public function __construct(
         private array $models,
         private int $totalCount,
-        private ?PaginationDto $pagination = null
+        private ?PaginationDto $pagination = null,
     ) {
     }
 
+    /**
+     * @return array<int, object>
+     */
     public function getModels(): array
     {
         return $this->models;

@@ -14,7 +14,7 @@ final class BookSearchCriteriaMapper
         return new BookSearchCriteria(
             globalSearch: $form->globalSearch,
             page: $page,
-            pageSize: $pageSize
+            pageSize: $pageSize,
         );
     }
 

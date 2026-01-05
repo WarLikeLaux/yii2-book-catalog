@@ -15,26 +15,23 @@ use yii\db\Query;
 
 final readonly class SubscriptionRepository implements SubscriptionRepositoryInterface
 {
+    use DatabaseExceptionHandlerTrait;
+    use IdentityAssignmentTrait;
+
     public function __construct(
-        private Connection $db
+        private Connection $db,
     ) {
     }
 
     public function save(SubscriptionEntity $subscription): void
     {
-        $ar = Subscription::create($subscription->phone, $subscription->authorId);
+        $ar = new Subscription();
+        $ar->phone = $subscription->phone;
+        $ar->author_id = $subscription->authorId;
 
-        try {
-            if (!$ar->save()) {
-                $errors = $ar->getFirstErrors();
-                $message = $errors !== [] ? array_shift($errors) : 'subscription.error.save_failed';
-                throw new RuntimeException($message);
-            }
-        } catch (IntegrityException $e) {
-            throw new AlreadyExistsException(previous: $e); // @codeCoverageIgnore
-        }
+        $this->persistSubscription($ar);
 
-        $subscription->setId($ar->id);
+        $this->assignId($subscription, $ar->id);
     }
 
     public function exists(string $phone, int $authorId): bool
@@ -58,6 +55,7 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
 
         /** @var iterable<array<mixed>> $batches */
         $batches = $query->batch($batchSize, $this->db);
+
         foreach ($batches as $batch) {
             /** @var array<string, mixed> $row */
             foreach ($batch as $row) {
@@ -66,6 +64,24 @@ final readonly class SubscriptionRepository implements SubscriptionRepositoryInt
 
                 yield $phone;
             }
+        }
+    }
+
+    /** @codeCoverageIgnore */
+    private function persistSubscription(Subscription $ar): void
+    {
+        try {
+            if (!$ar->save(false)) {
+                $errors = $ar->getFirstErrors();
+                $message = $errors !== [] ? array_shift($errors) : 'subscription.error.save_failed';
+                throw new RuntimeException($message);
+            }
+        } catch (IntegrityException $e) {
+            if ($this->isDuplicateError($e)) {
+                throw new AlreadyExistsException(previous: $e);
+            }
+
+            throw $e;
         }
     }
 }

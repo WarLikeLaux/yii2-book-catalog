@@ -28,6 +28,7 @@ final readonly class DomainEntitiesMustBePureRule implements Rule
         }
 
         $namespace = $scope->getNamespace();
+
         if ($namespace === null || !str_starts_with($namespace, 'app\domain\entities')) {
             return [];
         }
@@ -37,7 +38,7 @@ final readonly class DomainEntitiesMustBePureRule implements Rule
                 RuleErrorBuilder::message(sprintf(
                     'Domain Entity %s must be pure and not extend any class. It currently extends %s.',
                     (string)$node->name,
-                    $node->extends->toString()
+                    $node->extends->toString(),
                 ))
                     ->identifier('architecture.domainEntityPure')
                     ->build(),

@@ -19,6 +19,10 @@ final class NotifySingleSubscriberJob implements JobInterface, RetryableJobInter
     ) {
     }
 
+    /**
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
+     * @param \yii\queue\Queue $queue
+     */
     public function execute($queue): void
     {
         $this->getRegistry($queue)->handle($this, $queue);
@@ -29,7 +33,12 @@ final class NotifySingleSubscriberJob implements JobInterface, RetryableJobInter
         return self::TTR_SECONDS;
     }
 
-    public function canRetry($attempt, $error): bool
+    /**
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
+     * @param int $attempt
+     * @param \Throwable $_error
+     */
+    public function canRetry($attempt, $_error): bool
     {
         return $attempt < 3;
     }

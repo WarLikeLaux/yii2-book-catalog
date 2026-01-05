@@ -15,7 +15,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class ReportCacheInvalidationListenerTest extends Unit
 {
     private CacheInterface&MockObject $cache;
-
     private ReportCacheInvalidationListener $listener;
 
     protected function _before(): void

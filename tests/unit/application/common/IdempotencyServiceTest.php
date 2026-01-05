@@ -15,9 +15,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class IdempotencyServiceTest extends Unit
 {
     private IdempotencyInterface&MockObject $repository;
-
     private MutexInterface&MockObject $mutex;
-
     private IdempotencyService $service;
 
     protected function _before(): void
@@ -202,7 +200,7 @@ final class IdempotencyServiceTest extends Unit
             authorNames: [1 => 'Author One', 2 => 'Author Two'],
             coverUrl: '/covers/test.jpg',
             isPublished: true,
-            version: 1
+            version: 1,
         );
         $ttl = 3600;
 

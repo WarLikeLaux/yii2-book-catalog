@@ -21,7 +21,7 @@ final readonly class UseCaseMustBeFinalRule implements Rule
         return Class_::class;
     }
 
-    public function processNode(Node $node, Scope $scope): array
+    public function processNode(Node $node, Scope $_scope): array
     {
         if ($node->isAbstract() || $node->isAnonymous()) {
             return [];

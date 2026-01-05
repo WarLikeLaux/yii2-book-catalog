@@ -7,10 +7,13 @@ namespace app\domain\specifications;
 final readonly class FullTextSpecification implements BookSpecificationInterface
 {
     public function __construct(
-        private string $query
+        private string $query,
     ) {
     }
 
+    /**
+     * @return array{type: string, value: mixed}
+     */
     public function toSearchCriteria(): array
     {
         return [

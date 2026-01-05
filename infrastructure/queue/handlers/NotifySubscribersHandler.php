@@ -15,7 +15,7 @@ final readonly class NotifySubscribersHandler
     public function __construct(
         private SubscriptionQueryService $queryService,
         private TranslatorInterface $translator,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -28,7 +28,7 @@ final readonly class NotifySubscribersHandler
             $queue->push(new NotifySingleSubscriberJob(
                 $phone,
                 $message,
-                $bookId
+                $bookId,
             ));
             $totalDispatched++;
         }

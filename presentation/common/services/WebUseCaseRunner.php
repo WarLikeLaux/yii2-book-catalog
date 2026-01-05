@@ -15,7 +15,7 @@ final readonly class WebUseCaseRunner
     public function __construct(
         private NotificationInterface $notifier,
         private LoggerInterface $logger,
-        private TranslatorInterface $translator
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -66,7 +66,7 @@ final readonly class WebUseCaseRunner
         callable $action,
         string $successMessage,
         callable $onDomainError,
-        callable|null $onError = null
+        callable|null $onError = null,
     ): mixed {
         try {
             $result = $action();
@@ -76,12 +76,14 @@ final readonly class WebUseCaseRunner
             if ($onError !== null) {
                 $onError();
             }
+
             $onDomainError($e);
             return null;
         } catch (Throwable $e) {
             if ($onError !== null) {
                 $onError();
             }
+
             $this->logger->error($e->getMessage(), ['exception' => $e]);
             $this->notifier->error($this->translator->translate('app', 'error.unexpected'));
             return null;

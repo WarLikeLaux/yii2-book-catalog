@@ -18,7 +18,7 @@ final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
     public function __construct(
         private QueueInterface $queue,
         private EventToJobMapperInterface $jobMapper,
-        EventListenerInterface ...$listeners
+        EventListenerInterface ...$listeners,
     ) {
         $this->listeners = $listeners;
     }

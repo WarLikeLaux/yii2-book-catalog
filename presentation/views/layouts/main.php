@@ -67,7 +67,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             . Html::beginForm(['/site/logout'])
             . Html::submitButton(
                 'Выход (' . Yii::$app->user->identity->username . ')',
-                ['class' => 'nav-link btn btn-link logout']
+                ['class' => 'nav-link btn btn-link logout'],
             )
             . Html::endForm()
             . '</li>';
@@ -82,13 +82,14 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
 
     <main id="main" class="flex-shrink-0" role="main">
         <div class="container">
-            <?php if (!empty($this->params['breadcrumbs'])): ?>
+            <?php $breadcrumbs = $this->params['breadcrumbs'] ?? [] ?>
+            <?php if ($breadcrumbs !== []): ?>
                 <?= Breadcrumbs::widget([
                     'homeLink' => [
                         'label' => 'Каталог',
                         'url' => Yii::$app->homeUrl,
                     ],
-                    'links' => $this->params['breadcrumbs'],
+                    'links' => $breadcrumbs,
                 ]) ?>
             <?php endif ?>
             <?= Alert::widget() ?>

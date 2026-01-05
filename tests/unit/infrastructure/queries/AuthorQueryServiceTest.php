@@ -14,7 +14,6 @@ use Yii;
 final class AuthorQueryServiceTest extends Unit
 {
     private AuthorQueryServiceInterface $queryService;
-
     private AuthorRepositoryInterface $repository;
 
     protected function _before(): void

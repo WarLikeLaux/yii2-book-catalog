@@ -28,9 +28,9 @@ final class RateLimitRepositoryTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'RateLimitRepository::checkLimit',
-                $this->isType('callable')
+                $this->isType('callable'),
             )
-            ->willReturnCallback(fn(string $name, callable $callback): array => $callback());
+            ->willReturnCallback(static fn(string $_name, callable $callback): array => $callback());
 
         $decorated->expects($this->once())
             ->method('checkLimit')

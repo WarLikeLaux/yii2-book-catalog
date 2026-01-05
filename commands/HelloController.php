@@ -2,8 +2,6 @@
 
 /**
  * @link https://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license https://www.yiiframework.com/license/
  */
 
 declare(strict_types=1);
@@ -18,7 +16,6 @@ use yii\console\ExitCode;
  *
  * This command is provided as an example for you to learn how to create console commands.
  *
- * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
  */
 class HelloController extends Controller

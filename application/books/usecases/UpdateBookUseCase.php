@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
-use app\application\books\factories\BookYearFactory;
+use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookUpdatedEvent;
+use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
+use Psr\Clock\ClockInterface;
 use Throwable;
 
 final readonly class UpdateBookUseCase
@@ -19,29 +20,32 @@ final readonly class UpdateBookUseCase
     public function __construct(
         private BookRepositoryInterface $bookRepository,
         private TransactionInterface $transaction,
-        private EventPublisherInterface $eventPublisher,
-        private BookYearFactory $bookYearFactory,
+        private TransactionalEventPublisher $eventPublisher,
+        private ClockInterface $clock,
     ) {
     }
 
     public function execute(UpdateBookCommand $command): void
     {
-        $book = $this->bookRepository->get($command->id);
+        $book = $this->bookRepository->getByIdAndVersion($command->id, $command->version);
         $oldYear = $book->year->value;
         $isPublished = $book->published;
 
         $this->transaction->begin();
+
         try {
             $book->rename($command->title);
-            $book->changeYear($this->bookYearFactory->create($command->year));
+            $book->changeYear(new BookYear($command->year, $this->clock->now()));
             $book->correctIsbn(new Isbn($command->isbn));
             $book->updateDescription($command->description);
 
             if ($command->cover !== null) {
                 $cover = $command->cover;
+
                 if (is_string($cover)) {
                     $cover = new StoredFileReference($cover);
                 }
+
                 $book->updateCover($cover);
             }
 
@@ -49,11 +53,9 @@ final readonly class UpdateBookUseCase
 
             $this->bookRepository->save($book);
 
-            $this->transaction->afterCommit(function () use ($command, $oldYear, $isPublished): void {
-                $this->eventPublisher->publishEvent(
-                    new BookUpdatedEvent($command->id, $oldYear, $command->year, $isPublished)
-                );
-            });
+            $this->eventPublisher->publishAfterCommit(
+                new BookUpdatedEvent($command->id, $oldYear, $command->year, $isPublished),
+            );
 
             $this->transaction->commit();
         } catch (Throwable $e) {

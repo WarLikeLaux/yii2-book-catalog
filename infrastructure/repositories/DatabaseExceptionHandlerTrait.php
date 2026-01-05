@@ -11,8 +11,10 @@ trait DatabaseExceptionHandlerTrait
 {
     private function isDuplicateError(IntegrityException $e): bool
     {
-        $code = $e->errorInfo[1] ?? null;
+        $driverCode = $e->errorInfo[1] ?? null;
+        $sqlState = $e->errorInfo[0] ?? null;
 
-        return DatabaseErrorCode::isDuplicate($code);
+        return DatabaseErrorCode::isDuplicate($driverCode)
+            || DatabaseErrorCode::isDuplicate($sqlState);
     }
 }

@@ -12,7 +12,7 @@ final readonly class BookUpdatedEvent implements DomainEvent
         public int $bookId,
         public int $oldYear,
         public int $newYear,
-        public bool $isPublished
+        public bool $isPublished,
     ) {
     }
 

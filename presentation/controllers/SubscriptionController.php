@@ -20,7 +20,7 @@ final class SubscriptionController extends Controller
         $module,
         private readonly SubscriptionCommandHandler $commandHandler,
         private readonly SubscriptionViewDataFactory $viewDataFactory,
-        $config = []
+        $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }

@@ -13,7 +13,7 @@ use Throwable;
 final readonly class UpdateAuthorUseCase
 {
     public function __construct(
-        private AuthorRepositoryInterface $authorRepository
+        private AuthorRepositoryInterface $authorRepository,
     ) {
     }
 
@@ -26,8 +26,8 @@ final readonly class UpdateAuthorUseCase
             $this->authorRepository->save($author);
         } catch (AlreadyExistsException $e) {
             throw $e;
-        } catch (Throwable) {
-            throw new DomainException('author.error.update_failed');
+        } catch (Throwable $e) {
+            throw new DomainException('author.error.update_failed', 0, $e);
         }
     }
 }

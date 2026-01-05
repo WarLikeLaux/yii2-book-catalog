@@ -11,11 +11,11 @@ use app\domain\entities\Author;
 use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use ReflectionProperty;
 
 final class CreateAuthorUseCaseTest extends Unit
 {
     private AuthorRepositoryInterface&MockObject $authorRepository;
-
     private CreateAuthorUseCase $useCase;
 
     protected function _before(): void
@@ -30,11 +30,14 @@ final class CreateAuthorUseCaseTest extends Unit
 
         $this->authorRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(function (Author $author) {
+            ->with($this->callback(static function (Author $author) {
                 if ($author->fio !== 'Иванов Иван Иванович') {
                     return false;
                 }
-                $author->setId(42);
+
+                $property = new ReflectionProperty(Author::class, 'id');
+                $property->setValue($author, 42);
+
                 return true;
             }));
 
@@ -53,6 +56,7 @@ final class CreateAuthorUseCaseTest extends Unit
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('author.error.create_failed');
+        $this->expectExceptionCode(0);
 
         $this->useCase->execute($command);
     }

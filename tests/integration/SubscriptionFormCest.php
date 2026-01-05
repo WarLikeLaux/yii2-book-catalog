@@ -6,7 +6,7 @@ use app\infrastructure\persistence\Author;
 
 final class SubscriptionFormCest
 {
-    public function _before(IntegrationTester $I): void
+    public function _before(IntegrationTester $_I): void
     {
         DbCleaner::clear(['authors']);
     }

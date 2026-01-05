@@ -7,6 +7,7 @@ namespace app\presentation\controllers;
 use app\application\ports\AuthServiceInterface;
 use app\presentation\auth\handlers\LoginHandler;
 use app\presentation\books\handlers\BookSearchHandler;
+use app\presentation\common\dto\CatalogPaginationRequest;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -22,7 +23,7 @@ final class SiteController extends Controller
         private readonly AuthServiceInterface $authService,
         private readonly BookSearchHandler $bookSearchHandler,
         private readonly LoginHandler $loginHandler,
-        $config = []
+        $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }
@@ -63,7 +64,10 @@ final class SiteController extends Controller
 
     public function actionIndex(): string
     {
-        $viewData = $this->bookSearchHandler->prepareIndexViewData($this->request);
+        $pagination = CatalogPaginationRequest::fromRequest($this->request);
+        /** @var array<string, mixed> $params */
+        $params = (array)$this->request->get();
+        $viewData = $this->bookSearchHandler->prepareIndexViewData($params, $pagination);
         return $this->render('index', $viewData);
     }
 
@@ -78,7 +82,9 @@ final class SiteController extends Controller
             return $this->render('login', $viewData);
         }
 
-        $result = $this->loginHandler->processLoginRequest($this->request);
+        /** @var array<string, mixed> $postData */
+        $postData = (array) $this->request->post();
+        $result = $this->loginHandler->processLoginRequest($postData);
 
         if ($result['success']) {
             return $this->goBack();

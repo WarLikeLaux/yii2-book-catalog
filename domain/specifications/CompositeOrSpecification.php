@@ -10,17 +10,20 @@ final readonly class CompositeOrSpecification implements BookSpecificationInterf
      * @param BookSpecificationInterface[] $specifications
      */
     public function __construct(
-        private array $specifications
+        private array $specifications,
     ) {
     }
 
+    /**
+     * @return array{type: string, value: mixed}
+     */
     public function toSearchCriteria(): array
     {
         return [
             'type' => 'or',
             'value' => array_map(
                 static fn(BookSpecificationInterface $spec): array => $spec->toSearchCriteria(),
-                $this->specifications
+                $this->specifications,
             ),
         ];
     }

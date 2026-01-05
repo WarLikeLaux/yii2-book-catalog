@@ -17,7 +17,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class UpdateAuthorUseCaseTest extends Unit
 {
     private AuthorRepositoryInterface&MockObject $authorRepository;
-
     private UpdateAuthorUseCase $useCase;
 
     protected function _before(): void
@@ -39,7 +38,7 @@ final class UpdateAuthorUseCaseTest extends Unit
 
         $this->authorRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Author $author) => $author->id === 42 && $author->fio === 'Новое ФИО'));
+            ->with($this->callback(static fn (Author $author) => $author->id === 42 && $author->fio === 'Новое ФИО'));
 
         $this->useCase->execute($command);
     }
@@ -77,6 +76,7 @@ final class UpdateAuthorUseCaseTest extends Unit
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('author.error.update_failed');
+        $this->expectExceptionCode(0);
 
         $this->useCase->execute($command);
     }

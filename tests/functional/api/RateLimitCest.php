@@ -12,7 +12,8 @@ final class RateLimitCest
     {
         $redis = Yii::$app->get('redis');
         $keys = $redis->keys('ratelimit:*');
-        if (empty($keys)) {
+
+        if ($keys === []) {
             return;
         }
 

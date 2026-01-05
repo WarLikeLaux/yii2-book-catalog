@@ -13,7 +13,7 @@ final readonly class IdempotencyRecordDto
         public IdempotencyKeyStatus $status,
         public int|null $statusCode,
         public array $data,
-        public string|null $redirectUrl
+        public string|null $redirectUrl,
     ) {
     }
 

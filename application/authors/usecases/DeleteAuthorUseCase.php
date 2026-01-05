@@ -10,7 +10,7 @@ use app\application\ports\AuthorRepositoryInterface;
 final readonly class DeleteAuthorUseCase
 {
     public function __construct(
-        private AuthorRepositoryInterface $authorRepository
+        private AuthorRepositoryInterface $authorRepository,
     ) {
     }
 

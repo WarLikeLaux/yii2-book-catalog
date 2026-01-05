@@ -10,17 +10,20 @@ use app\application\ports\TracerInterface;
 final class NullTracer implements TracerInterface
 {
     /**
-     * @param non-empty-string $name
-     * @param array<non-empty-string, string|int|float|bool> $attributes
+     * @param non-empty-string $_name
+     * @param array<non-empty-string, string|int|float|bool> $_attributes
      */
     #[\Override]
-    public function startSpan(string $name, array $attributes = []): SpanInterface
+    public function startSpan(string $_name, array $_attributes = []): SpanInterface
     {
         return new NullSpan();
     }
 
+    /**
+     * @param array<string, mixed> $_attributes
+     */
     #[\Override]
-    public function trace(string $name, callable $callback, array $attributes = []): mixed
+    public function trace(string $_name, callable $callback, array $_attributes = []): mixed
     {
         return $callback();
     }

@@ -11,7 +11,7 @@ use app\domain\exceptions\DomainException;
 final readonly class AuthorQueryService
 {
     public function __construct(
-        private AuthorQueryServiceInterface $queryService
+        private AuthorQueryServiceInterface $queryService,
     ) {
     }
 
@@ -27,15 +27,18 @@ final readonly class AuthorQueryService
     {
         $authors = $this->queryService->findAllOrderedByFio();
         $map = [];
+
         foreach ($authors as $author) {
             $map[$author->id] = $author->fio;
         }
+
         return $map;
     }
 
     public function getById(int $id): AuthorReadDto
     {
         $author = $this->queryService->findById($id);
+
         if (!$author instanceof AuthorReadDto) {
             throw new DomainException('author.error.not_found');
         }
@@ -48,7 +51,7 @@ final readonly class AuthorQueryService
         $result = $this->queryService->search(
             $criteria->search,
             $criteria->page,
-            $criteria->pageSize
+            $criteria->pageSize,
         );
 
         /** @var AuthorReadDto[] $items */
@@ -58,7 +61,7 @@ final readonly class AuthorQueryService
             items: $items,
             total: $result->getTotalCount(),
             page: $criteria->page,
-            pageSize: $criteria->pageSize
+            pageSize: $criteria->pageSize,
         );
     }
 

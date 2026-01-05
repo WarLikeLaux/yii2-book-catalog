@@ -17,17 +17,15 @@ use yii\web\Application as WebApplication;
 final class TracerBootstrap extends Component implements BootstrapInterface
 {
     public bool $enabled = true;
-
     public string $endpoint = 'http://buggregator:8000';
-
     public string $ingestionKey = 'buggregator';
-
     public string $serviceName = 'yii2-book-catalog';
-
     private TracerInterface|null $tracer = null;
-
     private SpanInterface|null $rootSpan = null;
 
+    /**
+     * @param \yii\base\Application $app
+     */
     #[\Override]
     public function bootstrap($app): void
     {
@@ -60,6 +58,8 @@ final class TracerBootstrap extends Component implements BootstrapInterface
             return;
         }
 
+        RequestIdProvider::reset();
+
         $request = $app->getRequest();
         $pathInfo = $request->getPathInfo();
 
@@ -91,9 +91,11 @@ final class TracerBootstrap extends Component implements BootstrapInterface
         $this->rootSpan->setAttribute('url', $request->getAbsoluteUrl());
         $this->rootSpan->setAttribute('method', $request->getMethod());
         $queryParams = $request->getQueryParams();
+
         if ($queryParams !== []) {
             $this->rootSpan->setAttribute('query_params', (string)json_encode($queryParams, JSON_UNESCAPED_UNICODE));
         }
+
         $this->rootSpan->setAttribute('headers', (string)json_encode($request->getHeaders()->toArray(), JSON_UNESCAPED_UNICODE));
     }
 

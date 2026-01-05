@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** @var app\presentation\books\viewmodels\BookViewModel $book */
+/** @var app\application\books\queries\BookReadDto $book */
 
 use yii\helpers\Html;
 
@@ -72,7 +72,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?= Html::a(
                     Html::img($book->coverUrl, ['alt' => $book->title, 'style' => 'max-width: 300px; cursor: pointer;', 'loading' => 'lazy']),
                     $book->coverUrl,
-                    ['class' => 'glightbox', 'data-gallery' => 'book-gallery']
+                    ['class' => 'glightbox', 'data-gallery' => 'book-gallery'],
                 ) ?>
             </td>
         </tr>

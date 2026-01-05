@@ -6,36 +6,31 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\usecases\DeleteBookUseCase;
+use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
-use app\domain\entities\Book;
 use app\domain\events\BookDeletedEvent;
 use app\domain\exceptions\EntityNotFoundException;
-use app\domain\values\BookYear;
-use app\domain\values\Isbn;
+use BookTestHelper;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class DeleteBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-
     private TransactionInterface&MockObject $transaction;
-
-    private EventPublisherInterface&MockObject $eventPublisher;
-
+    private TransactionalEventPublisher&MockObject $eventPublisher;
     private DeleteBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
-        $this->eventPublisher = $this->createMock(EventPublisherInterface::class);
+        $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
         $this->useCase = new DeleteBookUseCase(
             $this->bookRepository,
             $this->transaction,
-            $this->eventPublisher
+            $this->eventPublisher,
         );
     }
 
@@ -43,16 +38,12 @@ final class DeleteBookUseCaseTest extends Unit
     {
         $command = new DeleteBookCommand(id: 42);
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Book to Delete',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
-            description: 'Description',
-            coverImage: null,
+            year: 2020,
             authorIds: [],
             published: false,
-            version: 1
         );
 
         $this->bookRepository->expects($this->once())
@@ -64,12 +55,12 @@ final class DeleteBookUseCaseTest extends Unit
         $this->transaction->expects($this->once())->method('begin');
         $this->transaction->expects($this->once())
             ->method('afterCommit')
-            ->willReturnCallback(function (callable $callback) use (&$afterCommitCallback): void {
+            ->willReturnCallback(static function (callable $callback) use (&$afterCommitCallback): void {
                 $afterCommitCallback = $callback;
             });
         $this->transaction->expects($this->once())
             ->method('commit')
-            ->willReturnCallback(function () use (&$afterCommitCallback): void {
+            ->willReturnCallback(static function () use (&$afterCommitCallback): void {
                 if ($afterCommitCallback === null) {
                     return;
                 }
@@ -83,10 +74,13 @@ final class DeleteBookUseCaseTest extends Unit
             ->with($existingBook);
 
         $this->eventPublisher->expects($this->once())
-            ->method('publishEvent')
-            ->with($this->callback(fn (BookDeletedEvent $event) => $event->bookId === 42
+            ->method('publishAfterCommit')
+            ->with($this->callback(static fn (BookDeletedEvent $event): bool => $event->bookId === 42
                 && $event->year === 2020
-                && $event->wasPublished === false));
+                && $event->wasPublished === false))
+            ->willReturnCallback(function (BookDeletedEvent $_event): void {
+                $this->transaction->afterCommit(static fn(): null => null);
+            });
 
         $this->useCase->execute($command);
     }
@@ -113,16 +107,12 @@ final class DeleteBookUseCaseTest extends Unit
     {
         $command = new DeleteBookCommand(id: 42);
 
-        $existingBook = Book::reconstitute(
+        $existingBook = BookTestHelper::createBook(
             id: 42,
             title: 'Book to Delete',
-            year: new BookYear(2020, new \DateTimeImmutable()),
-            isbn: new Isbn('9780132350884'),
-            description: 'Description',
-            coverImage: null,
+            year: 2020,
             authorIds: [],
             published: true,
-            version: 1
         );
 
         $this->bookRepository->expects($this->once())

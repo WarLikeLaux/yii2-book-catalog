@@ -16,7 +16,7 @@ $username = env('DB_USER', 'yii2');
 $password = env('DB_PASSWORD', 'secret');
 
 return [
-    'class' => 'yii\db\Connection',
+    'class' => \app\infrastructure\components\AppDbConnection::class,
     'dsn' => "{$driver}:host={$host};port={$port};dbname={$database}",
     'username' => $username,
     'password' => $password,

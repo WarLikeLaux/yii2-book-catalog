@@ -15,22 +15,22 @@ $config = [
     'viewPath' => '@app/presentation/views',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
-        '@npm'   => '@vendor/npm-asset',
+        '@npm' => '@vendor/npm-asset',
     ],
     'language' => 'ru-RU',
     'container' => $container($params),
     'components' => [
         'db' => $db,
         'redis' => [
-            'class' => 'yii\redis\Connection',
+            'class' => \app\infrastructure\components\AppRedisConnection::class,
             'hostname' => env('REDIS_HOST', 'localhost'),
             'port' => (int)env('REDIS_PORT', 6379),
             'database' => 15,
         ],
         'mutex' => [
             'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
-                ? \yii\mutex\PgsqlMutex::class
-                : \yii\mutex\MysqlMutex::class,
+                ? \app\infrastructure\components\AppPgsqlMutex::class
+                : \app\infrastructure\components\AppMysqlMutex::class,
         ],
         'queue' => [
             'class' => \app\infrastructure\queue\HandlerAwareQueue::class,

@@ -11,7 +11,7 @@ use app\domain\exceptions\DomainException;
 final readonly class BookQueryService
 {
     public function __construct(
-        private BookQueryServiceInterface $bookRepository
+        private BookQueryServiceInterface $bookRepository,
     ) {
     }
 
@@ -23,6 +23,7 @@ final readonly class BookQueryService
     public function getById(int $id): BookReadDto
     {
         $book = $this->bookRepository->findByIdWithAuthors($id);
+
         if (!$book instanceof BookReadDto) {
             throw new DomainException('book.error.not_found');
         }
@@ -35,7 +36,7 @@ final readonly class BookQueryService
         return $this->bookRepository->search(
             $criteria->globalSearch,
             $criteria->page,
-            $criteria->pageSize
+            $criteria->pageSize,
         );
     }
 }

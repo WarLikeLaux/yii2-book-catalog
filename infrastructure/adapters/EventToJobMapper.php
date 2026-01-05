@@ -17,7 +17,7 @@ final readonly class EventToJobMapper implements EventToJobMapperInterface
         return match ($event::class) {
             BookPublishedEvent::class => $this->mapBookPublished($event),
             default => throw new InvalidArgumentException(
-                'No job mapping for event: ' . $event::class
+                'No job mapping for event: ' . $event::class,
             ),
         };
     }

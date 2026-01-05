@@ -8,7 +8,7 @@ readonly class SubscribeCommand
 {
     public function __construct(
         public string $phone,
-        public int $authorId
+        public int $authorId,
     ) {
     }
 }

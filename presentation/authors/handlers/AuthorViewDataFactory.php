@@ -16,7 +16,7 @@ final readonly class AuthorViewDataFactory
     public function __construct(
         private AuthorQueryService $authorQueryService,
         private AuthorFormMapper $mapper,
-        private PagedResultDataProviderFactory $dataProviderFactory
+        private PagedResultDataProviderFactory $dataProviderFactory,
     ) {
     }
 

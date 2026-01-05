@@ -15,11 +15,8 @@ use RuntimeException;
 final class WebUseCaseRunnerQueryTest extends Unit
 {
     private NotificationInterface $notifier;
-
     private LoggerInterface $logger;
-
     private TranslatorInterface $translator;
-
     private WebUseCaseRunner $runner;
 
     protected function _before(): void
@@ -32,7 +29,7 @@ final class WebUseCaseRunnerQueryTest extends Unit
 
     public function testQueryReturnsResult(): void
     {
-        $result = $this->runner->query(fn() => 'data', 'fallback', 'error message');
+        $result = $this->runner->query(static fn() => 'data', 'fallback', 'error message');
         $this->assertSame('data', $result);
     }
 
@@ -45,9 +42,9 @@ final class WebUseCaseRunnerQueryTest extends Unit
         $this->notifier->expects($this->once())->method('error')->with('domain.error.key');
 
         $result = $this->runner->query(
-            fn() => throw new DomainException('domain.error.key'),
+            static fn() => throw new DomainException('domain.error.key'),
             'fallback',
-            'error message'
+            'error message',
         );
 
         $this->assertSame('fallback', $result);
@@ -59,9 +56,9 @@ final class WebUseCaseRunnerQueryTest extends Unit
         $this->notifier->expects($this->once())->method('error')->with('generic error');
 
         $result = $this->runner->query(
-            fn() => throw new RuntimeException('boom'),
+            static fn() => throw new RuntimeException('boom'),
             'fallback',
-            'generic error'
+            'generic error',
         );
 
         $this->assertSame('fallback', $result);
@@ -75,8 +72,8 @@ final class WebUseCaseRunnerQueryTest extends Unit
             ->willReturn('domain.error.key');
 
         $result = $this->runner->executeForApi(
-            fn() => throw new DomainException('domain.error.key'),
-            'success'
+            static fn() => throw new DomainException('domain.error.key'),
+            'success',
         );
 
         $this->assertFalse($result['success']);
@@ -91,8 +88,8 @@ final class WebUseCaseRunnerQueryTest extends Unit
         $this->logger->expects($this->once())->method('error');
 
         $result = $this->runner->executeForApi(
-            fn() => throw new RuntimeException('boom'),
-            'success'
+            static fn() => throw new RuntimeException('boom'),
+            'success',
         );
 
         $this->assertFalse($result['success']);

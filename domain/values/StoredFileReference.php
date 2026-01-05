@@ -9,7 +9,7 @@ use Stringable;
 final readonly class StoredFileReference implements Stringable
 {
     public function __construct(
-        private string $path
+        private string $path,
     ) {
     }
 

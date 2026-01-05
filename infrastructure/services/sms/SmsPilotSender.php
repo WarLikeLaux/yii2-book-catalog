@@ -12,21 +12,12 @@ final readonly class SmsPilotSender implements SmsSenderInterface
 {
     public function __construct(
         private string $apiKey,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 
     public function send(string $phone, string $message): bool
     {
-        if ($this->apiKey === 'MOCK_KEY') {
-            $this->logger->info('SMS emulated', [
-                'phone' => $phone,
-                'message' => $message,
-                'mode' => 'mock',
-            ]);
-            return true;
-        }
-
         $url = 'https://smspilot.ru/api.php';
         $params = [
             'send' => $message,
@@ -58,9 +49,11 @@ final readonly class SmsPilotSender implements SmsSenderInterface
         $send = $data['send'] ?? [];
 
         $status = null;
+
         if (is_array($send) && isset($send[0]) && is_array($send[0])) {
             $status = $send[0]['status'] ?? null;
         }
+
         if ($status === 'OK' || $status === '0') {
             $this->logger->info('SMS sent successfully', [
                 'phone' => $phone,

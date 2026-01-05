@@ -14,12 +14,12 @@ $config = [
     'controllerNamespace' => 'app\commands',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
-        '@npm'   => '@vendor/npm-asset',
+        '@npm' => '@vendor/npm-asset',
         '@tests' => '@app/tests',
     ],
     'components' => [
         'redis' => [
-            'class' => 'yii\redis\Connection',
+            'class' => \app\infrastructure\components\AppRedisConnection::class,
             'hostname' => env('REDIS_HOST', 'redis'),
             'port' => (int)env('REDIS_PORT', '6379'),
             'database' => 0,
@@ -60,8 +60,8 @@ $config = [
         'db' => $db,
         'mutex' => [
             'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
-                ? \yii\mutex\PgsqlMutex::class
-                : \yii\mutex\MysqlMutex::class,
+                ? \app\infrastructure\components\AppPgsqlMutex::class
+                : \app\infrastructure\components\AppMysqlMutex::class,
             'db' => $db,
         ],
         'queue' => [

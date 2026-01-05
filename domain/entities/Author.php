@@ -13,9 +13,14 @@ final class Author
 
     public function __construct(
         public private(set) ?int $id,
-        public private(set) string $fio
+        public private(set) string $fio,
     ) {
         $this->validateFio($fio);
+    }
+
+    public static function create(string $fio): self
+    {
+        return new self(null, $fio);
     }
 
     private function validateFio(string $fio): void
@@ -35,22 +40,9 @@ final class Author
         }
     }
 
-    public static function create(string $fio): self
-    {
-        return new self(null, $fio);
-    }
-
     public function update(string $fio): void
     {
         $this->validateFio($fio);
         $this->fio = $fio;
-    }
-
-    /**
-     * @internal Только для использования репозиторием
-     */
-    public function setId(int $id): void
-    {
-        $this->id = $id;
     }
 }

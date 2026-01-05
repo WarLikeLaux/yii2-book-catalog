@@ -18,7 +18,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class YiiEventPublisherAdapterTest extends Unit
 {
     private QueueInterface&MockObject $queue;
-
     private EventToJobMapperInterface $jobMapper;
 
     protected function _before(): void
@@ -34,7 +33,7 @@ final class YiiEventPublisherAdapterTest extends Unit
 
         $this->queue->expects($this->once())
             ->method('push')
-            ->with($this->callback(fn (NotifySubscribersJob $job) => $job->bookId === 42
+            ->with($this->callback(static fn (NotifySubscribersJob $job) => $job->bookId === 42
                 && $job->title === 'Test Book'));
 
         $adapter->publishEvent($event);

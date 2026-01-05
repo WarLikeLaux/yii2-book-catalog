@@ -13,12 +13,11 @@ use yii\web\Response;
 final class RateLimitFilter extends ActionFilter
 {
     public int $limit = 60;
-
     public int $window = 60;
 
     public function __construct(
         private readonly RateLimitServiceInterface $service,
-        array $config = []
+        array $config = [],
     ) {
         parent::__construct($config);
     }
@@ -32,14 +31,16 @@ final class RateLimitFilter extends ActionFilter
     }
 
     #[\Override]
-    public function beforeAction($action): bool
+    public function beforeAction($_action): bool
     {
         $request = Yii::$app->request;
+
         if (!$request instanceof Request) {
             return true; // @codeCoverageIgnore
         }
 
         $ip = $this->getClientIp($request);
+
         if ($ip === null) {
             return true; // @codeCoverageIgnore
         }
@@ -64,6 +65,7 @@ final class RateLimitFilter extends ActionFilter
     private function setRateLimitHeaders(int $current, int $limit, int $resetAt): void
     {
         $response = Yii::$app->response;
+
         if (!$response instanceof Response) {
             return; // @codeCoverageIgnore
         }
@@ -76,6 +78,7 @@ final class RateLimitFilter extends ActionFilter
     private function applyRateLimitExceeded(int $resetAt): void
     {
         $response = Yii::$app->response;
+
         if (!$response instanceof Response) {
             return; // @codeCoverageIgnore
         }

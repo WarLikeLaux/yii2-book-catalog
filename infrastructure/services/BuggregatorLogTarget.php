@@ -16,13 +16,13 @@ use yii\log\Target;
 final class BuggregatorLogTarget extends Target
 {
     public string $host = 'buggregator';
-
     public int $port = 9913;
 
     #[\Override]
     public function export(): void
     {
         $socket = @fsockopen($this->host, $this->port, $errno, $errstr, 2);
+
         if ($socket === false) {
             return;
         }

@@ -16,16 +16,13 @@ final class IdempotencyFilter extends ActionFilter
     private const string HEADER_KEY = 'Idempotency-Key';
 
     private string|null $lockedKey = null;
-
     public int $ttl = 86400;
-
     public int $lockTimeout = 1;
-
     public int $waitSeconds = 1;
 
     public function __construct(
         private readonly IdempotencyServiceInterface $service,
-        array $config = []
+        array $config = [],
     ) {
         parent::__construct($config);
     }
@@ -41,14 +38,16 @@ final class IdempotencyFilter extends ActionFilter
     }
 
     #[\Override]
-    public function beforeAction($action): bool
+    public function beforeAction($_action): bool
     {
         $request = Yii::$app->request;
+
         if (!$request instanceof Request || !$request->getIsPost()) {
             return true;
         }
 
         $key = $request->getHeaders()->get(self::HEADER_KEY);
+
         if (!is_string($key)) {
             return true;
         }
@@ -58,11 +57,13 @@ final class IdempotencyFilter extends ActionFilter
             sleep($this->waitSeconds);
             return $this->returnCachedResponseIfExists($key);
         }
+
         // @codeCoverageIgnoreEnd
 
         $this->lockedKey = $key;
 
         $record = $this->service->getRecord($key);
+
         if ($record instanceof IdempotencyRecordDto) {
             $this->releaseLockIfHeld();
             return $this->handleExistingRecord($record);
@@ -78,20 +79,23 @@ final class IdempotencyFilter extends ActionFilter
     }
 
     #[\Override]
-    public function afterAction($action, $result): mixed
+    public function afterAction($_action, $result): mixed
     {
         $request = Yii::$app->request;
+
         if (!$request instanceof Request || !$request->getIsPost()) {
             return $result;
         }
 
         $key = $request->getHeaders()->get(self::HEADER_KEY);
+
         if (!is_string($key)) {
             return $result;
         }
 
         try {
             $response = Yii::$app->response;
+
             if ($response instanceof Response && $response->statusCode < 500) {
                 $location = $response->getHeaders()->get('Location');
                 $this->service->saveResponse(
@@ -99,7 +103,7 @@ final class IdempotencyFilter extends ActionFilter
                     $response->statusCode,
                     $result,
                     is_string($location) ? $location : null,
-                    $this->ttl
+                    $this->ttl,
                 );
                 $response->getHeaders()->set('X-Idempotency-Cache', 'MISS');
             }
@@ -114,6 +118,7 @@ final class IdempotencyFilter extends ActionFilter
     private function returnCachedResponseIfExists(string $key): bool
     {
         $record = $this->service->getRecord($key);
+
         if (!$record instanceof IdempotencyRecordDto) {
             $this->applyInProgressResponse();
             return false;
@@ -136,21 +141,25 @@ final class IdempotencyFilter extends ActionFilter
     private function applyCachedResponse(IdempotencyRecordDto $cached): void
     {
         $response = Yii::$app->response;
+
         if (!$response instanceof Response) {
             return; // @codeCoverageIgnore
         }
 
         $statusCode = $cached->statusCode;
+
         if (!is_int($statusCode)) {
             return; // @codeCoverageIgnore
         }
 
         $response->statusCode = $statusCode;
+
         if ($cached->redirectUrl !== null) {
             $response->getHeaders()->set('Location', $cached->redirectUrl);
         } else {
             $response->data = $cached->data;
         }
+
         $response->getHeaders()->set('X-Idempotency-Cache', 'HIT');
     }
 
@@ -167,6 +176,7 @@ final class IdempotencyFilter extends ActionFilter
     private function applyInProgressResponse(): void
     {
         $response = Yii::$app->response;
+
         if (!$response instanceof Response) {
             return; // @codeCoverageIgnore
         }
@@ -179,6 +189,7 @@ final class IdempotencyFilter extends ActionFilter
     private function applyUnavailableResponse(): void
     {
         $response = Yii::$app->response;
+
         if (!$response instanceof Response) {
             return; // @codeCoverageIgnore
         }

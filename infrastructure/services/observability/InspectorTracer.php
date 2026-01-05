@@ -18,12 +18,11 @@ use Inspector\Models\Transaction;
 final class InspectorTracer implements TracerInterface
 {
     private readonly Inspector $inspector;
-
     private InspectorSpan|null $currentSpan = null;
 
     public function __construct(
         string $ingestionKey,
-        string $url
+        string $url,
     ) {
         $configuration = new Configuration($ingestionKey);
         $configuration->setUrl($url);
@@ -49,10 +48,12 @@ final class InspectorTracer implements TracerInterface
         $item = $this->inspector->startTransaction($name);
 
         $item->markAsRequest();
+
         // http может быть null, но если он есть, request гарантированно существует
         if ($item->http instanceof Http) {
             $item->http->request->cookies = [];
         }
+
         $this->fillTransactionData($item, $attributes);
 
         $span = new InspectorSpan($item);
@@ -67,51 +68,94 @@ final class InspectorTracer implements TracerInterface
         $method = $this->asString($attributes['http.method'] ?? 'GET');
         $ip = $this->asString($attributes['http.client_ip'] ?? '127.0.0.1');
 
-        // Проверяем только nullable свойство http. Url внутри Http не nullable.
-        if ($transaction->http instanceof Http) {
-            $transaction->http->url->full = $url;
-            $transaction->http->url->path = $this->asString($attributes['http.target'] ?? parse_url($url, PHP_URL_PATH));
-        }
-
-        $cleanHeaders = [];
-        $decodedHeaders = json_decode($this->asString($attributes['http.headers'] ?? '[]'), true);
-        if (is_array($decodedHeaders)) {
-            foreach ($decodedHeaders as $k => $vals) {
-                $kStr = $this->asString($k);
-                if ($this->isUnsafeKey($kStr)) {
-                    continue;
-                }
-
-                $cleanHeaders[$kStr] = is_array($vals) ? implode(', ', $vals) : $this->asString($vals);
-            }
-        }
-
-        if ($transaction->http instanceof Http) {
-            $transaction->http->request->method = $method;
-            $transaction->http->request->headers = $cleanHeaders;
-
-            if ($transaction->http->request->socket instanceof Socket) {
-                 $transaction->http->request->socket->remote_address = $ip;
-            }
-        }
+        $cleanHeaders = $this->buildCleanHeaders($attributes);
+        $this->applyHttpData($transaction, $url, $method, $ip, $attributes, $cleanHeaders);
 
         $transaction->addContext('URL', ['Full' => $url, 'Method' => $method]);
         $transaction->addContext('Request', $this->buildRequestTable($attributes, $ip));
         $transaction->addContext('Headers', $cleanHeaders);
 
-        $customData = [];
-        foreach ($attributes as $key => $value) {
-            if ($this->isUnsafeKey($this->asString($key))) {
-                continue;
-            }
-            $customData[$key] = $value;
-        }
+        $customData = $this->buildCustomData($attributes);
 
         if ($customData === []) {
             return;
         }
 
         $transaction->addContext('Custom', $customData);
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @return array<string, mixed>
+     */
+    private function buildCleanHeaders(array $attributes): array
+    {
+        $decodedHeaders = json_decode($this->asString($attributes['http.headers'] ?? '[]'), true);
+
+        if (!is_array($decodedHeaders)) {
+            return [];
+        }
+
+        $cleanHeaders = [];
+
+        foreach ($decodedHeaders as $key => $values) {
+            $keyString = $this->asString($key);
+
+            if ($this->isUnsafeKey($keyString)) {
+                continue;
+            }
+
+            $cleanHeaders[$keyString] = is_array($values) ? implode(', ', $values) : $this->asString($values);
+        }
+
+        return $cleanHeaders;
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @param array<string, mixed> $cleanHeaders
+     */
+    private function applyHttpData(
+        Transaction $transaction,
+        string $url,
+        string $method,
+        string $ip,
+        array $attributes,
+        array $cleanHeaders,
+    ): void {
+        if (!$transaction->http instanceof Http) {
+            return;
+        }
+
+        $transaction->http->url->full = $url;
+        $transaction->http->url->path = $this->asString($attributes['http.target'] ?? parse_url($url, PHP_URL_PATH));
+        $transaction->http->request->method = $method;
+        $transaction->http->request->headers = $cleanHeaders;
+
+        if (!($transaction->http->request->socket instanceof Socket)) {
+            return;
+        }
+
+        $transaction->http->request->socket->remote_address = $ip;
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @return array<string, mixed>
+     */
+    private function buildCustomData(array $attributes): array
+    {
+        $customData = [];
+
+        foreach ($attributes as $key => $value) {
+            if ($this->isUnsafeKey($this->asString($key))) {
+                continue;
+            }
+
+            $customData[$key] = $value;
+        }
+
+        return $customData;
     }
 
     /**
@@ -139,6 +183,7 @@ final class InspectorTracer implements TracerInterface
         $item = $this->inspector->startSegment('database', $name);
 
         $cleanAttributes = [];
+
         foreach ($attributes as $k => $v) {
             if ($this->isUnsafeKey($this->asString($k))) {
                 continue;
@@ -146,6 +191,7 @@ final class InspectorTracer implements TracerInterface
 
             $cleanAttributes[$k] = $v;
         }
+
         $item->addContext('Custom', $cleanAttributes);
 
         $span = new InspectorSpan($item);

@@ -81,7 +81,7 @@ final class IdempotencyFilterTest extends Unit
                 IdempotencyKeyStatus::Started,
                 null,
                 [],
-                null
+                null,
             ));
         $service->expects($this->never())
             ->method('startRequest');
@@ -113,7 +113,7 @@ final class IdempotencyFilterTest extends Unit
                 IdempotencyKeyStatus::Finished,
                 201,
                 ['id' => 10],
-                null
+                null,
             ));
         $service->expects($this->never())
             ->method('startRequest');

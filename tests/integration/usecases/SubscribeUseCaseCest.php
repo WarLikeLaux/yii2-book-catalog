@@ -10,7 +10,7 @@ use app\infrastructure\persistence\Subscription;
 
 final class SubscribeUseCaseCest
 {
-    public function _before(IntegrationTester $I): void
+    public function _before(IntegrationTester $_I): void
     {
         DbCleaner::clear(['subscriptions', 'book_authors', 'authors']);
     }
@@ -21,7 +21,7 @@ final class SubscribeUseCaseCest
 
         $command = new SubscribeCommand(
             phone: '+79001234567',
-            authorId: $authorId
+            authorId: $authorId,
         );
 
         $useCase = Yii::$container->get(SubscribeUseCase::class);
@@ -43,12 +43,12 @@ final class SubscribeUseCaseCest
 
         $command = new SubscribeCommand(
             phone: '+79001234567',
-            authorId: $authorId
+            authorId: $authorId,
         );
 
         $useCase = Yii::$container->get(SubscribeUseCase::class);
 
-        $I->expectThrowable(DomainException::class, function () use ($useCase, $command): void {
+        $I->expectThrowable(DomainException::class, static function () use ($useCase, $command): void {
             $useCase->execute($command);
         });
 
@@ -71,7 +71,7 @@ final class SubscribeUseCaseCest
 
         $command = new SubscribeCommand(
             phone: '+79001234567',
-            authorId: $author2Id
+            authorId: $author2Id,
         );
 
         $useCase = Yii::$container->get(SubscribeUseCase::class);

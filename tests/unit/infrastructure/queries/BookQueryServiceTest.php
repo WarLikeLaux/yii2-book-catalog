@@ -25,9 +25,7 @@ use yii\db\Expression;
 final class BookQueryServiceTest extends Unit
 {
     protected \UnitTester $tester;
-
     private BookRepositoryInterface $repository;
-
     private BookQueryServiceInterface $queryService;
 
     protected function _before(): void
@@ -56,7 +54,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Desc',
-            null
+            null,
         );
 
         $this->repository->save($book);
@@ -81,7 +79,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $book->replaceAuthors([$authorId]);
 
@@ -107,7 +105,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $book->replaceAuthors([$authorId]);
         $this->repository->save($book);
@@ -127,7 +125,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $this->repository->save($book);
 
@@ -143,7 +141,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $this->repository->save($book);
 
@@ -159,7 +157,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $this->repository->save($book);
 
@@ -177,7 +175,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Some description',
-            null
+            null,
         );
         $book->replaceAuthors([$authorId]);
         $this->repository->save($book);
@@ -197,7 +195,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $this->repository->save($book);
 
@@ -214,7 +212,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $this->repository->save($book);
 
@@ -231,7 +229,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Unique description for fulltext search',
-            null
+            null,
         );
         $this->repository->save($book);
 
@@ -252,7 +250,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $book->replaceAuthors([$authorId]);
         $this->repository->save($book);
@@ -272,7 +270,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             null,
-            null
+            null,
         );
         $this->repository->save($book1);
 
@@ -281,7 +279,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9780132350884'),
             null,
-            null
+            null,
         );
         $this->repository->save($book2);
 
@@ -303,7 +301,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2024, new \DateTimeImmutable()),
             new Isbn('9783161484100'),
             'Some unique description',
-            null
+            null,
         );
         $this->repository->save($book1);
 
@@ -312,7 +310,7 @@ final class BookQueryServiceTest extends Unit
             new BookYear(2025, new \DateTimeImmutable()),
             new Isbn('9780132350884'),
             null,
-            null
+            null,
         );
         $book2->replaceAuthors([$authorId]);
         $this->repository->save($book2);
@@ -337,7 +335,7 @@ final class BookQueryServiceTest extends Unit
         $this->assertInstanceOf(Expression::class, $expression);
         $this->assertSame(
             'MATCH(title, description) AGAINST(:query IN BOOLEAN MODE)',
-            $expression->expression
+            $expression->expression,
         );
         $this->assertSame('+hello* +world*', $expression->params[':query']);
     }
@@ -360,7 +358,7 @@ final class BookQueryServiceTest extends Unit
         $this->assertInstanceOf(Expression::class, $expression);
         $this->assertSame(
             "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '')) @@ plainto_tsquery('english', :query)",
-            $expression->expression
+            $expression->expression,
         );
         $this->assertSame('Hello', $expression->params[':query']);
     }
@@ -383,7 +381,7 @@ final class BookQueryServiceTest extends Unit
         $this->assertInstanceOf(Expression::class, $expression);
         $this->assertSame(
             'MATCH(authors.fio) AGAINST(:query IN BOOLEAN MODE)',
-            $expression->expression
+            $expression->expression,
         );
         $this->assertSame('+Author* +Name*', $expression->params[':query']);
     }
@@ -397,7 +395,7 @@ final class BookQueryServiceTest extends Unit
         $this->assertInstanceOf(Expression::class, $expression);
         $this->assertSame(
             "to_tsvector('english', coalesce(authors.fio, '')) @@ plainto_tsquery('english', :query)",
-            $expression->expression
+            $expression->expression,
         );
         $this->assertSame('Author', $expression->params[':query']);
     }

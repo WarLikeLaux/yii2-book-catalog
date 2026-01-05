@@ -16,15 +16,12 @@ final class SubscriptionTest extends Unit
         $this->assertNull($subscription->id);
         $this->assertSame('79001112233', $subscription->phone);
         $this->assertSame(10, $subscription->authorId);
-
-        $subscription->setId(999);
-        $this->assertSame(999, $subscription->id);
     }
 
     public function testConstructor(): void
     {
-        $subscription = new Subscription('79008889900', 5);
-        $this->assertNull($subscription->id);
+        $subscription = new Subscription(5, '79008889900', 5);
+        $this->assertSame(5, $subscription->id);
         $this->assertSame('79008889900', $subscription->phone);
         $this->assertSame(5, $subscription->authorId);
     }

@@ -22,7 +22,7 @@ final class m251202_000004_create_subscriptions_table extends Migration
             'authors',
             'id',
             'CASCADE',
-            'CASCADE'
+            'CASCADE',
         );
 
         $this->createIndex('idx_subscriptions_phone_author', 'subscriptions', ['phone', 'author_id'], true);

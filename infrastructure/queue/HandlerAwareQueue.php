@@ -7,20 +7,18 @@ namespace app\infrastructure\queue;
 use yii\queue\db\Queue;
 
 /**
- * Расширение Queue для решения проблемы DI в Job-ах.
+ * NOTE: Расширение Queue для решения проблемы DI в Job-ах.
  *
- * yii2-queue сериализует Job-ы, поэтому они не могут получать зависимости
- * через конструктор. Этот класс инжектит JobHandlerRegistry в очередь,
- * а Job-ы получают его через $queue->getJobHandlerRegistry().
- *
- * @see JobHandlerRegistry центр регистрации хендлеров
- * @see NotifySubscribersJob пример использования паттерна
+ * @see docs/DECISIONS.md (см. пункт "6. DI в фоновых задачах")
  */
 final class HandlerAwareQueue extends Queue
 {
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(
         private readonly JobHandlerRegistry $jobHandlerRegistry,
-        $config = []
+        array $config = [],
     ) {
         parent::__construct($config);
     }

@@ -25,7 +25,7 @@ use Psr\Log\LoggerInterface;
 use yii\di\Container;
 use yii\di\Instance;
 
-return static fn (array $params) => [
+return static fn (array $_params) => [
     IdempotencyRepository::class => [
         'class' => IdempotencyRepository::class,
         '__construct()' => [
@@ -35,41 +35,36 @@ return static fn (array $params) => [
     IdempotencyInterface::class => static fn(Container $c): IdempotencyInterface => TracingFactory::create(
         $c,
         IdempotencyRepository::class,
-        IdempotencyRepositoryTracingDecorator::class
+        IdempotencyRepositoryTracingDecorator::class,
     ),
 
-    RateLimitRepository::class => static fn() => new RateLimitRepository(Yii::$app->get('redis')),
     RateLimitInterface::class => static fn(Container $c): RateLimitInterface => TracingFactory::create(
         $c,
         RateLimitRepository::class,
-        RateLimitRepositoryTracingDecorator::class
+        RateLimitRepositoryTracingDecorator::class,
     ),
 
-    BookRepository::class => static fn() => new BookRepository(Yii::$app->get('db')),
     BookRepositoryInterface::class => static fn(Container $c): BookRepositoryInterface => TracingFactory::create(
         $c,
         BookRepository::class,
-        BookRepositoryTracingDecorator::class
+        BookRepositoryTracingDecorator::class,
     ),
 
-    AuthorRepository::class => static fn() => new AuthorRepository(Yii::$app->get('db')),
     AuthorRepositoryInterface::class => static fn(Container $c): AuthorRepositoryInterface => TracingFactory::create(
         $c,
         AuthorRepository::class,
-        AuthorRepositoryTracingDecorator::class
+        AuthorRepositoryTracingDecorator::class,
     ),
 
-    SubscriptionRepository::class => static fn() => new SubscriptionRepository(Yii::$app->get('db')),
     SubscriptionRepositoryInterface::class => static fn(Container $c): SubscriptionRepositoryInterface => TracingFactory::create(
         $c,
         SubscriptionRepository::class,
-        SubscriptionRepositoryTracingDecorator::class
+        SubscriptionRepositoryTracingDecorator::class,
     ),
 
-    ReportRepository::class => static fn() => new ReportRepository(Yii::$app->get('db')),
     ReportRepositoryInterface::class => static fn(Container $c): ReportRepositoryInterface => TracingFactory::create(
         $c,
         ReportRepository::class,
-        ReportRepositoryTracingDecorator::class
+        ReportRepositoryTracingDecorator::class,
     ),
 ];

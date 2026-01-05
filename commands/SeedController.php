@@ -20,6 +20,7 @@ final class SeedController extends Controller
         $this->stdout("Seeding database...\n", Console::FG_GREEN);
 
         $transaction = Yii::$app->db->beginTransaction();
+
         try {
             $authors = $this->seedAuthors();
             $this->seedBooks($authors);
@@ -54,12 +55,16 @@ final class SeedController extends Controller
         ];
 
         $ids = [];
+
         foreach ($names as $name) {
             $author = Author::findOne(['fio' => $name]) ?? new Author(['fio' => $name]);
+
             if ($author->isNewRecord && !$author->save()) {
                 throw new RuntimeException('Save author failed');
             }
+
             $ids[] = $author->id;
+
             if (!$author->isNewRecord) {
                 continue;
             }
@@ -126,10 +131,12 @@ final class SeedController extends Controller
         $isbn12 = $prefix . $group . $publisher . $title;
 
         $checksum = 0;
+
         for ($i = 0; $i < 12; $i++) {
             $weight = $i % 2 === 0 ? 1 : 3;
             $checksum += (int)$isbn12[$i] * $weight;
         }
+
         $checksumDigit = (10 - ($checksum % 10)) % 10;
 
         return "{$prefix}-{$group}-{$publisher}-{$title}-{$checksumDigit}";

@@ -11,7 +11,7 @@ final class m260103_000001_add_author_id_index_to_book_authors extends Migration
         $this->createIndex(
             'idx_book_authors_author_id',
             'book_authors',
-            'author_id'
+            'author_id',
         );
     }
 

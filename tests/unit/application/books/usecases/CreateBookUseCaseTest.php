@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
-use app\application\books\factories\BookYearFactory;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\exceptions\DomainException;
+use BookTestHelper;
 use Codeception\Test\Unit;
 use DateTimeImmutable;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -19,26 +19,21 @@ use Psr\Clock\ClockInterface;
 final class CreateBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-
     private TransactionInterface&MockObject $transaction;
-
-    private BookYearFactory $bookYearFactory;
-
+    private ClockInterface&MockObject $clock;
     private CreateBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
-
-        $clock = $this->createMock(ClockInterface::class);
-        $clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
-        $this->bookYearFactory = new BookYearFactory($clock);
+        $this->clock = $this->createMock(ClockInterface::class);
+        $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
         $this->useCase = new CreateBookUseCase(
             $this->bookRepository,
             $this->transaction,
-            $this->bookYearFactory
+            $this->clock,
         );
     }
 
@@ -50,7 +45,7 @@ final class CreateBookUseCaseTest extends Unit
             description: 'A Handbook of Agile Software Craftsmanship',
             isbn: '9780132350884',
             authorIds: [1, 2],
-            cover: '/uploads/cover.jpg'
+            cover: '/uploads/cover.jpg',
         );
 
         $this->transaction->expects($this->once())->method('begin');
@@ -59,10 +54,10 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(fn (Book $book) => $book->title === 'Clean Code'
+            ->with($this->callback(static fn (Book $book): bool => $book->title === 'Clean Code'
                     && $book->authorIds === [1, 2]))
-            ->willReturnCallback(function (Book $book) {
-                $this->assignBookId($book, 42);
+            ->willReturnCallback(static function (Book $book): void {
+                BookTestHelper::assignBookId($book, 42);
             });
 
         $result = $this->useCase->execute($command);
@@ -77,7 +72,7 @@ final class CreateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [1]
+            authorIds: [1],
         );
 
         $this->transaction->expects($this->once())->method('begin');
@@ -101,7 +96,7 @@ final class CreateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: 'invalid-isbn',
-            authorIds: [1]
+            authorIds: [1],
         );
 
         $this->transaction->expects($this->once())->method('begin');
@@ -120,7 +115,7 @@ final class CreateBookUseCaseTest extends Unit
             year: 2024,
             description: 'A book without cover',
             isbn: '9780132350884',
-            authorIds: []
+            authorIds: [],
         );
 
         $this->transaction->expects($this->once())->method('begin');
@@ -128,8 +123,8 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->willReturnCallback(function (Book $book) {
-                $this->assignBookId($book, 1);
+            ->willReturnCallback(static function (Book $book): void {
+                BookTestHelper::assignBookId($book, 1);
             });
 
         $result = $this->useCase->execute($command);
@@ -142,10 +137,10 @@ final class CreateBookUseCaseTest extends Unit
         $command = new CreateBookCommand(
             title: 'Title',
             year: 2023,
-            isbn: '978-3-16-148410-0',
             description: 'Desc',
+            isbn: '978-3-16-148410-0',
+            authorIds: [1, 2],
             cover: 'http://cover.com',
-            authorIds: [1, 2]
         );
 
         $this->transaction->expects($this->once())->method('begin');
@@ -154,19 +149,12 @@ final class CreateBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(Book::class))
-            ->willReturnCallback(function (Book $book) {
+            ->willReturnCallback(static function (Book $_book): void {
             });
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Failed to retrieve book ID after save');
 
         $this->useCase->execute($command);
-    }
-
-    private function assignBookId(Book $book, int $id): void
-    {
-        $method = new \ReflectionMethod(Book::class, 'setId');
-        $method->setAccessible(true);
-        $method->invoke($book, $id);
     }
 }

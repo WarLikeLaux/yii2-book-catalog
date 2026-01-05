@@ -16,6 +16,11 @@ final class DbCleaner
         }
 
         $db = Yii::$app->db;
+        $transaction = $db->getTransaction();
+
+        if ($transaction !== null && $transaction->getIsActive()) {
+            $transaction->rollBack();
+        }
 
         if ($db->driverName === 'pgsql') {
             self::truncatePostgres($db, $tables);
@@ -32,11 +37,11 @@ final class DbCleaner
     {
         $quotedTables = array_map(
             static fn (string $table): string => $db->quoteTableName($table),
-            $tables
+            $tables,
         );
 
         $db->createCommand(
-            'TRUNCATE TABLE ' . implode(', ', $quotedTables) . ' RESTART IDENTITY CASCADE'
+            'TRUNCATE TABLE ' . implode(', ', $quotedTables) . ' RESTART IDENTITY CASCADE',
         )->execute();
     }
 

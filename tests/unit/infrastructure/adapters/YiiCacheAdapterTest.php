@@ -14,7 +14,6 @@ use yii\redis\Connection as RedisConnection;
 final class YiiCacheAdapterTest extends Unit
 {
     private YiiCache&MockObject $yiiCache;
-
     private YiiCacheAdapter $adapter;
 
     protected function _before(): void
@@ -25,7 +24,7 @@ final class YiiCacheAdapterTest extends Unit
 
     public function testGetOrSetDelegatesToYiiCache(): void
     {
-        $callback = fn(): string => 'value';
+        $callback = static fn(): string => 'value';
 
         $this->yiiCache->expects($this->once())
             ->method('getOrSet')
@@ -39,7 +38,7 @@ final class YiiCacheAdapterTest extends Unit
 
     public function testGetOrSetWithCustomTtl(): void
     {
-        $callback = fn(): string => 'value';
+        $callback = static fn(): string => 'value';
 
         $this->yiiCache->expects($this->once())
             ->method('getOrSet')
@@ -97,11 +96,13 @@ final class YiiCacheAdapterTest extends Unit
         $callCount = 0;
         $redisConnection->expects($this->exactly(2))
             ->method('executeCommand')
-            ->willReturnCallback(function (string $command) use (&$callCount): mixed {
+            ->willReturnCallback(static function (string $command) use (&$callCount): mixed {
                 $callCount++;
+
                 if ($command === 'SCAN') {
                     return ['0', ['yii:prefix:key1']];
                 }
+
                 return 1; // DEL returns count of deleted keys
             });
 
@@ -149,14 +150,17 @@ final class YiiCacheAdapterTest extends Unit
         $scanCount = 0;
         $redisConnection->expects($this->exactly(4))
             ->method('executeCommand')
-            ->willReturnCallback(function (string $command) use (&$scanCount): mixed {
+            ->willReturnCallback(static function (string $command) use (&$scanCount): mixed {
                 if ($command === 'SCAN') {
                     $scanCount++;
+
                     if ($scanCount === 1) {
                         return ['5', ['key1']]; // cursor 5, continue
                     }
+
                     return ['0', ['key2']]; // cursor 0, stop
                 }
+
                 return 1;
             });
 
