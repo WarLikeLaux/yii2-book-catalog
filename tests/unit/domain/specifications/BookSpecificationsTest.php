@@ -6,6 +6,7 @@ namespace tests\unit\domain\specifications;
 
 use app\domain\specifications\AuthorSpecification;
 use app\domain\specifications\BookSearchSpecificationFactory;
+use app\domain\specifications\BookSpecificationVisitorInterface;
 use app\domain\specifications\CompositeOrSpecification;
 use app\domain\specifications\FullTextSpecification;
 use app\domain\specifications\IsbnPrefixSpecification;
@@ -14,60 +15,64 @@ use Codeception\Test\Unit;
 
 final class BookSpecificationsTest extends Unit
 {
-    public function testYearSpecificationReturnsCorrectCriteria(): void
+    public function testYearSpecificationGetterAndAccept(): void
     {
         $spec = new YearSpecification(2024);
 
-        $criteria = $spec->toSearchCriteria();
+        $this->assertSame(2024, $spec->getYear());
 
-        $this->assertSame('year', $criteria['type']);
-        $this->assertSame(2024, $criteria['value']);
+        $visitor = $this->createMock(BookSpecificationVisitorInterface::class);
+        $visitor->expects($this->once())->method('visitYear')->with($spec);
+        $spec->accept($visitor);
     }
 
-    public function testIsbnPrefixSpecificationReturnsCorrectCriteria(): void
+    public function testIsbnPrefixSpecificationGetterAndAccept(): void
     {
         $spec = new IsbnPrefixSpecification('978-3');
 
-        $criteria = $spec->toSearchCriteria();
+        $this->assertSame('978-3', $spec->getPrefix());
 
-        $this->assertSame('isbn_prefix', $criteria['type']);
-        $this->assertSame('978-3', $criteria['value']);
+        $visitor = $this->createMock(BookSpecificationVisitorInterface::class);
+        $visitor->expects($this->once())->method('visitIsbnPrefix')->with($spec);
+        $spec->accept($visitor);
     }
 
-    public function testFullTextSpecificationReturnsCorrectCriteria(): void
+    public function testFullTextSpecificationGetterAndAccept(): void
     {
         $spec = new FullTextSpecification('clean code');
 
-        $criteria = $spec->toSearchCriteria();
+        $this->assertSame('clean code', $spec->getQuery());
 
-        $this->assertSame('fulltext', $criteria['type']);
-        $this->assertSame('clean code', $criteria['value']);
+        $visitor = $this->createMock(BookSpecificationVisitorInterface::class);
+        $visitor->expects($this->once())->method('visitFullText')->with($spec);
+        $spec->accept($visitor);
     }
 
-    public function testAuthorSpecificationReturnsCorrectCriteria(): void
+    public function testAuthorSpecificationGetterAndAccept(): void
     {
         $spec = new AuthorSpecification('Martin Fowler');
 
-        $criteria = $spec->toSearchCriteria();
+        $this->assertSame('Martin Fowler', $spec->getAuthorName());
 
-        $this->assertSame('author', $criteria['type']);
-        $this->assertSame('Martin Fowler', $criteria['value']);
+        $visitor = $this->createMock(BookSpecificationVisitorInterface::class);
+        $visitor->expects($this->once())->method('visitAuthor')->with($spec);
+        $spec->accept($visitor);
     }
 
-    public function testCompositeOrSpecificationCombinesMultipleSpecs(): void
+    public function testCompositeOrSpecificationGetterAndAccept(): void
     {
         $yearSpec = new YearSpecification(2024);
         $authorSpec = new AuthorSpecification('Kent Beck');
         $composite = new CompositeOrSpecification([$yearSpec, $authorSpec]);
 
-        $criteria = $composite->toSearchCriteria();
+        $specs = $composite->getSpecifications();
+        $this->assertCount(2, $specs);
+        $this->assertSame($yearSpec, $specs[0]);
+        $this->assertSame($authorSpec, $specs[1]);
 
-        $this->assertSame('or', $criteria['type']);
-        $this->assertCount(2, $criteria['value']);
-        $this->assertSame('year', $criteria['value'][0]['type']);
-        $this->assertSame(2024, $criteria['value'][0]['value']);
-        $this->assertSame('author', $criteria['value'][1]['type']);
-        $this->assertSame('Kent Beck', $criteria['value'][1]['value']);
+        $visitor = $this->createMock(BookSpecificationVisitorInterface::class);
+        $visitor->expects($this->once())->method('visitCompositeOr')->with($composite);
+        $composite->accept($visitor);
     }
 
     public function testFactoryCreatesYearSpecForFourDigitNumber(): void
@@ -75,11 +80,12 @@ final class BookSpecificationsTest extends Unit
         $factory = new BookSearchSpecificationFactory();
 
         $spec = $factory->createFromSearchTerm('2024');
-        $criteria = $spec->toSearchCriteria();
 
-        $this->assertSame('or', $criteria['type']);
-        $this->assertCount(4, $criteria['value']);
-        $this->assertSame('year', $criteria['value'][0]['type']);
+        $this->assertInstanceOf(CompositeOrSpecification::class, $spec);
+        $children = $spec->getSpecifications();
+        $this->assertCount(4, $children);
+        $this->assertInstanceOf(YearSpecification::class, $children[0]);
+        $this->assertSame(2024, $children[0]->getYear());
     }
 
     public function testFactoryDoesNotTreatSuffixAsYear(): void
@@ -87,11 +93,11 @@ final class BookSpecificationsTest extends Unit
         $factory = new BookSearchSpecificationFactory();
 
         $spec = $factory->createFromSearchTerm('2024a');
-        $criteria = $spec->toSearchCriteria();
 
-        $this->assertSame('or', $criteria['type']);
-        $this->assertCount(3, $criteria['value']);
-        $this->assertSame('isbn_prefix', $criteria['value'][0]['type']);
+        $this->assertInstanceOf(CompositeOrSpecification::class, $spec);
+        $children = $spec->getSpecifications();
+        $this->assertCount(3, $children);
+        $this->assertInstanceOf(IsbnPrefixSpecification::class, $children[0]);
     }
 
     public function testFactoryDoesNotTreatPrefixAsYear(): void
@@ -99,11 +105,11 @@ final class BookSpecificationsTest extends Unit
         $factory = new BookSearchSpecificationFactory();
 
         $spec = $factory->createFromSearchTerm('a2024');
-        $criteria = $spec->toSearchCriteria();
 
-        $this->assertSame('or', $criteria['type']);
-        $this->assertCount(3, $criteria['value']);
-        $this->assertSame('isbn_prefix', $criteria['value'][0]['type']);
+        $this->assertInstanceOf(CompositeOrSpecification::class, $spec);
+        $children = $spec->getSpecifications();
+        $this->assertCount(3, $children);
+        $this->assertInstanceOf(IsbnPrefixSpecification::class, $children[0]);
     }
 
     public function testFactoryCreatesCompositeForRegularTerm(): void
@@ -111,13 +117,13 @@ final class BookSpecificationsTest extends Unit
         $factory = new BookSearchSpecificationFactory();
 
         $spec = $factory->createFromSearchTerm('clean');
-        $criteria = $spec->toSearchCriteria();
 
-        $this->assertSame('or', $criteria['type']);
-        $this->assertCount(3, $criteria['value']);
-        $this->assertSame('isbn_prefix', $criteria['value'][0]['type']);
-        $this->assertSame('fulltext', $criteria['value'][1]['type']);
-        $this->assertSame('author', $criteria['value'][2]['type']);
+        $this->assertInstanceOf(CompositeOrSpecification::class, $spec);
+        $children = $spec->getSpecifications();
+        $this->assertCount(3, $children);
+        $this->assertInstanceOf(IsbnPrefixSpecification::class, $children[0]);
+        $this->assertInstanceOf(FullTextSpecification::class, $children[1]);
+        $this->assertInstanceOf(AuthorSpecification::class, $children[2]);
     }
 
     public function testFactoryReturnsEmptyFullTextForEmptyTerm(): void
@@ -125,10 +131,9 @@ final class BookSpecificationsTest extends Unit
         $factory = new BookSearchSpecificationFactory();
 
         $spec = $factory->createFromSearchTerm('');
-        $criteria = $spec->toSearchCriteria();
 
-        $this->assertSame('fulltext', $criteria['type']);
-        $this->assertSame('', $criteria['value']);
+        $this->assertInstanceOf(FullTextSpecification::class, $spec);
+        $this->assertSame('', $spec->getQuery());
     }
 
     public function testFactoryReturnsEmptyFullTextForWhitespaceTerm(): void
@@ -136,9 +141,8 @@ final class BookSpecificationsTest extends Unit
         $factory = new BookSearchSpecificationFactory();
 
         $spec = $factory->createFromSearchTerm('   ');
-        $criteria = $spec->toSearchCriteria();
 
-        $this->assertSame('fulltext', $criteria['type']);
-        $this->assertSame('', $criteria['value']);
+        $this->assertInstanceOf(FullTextSpecification::class, $spec);
+        $this->assertSame('', $spec->getQuery());
     }
 }

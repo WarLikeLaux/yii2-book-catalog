@@ -16,11 +16,8 @@ use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
-use app\infrastructure\queries\BookQueryService;
 use Codeception\Test\Unit;
 use Yii;
-use yii\db\Connection;
-use yii\db\Expression;
 
 final class BookQueryServiceTest extends Unit
 {
@@ -324,98 +321,5 @@ final class BookQueryServiceTest extends Unit
         $result = $this->queryService->searchBySpecification($composite, 1, 10);
 
         $this->assertGreaterThanOrEqual(1, $result->getTotalCount());
-    }
-
-    public function testBuildBooksFulltextExpressionForMysql(): void
-    {
-        $service = $this->createServiceWithDriver('mysql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildBooksFulltextExpression', ['hello world']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            'MATCH(title, description) AGAINST(:query IN BOOLEAN MODE)',
-            $expression->expression,
-        );
-        $this->assertSame('+hello* +world*', $expression->params[':query']);
-    }
-
-    public function testBuildBooksFulltextExpressionForMysqlReturnsNullOnEmptyQuery(): void
-    {
-        $service = $this->createServiceWithDriver('mysql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildBooksFulltextExpression', ['+++']);
-
-        $this->assertNull($expression);
-    }
-
-    public function testBuildBooksFulltextExpressionForPgsql(): void
-    {
-        $service = $this->createServiceWithDriver('pgsql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildBooksFulltextExpression', ['Hello']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '')) @@ plainto_tsquery('english', :query)",
-            $expression->expression,
-        );
-        $this->assertSame('Hello', $expression->params[':query']);
-    }
-
-    public function testBuildBooksFulltextExpressionForPgsqlReturnsNullOnSanitizedEmpty(): void
-    {
-        $service = $this->createServiceWithDriver('pgsql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildBooksFulltextExpression', ['!!!']);
-
-        $this->assertNull($expression);
-    }
-
-    public function testBuildAuthorsFulltextExpressionForMysql(): void
-    {
-        $service = $this->createServiceWithDriver('mysql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildAuthorsFulltextExpression', ['Author Name']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            'MATCH(authors.fio) AGAINST(:query IN BOOLEAN MODE)',
-            $expression->expression,
-        );
-        $this->assertSame('+Author* +Name*', $expression->params[':query']);
-    }
-
-    public function testBuildAuthorsFulltextExpressionForPgsql(): void
-    {
-        $service = $this->createServiceWithDriver('pgsql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildAuthorsFulltextExpression', ['Author']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            "to_tsvector('english', coalesce(authors.fio, '')) @@ plainto_tsquery('english', :query)",
-            $expression->expression,
-        );
-        $this->assertSame('Author', $expression->params[':query']);
-    }
-
-    private function createServiceWithDriver(string $driverName): BookQueryService
-    {
-        $connection = new Connection();
-        $connection->setDriverName($driverName);
-
-        return new BookQueryService($connection);
-    }
-
-    /**
-     * @param array<int, mixed> $arguments
-     */
-    private function invokePrivateMethod(object $target, string $method, array $arguments): mixed
-    {
-        $reflection = new \ReflectionMethod($target, $method);
-        $reflection->setAccessible(true);
-
-        return $reflection->invokeArgs($target, $arguments);
     }
 }
