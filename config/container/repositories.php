@@ -38,14 +38,12 @@ return static fn (array $_params) => [
         IdempotencyRepositoryTracingDecorator::class,
     ),
 
-    RateLimitRepository::class => static fn() => new RateLimitRepository(Yii::$app->get('redis')),
     RateLimitInterface::class => static fn(Container $c): RateLimitInterface => TracingFactory::create(
         $c,
         RateLimitRepository::class,
         RateLimitRepositoryTracingDecorator::class,
     ),
 
-    BookRepository::class => static fn() => new BookRepository(Yii::$app->get('db')),
     BookRepositoryInterface::class => static fn(Container $c): BookRepositoryInterface => TracingFactory::create(
         $c,
         BookRepository::class,
@@ -58,14 +56,12 @@ return static fn (array $_params) => [
         AuthorRepositoryTracingDecorator::class,
     ),
 
-    SubscriptionRepository::class => static fn() => new SubscriptionRepository(Yii::$app->get('db')),
     SubscriptionRepositoryInterface::class => static fn(Container $c): SubscriptionRepositoryInterface => TracingFactory::create(
         $c,
         SubscriptionRepository::class,
         SubscriptionRepositoryTracingDecorator::class,
     ),
 
-    ReportRepository::class => static fn() => new ReportRepository(Yii::$app->get('db')),
     ReportRepositoryInterface::class => static fn(Container $c): ReportRepositoryInterface => TracingFactory::create(
         $c,
         ReportRepository::class,

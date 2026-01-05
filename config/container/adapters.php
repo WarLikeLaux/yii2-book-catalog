@@ -51,11 +51,9 @@ return static fn (array $_params) => [
             NotificationInterface::class => FlashNotificationService::class,
             TranslatorInterface::class => YiiTranslatorAdapter::class,
 
-            MutexInterface::class => static fn() => new YiiMutexAdapter(Yii::$app->get('mutex')),
+            MutexInterface::class => YiiMutexAdapter::class,
 
-            TransactionInterface::class => static fn() => new YiiTransactionAdapter(Yii::$app->get('db')),
-
-            YiiQueueAdapter::class => static fn() => new YiiQueueAdapter(Yii::$app->get('queue')),
+            TransactionInterface::class => YiiTransactionAdapter::class,
 
             QueueInterface::class => static fn(Container $c): QueueInterface => TracingFactory::create(
                 $c,
@@ -63,7 +61,7 @@ return static fn (array $_params) => [
                 QueueTracingDecorator::class,
             ),
 
-            CacheInterface::class => static fn() => new YiiCacheAdapter(Yii::$app->get('cache')),
+            CacheInterface::class => YiiCacheAdapter::class,
 
             EventToJobMapperInterface::class => EventToJobMapper::class,
 
@@ -73,7 +71,7 @@ return static fn (array $_params) => [
                 $c->get(ReportCacheInvalidationListener::class),
             ),
 
-            SystemInfoProviderInterface::class => static fn() => new SystemInfoAdapter(Yii::$app->get('db')),
+            SystemInfoProviderInterface::class => SystemInfoAdapter::class,
         ],
         'singletons' => [
             TracerInterface::class => static function (Container $_c): TracerInterface {

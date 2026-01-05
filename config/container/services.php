@@ -35,14 +35,12 @@ use yii\di\Instance;
 
 return static fn (array $params) => [
     'definitions' => [
-        BookQueryService::class => static fn() => new BookQueryService(Yii::$app->get('db')),
         BookQueryServiceInterface::class => static fn(Container $c): BookQueryServiceInterface => TracingFactory::create(
             $c,
             BookQueryService::class,
             BookQueryServiceTracingDecorator::class,
         ),
 
-        AuthorQueryService::class => static fn() => new AuthorQueryService(Yii::$app->get('db')),
         AuthorQueryServiceInterface::class => AuthorQueryService::class,
 
         ReportQueryService::class => [
