@@ -6,7 +6,8 @@ namespace tests\unit\presentation\books\handlers;
 
 use app\application\authors\queries\AuthorQueryService;
 use app\application\books\queries\BookReadDto;
-use app\application\ports\BookQueryServiceInterface;
+use app\application\ports\BookFinderInterface;
+use app\application\ports\BookSearcherInterface;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookViewDataFactory;
 use app\presentation\books\mappers\BookFormMapper;
@@ -18,7 +19,8 @@ use yii\web\NotFoundHttpException;
 
 final class BookViewDataFactoryTest extends Unit
 {
-    private BookQueryServiceInterface&MockObject $bookQueryService;
+    private BookFinderInterface&MockObject $finder;
+    private BookSearcherInterface&MockObject $searcher;
     private AuthorQueryService&MockObject $authorQueryService;
     private BookFormMapper&MockObject $mapper;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
@@ -27,14 +29,16 @@ final class BookViewDataFactoryTest extends Unit
 
     protected function _before(): void
     {
-        $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
+        $this->finder = $this->createMock(BookFinderInterface::class);
+        $this->searcher = $this->createMock(BookSearcherInterface::class);
         $this->authorQueryService = $this->createMock(AuthorQueryService::class);
         $this->mapper = $this->createMock(BookFormMapper::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $this->resolver = new FileUrlResolver('/uploads');
 
         $this->factory = new BookViewDataFactory(
-            $this->bookQueryService,
+            $this->finder,
+            $this->searcher,
             $this->authorQueryService,
             $this->mapper,
             $this->dataProviderFactory,
@@ -44,7 +48,7 @@ final class BookViewDataFactoryTest extends Unit
 
     public function testGetBookForUpdateThrowsNotFoundWhenBookNotExists(): void
     {
-        $this->bookQueryService->expects($this->once())
+        $this->finder->expects($this->once())
             ->method('findById')
             ->with(999)
             ->willReturn(null);
@@ -71,7 +75,7 @@ final class BookViewDataFactoryTest extends Unit
 
         $form = $this->createMock(BookForm::class);
 
-        $this->bookQueryService->expects($this->once())
+        $this->finder->expects($this->once())
             ->method('findById')
             ->with(1)
             ->willReturn($dto);
@@ -88,7 +92,7 @@ final class BookViewDataFactoryTest extends Unit
 
     public function testGetBookViewThrowsNotFoundWhenBookNotExists(): void
     {
-        $this->bookQueryService->expects($this->once())
+        $this->finder->expects($this->once())
             ->method('findById')
             ->with(888)
             ->willReturn(null);
@@ -113,7 +117,7 @@ final class BookViewDataFactoryTest extends Unit
             version: 1,
         );
 
-        $this->bookQueryService->expects($this->once())
+        $this->finder->expects($this->once())
             ->method('findById')
             ->with(2)
             ->willReturn($dto);
