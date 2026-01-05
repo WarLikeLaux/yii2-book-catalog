@@ -7,7 +7,8 @@ namespace app\presentation\books\handlers;
 use app\application\authors\queries\AuthorQueryService;
 use app\application\books\queries\BookReadDto;
 use app\application\common\dto\QueryResult;
-use app\application\ports\BookQueryServiceInterface;
+use app\application\ports\BookFinderInterface;
+use app\application\ports\BookSearcherInterface;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookFormMapper;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
@@ -18,7 +19,8 @@ use yii\web\NotFoundHttpException;
 final readonly class BookViewDataFactory
 {
     public function __construct(
-        private BookQueryServiceInterface $bookQueryService,
+        private BookFinderInterface $finder,
+        private BookSearcherInterface $searcher,
         private AuthorQueryService $authorQueryService,
         private BookFormMapper $mapper,
         private PagedResultDataProviderFactory $dataProviderFactory,
@@ -28,7 +30,7 @@ final readonly class BookViewDataFactory
 
     public function getIndexDataProvider(int $page, int $pageSize): DataProviderInterface
     {
-        $queryResult = $this->bookQueryService->search('', $page, $pageSize);
+        $queryResult = $this->searcher->search('', $page, $pageSize);
 
         $dtos = array_map(
             fn(mixed $dto): BookReadDto => $dto instanceof BookReadDto
@@ -48,7 +50,7 @@ final readonly class BookViewDataFactory
 
     public function getBookForUpdate(int $id): BookForm
     {
-        $dto = $this->bookQueryService->findById($id);
+        $dto = $this->finder->findById($id);
 
         if (!$dto instanceof BookReadDto) {
              throw new NotFoundHttpException();
@@ -59,7 +61,7 @@ final readonly class BookViewDataFactory
 
     public function getBookView(int $id): BookReadDto
     {
-        $dto = $this->bookQueryService->findById($id);
+        $dto = $this->finder->findById($id);
 
         if (!$dto instanceof BookReadDto) {
              throw new NotFoundHttpException();
