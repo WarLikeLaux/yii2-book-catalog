@@ -139,7 +139,8 @@ final class PublishBookUseCaseTest extends Unit
             id: 42,
             title: 'Test Book',
             year: 2024,
-            description: 'Test',
+            description: 'This is a valid description that is long enough to pass the minimum requirement.',
+            coverImage: 'covers/test.jpg',
             authorIds: [1],
             published: false,
         );

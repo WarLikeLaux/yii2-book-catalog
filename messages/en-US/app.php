@@ -50,6 +50,8 @@ return [
     'book.error.title_empty' => 'Book title cannot be empty',
     'book.error.title_too_long' => 'Book title is too long',
     'book.error.publish_without_authors' => 'Cannot publish book without authors',
+    'book.error.publish_without_cover' => 'Cannot publish book without cover',
+    'book.error.publish_short_description' => 'Book description must be at least 50 characters to publish',
     'book.error.isbn_change_published' => 'Cannot change ISBN of published book',
     'book.error.stale_data' => 'Stale data. Refresh the page and try again.',
     'book.error.invalid_author_id' => 'Invalid author ID',

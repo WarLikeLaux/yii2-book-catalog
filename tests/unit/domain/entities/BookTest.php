@@ -39,6 +39,24 @@ final class BookTest extends Unit
         return $book;
     }
 
+    private function createPublishableBook(int ...$authorIds): Book
+    {
+        $description = 'This is a valid description that is long enough to pass the minimum requirement of 50 characters.';
+        $book = Book::create(
+            'Publishable Book',
+            new BookYear(2024, new \DateTimeImmutable()),
+            new Isbn('978-3-16-148410-0'),
+            $description,
+            new StoredFileReference('covers/test.jpg'),
+        );
+
+        if ($authorIds) {
+            $book->replaceAuthors($authorIds);
+        }
+
+        return $book;
+    }
+
     public function testCreate(): void
     {
         $book = $this->createBook();
@@ -163,7 +181,7 @@ final class BookTest extends Unit
 
     public function testPublishWithAuthorsSucceeds(): void
     {
-        $book = $this->createBookWithAuthors(1, 2);
+        $book = $this->createPublishableBook(1, 2);
         $book->publish(new BookPublicationPolicy());
 
         $this->assertTrue($book->published);
@@ -181,7 +199,7 @@ final class BookTest extends Unit
 
     public function testChangeIsbnOnPublishedBookThrows(): void
     {
-        $book = $this->createBookWithAuthors(1);
+        $book = $this->createPublishableBook(1);
         $book->publish(new BookPublicationPolicy());
 
         $this->expectException(DomainException::class);
@@ -192,7 +210,7 @@ final class BookTest extends Unit
 
     public function testSameIsbnOnPublishedBookSucceeds(): void
     {
-        $book = $this->createBookWithAuthors(1);
+        $book = $this->createPublishableBook(1);
         $book->publish(new BookPublicationPolicy());
         $book->rename('New Title');
 
