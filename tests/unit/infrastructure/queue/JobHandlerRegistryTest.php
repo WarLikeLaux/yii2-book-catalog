@@ -11,46 +11,56 @@ use app\infrastructure\queue\NotifySingleSubscriberJob;
 use app\infrastructure\queue\NotifySubscribersJob;
 use Codeception\Test\Unit;
 use InvalidArgumentException;
-use Yii;
+use yii\di\Container;
 use yii\queue\Queue;
 
 final class JobHandlerRegistryTest extends Unit
 {
     public function testHandleDispatchesNotifySubscribersJob(): void
     {
-        $notifySubscribersHandler = $this->createMock(NotifySubscribersHandler::class);
+        $handler = $this->createMock(NotifySubscribersHandler::class);
+        $container = $this->createMock(Container::class);
         $queue = $this->createMock(Queue::class);
+        $job = new NotifySubscribersJob(10, 'Title');
 
-        $notifySubscribersHandler->expects($this->once())
+        $container->expects($this->once())
+            ->method('get')
+            ->with(NotifySubscribersHandler::class)
+            ->willReturn($handler);
+
+        $handler->expects($this->once())
             ->method('handle')
             ->with(10, 'Title', $queue);
 
-        Yii::$container->set(NotifySubscribersHandler::class, $notifySubscribersHandler);
-
-        $registry = new JobHandlerRegistry();
-        $registry->handle(new NotifySubscribersJob(10, 'Title'), $queue);
+        $registry = new JobHandlerRegistry($container);
+        $registry->handle($job, $queue);
     }
 
     public function testHandleDispatchesNotifySingleSubscriberJob(): void
     {
-        $notifySingleSubscriberHandler = $this->createMock(NotifySingleSubscriberHandler::class);
+        $handler = $this->createMock(NotifySingleSubscriberHandler::class);
+        $container = $this->createMock(Container::class);
         $queue = $this->createMock(Queue::class);
+        $job = new NotifySingleSubscriberJob('+7900', 'Message', 5);
 
-        $notifySingleSubscriberHandler->expects($this->once())
+        $container->expects($this->once())
+            ->method('get')
+            ->with(NotifySingleSubscriberHandler::class)
+            ->willReturn($handler);
+
+        $handler->expects($this->once())
             ->method('handle')
             ->with('+7900', 'Message', 5);
 
-        Yii::$container->set(NotifySingleSubscriberHandler::class, $notifySingleSubscriberHandler);
-
-        $registry = new JobHandlerRegistry();
-        $registry->handle(new NotifySingleSubscriberJob('+7900', 'Message', 5), $queue);
+        $registry = new JobHandlerRegistry($container);
+        $registry->handle($job, $queue);
     }
 
     public function testHandleThrowsOnUnsupportedJob(): void
     {
+        $container = $this->createMock(Container::class);
         $queue = $this->createMock(Queue::class);
-
-        $registry = new JobHandlerRegistry();
+        $registry = new JobHandlerRegistry($container);
 
         $this->expectException(InvalidArgumentException::class);
         $registry->handle(new \stdClass(), $queue);

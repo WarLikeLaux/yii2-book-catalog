@@ -7,21 +7,37 @@ namespace app\infrastructure\queue;
 use app\infrastructure\queue\handlers\NotifySingleSubscriberHandler;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use InvalidArgumentException;
+use yii\di\Container;
 use yii\queue\Queue;
 
-final class JobHandlerRegistry
+/**
+ * NOTE: Реализует паттерн Command Bus для обхода ограничений сериализации Yii Queue.
+ * @see docs/DECISIONS.md (см. пункт "6. DI в фоновых задачах")
+ */
+final readonly class JobHandlerRegistry
 {
+    public function __construct(
+        private Container $container,
+    ) {
+    }
+
     public function handle(object $job, Queue $queue): void
     {
         if ($job instanceof NotifySubscribersJob) {
-            \Yii::$container->get(NotifySubscribersHandler::class)
-                ->handle($job->bookId, $job->title, $queue);
+            $this->container->get(NotifySubscribersHandler::class)->handle(
+                $job->bookId,
+                $job->title,
+                $queue,
+            );
             return;
         }
 
         if ($job instanceof NotifySingleSubscriberJob) {
-            \Yii::$container->get(NotifySingleSubscriberHandler::class)
-                ->handle($job->phone, $job->message, $job->bookId);
+            $this->container->get(NotifySingleSubscriberHandler::class)->handle(
+                $job->phone,
+                $job->message,
+                $job->bookId,
+            );
             return;
         }
 
