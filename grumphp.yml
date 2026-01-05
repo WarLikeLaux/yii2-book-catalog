@@ -10,5 +10,13 @@ grumphp:
       standard: [phpcs.xml.dist]
     jsonlint: ~
     xmllint: ~
+    shell:
+      scripts:
+        deptrac:
+          command: "make _arch-deptrac"
+          description: "🏛️  Checking architecture layers (Deptrac)"
+        phparkitect:
+          command: "make _arch-arkitect"
+          description: "🏛️  Checking architecture patterns (PHPArkitect)"
   testsuites: []
   extensions: []

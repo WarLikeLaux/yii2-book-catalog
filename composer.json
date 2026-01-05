@@ -64,7 +64,8 @@
         "phpro/grumphp": "^2.18",
         "dg/bypass-finals": "^1.9",
         "psy/psysh": "^0.12.18",
-        "symfony/yaml": "^7.4"
+        "symfony/yaml": "^7.4",
+        "phparkitect/phparkitect": "^0.7.0"
     },
     "autoload": {
         "psr-4": {

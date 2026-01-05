@@ -36,8 +36,8 @@ help:
 	@echo "  test-e2e         🎭 Только E2E-тесты (acceptance)"
 	@echo "  cov              📊 Отчет покрытия (из последнего запуска)"
 	@echo "  infection        🧟 Мутационное тестирование (только полный прогон)"
-	@echo "  deptrac          🏗️  Архитектурный анализ"
-	@echo "  check            🛡️  Экспресс-проверка (dev + deptrac + test)"
+	@echo "  arch             🏛️  Архитектурная проверка (Deptrac + Arkitect)"
+	@echo "  check            🛡️  Экспресс-проверка (dev + arch + test)"
 	@echo "  pr               🚀 Полная проверка (check + e2e + infection)"
 	@echo ""
 	@echo "💻 РАЗРАБОТКА:"
@@ -241,7 +241,7 @@ _dev_file:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process $(FILE_ARG) || true
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs $(FILE_ARG) || true
 	@echo "✅ Готово"
-check: dev deptrac test
+check: dev arch test
 pr: docs check test-e2e infection
 
 lint:
@@ -261,6 +261,17 @@ analyze:
 
 deptrac:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/deptrac analyze
+
+arkitect:
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phparkitect check
+
+_arch-deptrac:
+	./vendor/bin/deptrac analyze
+
+_arch-arkitect:
+	./vendor/bin/phparkitect check
+
+arch: deptrac arkitect
 
 audit:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer audit
