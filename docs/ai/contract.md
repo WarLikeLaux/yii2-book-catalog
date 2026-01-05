@@ -36,6 +36,9 @@
 - **No Unsafe Casts**: Запрещено `(string)$mixed` без гарантии скалярности.
 - **Generics**: Используй `array<string, mixed>`, `iterable<User>` в PHPDoc.
 
+### Переводы (i18n)
+- **SSOT**: любой новый ключ (ошибки, уведомления, UI) = обязательный перевод в `messages/` (ru + en).
+
 ### Именование
 - **Классы**: `UserService`, `BookRepository`, `CreateBookCommand`
 - **Методы**: `camelCase`, глагол + объект: `createBook`, `findBySlug`
