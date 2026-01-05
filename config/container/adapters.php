@@ -13,7 +13,9 @@ use app\application\ports\SystemInfoProviderInterface;
 use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
+use app\domain\events\BookPublishedEvent;
 use app\infrastructure\adapters\decorators\QueueTracingDecorator;
+use app\infrastructure\adapters\EventJobMappingRegistry;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
 use app\infrastructure\adapters\SystemInfoAdapter;
@@ -26,6 +28,7 @@ use app\infrastructure\adapters\YiiTransactionAdapter;
 use app\infrastructure\adapters\YiiTranslatorAdapter;
 use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\listeners\ReportCacheInvalidationListener;
+use app\infrastructure\queue\NotifySubscribersJob;
 use app\infrastructure\services\notifications\FlashNotificationService;
 use app\infrastructure\services\observability\InspectorTracer;
 use app\infrastructure\services\observability\NullTracer;
@@ -62,6 +65,13 @@ return static fn (array $_params) => [
             ),
 
             CacheInterface::class => YiiCacheAdapter::class,
+
+            EventJobMappingRegistry::class => static fn(): EventJobMappingRegistry => new EventJobMappingRegistry([
+                BookPublishedEvent::class => static fn(BookPublishedEvent $e): NotifySubscribersJob => new NotifySubscribersJob(
+                    bookId: $e->bookId,
+                    title: $e->title,
+                ),
+            ]),
 
             EventToJobMapperInterface::class => EventToJobMapper::class,
 
