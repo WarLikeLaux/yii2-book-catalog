@@ -15,6 +15,7 @@ return [
         'baseUrl' => '/uploads',
         'tempBasePath' => '@app/web/uploads/temp',
         'tempBaseUrl' => '/uploads/temp',
+        'placeholderUrl' => 'https://picsum.photos/seed/{seed}/400/600',
     ],
     'idempotency' => [
         'ttl' => (int)env('IDEMPOTENCY_TTL', 86400),

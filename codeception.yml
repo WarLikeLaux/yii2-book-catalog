@@ -16,6 +16,7 @@ modules:
 coverage:
     enabled: true
     show_uncovered: true
+    show_only_summary: true
     report:
         html: coverage
         text: coverage.txt
