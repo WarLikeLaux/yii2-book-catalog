@@ -43,12 +43,14 @@ final readonly class ActiveQueryBookSpecificationVisitor implements BookSpecific
         }
 
         $fulltextExpr = $this->buildBooksFulltextExpression($term);
+        $likeCondition = $this->buildLikeFallback($term, ['title', 'description']);
 
-        if (!($fulltextExpr instanceof Expression)) {
+        if ($fulltextExpr instanceof Expression) {
+            $this->query->andWhere(['or', $fulltextExpr, $likeCondition]);
             return;
         }
 
-        $this->query->andWhere($fulltextExpr);
+        $this->query->andWhere($likeCondition);
     }
 
     public function visitAuthor(AuthorSpecification $spec): void
@@ -171,5 +173,20 @@ final readonly class ActiveQueryBookSpecificationVisitor implements BookSpecific
         $subQuery->andWhere($authorConditions);
 
         return ['exists', $subQuery];
+    }
+
+    /**
+     * @param string[] $columns
+     * @return array<int|string, mixed>
+     */
+    private function buildLikeFallback(string $term, array $columns): array
+    {
+        $conditions = ['or'];
+
+        foreach ($columns as $column) {
+            $conditions[] = ['like', $column, $term];
+        }
+
+        return $conditions;
     }
 }

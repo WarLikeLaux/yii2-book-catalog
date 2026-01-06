@@ -52,8 +52,10 @@ final class ActiveQueryBookSpecificationVisitorTest extends Unit
         $query = $this->createMock(ActiveQuery::class);
         $query->expects($this->once())
             ->method('andWhere')
-            ->with($this->callback(static fn ($expr): bool => $expr instanceof Expression
-                    && str_contains($expr->expression, 'MATCH')));
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && $conditions[1] instanceof Expression
+                    && str_contains($conditions[1]->expression, 'MATCH')));
 
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
         $visitor->visitFullText(new FullTextSpecification('clean code'));
@@ -64,26 +66,36 @@ final class ActiveQueryBookSpecificationVisitorTest extends Unit
         $query = $this->createMock(ActiveQuery::class);
         $query->expects($this->once())
             ->method('andWhere')
-            ->with($this->callback(static fn ($expr): bool => $expr instanceof Expression
-                    && str_contains($expr->expression, 'to_tsvector')));
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && $conditions[1] instanceof Expression
+                    && str_contains($conditions[1]->expression, 'to_tsvector')));
 
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('pgsql'));
         $visitor->visitFullText(new FullTextSpecification('clean code'));
     }
 
-    public function testVisitFullTextPgsqlWithSpecialCharsOnlyDoesNothing(): void
+    public function testVisitFullTextPgsqlWithSpecialCharsUsesLikeFallback(): void
     {
         $query = $this->createMock(ActiveQuery::class);
-        $query->expects($this->never())->method('andWhere');
+        $query->expects($this->once())
+            ->method('andWhere')
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && isset($conditions[1][0]) && $conditions[1][0] === 'like'));
 
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('pgsql'));
         $visitor->visitFullText(new FullTextSpecification('!!!'));
     }
 
-    public function testVisitFullTextSqliteDoesNothing(): void
+    public function testVisitFullTextSqliteUsesLikeFallback(): void
     {
         $query = $this->createMock(ActiveQuery::class);
-        $query->expects($this->never())->method('andWhere');
+        $query->expects($this->once())
+            ->method('andWhere')
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && isset($conditions[1][0]) && $conditions[1][0] === 'like'));
 
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('sqlite'));
         $visitor->visitFullText(new FullTextSpecification('hello'));
@@ -127,10 +139,14 @@ final class ActiveQueryBookSpecificationVisitorTest extends Unit
         $visitor->visitCompositeOr(new CompositeOrSpecification([]));
     }
 
-    public function testVisitFullTextMysqlWithOnlySpecialCharsDoesNothing(): void
+    public function testVisitFullTextMysqlWithOnlySpecialCharsUsesLikeFallback(): void
     {
         $query = $this->createMock(ActiveQuery::class);
-        $query->expects($this->never())->method('andWhere');
+        $query->expects($this->once())
+            ->method('andWhere')
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && isset($conditions[1][0]) && $conditions[1][0] === 'like'));
 
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
         $visitor->visitFullText(new FullTextSpecification('+++'));

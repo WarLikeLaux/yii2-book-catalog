@@ -42,4 +42,19 @@ final class QueryResultTest extends Unit
 
         $this->assertNull($result->getPagination());
     }
+
+    public function testWithModelsReturnsNewInstanceWithUpdatedModels(): void
+    {
+        $originalModels = [(object)['id' => 1]];
+        $newModels = [(object)['id' => 2], (object)['id' => 3]];
+        $pagination = new PaginationDto(1, 10, 100, 10);
+
+        $original = new QueryResult($originalModels, 100, $pagination);
+        $updated = $original->withModels($newModels);
+
+        $this->assertNotSame($original, $updated);
+        $this->assertSame($newModels, $updated->getModels());
+        $this->assertSame(100, $updated->getTotalCount());
+        $this->assertSame($pagination, $updated->getPagination());
+    }
 }

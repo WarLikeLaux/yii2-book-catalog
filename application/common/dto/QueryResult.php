@@ -35,4 +35,12 @@ final readonly class QueryResult implements PagedResultInterface
     {
         return $this->pagination;
     }
+
+    /**
+     * @param array<int, object> $models
+     */
+    public function withModels(array $models): self
+    {
+        return new self($models, $this->totalCount, $this->pagination);
+    }
 }

@@ -31,6 +31,22 @@ final readonly class BookReadDto implements JsonSerializable
         return $this->year !== null ? "{$this->title} ({$this->year})" : $this->title;
     }
 
+    public function withResolvedCoverUrl(string $resolvedUrl): self
+    {
+        return new self(
+            $this->id,
+            $this->title,
+            $this->year,
+            $this->description,
+            $this->isbn,
+            $this->authorIds,
+            $this->authorNames,
+            $resolvedUrl,
+            $this->isPublished,
+            $this->version,
+        );
+    }
+
     /** @return array<string, mixed> */
     public function jsonSerialize(): array
     {
