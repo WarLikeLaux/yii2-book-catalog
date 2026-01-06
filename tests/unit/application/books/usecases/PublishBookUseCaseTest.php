@@ -8,7 +8,6 @@ use app\application\books\commands\PublishBookCommand;
 use app\application\books\usecases\PublishBookUseCase;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookPublishedEvent;
 use app\domain\exceptions\DomainException;
@@ -20,7 +19,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class PublishBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-    private TransactionInterface&MockObject $transaction;
     private TransactionalEventPublisher&MockObject $eventPublisher;
     private BookPublicationPolicy $publicationPolicy;
     private PublishBookUseCase $useCase;
@@ -28,12 +26,10 @@ final class PublishBookUseCaseTest extends Unit
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
-        $this->transaction = $this->createMock(TransactionInterface::class);
         $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
         $this->publicationPolicy = new BookPublicationPolicy();
         $this->useCase = new PublishBookUseCase(
             $this->bookRepository,
-            $this->transaction,
             $this->eventPublisher,
             $this->publicationPolicy,
         );
@@ -58,28 +54,9 @@ final class PublishBookUseCaseTest extends Unit
         $command = new PublishBookCommand(bookId: 42);
         $useCase = new PublishBookUseCase(
             $this->bookRepository,
-            $this->transaction,
             $this->eventPublisher,
             $policy,
         );
-
-        $afterCommitCallback = null;
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())
-            ->method('afterCommit')
-            ->willReturnCallback(static function (callable $callback) use (&$afterCommitCallback): void {
-                $afterCommitCallback = $callback;
-            });
-        $this->transaction->expects($this->once())
-            ->method('commit')
-            ->willReturnCallback(static function () use (&$afterCommitCallback): void {
-                if ($afterCommitCallback === null) {
-                    return;
-                }
-
-                $afterCommitCallback();
-            });
-        $this->transaction->expects($this->never())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
             ->method('get')
@@ -94,10 +71,7 @@ final class PublishBookUseCaseTest extends Unit
             ->method('publishAfterCommit')
             ->with($this->callback(static fn (BookPublishedEvent $e): bool => $e->bookId === 42
                     && $e->title === 'Clean Code'
-                    && $e->year === 2008))
-            ->willReturnCallback(function (): void {
-                $this->transaction->afterCommit(static fn(): null => null);
-            });
+                    && $e->year === 2008));
 
         $useCase->execute($command);
     }
@@ -114,10 +88,6 @@ final class PublishBookUseCaseTest extends Unit
         );
 
         $command = new PublishBookCommand(bookId: 42);
-
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->never())->method('commit');
-        $this->transaction->expects($this->once())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
             ->method('get')
@@ -146,10 +116,6 @@ final class PublishBookUseCaseTest extends Unit
         );
 
         $command = new PublishBookCommand(bookId: 42);
-
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->never())->method('commit');
-        $this->transaction->expects($this->once())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
             ->method('get')

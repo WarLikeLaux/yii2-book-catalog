@@ -15,7 +15,6 @@ use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\dto\TemporaryFile;
 use app\application\ports\FileStorageInterface;
 use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\DomainException;
 use app\domain\exceptions\ValidationException;
 use app\domain\values\StoredFileReference;
 use app\presentation\books\forms\BookForm;
@@ -74,14 +73,7 @@ final class BookCommandHandlerTest extends Unit
             ->with($form, null)
             ->willReturn($command);
 
-        $this->createBookUseCase->expects($this->once())
-            ->method('execute')
-            ->with($command)
-            ->willReturn(42);
-
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static fn(callable $action) => $action());
+        $this->mockUseCaseRunnerSimple(42);
 
         $result = $this->handler->createBook($form);
 
@@ -101,12 +93,7 @@ final class BookCommandHandlerTest extends Unit
             ->with($form, $ref)
             ->willReturn($createCommand);
 
-        $this->createBookUseCase->expects($this->once())
-            ->method('execute')
-            ->with($createCommand)
-            ->willReturn(7);
-
-        $this->mockUseCaseRunnerSimple();
+        $this->mockUseCaseRunnerSimple(7);
 
         $result = $this->handler->createBook($form);
 
@@ -120,14 +107,8 @@ final class BookCommandHandlerTest extends Unit
 
         [$tempFile, $ref] = $this->createStorageFile();
         $this->fileStorage->method('saveTemporary')->willReturn($tempFile);
-        $this->fileStorage->method('moveToPermanent')->willReturn($ref);
-
         $this->createBookUseCase->method('execute')
             ->willThrowException(new ValidationException(DomainErrorCode::BookTitleEmpty));
-
-        $this->fileStorage->expects($this->once())
-            ->method('delete')
-            ->with((string)$ref);
 
         $this->mockUseCaseRunnerWithException();
 
@@ -158,8 +139,8 @@ final class BookCommandHandlerTest extends Unit
 
         $this->useCaseRunner->expects($this->once())
             ->method('executeWithFormErrors')
-            ->willReturnCallback(static function ($_action, $_msg, $onError) use ($exception): null {
-                $onError($exception);
+            ->willReturnCallback(static function ($_command, $_useCase, $_msg, $onDomainError, $_onError) use ($exception) {
+                $onDomainError($exception);
                 return null;
             });
 
@@ -180,13 +161,7 @@ final class BookCommandHandlerTest extends Unit
             ->with(123, $form, null)
             ->willReturn($command);
 
-        $this->updateBookUseCase->expects($this->once())
-            ->method('execute')
-            ->with($command);
-
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static fn(callable $action) => $action());
+        $this->mockUseCaseRunnerSimple(true);
 
         $result = $this->handler->updateBook(123, $form);
 
@@ -200,14 +175,8 @@ final class BookCommandHandlerTest extends Unit
 
         [$tempFile, $ref] = $this->createStorageFile();
         $this->fileStorage->method('saveTemporary')->willReturn($tempFile);
-        $this->fileStorage->method('moveToPermanent')->willReturn($ref);
-
         $this->updateBookUseCase->method('execute')
             ->willThrowException(new ValidationException(DomainErrorCode::BookTitleEmpty));
-
-        $this->fileStorage->expects($this->once())
-            ->method('delete')
-            ->with((string)$ref);
 
         $this->mockUseCaseRunnerWithException();
 
@@ -229,11 +198,7 @@ final class BookCommandHandlerTest extends Unit
             ->with(7, $form, $ref)
             ->willReturn($updateCommand);
 
-        $this->updateBookUseCase->expects($this->once())
-            ->method('execute')
-            ->with($updateCommand);
-
-        $this->mockUseCaseRunnerSimple();
+        $this->mockUseCaseRunnerSimple(true);
 
         $result = $this->handler->updateBook(7, $form);
 
@@ -246,14 +211,13 @@ final class BookCommandHandlerTest extends Unit
 
         $this->useCaseRunner->expects($this->once())
             ->method('execute')
-            ->willReturnCallback(static function (callable $useCase, string $_message, array $_context): bool {
-                $useCase();
-                return true;
-            });
-
-        $this->publishBookUseCase->expects($this->once())
-            ->method('execute')
-            ->with($this->isInstanceOf(PublishBookCommand::class));
+            ->with(
+                $this->isInstanceOf(PublishBookCommand::class),
+                $this->isInstanceOf(PublishBookUseCase::class),
+                $this->anything(),
+                $this->anything(),
+            )
+            ->willReturn(true);
 
         $result = $this->handler->publishBook($bookId);
 
@@ -266,14 +230,13 @@ final class BookCommandHandlerTest extends Unit
 
         $this->useCaseRunner->expects($this->once())
             ->method('execute')
-            ->willReturnCallback(static function (callable $useCase, string $_message, array $_context): bool {
-                $useCase();
-                return true;
-            });
-
-        $this->deleteBookUseCase->expects($this->once())
-            ->method('execute')
-            ->with($this->isInstanceOf(DeleteBookCommand::class));
+            ->with(
+                $this->isInstanceOf(DeleteBookCommand::class),
+                $this->isInstanceOf(DeleteBookUseCase::class),
+                $this->anything(),
+                $this->anything(),
+            )
+            ->willReturn(true);
 
         $result = $this->handler->deleteBook($bookId);
 
@@ -311,24 +274,26 @@ final class BookCommandHandlerTest extends Unit
         return $ref;
     }
 
-    private function mockUseCaseRunnerSimple(): void
+    private function mockUseCaseRunnerSimple(mixed $returnValue = null): void
     {
         $this->useCaseRunner->expects($this->once())
             ->method('executeWithFormErrors')
-            ->willReturnCallback(static fn(callable $action) => $action());
+            ->willReturn($returnValue);
     }
 
     private function mockUseCaseRunnerWithException(): void
     {
         $this->useCaseRunner->expects($this->once())
             ->method('executeWithFormErrors')
-            ->willReturnCallback(static function (callable $action, string $_msg, callable $onError) {
-                try {
-                    return $action();
-                } catch (DomainException $e) {
-                    $onError($e);
-                    return null;
-                }
+            ->willReturnCallback(static function ($_command, $_useCase, $_msg, $onDomainError, $_onError) {
+                // Simulate domain exception during execution
+                // In reality, executeWithFormErrors catches the exception.
+                // But since we are mocking it, we need to simulate calling the callback.
+                // However, executeWithFormErrors implementation calls pipeline->execute().
+                // If pipeline throws, it catches and calls $onDomainError.
+                // So here in mock, we just call $onDomainError directly to simulate that flow.
+                $onDomainError(new ValidationException(DomainErrorCode::BookTitleEmpty));
+                return null;
             });
     }
 }

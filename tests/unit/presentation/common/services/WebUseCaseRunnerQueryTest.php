@@ -4,20 +4,26 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\common\services;
 
+use app\application\common\pipeline\PipelineFactory;
+use app\application\ports\CommandInterface;
 use app\application\ports\NotificationInterface;
+use app\application\ports\PipelineInterface;
 use app\application\ports\TranslatorInterface;
+use app\application\ports\UseCaseInterface;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
 use app\presentation\common\services\WebUseCaseRunner;
 use Codeception\Test\Unit;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 final class WebUseCaseRunnerQueryTest extends Unit
 {
-    private NotificationInterface $notifier;
-    private LoggerInterface $logger;
-    private TranslatorInterface $translator;
+    private NotificationInterface&MockObject $notifier;
+    private LoggerInterface&MockObject $logger;
+    private TranslatorInterface&MockObject $translator;
+    private PipelineFactory&MockObject $pipelineFactory;
     private WebUseCaseRunner $runner;
 
     protected function _before(): void
@@ -25,7 +31,8 @@ final class WebUseCaseRunnerQueryTest extends Unit
         $this->notifier = $this->createMock(NotificationInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->translator = $this->createMock(TranslatorInterface::class);
-        $this->runner = new WebUseCaseRunner($this->notifier, $this->logger, $this->translator);
+        $this->pipelineFactory = $this->createMock(PipelineFactory::class);
+        $this->runner = new WebUseCaseRunner($this->notifier, $this->logger, $this->translator, $this->pipelineFactory);
     }
 
     public function testQueryReturnsResult(): void
@@ -67,13 +74,23 @@ final class WebUseCaseRunnerQueryTest extends Unit
 
     public function testExecuteForApiReturnsDomainError(): void
     {
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
+
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipeline->expects($this->once())
+            ->method('execute')
+            ->willThrowException(new ValidationException(DomainErrorCode::BookTitleEmpty));
+
         $this->translator->expects($this->once())
             ->method('translate')
             ->with('app', DomainErrorCode::BookTitleEmpty->value)
             ->willReturn(DomainErrorCode::BookTitleEmpty->value);
 
         $result = $this->runner->executeForApi(
-            static fn() => throw new ValidationException(DomainErrorCode::BookTitleEmpty),
+            $command,
+            $useCase,
             'success',
         );
 
@@ -83,13 +100,23 @@ final class WebUseCaseRunnerQueryTest extends Unit
 
     public function testExecuteForApiReturnsGenericError(): void
     {
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
+
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipeline->expects($this->once())
+            ->method('execute')
+            ->willThrowException(new RuntimeException('boom'));
+
         $this->translator->expects($this->once())
             ->method('translate')
             ->willReturn('error.unexpected');
         $this->logger->expects($this->once())->method('error');
 
         $result = $this->runner->executeForApi(
-            static fn() => throw new RuntimeException('boom'),
+            $command,
+            $useCase,
             'success',
         );
 
