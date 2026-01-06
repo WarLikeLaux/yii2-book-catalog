@@ -19,7 +19,7 @@ $coverUrl = $book->coverUrl ?? '';
             <?= Html::a(
                 Html::img($coverUrl, ['class' => 'card-img-top', 'alt' => $book->title, 'style' => 'width: 100%; height: 100%; object-fit: cover; cursor: pointer;', 'loading' => 'lazy']),
                 $coverUrl,
-                ['class' => 'glightbox', 'data-gallery' => 'books-gallery'],
+                ['class' => 'glightbox', 'data-gallery' => 'books-gallery', 'data-type' => 'image'],
             ) ?>
         </div>
         <?php endif; ?>
