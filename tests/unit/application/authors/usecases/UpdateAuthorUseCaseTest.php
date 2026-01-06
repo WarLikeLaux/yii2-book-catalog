@@ -41,7 +41,9 @@ final class UpdateAuthorUseCaseTest extends Unit
             ->method('save')
             ->with($this->callback(static fn (Author $author) => $author->id === 42 && $author->fio === 'Новое ФИО'));
 
-        $this->useCase->execute($command);
+        $result = $this->useCase->execute($command);
+
+        $this->assertTrue($result);
     }
 
     public function testExecuteThrowsExceptionWhenAuthorNotFound(): void
