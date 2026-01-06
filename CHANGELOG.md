@@ -6,6 +6,64 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.17.0] - 2026-01-06 — "Архитектурный сдвиг и бесконечный скролл"
+
+> Масштабный релиз, внедряющий современную инфраструктуру обработки команд (Command Pipeline), переход на типизированные коды ошибок и реализацию бесконечного скролла с использованием HTMX. Значительно усилен контроль качества через архитектурные тесты (PHPArkitect) и глубокий рефакторинг в соответствии с принципом разделения интерфейсов (ISP).
+
+<details>
+<summary>Подробности изменений</summary>
+### 🚀 Новые функции и возможности
+- **#31** - внедрена инфраструктура pipeline команд и middleware ([d1b5b0a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d1b5b0a))
+- **#31** - реализован интерфейс карточек книг с бесконечным скроллом на базе HTMX ([1220bc1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1220bc1))
+- **#31** - внедрена структура API v1 и мигрирован BookController ([0cfdbbf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0cfdbbf))
+- **#31** - реализован ActiveQuery visitor для спецификаций книг ([76eb8ce](https://github.com/WarLikeLaux/yii2-book-catalog/commit/76eb8ce))
+- **#31** - добавлен код ошибки идемпотентности и соответствующие переводы ([7c64e37](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7c64e37))
+- **#31** - улучшена BookPublicationPolicy: добавлены требования к обложке и описанию ([abfe953](https://github.com/WarLikeLaux/yii2-book-catalog/commit/abfe953))
+- **#31** - добавлен data-type image в ссылки glightbox для улучшения предпросмотра ([ae38e39](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ae38e39))
+- **#31** - добавлены вспомогательные методы в общие DTO ([7e3a029](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7e3a029))
+
+### 🛠 Рефакторинг и архитектура
+- **#31** - внедрен DomainErrorCode и проведена масштабная типизация всех исключений ([f186b83](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f186b83), [5870870](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5870870), [c6c374b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c6c374b), [abec5ca](https://github.com/WarLikeLaux/yii2-book-catalog/commit/abec5ca))
+- **#31** - внедрен паттерн Visitor для спецификаций книг (устранение логики в сущностях) ([613d7dc](https://github.com/WarLikeLaux/yii2-book-catalog/commit/613d7dc))
+- **#31** - рефакторинг в соответствии с ISP: выделены BookFinderInterface и BookSearcherInterface ([6a47b82](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6a47b82), [2e5cf00](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e5cf00))
+- **#31** - обновлены хендлеры и WebUseCaseRunner для работы через Command Pipeline ([9f7f911](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9f7f911))
+- **#31** - рефакторинг команд и usecase для интеграции with new ports ([560107d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/560107d))
+- **#31** - централизована конфигурация Buggregator и улучшено логирование исключений ([94aa83e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/94aa83e))
+- **#31** - рефакторинг поискового хендлера для поддержки бесконечного скролла HTMX ([4838af6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4838af6))
+- **#31** - рефакторинг аутентификации: переход на AuthServiceInterface и AuthViewDataFactory ([fa87ca5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fa87ca5))
+- **#31** - оптимизирован маппинг событий через EventJobMappingRegistry и рефлексию ([bac904a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bac904a), [25bfdf3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/25bfdf3))
+- **#31** - исправлены накопленные архитектурные нарушения ([0afa7f2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0afa7f2))
+- **#31** - рефакторинг BookYear для использования безопасной валидации через int ([2cea3a8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2cea3a8))
+- **#31** - обновлено использование BookYear в приложении и инфраструктуре ([4a48598](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4a48598))
+- **#31** - обновлен services.php для регистрации новых интерфейсов ([9bed5a7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9bed5a7))
+- **#31** - обновлен FileUrlResolver для использования внутреннего метода разрешения путей ([1df48e7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1df48e7))
+
+### 🧪 Тестирование
+- **#31** - обновлен IdempotencyMiddlewareTest с негативными сценариями и строгими ожиданиями ([49be0a9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/49be0a9))
+- **#31** - добавлены тесты для pipeline и middleware, актуализированы тесты usecase ([57f98a8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/57f98a8))
+- **#31** - улучшена надежность E2E тестов и актуализированы селекторы ([f75218b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f75218b))
+- **#31** - обновлены unit-тесты под новую типизированную структуру исключений ([0eb04a1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0eb04a1), [ea10440](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ea10440))
+- **#31** - усилены проверки в DeleteAuthorUseCaseTest и SubscribeUseCaseTest ([a2f7a82](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a2f7a82), [bbebed3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bbebed3))
+- **#31** - обновлены тесты для паттерна Visitor и спецификаций ([e9fbdcf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e9fbdcf))
+- **#31** - общее исправление и стабилизация тестового набора ([2b13628](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2b13628))
+
+### ⚙️ Инфраструктура
+- **#31** - интегрирован PHPArkitect в CI для автоматического контроля архитектуры ([e41e491](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e41e491), [5029387](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5029387))
+- **#31** - добавлена инфраструктура и ассеты для поддержки HTMX ([07c1545](https://github.com/WarLikeLaux/yii2-book-catalog/commit/07c1545), [8be8e55](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8be8e55))
+- **#31** - актуализирован CI и стандарты качества кода ([844a13c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/844a13c))
+- **#31** - рефакторинг конфигурации GrumPHP и Rector ([adf2f63](https://github.com/WarLikeLaux/yii2-book-catalog/commit/adf2f63), [cb6c7a2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cb6c7a2))
+
+### 📝 Документация
+- **#31** - рефакторинг правил комментариев в AI контракте ([11058cf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/11058cf))
+- **#31** - обновлены правила рабочего процесса коммитов ([40897c0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/40897c0))
+- **#30** - проведена обезличка документации и обновлены стандарты мутационного тестирования ([8aa279f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8aa279f))
+- **#31** - актуализирован AI контракт и документация ([a8289f1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a8289f1), [2a94876](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2a94876))
+
+### 🐛 Исправления
+- **#31** - отключены глобальные переменные логов в Buggregator error target ([9e2e1eb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9e2e1eb))
+</details>
+
+
 ## [0.16.0] - 2026-01-04 — "Надежность тестов и архитектурная стандартизация"
 
 > Это фундаментальный релиз, в котором проведена полная стандартизация кодовой базы и значительное архитектурное укрепление. Внедрены строгие правила линтинга (PHPCS/Slevomat), достигнуто честное 100% покрытие кода тестами и внедрены продвинутые механизмы внедрения зависимостей через обертки компонентов. Архитектурно осуществлен переход на специализированные DTO для пагинации, стабилизирована работа с PostgreSQL и реализован `TransactionalEventPublisher` для гарантированной доставки событий. Устранены риски переполнения памяти при работе с файлами, внедрен `LogSmsSender` для безопасной разработки и добавлена серия ADR (Architectural Decision Records) для прозрачной истории ключевых решений.
