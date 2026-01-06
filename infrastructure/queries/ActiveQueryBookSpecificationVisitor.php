@@ -36,21 +36,13 @@ final readonly class ActiveQueryBookSpecificationVisitor implements BookSpecific
 
     public function visitFullText(FullTextSpecification $spec): void
     {
-        $term = $spec->getQuery();
+        $condition = $this->buildFullTextCondition($spec->getQuery());
 
-        if ($term === '') {
+        if ($condition === null) {
             return;
         }
 
-        $fulltextExpr = $this->buildBooksFulltextExpression($term);
-        $likeCondition = $this->buildLikeFallback($term, ['title', 'description']);
-
-        if ($fulltextExpr instanceof Expression) {
-            $this->query->andWhere(['or', $fulltextExpr, $likeCondition]);
-            return;
-        }
-
-        $this->query->andWhere($likeCondition);
+        $this->query->andWhere($condition);
     }
 
     public function visitAuthor(AuthorSpecification $spec): void
@@ -80,17 +72,36 @@ final readonly class ActiveQueryBookSpecificationVisitor implements BookSpecific
     }
 
     /**
-     * @return array<int|string, mixed>|Expression|null
+     * @return array<int|string, mixed>|null
      */
-    private function buildConditionFor(BookSpecificationInterface $spec): array|Expression|null
+    private function buildConditionFor(BookSpecificationInterface $spec): ?array
     {
         return match (true) {
             $spec instanceof YearSpecification => ['year' => $spec->getYear()],
             $spec instanceof IsbnPrefixSpecification => ['like', 'isbn', $spec->getPrefix() . '%', false],
-            $spec instanceof FullTextSpecification => $this->buildBooksFulltextExpression($spec->getQuery()),
+            $spec instanceof FullTextSpecification => $this->buildFullTextCondition($spec->getQuery()),
             $spec instanceof AuthorSpecification => $this->buildAuthorCondition($spec->getAuthorName()),
             default => null, // @codeCoverageIgnore
         };
+    }
+
+    /**
+     * @return array<int|string, mixed>|null
+     */
+    private function buildFullTextCondition(string $term): ?array
+    {
+        if ($term === '') {
+            return null;
+        }
+
+        $fulltextExpr = $this->buildBooksFulltextExpression($term);
+        $likeCondition = $this->buildLikeFallback($term, ['title', 'description']);
+
+        if ($fulltextExpr instanceof Expression) {
+            return ['or', $fulltextExpr, $likeCondition];
+        }
+
+        return $likeCondition;
     }
 
     private function buildBooksFulltextExpression(string $term): Expression|null
