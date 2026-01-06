@@ -407,30 +407,32 @@ public function createBook(BookForm $form): int|null
 
 ```php
 // application/books/usecases/PublishBookUseCase.php
-public function execute(PublishBookCommand $command): void
+/**
+ * @implements UseCaseInterface<PublishBookCommand, bool>
+ */
+final readonly class PublishBookUseCase implements UseCaseInterface
 {
-    $this->transaction->begin();
-    
-    try {
+    public function __construct(
+        private BookRepositoryInterface $bookRepository,
+        private TransactionalEventPublisher $eventPublisher,
+        private BookPublicationPolicy $publicationPolicy,
+    ) {
+    }
+
+    public function execute(object $command): bool
+    {
+        assert($command instanceof PublishBookCommand);
         $book = $this->bookRepository->get($command->bookId);
 
         $book->publish($this->publicationPolicy);
         $this->bookRepository->save($book);
 
-        $title = $book->title;
-        $year = $book->year->value;
+        // Отправка события ТОЛЬКО после успешного коммита транзакции
+        $this->eventPublisher->publishAfterCommit(
+            new BookPublishedEvent($command->bookId, $book->title, $book->year->value),
+        );
 
-        // Отправка события ТОЛЬКО после успешного коммита
-        $this->transaction->afterCommit(function () use ($command, $title, $year): void {
-            $this->eventPublisher->publishEvent(
-                new BookPublishedEvent($command->bookId, $title, $year)
-            );
-        });
-        
-        $this->transaction->commit();
-    } catch (\Throwable $e) {
-        $this->transaction->rollBack();
-        throw $e;
+        return true;
     }
 }
 ```
@@ -445,7 +447,7 @@ final readonly class Isbn
     {
         $normalized = $this->normalizeIsbn($value);
         if (!$this->isValidIsbn($normalized)) {
-            throw new DomainException('isbn.error.invalid_format');
+            throw new ValidationException(DomainErrorCode::IsbnInvalidFormat);
         }
         $this->value = $normalized;
     }
@@ -524,7 +526,9 @@ class Book extends ActiveRecord
 // Только для валидации ввода
 final class BookForm extends RepositoryAwareForm
 {
+    /** @var int|string|null */
     public $id;
+    /** @var string */
     public $title = '';
     public $year;
     public $description;
@@ -678,14 +682,15 @@ class BookRepository implements BookRepositoryInterface
     {
         $ar = $book->id === null ? new Book() : Book::findOne($book->id);
         if ($ar === null) {
-            throw new EntityNotFoundException('book.error.not_found');
+            throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
         $ar->title = $book->title;
         $ar->year = $book->year->value;
         $ar->isbn = $book->isbn->value;
+        $ar->description = $book->description;
         $ar->save();
         
-        // ... saving relations using $this->db
+        $this->syncAuthors($book);
     }
 }
 ```
@@ -739,14 +744,10 @@ $this->sendEmail(...);  // А если email упадёт?
 **Стало:**
 ```php
 // UseCase
-// Отправка события через afterCommit (гарантия согласованности)
-$title = $book->title;
-$year = $book->year->value;
-$this->transaction->afterCommit(function () use ($command, $title, $year): void {
-    $this->eventPublisher->publishEvent(
-        new BookPublishedEvent($command->bookId, $title, $year)
-    );
-});
+// Отправка события черезTransactionalEventPublisher (гарантия согласованности)
+$this->eventPublisher->publishAfterCommit(
+    new BookPublishedEvent($command->bookId, $book->title, $book->year->value)
+);
 ```
 Слушатели получают событие синхронно через `EventListenerInterface`, а в очередь уходят только события, реализующие `QueueableEvent`. Маппинг Event → Job выполняет `EventToJobMapper` в инфраструктуре, чтобы домен не знал о job-классах.
 ✅ **Результат:** упал SMS? Книга всё равно создана. SMS повторится из очереди.
@@ -1111,5 +1112,100 @@ yii2-book-catalog/
 **Независимы от Yii:** `application/` + `domain/` — можно перенести в Symfony/Laravel без изменений.
 
 **Зависят от Yii:** `infrastructure/` + `presentation/` — специфичны для Yii2.
+
+[↑ К навигации](#-навигация)
+### 10. Command Pipeline (Cross-cutting concerns)
+
+**Уровень 1-2 (Обычный сервис):**
+```php
+public function create(Book $model)
+{
+    $transaction = Yii::$app->db->beginTransaction();
+    try {
+        $this->tracer->start('create_book');
+        // бизнес-логика...
+        $transaction->commit();
+    } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+    }
+}
+```
+❌ **Проблема:** бизнес-логика перемешана с техническим кодом (транзакции, трассировка, идемпотентность). Если вы забудете добавить `try-catch` в новом сервисе — данные могут стать несогласованными.
+
+**Уровень 3 (Clean Architecture):**
+```php
+// application/common/pipeline/PipelineFactory.php
+public function createDefault(): PipelineInterface
+{
+    return (new Pipeline())
+        ->pipe(new TracingMiddleware($this->tracer))
+        ->pipe(new IdempotencyMiddleware($this->idempotencyService))
+        ->pipe(new TransactionMiddleware($this->transaction));
+}
+
+// Выполнение в WebUseCaseRunner
+$result = $this->pipelineFactory->createDefault()->execute($command, $useCase);
+```
+✅ **Результат:** Use Case содержит **только** бизнес-логику. Сквозная функциональность (Cross-cutting concerns) вынесена в Middleware. Конвейер гарантирует, что транзакция будет открыта вовремя, а трассировка — записана.
+
+---
+
+### 11. Разделение интерфейсов (ISP) в репозиториях
+
+**Уровень 1-2 (Толстый репозиторий):**
+```php
+interface BookRepositoryInterface {
+    public function save(Book $book): void;
+    public function get(int $id): Book;
+    public function search(string $term): PagedResultInterface;
+}
+```
+❌ **Проблема:** Use Case для удаления книги вынужден зависеть от методов поиска или сохранения, которые ему не нужны. Это усложняет тестирование (нужно мокать лишнее) и нарушает принцип разделения интерфейсов.
+
+**Уровень 3 (Clean Architecture):**
+- `BookRepositoryInterface`: только методы изменения (Write: `save`, `delete`).
+- `BookFinderInterface`: методы получения по ID (Read/Point: `findById`).
+- `BookSearcherInterface`: сложные поисковые запросы (Read/Search: `search`).
+
+✅ **Результат:** Use Cases зависят только от тех интерфейсов, которые им реально нужны. Код стал более модульным, а тесты — более сфокусированными.
+
+---
+
+### 12. Оптимизированный маппинг событий
+
+**Уровень 1-2 (Императивный маппинг):**
+```php
+// Инфраструктура (Listener)
+public function onEvent($event) {
+    if ($event instanceof BookPublishedEvent) {
+        Yii::$app->queue->push(new NotifySubscribersJob(['bookId' => $event->id]));
+    }
+}
+```
+❌ **Проблема:** при добавлении каждого нового события нужно изменять код инфраструктуры (нарушение Open-Closed Principle). Легко забыть обновить маппер при изменении полей события.
+
+**Уровень 3 (Clean Architecture):**
+Используется `EventJobMappingRegistry` с рефлексией. Инфраструктура автоматически сопоставляет ключи события с параметрами конструктора Job.
+
+✅ **Результат:** добавление новой асинхронной задачи требует только регистрации соответствия в конфиге DI. Система сама поймет, как собрать Job из данных события.
+
+---
+
+### 13. Бесконечный скролл (HTMX)
+
+**Уровень 1-2 (Традиционная пагинация или JS-лапша):**
+- Обычные ссылки `?page=2` с полной перезагрузкой страницы.
+- Или гора jQuery кода для захвата скролла, ручных AJAX-запросов и вставки HTML/JSON.
+
+**Уровень 3 (Clean Architecture + HTMX):**
+```html
+<div hx-get="/site/index?page=2" 
+     hx-trigger="revealed" 
+     hx-swap="afterend">
+    <!-- скелетон загрузки -->
+</div>
+```
+✅ **Результат:** современный UX («бесконечный скролл») достигается декларативно. Контроллер лишь проверяет заголовок `X-Htmx-Request`, чтобы решить: отдать всю страницу или только фрагмент с карточками.
 
 [↑ К навигации](#-навигация)

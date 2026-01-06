@@ -11,14 +11,13 @@ final readonly class IsbnPrefixSpecification implements BookSpecificationInterfa
     ) {
     }
 
-    /**
-     * @return array{type: string, value: mixed}
-     */
-    public function toSearchCriteria(): array
+    public function accept(BookSpecificationVisitorInterface $visitor): void
     {
-        return [
-            'type' => 'isbn_prefix',
-            'value' => $this->prefix,
-        ];
+        $visitor->visitIsbnPrefix($this);
+    }
+
+    public function getPrefix(): string
+    {
+        return $this->prefix;
     }
 }

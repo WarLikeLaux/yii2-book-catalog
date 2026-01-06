@@ -6,7 +6,8 @@ namespace app\application\authors\queries;
 
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\EntityNotFoundException;
 
 final readonly class AuthorQueryService
 {
@@ -40,7 +41,7 @@ final readonly class AuthorQueryService
         $author = $this->queryService->findById($id);
 
         if (!$author instanceof AuthorReadDto) {
-            throw new DomainException('author.error.not_found');
+            throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
         }
 
         return $author;

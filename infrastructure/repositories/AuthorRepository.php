@@ -7,6 +7,7 @@ namespace app\infrastructure\repositories;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author as AuthorEntity;
 use app\domain\exceptions\AlreadyExistsException;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\infrastructure\persistence\Author;
 use RuntimeException;
@@ -25,7 +26,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             $ar = Author::findOne($author->id);
 
             if ($ar === null) {
-                throw new EntityNotFoundException('author.error.not_found');
+                throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
             }
         }
 
@@ -45,7 +46,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         $ar = Author::findOne($id);
 
         if ($ar === null) {
-            throw new EntityNotFoundException('author.error.not_found');
+            throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
         }
 
         return new AuthorEntity(
@@ -59,7 +60,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         $ar = Author::findOne($author->id);
 
         if ($ar === null) {
-            throw new EntityNotFoundException('author.error.not_found');
+            throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
         }
 
         if ($ar->delete() === false) {
@@ -89,7 +90,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             }
         } catch (IntegrityException $e) {
             if ($this->isDuplicateError($e)) {
-                throw new AlreadyExistsException('author.error.fio_exists', 409, $e);
+                throw new AlreadyExistsException(DomainErrorCode::AuthorFioExists, 409, $e);
             }
 
             throw $e;

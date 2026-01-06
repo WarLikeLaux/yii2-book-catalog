@@ -21,7 +21,7 @@ final class BookTest extends Unit
     ): Book {
         return Book::create(
             $title,
-            new BookYear($year, new \DateTimeImmutable()),
+            new BookYear($year),
             new Isbn($isbn),
             null,
             null,
@@ -31,6 +31,24 @@ final class BookTest extends Unit
     private function createBookWithAuthors(int ...$authorIds): Book
     {
         $book = $this->createBook();
+
+        if ($authorIds) {
+            $book->replaceAuthors($authorIds);
+        }
+
+        return $book;
+    }
+
+    private function createPublishableBook(int ...$authorIds): Book
+    {
+        $description = 'This is a valid description that is long enough to pass the minimum requirement of 50 characters.';
+        $book = Book::create(
+            'Publishable Book',
+            new BookYear(2024),
+            new Isbn('978-3-16-148410-0'),
+            $description,
+            new StoredFileReference('covers/test.jpg'),
+        );
 
         if ($authorIds) {
             $book->replaceAuthors($authorIds);
@@ -55,7 +73,7 @@ final class BookTest extends Unit
         $book = Book::reconstitute(
             1,
             'Old Title',
-            new BookYear(2020, new \DateTimeImmutable()),
+            new BookYear(2020),
             new Isbn('978-3-16-148410-0'),
             null,
             null,
@@ -64,7 +82,7 @@ final class BookTest extends Unit
             1,
         );
 
-        $newYear = new BookYear(2024, new \DateTimeImmutable());
+        $newYear = new BookYear(2024);
         $newIsbn = new Isbn('978-3-16-148410-0');
         $newCover = new StoredFileReference('path/to/new');
 
@@ -137,7 +155,7 @@ final class BookTest extends Unit
         $book = Book::reconstitute(
             1,
             'Title',
-            new BookYear(2023, new \DateTimeImmutable()),
+            new BookYear(2023),
             new Isbn('978-3-16-148410-0'),
             null,
             null,
@@ -163,7 +181,7 @@ final class BookTest extends Unit
 
     public function testPublishWithAuthorsSucceeds(): void
     {
-        $book = $this->createBookWithAuthors(1, 2);
+        $book = $this->createPublishableBook(1, 2);
         $book->publish(new BookPublicationPolicy());
 
         $this->assertTrue($book->published);
@@ -181,7 +199,7 @@ final class BookTest extends Unit
 
     public function testChangeIsbnOnPublishedBookThrows(): void
     {
-        $book = $this->createBookWithAuthors(1);
+        $book = $this->createPublishableBook(1);
         $book->publish(new BookPublicationPolicy());
 
         $this->expectException(DomainException::class);
@@ -192,7 +210,7 @@ final class BookTest extends Unit
 
     public function testSameIsbnOnPublishedBookSucceeds(): void
     {
-        $book = $this->createBookWithAuthors(1);
+        $book = $this->createPublishableBook(1);
         $book->publish(new BookPublicationPolicy());
         $book->rename('New Title');
 
@@ -204,7 +222,7 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.title_empty');
 
-        Book::create('', new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
+        Book::create('', new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
     }
 
     public function testCreateThrowsOnTooLongTitle(): void
@@ -212,7 +230,7 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.title_too_long');
 
-        Book::create(str_repeat('A', 256), new BookYear(2023, new \DateTimeImmutable()), new Isbn('978-3-16-148410-0'), null, null);
+        Book::create(str_repeat('A', 256), new BookYear(2023), new Isbn('978-3-16-148410-0'), null, null);
     }
 
     public function testRenameThrowsOnInvalidTitle(): void

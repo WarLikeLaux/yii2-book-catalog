@@ -34,7 +34,7 @@ $config = [
         ],
         'response' => [
             'on beforeSend' => static function ($event): void {
-                $event->sender->headers->add('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.simpleicons.org; font-src 'self' data:;");
+                $event->sender->headers->add('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.simpleicons.org https://picsum.photos https://fastly.picsum.photos; frame-src 'self' https://picsum.photos https://fastly.picsum.photos; font-src 'self' data:;");
                 $event->sender->headers->add('X-Frame-Options', 'SAMEORIGIN');
                 $event->sender->headers->add('X-Content-Type-Options', 'nosniff');
                 $event->sender->headers->add('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -92,18 +92,18 @@ $config = [
                 ],
                 YII_ENV_DEV ? [
                     'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
-                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'host' => $params['buggregator']['log']['host'],
+                    'port' => $params['buggregator']['log']['port'],
                     'levels' => ['error', 'warning'],
                     'except' => ['yii\web\HttpException:404'],
+                    'logVars' => [],
                 ] : null,
                 YII_ENV_DEV ? [
                     'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
-                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'host' => $params['buggregator']['log']['host'],
+                    'port' => $params['buggregator']['log']['port'],
                     'levels' => ['info'],
                     'categories' => ['sms', 'application'],
-                    // Не дампить $_SERVER и прочее в инфо-логах
                     'logVars' => [],
                 ] : null,
             ]),
@@ -125,14 +125,14 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
-                'api/books' => 'api/book/index',
+                'api/v1/books' => 'api/v1/book/index',
             ],
         ],
         'tracer' => [
             'class' => \app\infrastructure\services\observability\TracerBootstrap::class,
             'enabled' => YII_ENV_DEV,
-            'endpoint' => env('INSPECTOR_URL', 'http://buggregator:8000'),
-            'ingestionKey' => env('INSPECTOR_INGESTION_KEY', 'buggregator'),
+            'endpoint' => $params['buggregator']['inspector']['url'],
+            'ingestionKey' => $params['buggregator']['inspector']['ingestionKey'],
             'serviceName' => 'yii2-book-catalog',
         ],
     ],

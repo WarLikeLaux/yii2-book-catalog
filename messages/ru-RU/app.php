@@ -50,6 +50,8 @@ return [
     'book.error.title_empty' => 'Название книги не может быть пустым',
     'book.error.title_too_long' => 'Название книги слишком длинное',
     'book.error.publish_without_authors' => 'Нельзя опубликовать книгу без авторов',
+    'book.error.publish_without_cover' => 'Нельзя опубликовать книгу без обложки',
+    'book.error.publish_short_description' => 'Для публикации описание книги должно содержать не менее 50 символов',
     'book.error.isbn_change_published' => 'Нельзя изменить ISBN опубликованной книги',
     'book.error.stale_data' => 'Данные устарели. Обновите страницу и попробуйте снова.',
     'book.error.invalid_author_id' => 'Некорректный ID автора',
@@ -61,4 +63,6 @@ return [
     'isbn.error.invalid_format_hint' => 'Некорректный ISBN. Используйте ISBN-10 или ISBN-13 формат.',
     'year.error.too_old' => 'Год должен быть больше 1000',
     'year.error.future' => 'Год не может быть в будущем',
+    'idempotency.error.key_in_progress' => 'Операция уже выполняется. Подождите завершения.',
+    'idempotency.error.storage_unavailable' => 'Хранилище идемпотентности недоступно. Попробуйте позже.',
 ];

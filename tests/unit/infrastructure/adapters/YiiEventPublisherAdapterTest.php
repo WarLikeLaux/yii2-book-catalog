@@ -8,6 +8,7 @@ use app\application\ports\EventListenerInterface;
 use app\application\ports\QueueInterface;
 use app\domain\events\BookDeletedEvent;
 use app\domain\events\BookPublishedEvent;
+use app\infrastructure\adapters\EventJobMappingRegistry;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
@@ -23,7 +24,11 @@ final class YiiEventPublisherAdapterTest extends Unit
     protected function _before(): void
     {
         $this->queue = $this->createMock(QueueInterface::class);
-        $this->jobMapper = new EventToJobMapper();
+
+        $registry = new EventJobMappingRegistry([
+            BookPublishedEvent::class => NotifySubscribersJob::class,
+        ]);
+        $this->jobMapper = new EventToJobMapper($registry);
     }
 
     public function testPublishQueueableEventPushesToQueue(): void

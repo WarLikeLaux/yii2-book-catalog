@@ -7,60 +7,62 @@ namespace app\application\books\usecases;
 use app\application\books\commands\UpdateBookCommand;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\TransactionInterface;
+use app\application\ports\UseCaseInterface;
 use app\domain\events\BookUpdatedEvent;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
 use Psr\Clock\ClockInterface;
-use Throwable;
 
-final readonly class UpdateBookUseCase
+/**
+ * @implements UseCaseInterface<UpdateBookCommand, bool>
+ */
+final readonly class UpdateBookUseCase implements UseCaseInterface
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
-        private TransactionInterface $transaction,
         private TransactionalEventPublisher $eventPublisher,
         private ClockInterface $clock,
     ) {
     }
 
-    public function execute(UpdateBookCommand $command): void
+    /**
+     * @param UpdateBookCommand $command
+     */
+    public function execute(object $command): bool
     {
+        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
+        assert($command instanceof UpdateBookCommand);
+
+        $currentYear = (int) $this->clock->now()->format('Y');
+
         $book = $this->bookRepository->getByIdAndVersion($command->id, $command->version);
         $oldYear = $book->year->value;
         $isPublished = $book->published;
 
-        $this->transaction->begin();
+        $book->rename($command->title);
+        $book->changeYear(new BookYear($command->year, $currentYear));
+        $book->correctIsbn(new Isbn($command->isbn));
+        $book->updateDescription($command->description);
 
-        try {
-            $book->rename($command->title);
-            $book->changeYear(new BookYear($command->year, $this->clock->now()));
-            $book->correctIsbn(new Isbn($command->isbn));
-            $book->updateDescription($command->description);
+        if ($command->cover !== null) {
+            $cover = $command->cover;
 
-            if ($command->cover !== null) {
-                $cover = $command->cover;
-
-                if (is_string($cover)) {
-                    $cover = new StoredFileReference($cover);
-                }
-
-                $book->updateCover($cover);
+            if (is_string($cover)) {
+                $cover = new StoredFileReference($cover);
             }
 
-            $book->replaceAuthors($command->authorIds);
-
-            $this->bookRepository->save($book);
-
-            $this->eventPublisher->publishAfterCommit(
-                new BookUpdatedEvent($command->id, $oldYear, $command->year, $isPublished),
-            );
-
-            $this->transaction->commit();
-        } catch (Throwable $e) {
-            $this->transaction->rollBack();
-            throw $e;
+            $book->updateCover($cover);
         }
+
+        $book->replaceAuthors($command->authorIds);
+
+        $this->bookRepository->save($book);
+
+        $this->eventPublisher->publishAfterCommit(
+            new BookUpdatedEvent($command->id, $oldYear, $command->year, $isPublished),
+        );
+
+        return true;
     }
 }

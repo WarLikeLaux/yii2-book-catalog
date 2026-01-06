@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\common\services;
 
+use app\application\common\pipeline\PipelineFactory;
+use app\application\ports\CommandInterface;
 use app\application\ports\NotificationInterface;
+use app\application\ports\PipelineInterface;
 use app\application\ports\TranslatorInterface;
+use app\application\ports\UseCaseInterface;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
+use app\domain\exceptions\ValidationException;
 use app\presentation\common\services\WebUseCaseRunner;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -17,6 +23,7 @@ final class WebUseCaseRunnerTest extends Unit
     private NotificationInterface&MockObject $notifier;
     private LoggerInterface&MockObject $logger;
     private TranslatorInterface&MockObject $translator;
+    private PipelineFactory&MockObject $pipelineFactory;
     private WebUseCaseRunner $runner;
 
     protected function _before(): void
@@ -24,197 +31,201 @@ final class WebUseCaseRunnerTest extends Unit
         $this->notifier = $this->createMock(NotificationInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->translator = $this->createMock(TranslatorInterface::class);
-        $this->runner = new WebUseCaseRunner($this->notifier, $this->logger, $this->translator);
+        $this->pipelineFactory = $this->createMock(PipelineFactory::class);
+        $this->runner = new WebUseCaseRunner($this->notifier, $this->logger, $this->translator, $this->pipelineFactory);
     }
 
     public function testExecuteSuccessNotifiesAndReturnsTrue(): void
     {
-        $this->notifier->expects($this->once())
-            ->method('success')
-            ->with('ok');
-        $this->notifier->expects($this->never())
-            ->method('error');
-        $this->logger->expects($this->never())
-            ->method('error');
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
 
-        $called = false;
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipeline->expects($this->once())->method('execute')->with($command, $useCase)->willReturn('success-result');
 
-        $result = $this->runner->execute(static function () use (&$called): void {
-            $called = true;
-        }, 'ok');
+        $this->notifier->expects($this->once())->method('success')->with('ok');
+        $this->notifier->expects($this->never())->method('error');
 
-        $this->assertTrue($result);
-        $this->assertTrue($called);
+        $result = $this->runner->execute($command, $useCase, 'ok');
+
+        $this->assertSame('success-result', $result);
     }
 
     public function testExecuteHandlesDomainException(): void
     {
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
+
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipeline->expects($this->once())
+            ->method('execute')
+            ->willThrowException(new ValidationException(DomainErrorCode::BookTitleEmpty));
+
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('app', 'domain.error.key')
-            ->willReturn('domain.error.key');
+            ->with('app', DomainErrorCode::BookTitleEmpty->value)
+            ->willReturn(DomainErrorCode::BookTitleEmpty->value);
         $this->notifier->expects($this->once())
             ->method('error')
-            ->with('domain.error.key');
-        $this->notifier->expects($this->never())
-            ->method('success');
-        $this->logger->expects($this->never())
-            ->method('error');
+            ->with(DomainErrorCode::BookTitleEmpty->value);
+        $this->notifier->expects($this->never())->method('success');
 
-        $result = $this->runner->execute(static function (): void {
-            throw new DomainException('domain.error.key');
-        }, 'ok');
+        $result = $this->runner->execute($command, $useCase, 'ok');
 
-        $this->assertFalse($result);
+        $this->assertNull($result);
     }
 
     public function testExecuteHandlesUnexpectedException(): void
     {
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
+
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipeline->expects($this->once())
+            ->method('execute')
+            ->willThrowException(new \RuntimeException('boom'));
+
         $this->translator->expects($this->once())
             ->method('translate')
             ->with('app', 'error.unexpected', [])
             ->willReturn('error.unexpected');
-        $this->notifier->expects($this->once())
-            ->method('error')
-            ->with('error.unexpected');
-        $this->notifier->expects($this->never())
-            ->method('success');
+        $this->notifier->expects($this->once())->method('error')->with('error.unexpected');
 
         $this->logger->expects($this->once())
             ->method('error')
-            ->with(
-                'boom',
-                $this->callback(static function (array $context): bool {
-                    if (!isset($context['foo']) || !isset($context['exception'])) {
-                        return false;
-                    }
+            ->with('boom', $this->callback(static fn($context) => $context['foo'] === 'bar'));
 
-                    return $context['foo'] === 'bar' && $context['exception'] instanceof \Throwable;
-                }),
-            );
+        $result = $this->runner->execute($command, $useCase, 'ok', ['foo' => 'bar']);
 
-        $result = $this->runner->execute(static function (): void {
-            throw new \RuntimeException('boom');
-        }, 'ok', ['foo' => 'bar']);
-
-        $this->assertFalse($result);
+        $this->assertNull($result);
     }
 
     public function testExecuteForApiReturnsSuccessPayload(): void
     {
-        $this->logger->expects($this->never())
-            ->method('error');
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
 
-        $result = $this->runner->executeForApi(static function (): void {
-        }, 'done');
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipeline->expects($this->once())->method('execute')->willReturn('result');
 
-        $this->assertSame(['success' => true, 'message' => 'done'], $result);
+        $result = $this->runner->executeForApi($command, $useCase, 'done');
+
+        $this->assertSame(['success' => true, 'message' => 'done', 'data' => 'result'], $result);
     }
 
     public function testExecuteForApiHandlesUnexpectedExceptionWithLogging(): void
     {
-        $this->translator->method('translate')->willReturn('error.unexpected');
-
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
         $exception = new \RuntimeException('api boom');
-        $logContext = ['requestId' => '123'];
+
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipeline->expects($this->once())->method('execute')->willThrowException($exception);
+
+        $this->translator->method('translate')->willReturn('error.unexpected');
 
         $this->logger->expects($this->once())
             ->method('error')
-            ->with('api boom', $this->callback(static function (array $context) use ($exception): bool {
-                if (!isset($context['requestId']) || !isset($context['exception'])) {
-                    return false;
-                }
+            ->with('api boom', $this->callback(static fn($c) => $c['requestId'] === '123'));
 
-                return $context['requestId'] === '123' && $context['exception'] === $exception;
-            }));
-
-        $result = $this->runner->executeForApi(static function () use ($exception): void {
-            throw $exception;
-        }, 'ok', $logContext);
+        $result = $this->runner->executeForApi($command, $useCase, 'ok', ['requestId' => '123']);
 
         $this->assertSame(['success' => false, 'message' => 'error.unexpected'], $result);
     }
 
     public function testExecuteWithFormErrorsReturnsResultOnSuccess(): void
     {
-        $this->notifier->expects($this->once())
-            ->method('success')
-            ->with('created');
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
 
-        $onDomainErrorCalled = false;
+        $this->pipelineFactory->expects($this->once())->method('createWithFileLifecycle')->willReturn($pipeline);
+        $pipeline->expects($this->once())->method('execute')->willReturn(42);
+
+        $this->notifier->expects($this->once())->method('success')->with('created');
 
         $result = $this->runner->executeWithFormErrors(
-            static fn() => 42,
+            $command,
+            $useCase,
             'created',
-            static function () use (&$onDomainErrorCalled): void {
-                $onDomainErrorCalled = true;
-            },
+            static fn() => null,
         );
 
         $this->assertSame(42, $result);
-        $this->assertFalse($onDomainErrorCalled);
     }
 
     public function testExecuteWithFormErrorsCallsOnDomainErrorCallback(): void
     {
-        $exception = new DomainException('test.error');
-        $receivedException = null;
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
+        $exception = new ValidationException(DomainErrorCode::BookTitleEmpty);
 
-        $this->notifier->expects($this->never())->method('success');
+        $this->pipelineFactory->expects($this->once())->method('createWithFileLifecycle')->willReturn($pipeline);
+        $pipeline->expects($this->once())->method('execute')->willThrowException($exception);
+
+        $onErrorCalled = false;
+        $capturedException = null;
 
         $result = $this->runner->executeWithFormErrors(
-            static function () use ($exception): void {
-                throw $exception;
-            },
+            $command,
+            $useCase,
             'ok',
-            static function (DomainException $e) use (&$receivedException): void {
-                $receivedException = $e;
+            static function (DomainException $e) use (&$capturedException) {
+                $capturedException = $e;
+            },
+            static function () use (&$onErrorCalled) {
+                $onErrorCalled = true;
             },
         );
 
         $this->assertNull($result);
-        $this->assertSame($exception, $receivedException);
-    }
-
-    public function testExecuteWithFormErrorsCallsOnErrorCallbackOnDomainException(): void
-    {
-        $onErrorCalled = false;
-
-        $this->runner->executeWithFormErrors(
-            static function (): void {
-                throw new DomainException('test.error');
-            },
-            'ok',
-            static function (): void {
-            },
-            static function () use (&$onErrorCalled): void {
-                $onErrorCalled = true;
-            },
-        );
-
+        $this->assertSame($exception, $capturedException);
         $this->assertTrue($onErrorCalled);
     }
 
-    public function testExecuteWithFormErrorsCallsOnErrorCallbackOnUnexpectedException(): void
+    public function testExecuteWithFormErrorsHandlesUnexpectedException(): void
     {
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
+        $exception = new \RuntimeException('unexpected error');
+
+        $this->pipelineFactory->expects($this->once())->method('createWithFileLifecycle')->willReturn($pipeline);
+        $pipeline->expects($this->once())->method('execute')->willThrowException($exception);
+
         $onErrorCalled = false;
-        $this->translator->method('translate')->willReturn('error.unexpected');
+        $onError = static function () use (&$onErrorCalled) {
+            $onErrorCalled = true;
+        };
 
-        $this->logger->expects($this->once())->method('error');
-        $this->notifier->expects($this->once())->method('error');
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('unexpected error', ['exception' => $exception]);
 
-        $this->runner->executeWithFormErrors(
-            static function (): void {
-                throw new \RuntimeException('boom');
-            },
+        $this->translator->expects($this->once())
+            ->method('translate')
+            ->with('app', 'error.unexpected')
+            ->willReturn('An unexpected error occurred');
+
+        $this->notifier->expects($this->once())
+            ->method('error')
+            ->with('An unexpected error occurred');
+
+        $result = $this->runner->executeWithFormErrors(
+            $command,
+            $useCase,
             'ok',
-            static function (): void {
-            },
-            static function () use (&$onErrorCalled): void {
-                $onErrorCalled = true;
-            },
+            static fn() => null,
+            $onError,
         );
 
+        $this->assertNull($result);
         $this->assertTrue($onErrorCalled);
     }
 }

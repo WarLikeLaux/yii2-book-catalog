@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use Rector\DeadCode\Rector\ClassMethod\RemoveParentDelegatingConstructorRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
 use Rector\ValueObject\PhpVersion;
@@ -31,5 +32,9 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->skip([
         __DIR__ . '/presentation/views/*',
         __DIR__ . '/infrastructure/persistence/*',
+        RemoveParentDelegatingConstructorRector::class => [
+            __DIR__ . '/domain/exceptions/AlreadyExistsException.php',
+            __DIR__ . '/domain/exceptions/StaleDataException.php',
+        ],
     ]);
 };

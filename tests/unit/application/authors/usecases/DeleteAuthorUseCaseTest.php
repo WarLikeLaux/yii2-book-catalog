@@ -8,6 +8,7 @@ use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -38,7 +39,9 @@ final class DeleteAuthorUseCaseTest extends Unit
             ->method('delete')
             ->with($existingAuthor);
 
-        $this->useCase->execute($command);
+        $result = $this->useCase->execute($command);
+
+        $this->assertTrue($result);
     }
 
     public function testExecuteThrowsExceptionWhenAuthorNotFound(): void
@@ -48,12 +51,12 @@ final class DeleteAuthorUseCaseTest extends Unit
         $this->authorRepository->expects($this->once())
             ->method('get')
             ->with(999)
-            ->willThrowException(new EntityNotFoundException('author.error.not_found'));
+            ->willThrowException(new EntityNotFoundException(DomainErrorCode::AuthorNotFound));
 
         $this->authorRepository->expects($this->never())->method('delete');
 
         $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage('author.error.not_found');
+        $this->expectExceptionMessage(DomainErrorCode::AuthorNotFound->value);
 
         $this->useCase->execute($command);
     }

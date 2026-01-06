@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\domain\entities;
 
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\BusinessRuleException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ValidationException;
 use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
@@ -87,11 +89,11 @@ final class Book
         $trimmed = trim($title);
 
         if ($trimmed === '') {
-            throw new DomainException('book.error.title_empty');
+            throw new ValidationException(DomainErrorCode::BookTitleEmpty);
         }
 
         if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
-            throw new DomainException('book.error.title_too_long');
+            throw new ValidationException(DomainErrorCode::BookTitleTooLong);
         }
     }
 
@@ -113,7 +115,7 @@ final class Book
         }
 
         if ($this->published) {
-            throw new DomainException('book.error.isbn_change_published');
+            throw new BusinessRuleException(DomainErrorCode::BookIsbnChangePublished);
         }
 
         $this->isbn = $isbn;
@@ -132,7 +134,7 @@ final class Book
     public function addAuthor(int $authorId): void
     {
         if ($authorId <= 0) {
-            throw new DomainException('book.error.invalid_author_id');
+            throw new ValidationException(DomainErrorCode::BookInvalidAuthorId);
         }
 
         if (in_array($authorId, $this->authorIds, true)) {
@@ -172,7 +174,7 @@ final class Book
     }
 
     /**
-     * @throws DomainException
+     * @throws ValidationException|BusinessRuleException
      */
     public function publish(BookPublicationPolicy $policy): void
     {

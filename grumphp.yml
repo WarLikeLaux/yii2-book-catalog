@@ -1,14 +1,30 @@
 grumphp:
   hooks_dir: ~
   hooks_preset: local
-  git_hook_variables:
-    VAGRANT_HOST_DIR: .
-    VAGRANT_PROJECT_DIR: /app
-    EXEC_GRUMPHP_COMMAND: docker compose exec -T php
   tasks:
-    phpcs:
-      standard: [phpcs.xml.dist]
-    jsonlint: ~
-    xmllint: ~
+    lint_check:
+      metadata:
+        task: shell
+        label: "🔍 Checking code style (PHPCS)"
+      scripts:
+        - ["-c", "make lint"]
+    phpstan_check:
+      metadata:
+        task: shell
+        label: "🐘 Checking static analysis (PHPStan)"
+      scripts:
+        - ["-c", "make analyze"]
+    deptrac_check:
+      metadata:
+        task: shell
+        label: "🏛️  Checking architecture layers (Deptrac)"
+      scripts:
+        - ["-c", "make deptrac"]
+    arkitect_check:
+      metadata:
+        task: shell
+        label: "🏛️  Checking architecture patterns (PHPArkitect)"
+      scripts:
+        - ["-c", "make arkitect"]
   testsuites: []
   extensions: []

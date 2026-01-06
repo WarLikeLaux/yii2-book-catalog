@@ -9,6 +9,7 @@ use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
 use app\domain\exceptions\AlreadyExistsException;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\EntityNotFoundException;
 use Codeception\Test\Unit;
@@ -40,7 +41,9 @@ final class UpdateAuthorUseCaseTest extends Unit
             ->method('save')
             ->with($this->callback(static fn (Author $author) => $author->id === 42 && $author->fio === 'Новое ФИО'));
 
-        $this->useCase->execute($command);
+        $result = $this->useCase->execute($command);
+
+        $this->assertTrue($result);
     }
 
     public function testExecuteThrowsExceptionWhenAuthorNotFound(): void
@@ -50,12 +53,12 @@ final class UpdateAuthorUseCaseTest extends Unit
         $this->authorRepository->expects($this->once())
             ->method('get')
             ->with(999)
-            ->willThrowException(new EntityNotFoundException('author.error.not_found'));
+            ->willThrowException(new EntityNotFoundException(DomainErrorCode::AuthorNotFound));
 
         $this->authorRepository->expects($this->never())->method('save');
 
         $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage('author.error.not_found');
+        $this->expectExceptionMessage(DomainErrorCode::AuthorNotFound->value);
 
         $this->useCase->execute($command);
     }
@@ -93,10 +96,10 @@ final class UpdateAuthorUseCaseTest extends Unit
 
         $this->authorRepository->expects($this->once())
             ->method('save')
-            ->willThrowException(new AlreadyExistsException('author.error.already_exists'));
+            ->willThrowException(new AlreadyExistsException(DomainErrorCode::AuthorFioExists));
 
         $this->expectException(AlreadyExistsException::class);
-        $this->expectExceptionMessage('author.error.already_exists');
+        $this->expectExceptionMessage(DomainErrorCode::AuthorFioExists->value);
 
         $this->useCase->execute($command);
     }

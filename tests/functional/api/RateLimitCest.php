@@ -25,7 +25,7 @@ final class RateLimitCest
         $this->clearRedis();
 
         for ($i = 0; $i < 60; ++$i) {
-            $I->sendGET('/api/books');
+            $I->sendGET('/api/v1/books');
             $I->seeResponseCodeIs(200);
         }
 
@@ -38,11 +38,11 @@ final class RateLimitCest
         $this->clearRedis();
 
         for ($i = 0; $i < 60; ++$i) {
-            $I->sendGET('/api/books');
+            $I->sendGET('/api/v1/books');
             $I->seeResponseCodeIs(200);
         }
 
-        $I->sendGET('/api/books');
+        $I->sendGET('/api/v1/books');
         $I->seeResponseCodeIs(429);
     }
 
@@ -50,7 +50,7 @@ final class RateLimitCest
     {
         $this->clearRedis();
 
-        $I->sendGET('/api/books');
+        $I->sendGET('/api/v1/books');
         $I->seeResponseCodeIs(200);
 
         $I->seeHttpHeader('X-RateLimit-Limit', '60');
@@ -67,10 +67,10 @@ final class RateLimitCest
         $this->clearRedis();
 
         for ($i = 0; $i < 60; ++$i) {
-            $I->sendGET('/api/books');
+            $I->sendGET('/api/v1/books');
         }
 
-        $I->sendGET('/api/books');
+        $I->sendGET('/api/v1/books');
         $I->seeResponseCodeIs(429);
 
         $retryAfter = $I->grabHttpHeader('Retry-After');
@@ -88,7 +88,7 @@ final class RateLimitCest
         $this->clearRedis();
 
         for ($i = 0; $i < 61; ++$i) {
-            $I->sendGET('/api/books');
+            $I->sendGET('/api/v1/books');
         }
 
         $I->seeResponseCodeIs(429);
@@ -108,15 +108,15 @@ final class RateLimitCest
         $this->clearRedis();
 
         for ($i = 0; $i < 60; ++$i) {
-            $I->sendGET('/api/books');
+            $I->sendGET('/api/v1/books');
             $I->seeResponseCodeIs(200);
         }
 
-        $I->sendGET('/api/books');
+        $I->sendGET('/api/v1/books');
         $I->seeResponseCodeIs(429);
 
         $I->haveHttpHeader('X-Forwarded-For', '192.168.1.100');
-        $I->sendGET('/api/books');
+        $I->sendGET('/api/v1/books');
         $I->seeResponseCodeIs(200);
         $I->seeHttpHeader('X-RateLimit-Remaining', '59');
     }

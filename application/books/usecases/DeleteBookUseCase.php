@@ -7,38 +7,37 @@ namespace app\application\books\usecases;
 use app\application\books\commands\DeleteBookCommand;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\TransactionInterface;
+use app\application\ports\UseCaseInterface;
 use app\domain\events\BookDeletedEvent;
-use Throwable;
 
-final readonly class DeleteBookUseCase
+/**
+ * @implements UseCaseInterface<DeleteBookCommand, bool>
+ */
+final readonly class DeleteBookUseCase implements UseCaseInterface
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
-        private TransactionInterface $transaction,
         private TransactionalEventPublisher $eventPublisher,
     ) {
     }
 
-    public function execute(DeleteBookCommand $command): void
+    /**
+     * @param DeleteBookCommand $command
+     */
+    public function execute(object $command): bool
     {
+        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
+        assert($command instanceof DeleteBookCommand);
         $book = $this->bookRepository->get($command->id);
         $year = $book->year->value;
         $wasPublished = $book->published;
 
-        $this->transaction->begin();
+        $this->bookRepository->delete($book);
 
-        try {
-            $this->bookRepository->delete($book);
+        $this->eventPublisher->publishAfterCommit(
+            new BookDeletedEvent($command->id, $year, $wasPublished),
+        );
 
-            $this->eventPublisher->publishAfterCommit(
-                new BookDeletedEvent($command->id, $year, $wasPublished),
-            );
-
-            $this->transaction->commit();
-        } catch (Throwable $e) {
-            $this->transaction->rollBack();
-            throw $e;
-        }
+        return true;
     }
 }

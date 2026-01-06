@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\application\reports\queries;
 
-readonly class ReportDto
+final readonly class ReportDto
 {
     /**
      * @param array<array<string, mixed>> $topAuthors

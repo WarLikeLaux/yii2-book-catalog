@@ -36,7 +36,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <div class="card-body">
                     <h5 class="card-title">Base URL</h5>
                     <p class="card-text text-muted">Используйте этот базовый адрес для всех API-запросов:</p>
-                    <code class="d-block p-3 bg-light rounded mb-3">http://<?= $host ?>:<?= $appPort ?>/api</code>
+                    <code class="d-block p-3 bg-light rounded mb-3">http://<?= $host ?>:<?= $appPort ?>/api/v1</code>
                     <p class="card-text small text-muted">Доступные эндпоинты:</p>
                     <ul class="small text-muted">
                         <li><code>GET /books</code> — Список книг (с пагинацией)</li>

@@ -8,12 +8,12 @@ servers:
     url: 'http://localhost:8000'
     description: 'Локальный сервер разработки'
 paths:
-  /api/books:
+  /api/v1/books:
     get:
       tags:
         - 'API Books'
       summary: 'Получить список книг (JSON)'
-      operationId: 2859aba8f08f99c987cf0ba4e030c7fe
+      operationId: 8fd7c19bee1afa0a4b6f916dfbfe4ab8
       parameters:
         -
           name: page

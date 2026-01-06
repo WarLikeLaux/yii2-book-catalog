@@ -23,7 +23,7 @@ final class BookTestHelper
         return Book::reconstitute(
             id: $id,
             title: $title,
-            year: new BookYear($year, new DateTimeImmutable()),
+            year: new BookYear($year),
             isbn: new Isbn($isbn),
             description: $description,
             coverImage: $coverImage ? new StoredFileReference($coverImage) : null,

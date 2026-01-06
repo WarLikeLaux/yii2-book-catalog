@@ -50,6 +50,8 @@ return [
     'book.error.title_empty' => 'Book title cannot be empty',
     'book.error.title_too_long' => 'Book title is too long',
     'book.error.publish_without_authors' => 'Cannot publish book without authors',
+    'book.error.publish_without_cover' => 'Cannot publish book without cover',
+    'book.error.publish_short_description' => 'Book description must be at least 50 characters to publish',
     'book.error.isbn_change_published' => 'Cannot change ISBN of published book',
     'book.error.stale_data' => 'Stale data. Refresh the page and try again.',
     'book.error.invalid_author_id' => 'Invalid author ID',
@@ -61,4 +63,6 @@ return [
     'isbn.error.invalid_format_hint' => 'Invalid ISBN. Use ISBN-10 or ISBN-13 format.',
     'year.error.too_old' => 'Year must be greater than 1000',
     'year.error.future' => 'Year cannot be in the future',
+    'idempotency.error.key_in_progress' => 'Operation is already in progress. Please wait.',
+    'idempotency.error.storage_unavailable' => 'Idempotency storage unavailable. Please try again later.',
 ];

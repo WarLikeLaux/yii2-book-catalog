@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\presentation\controllers\api;
+namespace app\presentation\controllers\api\v1;
 
 use app\presentation\books\handlers\BookViewDataFactory;
 use app\presentation\common\dto\CrudPaginationRequest;
@@ -11,13 +11,9 @@ use app\presentation\common\filters\RateLimitFilter;
 use OpenApi\Attributes as OA;
 use yii\data\DataProviderInterface;
 use yii\filters\AccessControl;
-use yii\filters\ContentNegotiator;
-use yii\filters\Cors;
-use yii\rest\Controller;
-use yii\web\Response;
 
 #[OA\Tag(name: 'API Books', description: 'REST API для работы с книгами')]
-final class BookController extends Controller
+final class BookController extends BaseApiController
 {
     public function __construct(
         $id,
@@ -33,17 +29,6 @@ final class BookController extends Controller
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();
-
-        $behaviors['contentNegotiator'] = [
-            'class' => ContentNegotiator::class,
-            'formats' => [
-                'application/json' => Response::FORMAT_JSON,
-            ],
-        ];
-
-        $behaviors['corsFilter'] = [
-            'class' => Cors::class,
-        ];
 
         $behaviors['rateLimit'] = [
             'class' => RateLimitFilter::class,
@@ -67,7 +52,7 @@ final class BookController extends Controller
     }
 
     #[OA\Get(
-        path: '/api/books',
+        path: '/api/v1/books',
         summary: 'Получить список книг (JSON)',
         tags: ['API Books'],
         parameters: [
@@ -92,8 +77,6 @@ final class BookController extends Controller
             ),
         ],
     )]
-
-
     public function actionIndex(): DataProviderInterface
     {
         $pagination = CrudPaginationRequest::fromRequest($this->request);

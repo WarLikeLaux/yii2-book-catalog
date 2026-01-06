@@ -6,6 +6,7 @@ namespace tests\unit\infrastructure\adapters;
 
 use app\domain\events\BookPublishedEvent;
 use app\domain\events\QueueableEvent;
+use app\infrastructure\adapters\EventJobMappingRegistry;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\queue\NotifySubscribersJob;
 use Codeception\Test\Unit;
@@ -17,7 +18,11 @@ final class EventToJobMapperTest extends Unit
 
     protected function _before(): void
     {
-        $this->mapper = new EventToJobMapper();
+        $registry = new EventJobMappingRegistry([
+            BookPublishedEvent::class => NotifySubscribersJob::class,
+        ]);
+
+        $this->mapper = new EventToJobMapper($registry);
     }
 
     public function testMapBookPublishedEventCreatesNotifySubscribersJob(): void
@@ -33,6 +38,8 @@ final class EventToJobMapperTest extends Unit
 
     public function testMapUnknownEventThrowsException(): void
     {
+        $registry = new EventJobMappingRegistry([]);
+        $mapper = new EventToJobMapper($registry);
         $event = new class implements QueueableEvent {
             public function getEventType(): string
             {
@@ -49,6 +56,6 @@ final class EventToJobMapperTest extends Unit
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('No job mapping for event:');
 
-        $this->mapper->map($event);
+        $mapper->map($event);
     }
 }

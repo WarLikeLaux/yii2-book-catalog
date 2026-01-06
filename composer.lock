@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1bda91f2f2ca6b46b98432dc037ce46c",
+    "content-hash": "e9559397e6033a1046a87c19ca46962b",
     "packages": [
         {
             "name": "bower-asset/inputmask",
@@ -1074,6 +1074,18 @@
             "type": "npm-asset",
             "license": [
                 "MIT"
+            ]
+        },
+        {
+            "name": "npm-asset/htmx.org",
+            "version": "2.0.8",
+            "dist": {
+                "type": "tar",
+                "url": "https://registry.npmjs.org/htmx.org/-/htmx.org-2.0.8.tgz"
+            },
+            "type": "npm-asset",
+            "license": [
+                "0BSD"
             ]
         },
         {
@@ -7540,6 +7552,89 @@
             "time": "2025-12-28T23:57:40+00:00"
         },
         {
+            "name": "phparkitect/phparkitect",
+            "version": "0.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phparkitect/arkitect.git",
+                "reference": "f6e11f5581f0772c2c4532cda263409965f441af"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phparkitect/arkitect/zipball/f6e11f5581f0772c2c4532cda263409965f441af",
+                "reference": "f6e11f5581f0772c2c4532cda263409965f441af",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "nikic/php-parser": "~5",
+                "ondram/ci-detector": "^4.2",
+                "php": "^7.4|^8",
+                "phpstan/phpdoc-parser": "^1.2|^2.0",
+                "symfony/console": "^3.0|^4.0|^5.0|^6.0|^7.0|^8.0",
+                "symfony/event-dispatcher": "^3.0|^4.0|^5.0|^6.0|^7.0|^8.0",
+                "symfony/finder": "^3.0|^4.0|^5.0|^6.0|^7.0|^8.0",
+                "symfony/polyfill-php80": "^1.33",
+                "webmozart/assert": "^1.9"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.90",
+                "mikey179/vfsstream": "^1.6",
+                "phpspec/prophecy": "^1.10",
+                "phpspec/prophecy-phpunit": "^2.4",
+                "phpunit/phpunit": "^7.5|^9.0|^10.0",
+                "roave/security-advisories": "dev-master",
+                "symfony/var-dumper": "^3.0|^4.0|^5.0|^6.0|^7.0|^8.0"
+            },
+            "bin": [
+                "bin-stub/phparkitect"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Arkitect\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pietro Campagnano",
+                    "email": "hello@pietro.camp"
+                },
+                {
+                    "name": "Patrick Luca Fazzi",
+                    "email": "patrick91@live.it"
+                },
+                {
+                    "name": "Alessandro Minoccheri",
+                    "email": "alessandro.minoccheri@gmail.com"
+                },
+                {
+                    "name": "Michele Orselli",
+                    "email": "michele.orselli@gmail.com"
+                }
+            ],
+            "description": "Enforce architectural constraints in your PHP applications",
+            "support": {
+                "issues": "https://github.com/phparkitect/arkitect/issues",
+                "source": "https://github.com/phparkitect/arkitect/tree/0.7.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/AlessandroMinoccheri",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/micheleorselli",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-12-02T09:53:25+00:00"
+        },
+        {
             "name": "phpdocumentor/graphviz",
             "version": "2.1.0",
             "source": {
@@ -13073,23 +13168,23 @@
         },
         {
             "name": "webmozart/assert",
-            "version": "2.0.0",
+            "version": "1.12.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webmozarts/assert.git",
-                "reference": "1b34b004e35a164bc5bb6ebd33c844b2d8069a54"
+                "reference": "9be6926d8b485f55b9229203f962b51ed377ba68"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozarts/assert/zipball/1b34b004e35a164bc5bb6ebd33c844b2d8069a54",
-                "reference": "1b34b004e35a164bc5bb6ebd33c844b2d8069a54",
+                "url": "https://api.github.com/repos/webmozarts/assert/zipball/9be6926d8b485f55b9229203f962b51ed377ba68",
+                "reference": "9be6926d8b485f55b9229203f962b51ed377ba68",
                 "shasum": ""
             },
             "require": {
                 "ext-ctype": "*",
                 "ext-date": "*",
                 "ext-filter": "*",
-                "php": "^8.2"
+                "php": "^7.2 || ^8.0"
             },
             "suggest": {
                 "ext-intl": "",
@@ -13099,7 +13194,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-feature/2-0": "2.0-dev"
+                    "dev-master": "1.10-dev"
                 }
             },
             "autoload": {
@@ -13115,10 +13210,6 @@
                 {
                     "name": "Bernhard Schussek",
                     "email": "bschussek@gmail.com"
-                },
-                {
-                    "name": "Woody Gilk",
-                    "email": "woody.gilk@gmail.com"
                 }
             ],
             "description": "Assertions to validate method input/output with nice error messages.",
@@ -13129,9 +13220,9 @@
             ],
             "support": {
                 "issues": "https://github.com/webmozarts/assert/issues",
-                "source": "https://github.com/webmozarts/assert/tree/2.0.0"
+                "source": "https://github.com/webmozarts/assert/tree/1.12.1"
             },
-            "time": "2025-12-16T21:36:00+00:00"
+            "time": "2025-10-29T15:56:20+00:00"
         },
         {
             "name": "yiisoft/injector",

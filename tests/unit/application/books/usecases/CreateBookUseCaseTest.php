@@ -7,7 +7,6 @@ namespace tests\unit\application\books\usecases;
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\exceptions\DomainException;
 use BookTestHelper;
@@ -19,20 +18,17 @@ use Psr\Clock\ClockInterface;
 final class CreateBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-    private TransactionInterface&MockObject $transaction;
     private ClockInterface&MockObject $clock;
     private CreateBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
-        $this->transaction = $this->createMock(TransactionInterface::class);
         $this->clock = $this->createMock(ClockInterface::class);
         $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
         $this->useCase = new CreateBookUseCase(
             $this->bookRepository,
-            $this->transaction,
             $this->clock,
         );
     }
@@ -47,10 +43,6 @@ final class CreateBookUseCaseTest extends Unit
             authorIds: [1, 2],
             cover: '/uploads/cover.jpg',
         );
-
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
-        $this->transaction->expects($this->never())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
             ->method('save')
@@ -75,10 +67,6 @@ final class CreateBookUseCaseTest extends Unit
             authorIds: [1],
         );
 
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->never())->method('commit');
-        $this->transaction->expects($this->once())->method('rollBack');
-
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
@@ -99,10 +87,6 @@ final class CreateBookUseCaseTest extends Unit
             authorIds: [1],
         );
 
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->never())->method('commit');
-        $this->transaction->expects($this->once())->method('rollBack');
-
         $this->expectException(DomainException::class);
 
         $this->useCase->execute($command);
@@ -117,9 +101,6 @@ final class CreateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: [],
         );
-
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
 
         $this->bookRepository->expects($this->once())
             ->method('save')
@@ -143,9 +124,6 @@ final class CreateBookUseCaseTest extends Unit
             cover: 'http://cover.com',
         );
 
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('rollBack');
-
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(Book::class))
@@ -154,6 +132,24 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Failed to retrieve book ID after save');
+
+        $this->useCase->execute($command);
+    }
+
+    public function testExecuteThrowsExceptionOnFutureYear(): void
+    {
+        $command = new CreateBookCommand(
+            title: 'Future Book',
+            year: 2026,
+            description: 'A book from the future',
+            isbn: '9780132350884',
+            authorIds: [1],
+        );
+
+        $this->bookRepository->expects($this->never())->method('save');
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('year.error.future');
 
         $this->useCase->execute($command);
     }

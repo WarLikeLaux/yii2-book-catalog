@@ -23,12 +23,12 @@ final class IdempotencyCest
         $key = 'test-idempotency-api-' . uniqid();
         $I->haveHttpHeader('Idempotency-Key', $key);
 
-        $I->sendPost('/index-test.php?r=api/book/index', ['title' => 'First Title']);
+        $I->sendPost('/index-test.php?r=api/v1/book/index', ['title' => 'First Title']);
         $I->seeResponseCodeIs(200);
         $I->seeHttpHeader('X-Idempotency-Cache', 'MISS');
 
         $I->haveHttpHeader('Idempotency-Key', $key);
-        $I->sendPost('/index-test.php?r=api/book/index', ['title' => 'Second Title']);
+        $I->sendPost('/index-test.php?r=api/v1/book/index', ['title' => 'Second Title']);
         $I->seeResponseCodeIs(200);
         $I->seeHttpHeader('X-Idempotency-Cache', 'HIT');
     }

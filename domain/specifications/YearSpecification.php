@@ -12,14 +12,13 @@ final readonly class YearSpecification implements BookSpecificationInterface
     ) {
     }
 
-    /**
-     * @return array{type: string, value: mixed}
-     */
-    public function toSearchCriteria(): array
+    public function accept(BookSpecificationVisitorInterface $visitor): void
     {
-        return [
-            'type' => 'year',
-            'value' => $this->year,
-        ];
+        $visitor->visitYear($this);
+    }
+
+    public function getYear(): int
+    {
+        return $this->year;
     }
 }

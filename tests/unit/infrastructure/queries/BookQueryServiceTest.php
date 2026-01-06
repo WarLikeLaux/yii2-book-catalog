@@ -16,11 +16,8 @@ use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
-use app\infrastructure\queries\BookQueryService;
 use Codeception\Test\Unit;
 use Yii;
-use yii\db\Connection;
-use yii\db\Expression;
 
 final class BookQueryServiceTest extends Unit
 {
@@ -51,7 +48,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'Test Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9783161484100'),
             'Desc',
             null,
@@ -76,7 +73,7 @@ final class BookQueryServiceTest extends Unit
 
         $book = BookEntity::create(
             'Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9783161484100'),
             null,
             null,
@@ -102,7 +99,7 @@ final class BookQueryServiceTest extends Unit
 
         $book = BookEntity::create(
             'Author Search Book',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -122,7 +119,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'ISBN Search',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -138,7 +135,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'Year Search',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -154,7 +151,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'Empty Search',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -172,7 +169,7 @@ final class BookQueryServiceTest extends Unit
 
         $book = BookEntity::create(
             'SearchableBookTitle',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             'Some description',
             null,
@@ -192,7 +189,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'Year Spec Test',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -209,7 +206,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'ISBN Prefix Spec Test',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -226,7 +223,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book = BookEntity::create(
             'FullTextSpecificationTestBook',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             'Unique description for fulltext search',
             null,
@@ -247,7 +244,7 @@ final class BookQueryServiceTest extends Unit
 
         $book = BookEntity::create(
             'Author Spec Test',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -267,7 +264,7 @@ final class BookQueryServiceTest extends Unit
     {
         $book1 = BookEntity::create(
             'Composite Spec Year Book',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             null,
             null,
@@ -276,7 +273,7 @@ final class BookQueryServiceTest extends Unit
 
         $book2 = BookEntity::create(
             'Composite Spec ISBN Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9780132350884'),
             null,
             null,
@@ -298,7 +295,7 @@ final class BookQueryServiceTest extends Unit
 
         $book1 = BookEntity::create(
             'CompositeFulltextTestBook',
-            new BookYear(2024, new \DateTimeImmutable()),
+            new BookYear(2024),
             new Isbn('9783161484100'),
             'Some unique description',
             null,
@@ -307,7 +304,7 @@ final class BookQueryServiceTest extends Unit
 
         $book2 = BookEntity::create(
             'Another Book',
-            new BookYear(2025, new \DateTimeImmutable()),
+            new BookYear(2025),
             new Isbn('9780132350884'),
             null,
             null,
@@ -324,98 +321,5 @@ final class BookQueryServiceTest extends Unit
         $result = $this->queryService->searchBySpecification($composite, 1, 10);
 
         $this->assertGreaterThanOrEqual(1, $result->getTotalCount());
-    }
-
-    public function testBuildBooksFulltextExpressionForMysql(): void
-    {
-        $service = $this->createServiceWithDriver('mysql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildBooksFulltextExpression', ['hello world']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            'MATCH(title, description) AGAINST(:query IN BOOLEAN MODE)',
-            $expression->expression,
-        );
-        $this->assertSame('+hello* +world*', $expression->params[':query']);
-    }
-
-    public function testBuildBooksFulltextExpressionForMysqlReturnsNullOnEmptyQuery(): void
-    {
-        $service = $this->createServiceWithDriver('mysql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildBooksFulltextExpression', ['+++']);
-
-        $this->assertNull($expression);
-    }
-
-    public function testBuildBooksFulltextExpressionForPgsql(): void
-    {
-        $service = $this->createServiceWithDriver('pgsql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildBooksFulltextExpression', ['Hello']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '')) @@ plainto_tsquery('english', :query)",
-            $expression->expression,
-        );
-        $this->assertSame('Hello', $expression->params[':query']);
-    }
-
-    public function testBuildBooksFulltextExpressionForPgsqlReturnsNullOnSanitizedEmpty(): void
-    {
-        $service = $this->createServiceWithDriver('pgsql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildBooksFulltextExpression', ['!!!']);
-
-        $this->assertNull($expression);
-    }
-
-    public function testBuildAuthorsFulltextExpressionForMysql(): void
-    {
-        $service = $this->createServiceWithDriver('mysql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildAuthorsFulltextExpression', ['Author Name']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            'MATCH(authors.fio) AGAINST(:query IN BOOLEAN MODE)',
-            $expression->expression,
-        );
-        $this->assertSame('+Author* +Name*', $expression->params[':query']);
-    }
-
-    public function testBuildAuthorsFulltextExpressionForPgsql(): void
-    {
-        $service = $this->createServiceWithDriver('pgsql');
-
-        $expression = $this->invokePrivateMethod($service, 'buildAuthorsFulltextExpression', ['Author']);
-
-        $this->assertInstanceOf(Expression::class, $expression);
-        $this->assertSame(
-            "to_tsvector('english', coalesce(authors.fio, '')) @@ plainto_tsquery('english', :query)",
-            $expression->expression,
-        );
-        $this->assertSame('Author', $expression->params[':query']);
-    }
-
-    private function createServiceWithDriver(string $driverName): BookQueryService
-    {
-        $connection = new Connection();
-        $connection->setDriverName($driverName);
-
-        return new BookQueryService($connection);
-    }
-
-    /**
-     * @param array<int, mixed> $arguments
-     */
-    private function invokePrivateMethod(object $target, string $method, array $arguments): mixed
-    {
-        $reflection = new \ReflectionMethod($target, $method);
-        $reflection->setAccessible(true);
-
-        return $reflection->invokeArgs($target, $arguments);
     }
 }

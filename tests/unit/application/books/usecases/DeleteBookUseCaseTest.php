@@ -8,8 +8,8 @@ use app\application\books\commands\DeleteBookCommand;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\TransactionInterface;
 use app\domain\events\BookDeletedEvent;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use BookTestHelper;
 use Codeception\Test\Unit;
@@ -18,18 +18,15 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class DeleteBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-    private TransactionInterface&MockObject $transaction;
     private TransactionalEventPublisher&MockObject $eventPublisher;
     private DeleteBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
-        $this->transaction = $this->createMock(TransactionInterface::class);
         $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
         $this->useCase = new DeleteBookUseCase(
             $this->bookRepository,
-            $this->transaction,
             $this->eventPublisher,
         );
     }
@@ -51,24 +48,6 @@ final class DeleteBookUseCaseTest extends Unit
             ->with(42)
             ->willReturn($existingBook);
 
-        $afterCommitCallback = null;
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())
-            ->method('afterCommit')
-            ->willReturnCallback(static function (callable $callback) use (&$afterCommitCallback): void {
-                $afterCommitCallback = $callback;
-            });
-        $this->transaction->expects($this->once())
-            ->method('commit')
-            ->willReturnCallback(static function () use (&$afterCommitCallback): void {
-                if ($afterCommitCallback === null) {
-                    return;
-                }
-
-                $afterCommitCallback();
-            });
-        $this->transaction->expects($this->never())->method('rollBack');
-
         $this->bookRepository->expects($this->once())
             ->method('delete')
             ->with($existingBook);
@@ -77,10 +56,7 @@ final class DeleteBookUseCaseTest extends Unit
             ->method('publishAfterCommit')
             ->with($this->callback(static fn (BookDeletedEvent $event): bool => $event->bookId === 42
                 && $event->year === 2020
-                && $event->wasPublished === false))
-            ->willReturnCallback(function (BookDeletedEvent $_event): void {
-                $this->transaction->afterCommit(static fn(): null => null);
-            });
+                && $event->wasPublished === false));
 
         $this->useCase->execute($command);
     }
@@ -92,13 +68,12 @@ final class DeleteBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('get')
             ->with(999)
-            ->willThrowException(new EntityNotFoundException('book.error.not_found'));
+            ->willThrowException(new EntityNotFoundException(DomainErrorCode::BookNotFound));
 
-        $this->transaction->expects($this->never())->method('begin');
         $this->bookRepository->expects($this->never())->method('delete');
 
         $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage('book.error.not_found');
+        $this->expectExceptionMessage(DomainErrorCode::BookNotFound->value);
 
         $this->useCase->execute($command);
     }
@@ -118,10 +93,6 @@ final class DeleteBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('get')
             ->willReturn($existingBook);
-
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->never())->method('commit');
-        $this->transaction->expects($this->once())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
             ->method('delete')

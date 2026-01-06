@@ -8,9 +8,9 @@ use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\TransactionInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookUpdatedEvent;
+use app\domain\exceptions\DomainException;
 use app\domain\exceptions\StaleDataException;
 use app\domain\values\Isbn;
 use BookTestHelper;
@@ -22,7 +22,6 @@ use Psr\Clock\ClockInterface;
 final class UpdateBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-    private TransactionInterface&MockObject $transaction;
     private TransactionalEventPublisher&MockObject $eventPublisher;
     private ClockInterface&MockObject $clock;
     private UpdateBookUseCase $useCase;
@@ -30,14 +29,12 @@ final class UpdateBookUseCaseTest extends Unit
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
-        $this->transaction = $this->createMock(TransactionInterface::class);
         $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
         $this->clock = $this->createMock(ClockInterface::class);
         $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
         $this->useCase = new UpdateBookUseCase(
             $this->bookRepository,
-            $this->transaction,
             $this->eventPublisher,
             $this->clock,
         );
@@ -72,10 +69,6 @@ final class UpdateBookUseCaseTest extends Unit
             ->with(42, 1)
             ->willReturn($existingBook);
 
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
-        $this->transaction->expects($this->never())->method('rollBack');
-
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
@@ -108,8 +101,6 @@ final class UpdateBookUseCaseTest extends Unit
             ->with(999, 1)
             ->willThrowException(new StaleDataException());
 
-        $this->transaction->expects($this->never())->method('begin');
-
         $this->expectException(StaleDataException::class);
 
         $this->useCase->execute($command);
@@ -141,10 +132,6 @@ final class UpdateBookUseCaseTest extends Unit
             ->method('getByIdAndVersion')
             ->with(42, 1)
             ->willReturn($existingBook);
-
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->never())->method('commit');
-        $this->transaction->expects($this->once())->method('rollBack');
 
         $this->bookRepository->expects($this->once())
             ->method('save')
@@ -183,9 +170,6 @@ final class UpdateBookUseCaseTest extends Unit
             ->with(42, 1)
             ->willReturn($existingBook);
 
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
-
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
@@ -220,9 +204,6 @@ final class UpdateBookUseCaseTest extends Unit
             ->method('getByIdAndVersion')
             ->with(42, 1)
             ->willReturn($existingBook);
-
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
 
         $this->bookRepository->expects($this->once())
             ->method('save')
@@ -259,9 +240,6 @@ final class UpdateBookUseCaseTest extends Unit
             ->with(42, 1)
             ->willReturn($existingBook);
 
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
-
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn (Book $book): bool => $book->coverImage?->getPath() === '/uploads/new-cover.png'));
@@ -279,6 +257,7 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: [1],
             version: 1,
+            cover: ':284',
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -296,12 +275,44 @@ final class UpdateBookUseCaseTest extends Unit
             ->with(42, 1)
             ->willReturn($existingBook);
 
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
-
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn (Book $book): bool => $book->description === 'New description text'));
+
+        $this->useCase->execute($command);
+    }
+
+    public function testExecuteThrowsExceptionOnFutureYear(): void
+    {
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Title',
+            year: 2026,
+            description: 'Description',
+            isbn: '9780132350884',
+            authorIds: [1],
+            version: 1,
+        );
+
+        $existingBook = BookTestHelper::createBook(
+            id: 42,
+            title: 'Old Title',
+            year: 2020,
+            description: 'Description',
+            authorIds: [1],
+            published: false,
+            version: 1,
+        );
+
+        $this->bookRepository->expects($this->once())
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
+            ->willReturn($existingBook);
+
+        $this->bookRepository->expects($this->never())->method('save');
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('year.error.future');
 
         $this->useCase->execute($command);
     }

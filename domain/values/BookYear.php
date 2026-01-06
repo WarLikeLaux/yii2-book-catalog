@@ -4,27 +4,21 @@ declare(strict_types=1);
 
 namespace app\domain\values;
 
-use app\domain\exceptions\DomainException;
-use DateTimeImmutable;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ValidationException;
 
 final readonly class BookYear implements \Stringable
 {
     public private(set) int $value;
 
-    public function __construct(
-        int $year,
-        ?DateTimeImmutable $now = null,
-    ) {
-        if ($now instanceof DateTimeImmutable) {
-            $currentYear = (int)$now->format('Y');
+    public function __construct(int $year, ?int $currentYear = null)
+    {
+        if ($year <= 1000) {
+            throw new ValidationException(DomainErrorCode::YearTooOld);
+        }
 
-            if ($year <= 1000) {
-                throw new DomainException('year.error.too_old');
-            }
-
-            if ($year > $currentYear + 1) {
-                throw new DomainException('year.error.future');
-            }
+        if ($currentYear !== null && $year > $currentYear + 1) {
+            throw new ValidationException(DomainErrorCode::YearFuture);
         }
 
         $this->value = $year;

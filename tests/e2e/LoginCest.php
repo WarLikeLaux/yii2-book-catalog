@@ -6,6 +6,11 @@ namespace tests\e2e;
 
 final class LoginCest
 {
+    public function _before(\E2eTester $I): void
+    {
+        $I->amOnPage('/site/logout');
+    }
+
     public function testLoginPageDisplaysForm(\E2eTester $I): void
     {
         $I->amOnPage('/site/login');
@@ -23,8 +28,8 @@ final class LoginCest
         $I->fillField('LoginForm[password]', 'admin');
         $I->click('button[name="login-button"]');
 
-        $I->waitForText('Выход', 10);
-        $I->see('Выход', 'nav');
+        $I->waitForElement('.logout', 10);
+        $I->seeElement('.logout');
         $I->dontSee('Вход', 'nav');
     }
 
@@ -36,7 +41,7 @@ final class LoginCest
         $I->click('button[name="login-button"]');
 
         $I->wait(1);
-        $I->see('Неверный логин или пароль');
+        $I->see('Неверный логин или пароль.');
     }
 
     public function testLogoutWorks(\E2eTester $I): void
@@ -46,7 +51,7 @@ final class LoginCest
         $I->fillField('LoginForm[password]', 'admin');
         $I->click('button[name="login-button"]');
 
-        $I->waitForText('Выход', 10);
+        $I->waitForElement('.logout', 10);
         $I->click('.logout');
 
         $I->waitForText('Вход', 10);

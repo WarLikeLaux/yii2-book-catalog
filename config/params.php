@@ -15,6 +15,7 @@ return [
         'baseUrl' => '/uploads',
         'tempBasePath' => '@app/web/uploads/temp',
         'tempBaseUrl' => '/uploads/temp',
+        'placeholderUrl' => 'https://picsum.photos/seed/{seed}/400/600',
     ],
     'idempotency' => [
         'ttl' => (int)env('IDEMPOTENCY_TTL', 86400),
@@ -33,6 +34,16 @@ return [
             'infrastructure/persistence' => 1,
             'domain' => 2,
             'application' => 3,
+        ],
+    ],
+    'buggregator' => [
+        'log' => [
+            'host' => (string)env('BUGGREGATOR_LOG_HOST', 'buggregator'),
+            'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+        ],
+        'inspector' => [
+            'url' => (string)env('INSPECTOR_URL', 'http://buggregator:8000'),
+            'ingestionKey' => (string)env('INSPECTOR_INGESTION_KEY', 'buggregator'),
         ],
     ],
 ];

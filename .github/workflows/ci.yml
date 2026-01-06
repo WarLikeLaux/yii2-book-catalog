@@ -97,8 +97,11 @@ jobs:
       - name: Run PHPStan (Level 9)
         run: ./vendor/bin/phpstan analyse --memory-limit=2G
 
-      - name: Run Deptrac (Architecture)
+      - name: Run Deptrac (Architecture Boundaries)
         run: ./vendor/bin/deptrac analyze
+
+      - name: Run PHPArkitect (Architecture Patterns)
+        run: ./vendor/bin/phparkitect check
 
       - name: Run Rector (Refactoring Check)
         run: ./vendor/bin/rector process --dry-run
@@ -124,8 +127,8 @@ jobs:
           ./vendor/bin/infection \
             --coverage=runtime/coverage \
             --threads=max \
-            --min-msi=90 \
-            --min-covered-msi=90 \
+            --min-msi=95 \
+            --min-covered-msi=95 \
             --test-framework-options="integration,unit"
 
       - name: Seed Database for E2E

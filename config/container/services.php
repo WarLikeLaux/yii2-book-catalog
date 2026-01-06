@@ -8,7 +8,9 @@ use app\application\common\RateLimitService;
 use app\application\common\RateLimitServiceInterface;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\AuthorQueryServiceInterface;
+use app\application\ports\BookFinderInterface;
 use app\application\ports\BookQueryServiceInterface;
+use app\application\ports\BookSearcherInterface;
 use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\FileStorageInterface;
@@ -41,6 +43,9 @@ return static fn (array $params) => [
             BookQueryServiceTracingDecorator::class,
         ),
 
+        BookFinderInterface::class => BookQueryServiceInterface::class,
+        BookSearcherInterface::class => BookQueryServiceInterface::class,
+
         AuthorQueryServiceInterface::class => AuthorQueryService::class,
 
         ReportQueryService::class => [
@@ -71,7 +76,10 @@ return static fn (array $params) => [
 
         FileUrlResolver::class => static function () use ($params) {
             $storageParams = $params['storage'];
-            return new FileUrlResolver($storageParams['baseUrl']);
+            return new FileUrlResolver(
+                $storageParams['baseUrl'],
+                $storageParams['placeholderUrl'] ?? '',
+            );
         },
     ],
     'singletons' => [

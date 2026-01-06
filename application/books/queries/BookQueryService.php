@@ -4,28 +4,31 @@ declare(strict_types=1);
 
 namespace app\application\books\queries;
 
-use app\application\ports\BookQueryServiceInterface;
+use app\application\ports\BookFinderInterface;
+use app\application\ports\BookSearcherInterface;
 use app\application\ports\PagedResultInterface;
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\EntityNotFoundException;
 
 final readonly class BookQueryService
 {
     public function __construct(
-        private BookQueryServiceInterface $bookRepository,
+        private BookFinderInterface $finder,
+        private BookSearcherInterface $searcher,
     ) {
     }
 
     public function getIndexProvider(int $page = 1, int $pageSize = 20): PagedResultInterface
     {
-        return $this->bookRepository->search('', $page, $pageSize);
+        return $this->searcher->search('', $page, $pageSize);
     }
 
     public function getById(int $id): BookReadDto
     {
-        $book = $this->bookRepository->findByIdWithAuthors($id);
+        $book = $this->finder->findByIdWithAuthors($id);
 
         if (!$book instanceof BookReadDto) {
-            throw new DomainException('book.error.not_found');
+            throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
 
         return $book;
@@ -33,7 +36,7 @@ final readonly class BookQueryService
 
     public function search(BookSearchCriteria $criteria): PagedResultInterface
     {
-        return $this->bookRepository->search(
+        return $this->searcher->search(
             $criteria->globalSearch,
             $criteria->page,
             $criteria->pageSize,

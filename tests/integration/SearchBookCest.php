@@ -32,7 +32,7 @@ class SearchBookCest
         $I->see('Unique PHP Guide');
         $I->see('Another Java Book');
 
-        $I->submitForm('#book-list-pjax form', [
+        $I->submitForm('#book-search-form', [
             'globalSearch' => 'PHP',
         ]);
 
@@ -61,7 +61,7 @@ class SearchBookCest
         ]);
 
         $I->amOnPage('/');
-        $I->submitForm('#book-list-pjax form', [
+        $I->submitForm('#book-search-form', [
             'globalSearch' => '0-306',
         ]);
 

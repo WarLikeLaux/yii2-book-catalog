@@ -11,7 +11,7 @@ final class SearchCest
         $I->amOnPage('/site/index');
         $I->see('Библиотека', 'h1');
         $I->seeElement('#book-search-input');
-        $I->seeElement('#book-list-pjax');
+        $I->seeElement('#book-list');
     }
 
     public function testSearchPlaceholderText(\E2eTester $I): void
@@ -29,11 +29,12 @@ final class SearchCest
 
     public function testLoggedInUserSeesManagementButton(\E2eTester $I): void
     {
+        $I->amOnPage('/site/logout');
         $I->amOnPage('/site/login');
         $I->fillField('LoginForm[username]', 'admin');
         $I->fillField('LoginForm[password]', 'admin');
         $I->click('button[name="login-button"]');
-        $I->waitForText('Выход', 10);
+        $I->waitForElement('.logout', 10);
 
         $I->amOnPage('/site/index');
         $I->see('Управление книгами');
@@ -41,6 +42,7 @@ final class SearchCest
 
     public function testGuestUserDoesNotSeeManagementButton(\E2eTester $I): void
     {
+        $I->amOnPage('/site/logout');
         $I->amOnPage('/site/index');
         $I->dontSee('Управление книгами');
     }

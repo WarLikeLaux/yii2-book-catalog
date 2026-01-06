@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\application\subscriptions\commands;
 
-readonly class SubscribeCommand
+use app\application\ports\CommandInterface;
+
+final readonly class SubscribeCommand implements CommandInterface
 {
     public function __construct(
         public string $phone,

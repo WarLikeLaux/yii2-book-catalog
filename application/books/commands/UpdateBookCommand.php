@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace app\application\books\commands;
 
+use app\application\ports\CommandInterface;
 use app\domain\values\StoredFileReference;
 
-final readonly class UpdateBookCommand
+final readonly class UpdateBookCommand implements CommandInterface
 {
     /**
      * @param array<int> $authorIds

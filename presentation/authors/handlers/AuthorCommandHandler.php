@@ -32,33 +32,41 @@ final readonly class AuthorCommandHandler
     {
         $command = $this->mapper->toCreateCommand($form);
 
-        $authorId = null;
-        $success = $this->useCaseRunner->execute(function () use ($command, &$authorId): void {
-            $authorId = $this->createAuthorUseCase->execute($command);
-        }, Yii::t('app', 'author.success.created'));
+        $result = $this->useCaseRunner->execute(
+            $command,
+            $this->createAuthorUseCase,
+            Yii::t('app', 'author.success.created'),
+        );
 
-        return $success ? $authorId : null;
+        /** @var int|null $result */
+        return $result;
     }
 
     public function updateAuthor(int $id, AuthorForm $form): bool
     {
         $command = $this->mapper->toUpdateCommand($id, $form);
 
-        return $this->useCaseRunner->execute(
-            fn() => $this->updateAuthorUseCase->execute($command),
+        $result = $this->useCaseRunner->execute(
+            $command,
+            $this->updateAuthorUseCase,
             Yii::t('app', 'author.success.updated'),
             ['author_id' => $id],
         );
+
+        return $result !== null;
     }
 
     public function deleteAuthor(int $id): bool
     {
         $command = new DeleteAuthorCommand($id);
 
-        return $this->useCaseRunner->execute(
-            fn() => $this->deleteAuthorUseCase->execute($command),
+        $result = $this->useCaseRunner->execute(
+            $command,
+            $this->deleteAuthorUseCase,
             Yii::t('app', 'author.success.deleted'),
             ['author_id' => $id],
         );
+
+        return $result !== null;
     }
 }

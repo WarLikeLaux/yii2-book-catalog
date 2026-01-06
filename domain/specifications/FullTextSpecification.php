@@ -11,14 +11,13 @@ final readonly class FullTextSpecification implements BookSpecificationInterface
     ) {
     }
 
-    /**
-     * @return array{type: string, value: mixed}
-     */
-    public function toSearchCriteria(): array
+    public function accept(BookSpecificationVisitorInterface $visitor): void
     {
-        return [
-            'type' => 'fulltext',
-            'value' => $this->query,
-        ];
+        $visitor->visitFullText($this);
+    }
+
+    public function getQuery(): string
+    {
+        return $this->query;
     }
 }

@@ -1,3 +1,7 @@
+html {
+    overflow-y: scroll;
+}
+
 main > .container {
     padding: 70px 15px 40px;
 }
@@ -235,4 +239,66 @@ a.desc:after {
 
 .system-info-item:hover .text-dev-value {
     color: #fff;
+}
+
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+}
+
+.book-skeleton {
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-cover {
+    height: 200px;
+    background: linear-gradient(110deg, #e9ecef 8%, #f8f9fa 18%, #e9ecef 33%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-title {
+    height: 24px;
+    width: 80%;
+    background: #e9ecef;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.skeleton-year {
+    height: 16px;
+    width: 40%;
+    background: #e9ecef;
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+.skeleton-badges {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.skeleton-badge {
+    height: 22px;
+    width: 70px;
+    background: #e9ecef;
+    border-radius: 12px;
+}
+
+.skeleton-text {
+    height: 14px;
+    width: 100%;
+    background: #e9ecef;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+.skeleton-text.short {
+    width: 60%;
 }

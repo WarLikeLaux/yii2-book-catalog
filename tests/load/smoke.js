@@ -7,14 +7,25 @@ export const options = {
 };
 
 export default function () {
-  const BASE_URL = 'http://php'; 
+  const BASE_URL = 'http://nginx'; 
 
   const res = http.get(BASE_URL);
   check(res, {
-    'status is 200': (r) => r.status === 200,
+    'front status is 200': (r) => r.status === 200,
+    'main page content': (r) => r.body.includes('Book Catalog'),
   });
 
-  const resApi = http.get(`${BASE_URL}/api/books`);
+  const params = {
+    headers: {
+      'Accept': 'application/json',
+    },
+  };
+  const resApi = http.get(`${BASE_URL}/api/v1/books`, params);
+  
+  if (resApi.status !== 200) {
+      console.log(`API Error: ${resApi.status} ${resApi.body}`);
+  }
+
   check(resApi, {
     'api status is 200': (r) => r.status === 200,
   });
