@@ -13,6 +13,7 @@
 <details>
 <summary>Подробности изменений</summary>
 ### 🚀 Новые функции и возможности
+- **#31** - консолидирована логика полнотекстового поиска с использованием LIKE в качестве запасного варианта ([0f3b965](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0f3b965))
 - **#31** - внедрена инфраструктура pipeline команд и middleware ([d1b5b0a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d1b5b0a))
 - **#31** - реализован интерфейс карточек книг с бесконечным скроллом на базе HTMX ([1220bc1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1220bc1))
 - **#31** - внедрена структура API v1 и мигрирован BookController ([0cfdbbf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0cfdbbf))
@@ -39,6 +40,7 @@
 - **#31** - обновлен FileUrlResolver для использования внутреннего метода разрешения путей ([1df48e7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1df48e7))
 
 ### 🧪 Тестирование
+- **#31** - добавлена проверка результата выполнения `UpdateAuthorUseCase` для устранения выжившего мутанта ([43a82d4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/43a82d4))
 - **#31** - обновлен IdempotencyMiddlewareTest с негативными сценариями и строгими ожиданиями ([49be0a9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/49be0a9))
 - **#31** - добавлены тесты для pipeline и middleware, актуализированы тесты usecase ([57f98a8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/57f98a8))
 - **#31** - улучшена надежность E2E тестов и актуализированы селекторы ([f75218b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f75218b))
@@ -54,6 +56,7 @@
 - **#31** - рефакторинг конфигурации GrumPHP и Rector ([adf2f63](https://github.com/WarLikeLaux/yii2-book-catalog/commit/adf2f63), [cb6c7a2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cb6c7a2))
 
 ### 📝 Документация
+- **#31** - проведен глубокий архитектурный аудит документации и синхронизация с реализацией ([86c64e1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/86c64e1))
 - **#31** - рефакторинг правил комментариев в AI контракте ([11058cf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/11058cf))
 - **#31** - обновлены правила рабочего процесса коммитов ([40897c0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/40897c0))
 - **#30** - проведена обезличка документации и обновлены стандарты мутационного тестирования ([8aa279f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8aa279f))
