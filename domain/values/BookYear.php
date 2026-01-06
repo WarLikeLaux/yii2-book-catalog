@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace app\domain\values;
 
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ValidationException;
 
 final readonly class BookYear implements \Stringable
 {
@@ -13,11 +14,11 @@ final readonly class BookYear implements \Stringable
     public function __construct(int $year, ?int $currentYear = null)
     {
         if ($year <= 1000) {
-            throw new DomainException('year.error.too_old');
+            throw new ValidationException(DomainErrorCode::YearTooOld);
         }
 
         if ($currentYear !== null && $year > $currentYear + 1) {
-            throw new DomainException('year.error.future');
+            throw new ValidationException(DomainErrorCode::YearFuture);
         }
 
         $this->value = $year;

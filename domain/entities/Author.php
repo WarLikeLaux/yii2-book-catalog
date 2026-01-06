@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace app\domain\entities;
 
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ValidationException;
 
 final class Author
 {
@@ -28,15 +29,15 @@ final class Author
         $trimmed = trim($fio);
 
         if ($trimmed === '') {
-            throw new DomainException('author.error.fio_empty');
+            throw new ValidationException(DomainErrorCode::AuthorFioEmpty);
         }
 
         if (mb_strlen($trimmed) < self::MIN_FIO_LENGTH) {
-            throw new DomainException('author.error.fio_too_short');
+            throw new ValidationException(DomainErrorCode::AuthorFioTooShort);
         }
 
         if (mb_strlen($trimmed) > self::MAX_FIO_LENGTH) {
-            throw new DomainException('author.error.fio_too_long');
+            throw new ValidationException(DomainErrorCode::AuthorFioTooLong);
         }
     }
 

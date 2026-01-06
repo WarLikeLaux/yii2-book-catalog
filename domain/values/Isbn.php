@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace app\domain\values;
 
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ValidationException;
 
 final readonly class Isbn implements \Stringable
 {
@@ -17,7 +18,7 @@ final readonly class Isbn implements \Stringable
         $normalized = $this->normalizeIsbn($value);
 
         if (!$this->isValidIsbn($normalized)) {
-            throw new DomainException('isbn.error.invalid_format');
+            throw new ValidationException(DomainErrorCode::IsbnInvalidFormat);
         }
 
         $this->value = $normalized;

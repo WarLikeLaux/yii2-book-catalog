@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace app\domain\services;
 
 use app\domain\entities\Book;
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\BusinessRuleException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ValidationException;
 use app\domain\values\StoredFileReference;
 
 final readonly class BookPublicationPolicy
@@ -13,20 +15,20 @@ final readonly class BookPublicationPolicy
     private const int MIN_DESCRIPTION_LENGTH = 50;
 
     /**
-     * @throws DomainException
+     * @throws ValidationException|BusinessRuleException
      */
     public function ensureCanPublish(Book $book): void
     {
         if ($book->authorIds === []) {
-            throw new DomainException('book.error.publish_without_authors');
+            throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutAuthors);
         }
 
         if (!$book->coverImage instanceof StoredFileReference) {
-            throw new DomainException('book.error.publish_without_cover');
+            throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutCover);
         }
 
         if (!$this->hasValidDescription($book->description)) {
-            throw new DomainException('book.error.publish_short_description');
+            throw new ValidationException(DomainErrorCode::BookPublishShortDescription);
         }
     }
 
