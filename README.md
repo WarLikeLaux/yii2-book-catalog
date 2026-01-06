@@ -9,7 +9,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL_/_PgSQL-Multi_DB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-523_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-595_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![AI Governance](https://img.shields.io/badge/AI-Governance-8A2BE2?style=for-the-badge&logo=googlegemini&logoColor=white)](docs/AI_WORKFLOW.md)
@@ -97,7 +97,7 @@
 | 🔹 **Value Objects**<br>`Isbn`, `BookYear` для бизнес-правил | 🛡 **Idempotency + Mutex**<br>Защита от дублей без гонок |
 | 🔹 **Доменные события**<br>Асинхронное взаимодействие | ⚡ **PJAX**<br>Мгновенная фильтрация |
 | **🧪 Качество кода** | **🐳 DevOps Ready** |
-| ✅ **523 теста** (1221 assertion)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
+| ✅ **595 тестов** (1367 assertions)<br>100% покрытие кода тестами | 🐳 **Docker Compose**<br>Полный стек одной командой |
 | ✅ **PHPStan Level 9**<br>Кастомные правила (Custom Rules) | 🛠 **Makefile**<br>Автоматизация рутины |
 | ✅ **Мутационное тестирование**<br>Infection PHP (MSI 100%) | 📚 **Генерация документации**<br>Yii2 API + OpenAPI |
 | ✅ **Авто-рефакторинг**<br>Rector | 🏗 **Контроль архитектуры**<br>Deptrac |
@@ -228,7 +228,8 @@ make env   # или make configure
 | **Очереди** | `yii2-queue` | DB Driver + Fan-out Pattern |
 | **Тестирование** | [![Codeception](https://img.shields.io/badge/Codeception-5.0-purple)](https://codeception.com/) | Unit + Integration + E2E, 100% Coverage |
 | **Инфраструктура** | [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) | PHP 8.4 + MySQL 8 / PgSQL 16 + Redis + очередь |
-| **Качество** | `Rector`, `PHPStan`, `Deptrac`, `Advisories` | Strict Static Analysis & Security Checks |
+| **UX / Front** | [![HTMX](https://img.shields.io/badge/HTMX-2.0-blue)](https://htmx.org/) | Infinite Scroll, Reactive Forms, Modal dialogs |
+| **Качество** | `Rector`, `PHPStan`, `Deptrac`, `Arkitect` | Strict Static Analysis & Architectural Guardrails |
 
 [↑ К навигации](#-навигация)
 
@@ -243,21 +244,21 @@ make env   # или make configure
 
 <table>
 <tr>
-<td align="center"><b>523</b><br>Tests</td>
-<td align="center"><b>1221</b><br>Assertions</td>
+<td align="center"><b>595</b><br>Tests</td>
+<td align="center"><b>1367</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~12.7s</b><br>Runtime</td>
+<td align="center"><b>~12.5s</b><br>Runtime</td>
 </tr>
 </table>
 
 Отдельный прогон E2E: 17 сценариев, 41 проверка (`make test-e2e`).
 
 #### 🏗 Пирамида тестирования
-1.  **Unit Tests (449):** тестируют доменные сущности, Value Objects и Use Cases в полной изоляции. Это фундамент стабильности.
+1.  **Unit Tests (510):** тестируют доменные сущности, Value Objects и Use Cases в полной изоляции. Это фундамент стабильности.
     ```bash
     make test-unit
     ```
-2.  **Integration Tests (72):** проверяют взаимодействие слоев: работу репозиториев с реальной БД (MySQL/PgSQL), маппинг событий в очереди и интеграцию с Yii2 компонентами.
+2.  **Integration Tests (85):** проверяют взаимодействие слоев: работу репозиториев с реальной БД (MySQL/PgSQL), маппинг событий в очереди и интеграцию с Yii2 компонентами.
     ```bash
     make test-integration
     ```
@@ -370,6 +371,8 @@ yii2-book-catalog/
 *   **DTO представления (Read DTO):** чтение отделено от отображения через `BookReadDto`, чтобы не тянуть доменные объекты в UI.
 *   **Фильтры запросов:** идемпотентность и ограничение частоты (rate limiting) оформлены отдельными фильтрами.
 *   **WebUseCaseRunner:** «умный» запускальщик для Use Cases. Он ловит ошибки, пишет их в лог и выводит уведомления пользователю. Нет необходимости писать `try-catch` в каждом контроллере.
+*   **Command Pipeline:** выполнение Use Case обёрнуто в конвейер (pipeline) с middleware. Это позволяет автоматически добавлять транзакции, идемпотентность и трассировку, не загрязняя бизнес-логику техническим кодом.
+*   **Infinite Scroll & HTMX:** интерфейс использует HTMX для бесшовной подгрузки данных («бесконечный скролл») и интерактивности без написания сложного JS-кода.
 
 [↑ К навигации](#-навигация)
 
@@ -408,9 +411,11 @@ public function actionCreate(): string|Response|array
         }
     }
 
+    $authors = $this->viewDataFactory->getAuthorsList();
+
     return $this->render('create', [
         'model' => $form,
-        'authors' => $this->viewDataFactory->getAuthorsList(),
+        'authors' => $authors,
     ]);
 }
 
@@ -423,16 +428,17 @@ final readonly class BookCommandHandler
         $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
         $command = $this->mapper->toCreateCommand($form, $permanentRef);
 
-        return $this->useCaseRunner->executeWithFormErrors(
-            fn(): int => $this->createBookUseCase->execute($command),
+        /** @var int|null $result */
+        $result = $this->useCaseRunner->executeWithFormErrors(
+            $command,
+            $this->createBookUseCase,
             Yii::t('app', 'book.success.created'),
-            function (DomainException $e) use ($form, $permanentRef): void {
-                if ($permanentRef instanceof StoredFileReference) {
-                    $this->fileStorage->delete((string)$permanentRef);
-                }
+            function (DomainException $e) use ($form): void {
                 $this->addFormError($form, $e);
             }
         );
+
+        return $result;
     }
 }
 ```
@@ -531,10 +537,10 @@ final readonly class BookCommandHandler
 
 ### 📊 Статистика проекта
 
-![Source Code](https://img.shields.io/badge/Source_Code-7.4k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-10.1k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-222-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-127-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Code](https://img.shields.io/badge/Source_Code-8.1k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-11.3k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-246-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-137-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 
