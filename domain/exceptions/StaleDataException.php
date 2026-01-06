@@ -8,8 +8,8 @@ namespace app\domain\exceptions;
 final class StaleDataException extends DomainException
 {
     /** @codeCoverageIgnore */
-    public function __construct(string $message = 'book.error.stale_data')
+    public function __construct(DomainErrorCode $error = DomainErrorCode::BookStaleData)
     {
-        parent::__construct($message);
+        parent::__construct($error);
     }
 }
