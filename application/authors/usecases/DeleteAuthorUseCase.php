@@ -6,18 +6,29 @@ namespace app\application\authors\usecases;
 
 use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\UseCaseInterface;
 
-final readonly class DeleteAuthorUseCase
+/**
+ * @implements UseCaseInterface<DeleteAuthorCommand, bool>
+ */
+final readonly class DeleteAuthorUseCase implements UseCaseInterface
 {
     public function __construct(
         private AuthorRepositoryInterface $authorRepository,
     ) {
     }
 
-    public function execute(DeleteAuthorCommand $command): void
+    /**
+     * @param DeleteAuthorCommand $command
+     */
+    public function execute(object $command): bool
     {
+        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
+        assert($command instanceof DeleteAuthorCommand);
         $author = $this->authorRepository->get($command->id);
 
         $this->authorRepository->delete($author);
+
+        return true;
     }
 }

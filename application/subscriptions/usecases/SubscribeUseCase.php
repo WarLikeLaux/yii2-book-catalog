@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\application\subscriptions\usecases;
 
 use app\application\ports\SubscriptionRepositoryInterface;
+use app\application\ports\UseCaseInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\domain\entities\Subscription;
 use app\domain\exceptions\AlreadyExistsException;
@@ -13,15 +14,24 @@ use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
 use Throwable;
 
-final readonly class SubscribeUseCase
+/**
+ * @implements UseCaseInterface<SubscribeCommand, bool>
+ */
+final readonly class SubscribeUseCase implements UseCaseInterface
 {
     public function __construct(
         private SubscriptionRepositoryInterface $subscriptionRepository,
     ) {
     }
 
-    public function execute(SubscribeCommand $command): void
+    /**
+     * @param SubscribeCommand $command
+     */
+    public function execute(object $command): bool
     {
+        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
+        assert($command instanceof SubscribeCommand);
+
         if ($this->subscriptionRepository->exists($command->phone, $command->authorId)) {
             throw new BusinessRuleException(DomainErrorCode::SubscriptionAlreadySubscribed);
         }
@@ -29,6 +39,8 @@ final readonly class SubscribeUseCase
         try {
             $subscription = Subscription::create($command->phone, $command->authorId);
             $this->subscriptionRepository->save($subscription);
+
+            return true;
         } catch (AlreadyExistsException $e) {
             throw $e;
         } catch (Throwable) {

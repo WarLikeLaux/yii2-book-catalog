@@ -7,40 +7,39 @@ namespace app\application\books\usecases;
 use app\application\books\commands\PublishBookCommand;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
-use app\application\ports\TransactionInterface;
+use app\application\ports\UseCaseInterface;
 use app\domain\events\BookPublishedEvent;
 use app\domain\services\BookPublicationPolicy;
-use Throwable;
 
-final readonly class PublishBookUseCase
+/**
+ * @implements UseCaseInterface<PublishBookCommand, bool>
+ */
+final readonly class PublishBookUseCase implements UseCaseInterface
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
-        private TransactionInterface $transaction,
         private TransactionalEventPublisher $eventPublisher,
         private BookPublicationPolicy $publicationPolicy,
     ) {
     }
 
-    public function execute(PublishBookCommand $command): void
+    /**
+     * @param PublishBookCommand $command
+     */
+    public function execute(object $command): bool
     {
-        $this->transaction->begin();
+        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
+        assert($command instanceof PublishBookCommand);
+        $book = $this->bookRepository->get($command->bookId);
 
-        try {
-            $book = $this->bookRepository->get($command->bookId);
+        $book->publish($this->publicationPolicy);
 
-            $book->publish($this->publicationPolicy);
+        $this->bookRepository->save($book);
 
-            $this->bookRepository->save($book);
+        $this->eventPublisher->publishAfterCommit(
+            new BookPublishedEvent($command->bookId, $book->title, $book->year->value),
+        );
 
-            $this->eventPublisher->publishAfterCommit(
-                new BookPublishedEvent($command->bookId, $book->title, $book->year->value),
-            );
-
-            $this->transaction->commit();
-        } catch (Throwable $e) {
-            $this->transaction->rollBack();
-            throw $e;
-        }
+        return true;
     }
 }

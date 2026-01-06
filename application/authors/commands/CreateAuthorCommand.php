@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\application\authors\commands;
 
-final readonly class CreateAuthorCommand
+use app\application\ports\CommandInterface;
+
+final readonly class CreateAuthorCommand implements CommandInterface
 {
     public function __construct(
         public string $fio,
