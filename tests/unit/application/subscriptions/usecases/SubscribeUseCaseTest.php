@@ -37,7 +37,9 @@ final class SubscribeUseCaseTest extends Unit
             ->with($this->callback(static fn (Subscription $subscription) => $subscription->phone === '79001112233'
                     && $subscription->authorId === 1));
 
-        $this->useCase->execute($command);
+        $result = $this->useCase->execute($command);
+
+        $this->assertTrue($result);
     }
 
     public function testExecuteThrowsDomainExceptionWhenAlreadySubscribed(): void
