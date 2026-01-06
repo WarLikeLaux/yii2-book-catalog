@@ -76,7 +76,10 @@ return static fn (array $params) => [
 
         FileUrlResolver::class => static function () use ($params) {
             $storageParams = $params['storage'];
-            return new FileUrlResolver($storageParams['baseUrl']);
+            return new FileUrlResolver(
+                $storageParams['baseUrl'],
+                $storageParams['placeholderUrl'] ?? '',
+            );
         },
     ],
     'singletons' => [

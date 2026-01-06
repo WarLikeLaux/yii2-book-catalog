@@ -37,4 +37,28 @@ final class FileUrlResolverTest extends Unit
         $ref = new StoredFileReference('covers/book.png');
         $this->assertSame('/uploads/covers/book.png', $this->resolver->resolve($ref));
     }
+
+    public function testResolveCoverUrlReturnsExistingCoverUrl(): void
+    {
+        $resolver = new FileUrlResolver('/uploads', 'https://picsum.photos/seed/{seed}/400/600');
+        $this->assertSame('/existing/cover.jpg', $resolver->resolveCoverUrl('/existing/cover.jpg', 123));
+    }
+
+    public function testResolveCoverUrlReturnsPlaceholderWhenCoverIsNull(): void
+    {
+        $resolver = new FileUrlResolver('/uploads', 'https://picsum.photos/seed/{seed}/400/600');
+        $this->assertSame('https://picsum.photos/seed/123/400/600', $resolver->resolveCoverUrl(null, 123));
+    }
+
+    public function testResolveCoverUrlReturnsEmptyWhenNoPlaceholderConfigured(): void
+    {
+        $resolver = new FileUrlResolver('/uploads');
+        $this->assertSame('', $resolver->resolveCoverUrl(null, 123));
+    }
+
+    public function testResolveCoverUrlReturnsPlaceholderWhenCoverIsEmpty(): void
+    {
+        $resolver = new FileUrlResolver('/uploads', 'https://picsum.photos/seed/{seed}/400/600');
+        $this->assertSame('https://picsum.photos/seed/456/400/600', $resolver->resolveCoverUrl('', 456));
+    }
 }

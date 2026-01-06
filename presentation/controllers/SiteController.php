@@ -8,6 +8,7 @@ use app\application\ports\AuthServiceInterface;
 use app\presentation\auth\handlers\AuthViewDataFactory;
 use app\presentation\books\handlers\BookSearchHandler;
 use app\presentation\common\dto\CatalogPaginationRequest;
+use app\presentation\common\traits\HtmxDetectionTrait;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -17,6 +18,8 @@ use yii\web\Response;
 
 final class SiteController extends Controller
 {
+    use HtmxDetectionTrait;
+
     public function __construct(
         $id,
         $module,
@@ -68,6 +71,11 @@ final class SiteController extends Controller
         /** @var array<string, mixed> $params */
         $params = (array)$this->request->get();
         $viewData = $this->bookSearchHandler->prepareIndexViewData($params, $pagination);
+
+        if ($this->isHtmxRequest()) {
+            return $this->renderPartial('_book-cards', $viewData);
+        }
+
         return $this->render('index', $viewData);
     }
 
