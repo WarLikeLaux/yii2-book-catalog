@@ -28,7 +28,11 @@ final readonly class FileUrlResolver
     public function resolveCoverUrl(?string $coverUrl, int $entityId): string
     {
         if ($coverUrl !== null && $coverUrl !== '') {
-            return $coverUrl;
+            $resolved = $this->resolve($coverUrl);
+
+            if ($resolved !== null) {
+                return $resolved;
+            }
         }
 
         if ($this->placeholderUrl === '') {

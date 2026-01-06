@@ -41,7 +41,7 @@ final class FileUrlResolverTest extends Unit
     public function testResolveCoverUrlReturnsExistingCoverUrl(): void
     {
         $resolver = new FileUrlResolver('/uploads', 'https://picsum.photos/seed/{seed}/400/600');
-        $this->assertSame('/existing/cover.jpg', $resolver->resolveCoverUrl('/existing/cover.jpg', 123));
+        $this->assertSame('/uploads/cover.jpg', $resolver->resolveCoverUrl('cover.jpg', 123));
     }
 
     public function testResolveCoverUrlReturnsPlaceholderWhenCoverIsNull(): void
