@@ -7,7 +7,8 @@ namespace app\application\authors\usecases;
 use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\exceptions\AlreadyExistsException;
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\OperationFailedException;
 use Throwable;
 
 final readonly class UpdateAuthorUseCase
@@ -27,7 +28,7 @@ final readonly class UpdateAuthorUseCase
         } catch (AlreadyExistsException $e) {
             throw $e;
         } catch (Throwable $e) {
-            throw new DomainException('author.error.update_failed', 0, $e);
+            throw new OperationFailedException(DomainErrorCode::AuthorUpdateFailed, 0, $e);
         }
     }
 }

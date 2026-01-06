@@ -7,7 +7,8 @@ namespace app\application\authors\usecases;
 use app\application\authors\commands\CreateAuthorCommand;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\OperationFailedException;
 use Throwable;
 
 final readonly class CreateAuthorUseCase
@@ -25,7 +26,7 @@ final readonly class CreateAuthorUseCase
 
             return (int)$author->id;
         } catch (Throwable $e) {
-            throw new DomainException('author.error.create_failed', 0, $e);
+            throw new OperationFailedException(DomainErrorCode::AuthorCreateFailed, 0, $e);
         }
     }
 }

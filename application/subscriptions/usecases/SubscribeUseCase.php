@@ -8,7 +8,9 @@ use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\domain\entities\Subscription;
 use app\domain\exceptions\AlreadyExistsException;
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\BusinessRuleException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\OperationFailedException;
 use Throwable;
 
 final readonly class SubscribeUseCase
@@ -21,7 +23,7 @@ final readonly class SubscribeUseCase
     public function execute(SubscribeCommand $command): void
     {
         if ($this->subscriptionRepository->exists($command->phone, $command->authorId)) {
-            throw new DomainException('subscription.error.already_subscribed');
+            throw new BusinessRuleException(DomainErrorCode::SubscriptionAlreadySubscribed);
         }
 
         try {
@@ -30,7 +32,7 @@ final readonly class SubscribeUseCase
         } catch (AlreadyExistsException $e) {
             throw $e;
         } catch (Throwable) {
-            throw new DomainException('subscription.error.create_failed');
+            throw new OperationFailedException(DomainErrorCode::SubscriptionCreateFailed);
         }
     }
 }

@@ -7,7 +7,8 @@ namespace app\application\books\queries;
 use app\application\ports\BookFinderInterface;
 use app\application\ports\BookSearcherInterface;
 use app\application\ports\PagedResultInterface;
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\EntityNotFoundException;
 
 final readonly class BookQueryService
 {
@@ -27,7 +28,7 @@ final readonly class BookQueryService
         $book = $this->finder->findByIdWithAuthors($id);
 
         if (!$book instanceof BookReadDto) {
-            throw new DomainException('book.error.not_found');
+            throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
 
         return $book;
