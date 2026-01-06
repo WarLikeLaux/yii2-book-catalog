@@ -31,5 +31,6 @@ class AppAsset extends AssetBundle
         BootstrapIconAsset::class,
         FakerAsset::class,
         GLightboxAsset::class,
+        HtmxAsset::class,
     ];
 }
