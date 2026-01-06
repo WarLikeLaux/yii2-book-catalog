@@ -7,6 +7,7 @@ namespace app\infrastructure\repositories;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\AlreadyExistsException;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
 use app\domain\values\BookYear;
@@ -40,7 +41,7 @@ final readonly class BookRepository implements BookRepositoryInterface
             $ar = Book::findOne($book->id);
 
             if ($ar === null) {
-                throw new EntityNotFoundException('book.error.not_found');
+                throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
             }
 
             $ar->version = $book->version;
@@ -69,7 +70,7 @@ final readonly class BookRepository implements BookRepositoryInterface
         $ar = Book::find()->where(['id' => $id])->with('authors')->one();
 
         if ($ar === null) {
-            throw new EntityNotFoundException('book.error.not_found');
+            throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
 
         return $this->mapToEntity($ar);
@@ -84,7 +85,7 @@ final readonly class BookRepository implements BookRepositoryInterface
         $ar = Book::find()->where(['id' => $id])->with('authors')->one();
 
         if ($ar === null) {
-            throw new EntityNotFoundException('book.error.not_found');
+            throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
 
         if ($ar->version !== $expectedVersion) {
@@ -103,7 +104,7 @@ final readonly class BookRepository implements BookRepositoryInterface
         $ar = Book::findOne($book->id);
 
         if ($ar === null) {
-            throw new EntityNotFoundException('book.error.not_found');
+            throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
 
         if ($ar->delete() === false) {
@@ -155,7 +156,7 @@ final readonly class BookRepository implements BookRepositoryInterface
             throw new StaleDataException();
         } catch (IntegrityException $e) {
             if ($this->isDuplicateError($e)) {
-                throw new AlreadyExistsException('book.error.isbn_exists', 409, $e);
+                throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists, 409, $e);
             }
 
             throw $e;
