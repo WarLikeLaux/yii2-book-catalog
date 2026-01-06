@@ -322,7 +322,7 @@ test-infection infection inf:
 	@echo "🧟 Запуск мутационного тестирования..."
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=tests/_output --threads=max --test-framework-options="integration,unit"
 
-load-test:
+test-load:
 	@echo "🚀 Load Testing (K6)..."
 	$(COMPOSE) run --rm k6 run /scripts/smoke.js
 

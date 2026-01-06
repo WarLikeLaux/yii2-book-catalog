@@ -164,8 +164,9 @@ return static function (Config $config): void {
 
     $presentationRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\presentation\controllers'))
+        ->andThat(new IsNotAbstract())
         ->should(new IsFinal())
-        ->because('Контроллеры должны быть final');
+        ->because('Контроллеры должны быть final (кроме абстрактных)');
 
     $presentationRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\presentation\controllers'))

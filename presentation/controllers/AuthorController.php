@@ -120,8 +120,9 @@ final class AuthorController extends Controller
      */
     public function actionSearch(): array
     {
+        $this->response->format = Response::FORMAT_JSON;
         /** @var array<string, mixed> $params */
         $params = $this->request->get();
-        return $this->authorSearchHandler->search($params, $this->response);
+        return $this->authorSearchHandler->search($params);
     }
 }

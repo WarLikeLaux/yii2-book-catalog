@@ -125,7 +125,7 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
-                'api/books' => 'api/book/index',
+                'api/v1/books' => 'api/v1/book/index',
             ],
         ],
         'tracer' => [
