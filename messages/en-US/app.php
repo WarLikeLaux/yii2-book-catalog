@@ -63,4 +63,6 @@ return [
     'isbn.error.invalid_format_hint' => 'Invalid ISBN. Use ISBN-10 or ISBN-13 format.',
     'year.error.too_old' => 'Year must be greater than 1000',
     'year.error.future' => 'Year cannot be in the future',
+    'idempotency.error.key_in_progress' => 'Operation is already in progress. Please wait.',
+    'idempotency.error.storage_unavailable' => 'Idempotency storage unavailable. Please try again later.',
 ];

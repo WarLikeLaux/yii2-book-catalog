@@ -34,4 +34,7 @@ enum DomainErrorCode: string
     case YearFuture = 'year.error.future';
 
     case EntityAlreadyExists = 'error.entity_already_exists';
+
+    case IdempotencyKeyInProgress = 'idempotency.error.key_in_progress';
+    case IdempotencyStorageUnavailable = 'idempotency.error.storage_unavailable';
 }

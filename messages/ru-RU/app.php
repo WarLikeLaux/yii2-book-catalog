@@ -63,4 +63,6 @@ return [
     'isbn.error.invalid_format_hint' => 'Некорректный ISBN. Используйте ISBN-10 или ISBN-13 формат.',
     'year.error.too_old' => 'Год должен быть больше 1000',
     'year.error.future' => 'Год не может быть в будущем',
+    'idempotency.error.key_in_progress' => 'Операция уже выполняется. Подождите завершения.',
+    'idempotency.error.storage_unavailable' => 'Хранилище идемпотентности недоступно. Попробуйте позже.',
 ];
