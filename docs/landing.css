@@ -157,7 +157,7 @@ body {
 }
 
 .hero {
-    padding: 140px 0 120px;
+    padding: 100px 0 120px;
     position: relative;
 }
 
@@ -188,7 +188,7 @@ body {
 }
 
 .hero-subtitle {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     color: var(--text-secondary);
     margin: 0 auto 1.5rem auto;
     font-weight: 400;
