@@ -96,6 +96,7 @@ $config = [
                     'port' => $params['buggregator']['log']['port'],
                     'levels' => ['error', 'warning'],
                     'except' => ['yii\web\HttpException:404'],
+                    'logVars' => [],
                 ] : null,
                 YII_ENV_DEV ? [
                     'class' => 'app\infrastructure\services\BuggregatorLogTarget',
