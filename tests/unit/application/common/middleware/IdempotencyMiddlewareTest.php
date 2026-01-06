@@ -11,6 +11,7 @@ use app\application\common\middleware\IdempotencyMiddleware;
 use app\application\ports\CommandInterface;
 use app\application\ports\IdempotentCommandInterface;
 use app\domain\exceptions\BusinessRuleException;
+use app\domain\exceptions\DomainErrorCode;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -47,6 +48,7 @@ final class IdempotencyMiddlewareTest extends Unit
         $this->idempotencyService->method('acquireLock')->willReturn(false);
 
         $this->expectException(BusinessRuleException::class);
+        $this->expectExceptionMessage(DomainErrorCode::IdempotencyKeyInProgress->value);
 
         $this->middleware->process(
             $command,
@@ -85,7 +87,9 @@ final class IdempotencyMiddlewareTest extends Unit
         $this->idempotencyService->method('acquireLock')->willReturn(true);
         $this->idempotencyService->method('getRecord')->willReturn(null);
         $this->idempotencyService->method('startRequest')->willReturn(false);
-        $this->idempotencyService->expects($this->atLeastOnce())->method('releaseLock');
+        $this->idempotencyService->expects($this->exactly(2))
+            ->method('releaseLock')
+            ->with($this->equalTo('test-key'));
 
         $this->expectException(BusinessRuleException::class);
 
@@ -130,6 +134,69 @@ final class IdempotencyMiddlewareTest extends Unit
         $this->middleware->process(
             $command,
             static fn(CommandInterface $_cmd) => throw new \RuntimeException('Test error'),
+        );
+    }
+
+    public function testProcessThrowsWhenCachedRecordMissingResult(): void
+    {
+        $command = $this->createIdempotentCommand('test-key');
+
+        $this->idempotencyService->method('acquireLock')->willReturn(true);
+        $this->idempotencyService->method('getRecord')->willReturn(
+            new IdempotencyRecordDto(
+                IdempotencyKeyStatus::Finished,
+                200,
+                [],
+                null,
+            ),
+        );
+        $this->idempotencyService->expects($this->once())->method('releaseLock');
+
+        $this->expectException(BusinessRuleException::class);
+        $this->expectExceptionMessage(DomainErrorCode::IdempotencyStorageUnavailable->value);
+
+        $this->middleware->process(
+            $command,
+            static fn(CommandInterface $_cmd): string => 'should-not-be-called',
+        );
+    }
+
+    public function testProcessReleasesLockOnGetRecordException(): void
+    {
+        $command = $this->createIdempotentCommand('test-key');
+
+        $this->idempotencyService->method('acquireLock')->willReturn(true);
+        $this->idempotencyService->method('getRecord')->willThrowException(new \RuntimeException('DB Error'));
+        $this->idempotencyService->expects($this->once())->method('releaseLock');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('DB Error');
+
+        $this->middleware->process(
+            $command,
+            static fn(CommandInterface $_cmd): string => 'result',
+        );
+    }
+
+    public function testProcessReleasesLockOnSaveResponseException(): void
+    {
+        $command = $this->createIdempotentCommand('test-key');
+        $expectedResult = 'result';
+
+        $this->idempotencyService->method('acquireLock')->willReturn(true);
+        $this->idempotencyService->method('getRecord')->willReturn(null);
+        $this->idempotencyService->method('startRequest')->willReturn(true);
+        $this->idempotencyService->method('saveResponse')
+            ->willThrowException(new \RuntimeException('Save Error'));
+
+        $this->idempotencyService->expects($this->once())->method('releaseLock');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Save Error');
+
+        $this->middleware->process(
+            $command,
+            static fn(CommandInterface $_cmd): string => $expectedResult,
         );
     }
 
