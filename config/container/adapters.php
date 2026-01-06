@@ -37,7 +37,7 @@ use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\YiiPsrLogger;
 use yii\di\Container;
 
-return static fn (array $_params) => [
+return static fn (array $params) => [
         'definitions' => [
             SmsSenderInterface::class => static function () {
                 $apiKey = (string)env('SMS_API_KEY', 'MOCK_KEY');
@@ -81,14 +81,16 @@ return static fn (array $_params) => [
             SystemInfoProviderInterface::class => SystemInfoAdapter::class,
         ],
         'singletons' => [
-            TracerInterface::class => static function (Container $_c): TracerInterface {
-                if (!env('INSPECTOR_INGESTION_KEY')) {
+            TracerInterface::class => static function (Container $_c) use ($params): TracerInterface {
+                $ingestionKey = $params['buggregator']['inspector']['ingestionKey'];
+
+                if ($ingestionKey === '' || $ingestionKey === 'buggregator') {
                     return new NullTracer();
                 }
 
                 return new InspectorTracer(
-                    (string)env('INSPECTOR_INGESTION_KEY'),
-                    (string)env('INSPECTOR_URL', 'http://buggregator:8000'),
+                    $ingestionKey,
+                    $params['buggregator']['inspector']['url'],
                 );
             },
         ],

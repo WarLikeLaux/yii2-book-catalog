@@ -36,4 +36,14 @@ return [
             'application' => 3,
         ],
     ],
+    'buggregator' => [
+        'log' => [
+            'host' => (string)env('BUGGREGATOR_LOG_HOST', 'buggregator'),
+            'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+        ],
+        'inspector' => [
+            'url' => (string)env('INSPECTOR_URL', 'http://buggregator:8000'),
+            'ingestionKey' => (string)env('INSPECTOR_INGESTION_KEY', 'buggregator'),
+        ],
+    ],
 ];

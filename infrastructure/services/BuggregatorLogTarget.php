@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace app\infrastructure\services;
 
 use app\infrastructure\services\observability\RequestIdProvider;
+use Throwable;
 use yii\helpers\Json;
 use yii\log\Logger;
 use yii\log\Target;
 
 /**
- * Отправляет логи Yii2 в Buggregator в формате Monolog (JSON).
- * @codeCoverageIgnore Дебаг-утилита, не требующая юнит-тестирования
+ * @codeCoverageIgnore
  */
 final class BuggregatorLogTarget extends Target
 {
@@ -30,13 +30,21 @@ final class BuggregatorLogTarget extends Target
         foreach ($this->messages as $message) {
             [$text, $level, $category, $timestamp] = $message;
 
+            $context = [
+                'category' => $category,
+                'memory' => round(memory_get_usage() / 1024 / 1024, 2) . 'MB',
+                'request_id' => RequestIdProvider::get(),
+            ];
+
+            $messageText = $this->extractMessage($text);
+
+            if ($text instanceof Throwable) {
+                $context['exception'] = $this->extractExceptionContext($text);
+            }
+
             $payload = [
-                'message' => is_string($text) ? $text : Json::encode($text),
-                'context' => [
-                    'category' => $category,
-                    'memory' => round(memory_get_usage() / 1024 / 1024, 2) . 'MB',
-                    'request_id' => RequestIdProvider::get(),
-                ],
+                'message' => $messageText,
+                'context' => $context,
                 'level' => $this->getMonologLevel($level),
                 'level_name' => Logger::getLevelName($level),
                 'channel' => 'yii2',
@@ -50,9 +58,65 @@ final class BuggregatorLogTarget extends Target
         fclose($socket);
     }
 
+    private function extractMessage(mixed $text): string
+    {
+        if (is_string($text)) {
+            return $text;
+        }
+
+        if ($text instanceof Throwable) {
+            return sprintf(
+                '[%s] %s',
+                $text::class,
+                $text->getMessage(),
+            );
+        }
+
+        return Json::encode($text);
+    }
+
     /**
-     * Маппинг уровней Yii2 -> Monolog
+     * @return array<string, mixed>
      */
+    private function extractExceptionContext(Throwable $exception): array
+    {
+        $context = [
+            'class' => $exception::class,
+            'message' => $exception->getMessage(),
+            'code' => $exception->getCode(),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'trace' => $this->formatTrace($exception),
+        ];
+
+        $previous = $exception->getPrevious();
+
+        if ($previous instanceof Throwable) {
+            $context['previous'] = $this->extractExceptionContext($previous);
+        }
+
+        return $context;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function formatTrace(Throwable $exception): array
+    {
+        $trace = [];
+
+        foreach ($exception->getTrace() as $frame) {
+            $trace[] = [
+                'file' => $frame['file'] ?? 'unknown',
+                'line' => $frame['line'] ?? 0,
+                'function' => $frame['function'],
+                'class' => $frame['class'] ?? null,
+            ];
+        }
+
+        return $trace;
+    }
+
     private function getMonologLevel(int $yiiLevel): int
     {
         return match ($yiiLevel) {

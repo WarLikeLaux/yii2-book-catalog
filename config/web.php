@@ -92,18 +92,17 @@ $config = [
                 ],
                 YII_ENV_DEV ? [
                     'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
-                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'host' => $params['buggregator']['log']['host'],
+                    'port' => $params['buggregator']['log']['port'],
                     'levels' => ['error', 'warning'],
                     'except' => ['yii\web\HttpException:404'],
                 ] : null,
                 YII_ENV_DEV ? [
                     'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => env('BUGGREGATOR_LOG_HOST', 'buggregator'),
-                    'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+                    'host' => $params['buggregator']['log']['host'],
+                    'port' => $params['buggregator']['log']['port'],
                     'levels' => ['info'],
                     'categories' => ['sms', 'application'],
-                    // Не дампить $_SERVER и прочее в инфо-логах
                     'logVars' => [],
                 ] : null,
             ]),
@@ -131,8 +130,8 @@ $config = [
         'tracer' => [
             'class' => \app\infrastructure\services\observability\TracerBootstrap::class,
             'enabled' => YII_ENV_DEV,
-            'endpoint' => env('INSPECTOR_URL', 'http://buggregator:8000'),
-            'ingestionKey' => env('INSPECTOR_INGESTION_KEY', 'buggregator'),
+            'endpoint' => $params['buggregator']['inspector']['url'],
+            'ingestionKey' => $params['buggregator']['inspector']['ingestionKey'],
             'serviceName' => 'yii2-book-catalog',
         ],
     ],
