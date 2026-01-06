@@ -14,7 +14,9 @@ use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\dto\TemporaryFile;
 use app\application\ports\FileStorageInterface;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
+use app\domain\exceptions\ValidationException;
 use app\domain\values\StoredFileReference;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
@@ -121,7 +123,7 @@ final class BookCommandHandlerTest extends Unit
         $this->fileStorage->method('moveToPermanent')->willReturn($ref);
 
         $this->createBookUseCase->method('execute')
-            ->willThrowException(new DomainException('error'));
+            ->willThrowException(new ValidationException(DomainErrorCode::BookTitleEmpty));
 
         $this->fileStorage->expects($this->once())
             ->method('delete')
@@ -143,11 +145,11 @@ final class BookCommandHandlerTest extends Unit
             ->method('toCreateCommand')
             ->willReturn($command);
 
-        $exception = new DomainException('isbn.error.invalid_format');
+        $exception = new ValidationException(DomainErrorCode::IsbnInvalidFormat);
 
         $this->errorMapper->expects($this->once())
             ->method('getFieldForError')
-            ->with('isbn.error.invalid_format')
+            ->with(DomainErrorCode::IsbnInvalidFormat->value)
             ->willReturn('isbn');
 
         $form->expects($this->once())
@@ -201,7 +203,7 @@ final class BookCommandHandlerTest extends Unit
         $this->fileStorage->method('moveToPermanent')->willReturn($ref);
 
         $this->updateBookUseCase->method('execute')
-            ->willThrowException(new DomainException('error'));
+            ->willThrowException(new ValidationException(DomainErrorCode::BookTitleEmpty));
 
         $this->fileStorage->expects($this->once())
             ->method('delete')

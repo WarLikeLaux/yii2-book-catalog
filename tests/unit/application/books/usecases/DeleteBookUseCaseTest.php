@@ -10,6 +10,7 @@ use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookDeletedEvent;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use BookTestHelper;
 use Codeception\Test\Unit;
@@ -92,13 +93,13 @@ final class DeleteBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('get')
             ->with(999)
-            ->willThrowException(new EntityNotFoundException('book.error.not_found'));
+            ->willThrowException(new EntityNotFoundException(DomainErrorCode::BookNotFound));
 
         $this->transaction->expects($this->never())->method('begin');
         $this->bookRepository->expects($this->never())->method('delete');
 
         $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage('book.error.not_found');
+        $this->expectExceptionMessage(DomainErrorCode::BookNotFound->value);
 
         $this->useCase->execute($command);
     }

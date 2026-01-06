@@ -6,7 +6,9 @@ namespace tests\unit\presentation\common\services;
 
 use app\application\ports\NotificationInterface;
 use app\application\ports\TranslatorInterface;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
+use app\domain\exceptions\ValidationException;
 use app\presentation\common\services\WebUseCaseRunner;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -51,18 +53,18 @@ final class WebUseCaseRunnerTest extends Unit
     {
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('app', 'domain.error.key')
-            ->willReturn('domain.error.key');
+            ->with('app', DomainErrorCode::BookTitleEmpty->value)
+            ->willReturn(DomainErrorCode::BookTitleEmpty->value);
         $this->notifier->expects($this->once())
             ->method('error')
-            ->with('domain.error.key');
+            ->with(DomainErrorCode::BookTitleEmpty->value);
         $this->notifier->expects($this->never())
             ->method('success');
         $this->logger->expects($this->never())
             ->method('error');
 
         $result = $this->runner->execute(static function (): void {
-            throw new DomainException('domain.error.key');
+            throw new ValidationException(DomainErrorCode::BookTitleEmpty);
         }, 'ok');
 
         $this->assertFalse($result);
@@ -157,7 +159,7 @@ final class WebUseCaseRunnerTest extends Unit
 
     public function testExecuteWithFormErrorsCallsOnDomainErrorCallback(): void
     {
-        $exception = new DomainException('test.error');
+        $exception = new ValidationException(DomainErrorCode::BookTitleEmpty);
         $receivedException = null;
 
         $this->notifier->expects($this->never())->method('success');
@@ -182,7 +184,7 @@ final class WebUseCaseRunnerTest extends Unit
 
         $this->runner->executeWithFormErrors(
             static function (): void {
-                throw new DomainException('test.error');
+                throw new ValidationException(DomainErrorCode::BookTitleEmpty);
             },
             'ok',
             static function (): void {

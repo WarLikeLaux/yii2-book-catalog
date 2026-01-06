@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace tests\unit\domain\exceptions;
 
 use app\domain\exceptions\AlreadyExistsException;
+use app\domain\exceptions\DomainErrorCode;
 use Codeception\Test\Unit;
 
 final class AlreadyExistsExceptionTest extends Unit
@@ -21,9 +22,9 @@ final class AlreadyExistsExceptionTest extends Unit
     public function testExceptionAcceptsCustomValues(): void
     {
         $previous = new \Exception('previous');
-        $exception = new AlreadyExistsException('custom.error', 400, $previous);
+        $exception = new AlreadyExistsException(DomainErrorCode::AuthorFioExists, 400, $previous);
 
-        $this->assertSame('custom.error', $exception->getMessage());
+        $this->assertSame(DomainErrorCode::AuthorFioExists->value, $exception->getMessage());
         $this->assertSame(400, $exception->getCode());
         $this->assertSame($previous, $exception->getPrevious());
     }

@@ -6,7 +6,8 @@ namespace tests\unit\presentation\common\services;
 
 use app\application\ports\NotificationInterface;
 use app\application\ports\TranslatorInterface;
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ValidationException;
 use app\presentation\common\services\WebUseCaseRunner;
 use Codeception\Test\Unit;
 use Psr\Log\LoggerInterface;
@@ -37,12 +38,12 @@ final class WebUseCaseRunnerQueryTest extends Unit
     {
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('app', 'domain.error.key')
-            ->willReturn('domain.error.key');
-        $this->notifier->expects($this->once())->method('error')->with('domain.error.key');
+            ->with('app', DomainErrorCode::BookTitleEmpty->value)
+            ->willReturn(DomainErrorCode::BookTitleEmpty->value);
+        $this->notifier->expects($this->once())->method('error')->with(DomainErrorCode::BookTitleEmpty->value);
 
         $result = $this->runner->query(
-            static fn() => throw new DomainException('domain.error.key'),
+            static fn() => throw new ValidationException(DomainErrorCode::BookTitleEmpty),
             'fallback',
             'error message',
         );
@@ -68,16 +69,16 @@ final class WebUseCaseRunnerQueryTest extends Unit
     {
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('app', 'domain.error.key')
-            ->willReturn('domain.error.key');
+            ->with('app', DomainErrorCode::BookTitleEmpty->value)
+            ->willReturn(DomainErrorCode::BookTitleEmpty->value);
 
         $result = $this->runner->executeForApi(
-            static fn() => throw new DomainException('domain.error.key'),
+            static fn() => throw new ValidationException(DomainErrorCode::BookTitleEmpty),
             'success',
         );
 
         $this->assertFalse($result['success']);
-        $this->assertSame('domain.error.key', $result['message']);
+        $this->assertSame(DomainErrorCode::BookTitleEmpty->value, $result['message']);
     }
 
     public function testExecuteForApiReturnsGenericError(): void
