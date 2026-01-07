@@ -5,7 +5,7 @@ actor: E2eTester
 modules:
     enabled:
         - WebDriver:
-            url: http://nginx/
+            url: http://php/
             browser: chrome
             host: selenium
             port: 4444

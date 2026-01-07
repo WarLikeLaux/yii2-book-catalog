@@ -29,8 +29,7 @@ $config = [
             'cookieValidationKey' => env('COOKIE_VALIDATION_KEY', ''),
         ],
         'session' => [
-            'class' => 'yii\web\Session',
-            'savePath' => '@runtime/sessions',
+            'class' => 'yii\redis\Session',
         ],
         'response' => [
             'on beforeSend' => static function ($event): void {
