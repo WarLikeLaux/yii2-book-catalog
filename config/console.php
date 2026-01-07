@@ -52,7 +52,6 @@ $config = [
                     'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
                     'levels' => ['info'],
                     'categories' => ['sms', 'application'],
-                    // Не дампить $_SERVER и прочее в инфо-логах
                     'logVars' => [],
                 ] : null,
             ]),
