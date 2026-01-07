@@ -12,6 +12,7 @@ use app\application\ports\PagedResultInterface;
 use app\domain\specifications\BookSearchSpecificationFactory;
 use app\domain\specifications\BookSpecificationInterface;
 use app\infrastructure\persistence\Book;
+use AutoMapper\AutoMapperInterface;
 use yii\data\ActiveDataProvider;
 use yii\db\Connection;
 
@@ -19,6 +20,7 @@ final readonly class BookQueryService implements BookQueryServiceInterface
 {
     public function __construct(
         private Connection $db,
+        private AutoMapperInterface $autoMapper,
     ) {
     }
 
@@ -94,23 +96,9 @@ final readonly class BookQueryService implements BookQueryServiceInterface
 
     private function mapToDto(Book $book): BookReadDto
     {
-        $authorNames = [];
+        $dto = $this->autoMapper->map($book, BookReadDto::class);
+        assert($dto instanceof BookReadDto);
 
-        foreach ($book->authors as $author) {
-            $authorNames[$author->id] = $author->fio;
-        }
-
-        return new BookReadDto(
-            id: $book->id,
-            title: $book->title,
-            year: $book->year,
-            description: $book->description,
-            isbn: $book->isbn,
-            authorIds: array_keys($authorNames),
-            authorNames: $authorNames,
-            coverUrl: $book->cover_url,
-            isPublished: (bool)$book->is_published,
-            version: $book->version,
-        );
+        return $dto;
     }
 }

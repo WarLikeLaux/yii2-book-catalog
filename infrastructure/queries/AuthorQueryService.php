@@ -10,6 +10,7 @@ use app\application\common\dto\QueryResult;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\infrastructure\persistence\Author;
+use AutoMapper\AutoMapperInterface;
 use yii\data\ActiveDataProvider;
 use yii\db\Connection;
 
@@ -17,6 +18,7 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
 {
     public function __construct(
         private Connection $db,
+        private AutoMapperInterface $autoMapper,
     ) {
     }
 
@@ -28,10 +30,7 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
             return null;
         }
 
-        return new AuthorReadDto(
-            id: $author->id,
-            fio: $author->fio,
-        );
+        return $this->mapToDto($author);
     }
 
     /**
@@ -40,13 +39,8 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
     public function findAllOrderedByFio(): array
     {
         $authors = Author::find()->orderBy(['fio' => SORT_ASC])->all();
-        return array_map(
-            static fn(Author $author): AuthorReadDto => new AuthorReadDto(
-                id: $author->id,
-                fio: $author->fio,
-            ),
-            $authors,
-        );
+
+        return array_map($this->mapToDto(...), $authors);
     }
 
     public function search(string $search, int $page, int $pageSize): PagedResultInterface
@@ -66,13 +60,7 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
             ],
         ]);
 
-        $models = array_map(
-            static fn(Author $author): AuthorReadDto => new AuthorReadDto(
-                id: $author->id,
-                fio: $author->fio,
-            ),
-            $dataProvider->getModels(),
-        );
+        $models = array_map($this->mapToDto(...), $dataProvider->getModels());
 
         $totalCount = $dataProvider->getTotalCount();
         $totalPages = (int)ceil($totalCount / $pageSize);
@@ -112,5 +100,13 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
             $ids,
             static fn(int $id): bool => !isset($existingIdsMap[$id]),
         ));
+    }
+
+    private function mapToDto(Author $author): AuthorReadDto
+    {
+        $dto = $this->autoMapper->map($author, AuthorReadDto::class);
+        assert($dto instanceof AuthorReadDto);
+
+        return $dto;
     }
 }
