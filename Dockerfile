@@ -1,18 +1,39 @@
-FROM yiisoftware/yii2-php:8.4-fpm
+FROM dunglas/frankenphp:1-php8.4
 
-# PCOV для покрытия кода тестами
-RUN pecl install pcov && docker-php-ext-enable pcov
+# Расширения: совпадают с FPM (где возможно) + Franken-специфичные
+RUN install-php-extensions \
+    pdo_mysql \
+    pdo_pgsql \
+    intl \
+    gd \
+    zip \
+    opcache \
+    pcntl \
+    apcu \
+    redis \
+    sockets \
+    pcov
 
-# Redis для кэширования
-RUN pecl install redis && docker-php-ext-enable redis
+# Системные утилиты для Composer и Git
+RUN apt-get update && apt-get install -y git unzip
 
-# Sockets для Buggregator Trap
-RUN docker-php-ext-install sockets
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Фикс ошибки git ownership в Docker
+# Фикс ошибки git ownership (как в FPM)
 RUN git config --global --add safe.directory /app
 
-# Создаем пользователя с ID, переданным через аргументы сборки
 ARG UID=1000
 ARG GID=1000
-RUN groupadd -g $GID appuser && useradd -u $UID -g appuser -m -s /bin/bash appuser
+RUN groupadd -g $GID appuser 2>/dev/null || true && \
+    useradd -u $UID -g $GID -m -s /bin/bash appuser 2>/dev/null || true
+
+ENV PHP_INI_SCAN_DIR="/usr/local/etc/php/conf.d"
+
+COPY docker/franken/php.ini /usr/local/etc/php/conf.d/99-app.ini
+
+WORKDIR /app
+
+RUN mkdir -p /app/runtime /app/web/assets && \
+    chmod -R 777 /app/runtime /app/web/assets
+
+EXPOSE 80 443 443/udp

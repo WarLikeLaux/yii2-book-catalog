@@ -1,0 +1,39 @@
+{
+    frankenphp {
+        worker {
+            file /app/web/worker.php
+            num {$FRANKEN_WORKERS:4}
+            env FRANKEN_MAX_REQUESTS {$FRANKEN_MAX_REQUESTS:1000}
+        }
+    }
+    auto_https disable_redirects
+}
+
+http://:80 {
+    root * /app/web
+
+    encode zstd br gzip
+
+    @static {
+        path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp
+    }
+    handle @static {
+        file_server
+    }
+
+    @blocked {
+        path /.*
+    }
+    respond @blocked 403
+
+    @assets {
+        path /assets/*
+    }
+    handle @assets {
+        file_server
+    }
+
+    php_server {
+        index index.php
+    }
+}

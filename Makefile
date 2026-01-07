@@ -39,6 +39,8 @@ help:
 	@echo "  arch             🏛️  Архитектурная проверка (Deptrac + Arkitect)"
 	@echo "  check            🛡️  Экспресс-проверка (dev + arch + test)"
 	@echo "  pr               🚀 Полная проверка (check + e2e + infection)"
+	@echo "  test-load        🔥 Нагрузочное тестирование (smoke)"
+	@echo "  test-bench       🏎️  Сравнительный бенчмарк (Franken vs Legacy)"
 	@echo ""
 	@echo "💻 РАЗРАБОТКА:"
 	@echo "  dev              🛠️  Полный цикл (CS Fixer + Rector + PHPStan)"
@@ -130,9 +132,9 @@ _init_confirm:
 up:
 	@driver=$${DB_DRIVER:-mysql}; \
 	if [ "$$driver" = "pgsql" ]; then \
-		$(COMPOSE) up -d pgsql redis php nginx queue swagger-ui buggregator selenium --remove-orphans; \
+		$(COMPOSE) up -d pgsql redis php legacy-fpm legacy-app queue swagger-ui buggregator selenium --remove-orphans; \
 	else \
-		$(COMPOSE) up -d db redis php nginx queue swagger-ui buggregator selenium --remove-orphans; \
+		$(COMPOSE) up -d db redis php legacy-fpm legacy-app queue swagger-ui buggregator selenium --remove-orphans; \
 	fi
 
 down:
@@ -217,10 +219,10 @@ composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
 
 req require:
-	$(COMPOSE) exec $(PHP_CONTAINER) composer require $(COMPOSER_ARGS)
+	$(COMPOSE) exec $(PHP_CONTAINER) composer require $(COMPOSER_ARGS) -vvv
 
 req-dev require-dev:
-	$(COMPOSE) exec $(PHP_CONTAINER) composer require --dev $(COMPOSER_ARGS)
+	$(COMPOSE) exec $(PHP_CONTAINER) composer require --dev $(COMPOSER_ARGS) -vvv
 
 
 # =================================================================================================
@@ -327,6 +329,10 @@ test-infection infection inf:
 test-load:
 	@echo "🚀 Load Testing (K6)..."
 	$(COMPOSE) run --rm k6 run /scripts/smoke.js
+
+test-bench:
+	@echo "🚀 Benchmark Comparison (Franken vs Legacy)..."
+	$(COMPOSE) run --rm k6 run /scripts/benchmark_compare.js
 
 # =================================================================================================
 # 📦 БАЗА ДАННЫХ
