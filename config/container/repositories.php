@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\IdempotencyInterface;
@@ -9,6 +10,7 @@ use app\application\ports\RateLimitInterface;
 use app\application\ports\ReportRepositoryInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\infrastructure\factories\TracingFactory;
+use app\infrastructure\repositories\AsyncIdempotencyRepository;
 use app\infrastructure\repositories\AuthorRepository;
 use app\infrastructure\repositories\BookRepository;
 use app\infrastructure\repositories\decorators\AuthorRepositoryTracingDecorator;
@@ -26,6 +28,8 @@ use yii\di\Container;
 use yii\di\Instance;
 
 return static fn (array $_params) => [
+    AsyncIdempotencyStorageInterface::class => AsyncIdempotencyRepository::class,
+
     IdempotencyRepository::class => [
         'class' => IdempotencyRepository::class,
         '__construct()' => [

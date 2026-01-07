@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://warlikelaux.github.io/yii2-book-catalog/sitemap.xml
