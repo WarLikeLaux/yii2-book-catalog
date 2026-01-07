@@ -1,4 +1,11 @@
-.PHONY: help init up down restart logs shell sms-logs tinker perms setup env configure clean composer dev fix ci lint lint-fix rector rector-fix analyze deptrac audit test test-unit test-integration test-e2e test-coverage coverage cov infection load-test migrate seed db-info db-fresh queue-info comments docs swagger repomix diff d dc ds diff-staged diff-cached req require req-dev require-dev ai _dev_full _dev_file
+.PHONY: help install install-force init setup env configure perms clean \
+        up down restart logs shell tinker sms-logs \
+        composer req require req-dev require-dev \
+        dev _dev_full _dev_file fix ci check pr lint lint-fix rector rector-fix analyze deptrac arkitect arch audit \
+        test test-unit test-integration test-e2e cov coverage test-coverage infection inf load-test \
+        migrate seed db-mysql db-pgsql db-info db-fresh queue-info \
+        docs swagger repomix tree comments ai \
+        diff d dc ds diff-staged diff-cached tag
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -242,6 +249,13 @@ _dev_file:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process $(FILE_ARG) || true
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs $(FILE_ARG) || true
 	@echo "✅ Готово"
+
+diff d:
+	@git diff || true
+	@git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index /dev/null {} || true
+
+diff-staged diff-cached ds dc:
+	@git diff --staged || true
 check: dev arch test
 pr: docs check test-e2e infection
 
@@ -405,9 +419,12 @@ ai:
 	@ln -sf ../../CLAUDE.md .agent/rules/rules.md
 	@echo "✅ Симлинки созданы: GEMINI.md, AGENTS.md, GROK.MD, .cursorrules, .clinerules, .windsurfrules, .antigravity/rules.md, .agent/rules/rules.md -> CLAUDE.md"
 
-diff d:
-	@git diff || true
-	@git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index /dev/null {} || true
+TAG := $(word 2,$(MAKECMDGOALS))
+ifneq ($(TAG),)
+$(TAG):
+	@:
+endif
 
-diff-staged diff-cached ds dc:
-	@git diff --staged || true
+tag:
+	@if [ -z "$(TAG)" ]; then echo "Usage: make tag TAG"; exit 1; fi
+	@awk -v tag="$(TAG)" 'BEGIN{p=0} $$0 ~ "^### "tag {p=1} $$0 ~ "^### " && $$0 !~ "^### "tag {p=0} p' docs/ai/*.md
