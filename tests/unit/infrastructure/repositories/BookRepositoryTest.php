@@ -254,6 +254,38 @@ final class BookRepositoryTest extends Unit
         $this->repository->save($book2);
     }
 
+    public function testSaveReconstitutedEntityWithoutPriorGet(): void
+    {
+        $book = BookEntity::create(
+            'Original',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null,
+        );
+        $this->repository->save($book);
+        $bookId = $book->id;
+        $version = $book->version;
+
+        $freshRepository = Yii::$container->get(BookRepositoryInterface::class);
+        $reconstituted = BookEntity::reconstitute(
+            $bookId,
+            'Reconstituted Title',
+            new BookYear(2025),
+            new Isbn('9783161484100'),
+            'New desc',
+            null,
+            [],
+            false,
+            $version,
+        );
+
+        $freshRepository->save($reconstituted);
+
+        $retrieved = $freshRepository->get($bookId);
+        $this->assertSame('Reconstituted Title', $retrieved->title);
+    }
+
     private function assignBookId(BookEntity $book, int $id): void
     {
         $property = new ReflectionProperty(BookEntity::class, 'id');

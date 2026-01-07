@@ -25,9 +25,17 @@ final readonly class BookRepository implements BookRepositoryInterface
     use DatabaseExceptionHandlerTrait;
     use IdentityAssignmentTrait;
 
+    /** @var \WeakMap<BookEntity, Book> */
+    private \WeakMap $identityMap;
+
+    /** @var \WeakMap<BookEntity, array<int>> */
+    private \WeakMap $authorSnapshots;
+
     public function __construct(
         private Connection $db,
     ) {
+        $this->identityMap = new \WeakMap();
+        $this->authorSnapshots = new \WeakMap();
     }
 
     public function save(BookEntity $book): void
@@ -38,12 +46,7 @@ final readonly class BookRepository implements BookRepositoryInterface
             $ar = new Book();
             $ar->version = $book->version;
         } else {
-            $ar = Book::findOne($book->id);
-
-            if ($ar === null) {
-                throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
-            }
-
+            $ar = $this->getArForEntity($book);
             $ar->version = $book->version;
         }
 
@@ -58,11 +61,29 @@ final readonly class BookRepository implements BookRepositoryInterface
 
         if ($isNew) {
             $this->assignId($book, $ar->id);
+            $this->identityMap[$book] = $ar;
         } else {
             $book->incrementVersion();
         }
 
         $this->syncAuthors($book);
+    }
+
+    private function getArForEntity(BookEntity $book): Book
+    {
+        if (isset($this->identityMap[$book])) {
+            return $this->identityMap[$book];
+        }
+
+        $ar = Book::findOne($book->id);
+
+        if ($ar === null) {
+            throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
+        }
+
+        $this->identityMap[$book] = $ar;
+
+        return $ar;
     }
 
     public function get(int $id): BookEntity
@@ -73,7 +94,11 @@ final readonly class BookRepository implements BookRepositoryInterface
             throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
 
-        return $this->mapToEntity($ar);
+        $entity = $this->mapToEntity($ar);
+        $this->identityMap[$entity] = $ar;
+        $this->authorSnapshots[$entity] = $entity->authorIds;
+
+        return $entity;
     }
 
     /**
@@ -92,7 +117,11 @@ final readonly class BookRepository implements BookRepositoryInterface
             throw new StaleDataException();
         }
 
-        return $this->mapToEntity($ar);
+        $entity = $this->mapToEntity($ar);
+        $this->identityMap[$entity] = $ar;
+        $this->authorSnapshots[$entity] = $entity->authorIds;
+
+        return $entity;
     }
 
     /**
@@ -171,6 +200,10 @@ final readonly class BookRepository implements BookRepositoryInterface
             return; // @codeCoverageIgnore
         }
 
+        if (!$this->hasAuthorsChanged($book)) {
+            return;
+        }
+
         $storedAuthorIds = $this->getStoredAuthorIds($bookId);
         $currentAuthorIds = $book->authorIds;
 
@@ -212,5 +245,19 @@ final readonly class BookRepository implements BookRepositoryInterface
         )->bindValue(':bookId', $bookId)->queryColumn();
 
         return array_map(intval(...), $ids);
+    }
+
+    private function hasAuthorsChanged(BookEntity $book): bool
+    {
+        if (!isset($this->authorSnapshots[$book])) {
+            return true;
+        }
+
+        $current = $book->authorIds;
+        $snapshot = $this->authorSnapshots[$book];
+        sort($current);
+        sort($snapshot);
+
+        return $current !== $snapshot;
     }
 }
