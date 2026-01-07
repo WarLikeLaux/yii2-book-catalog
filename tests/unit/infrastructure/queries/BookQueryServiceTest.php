@@ -50,7 +50,7 @@ final class BookQueryServiceTest extends Unit
             'Test Book',
             new BookYear(2025),
             new Isbn('9783161484100'),
-            'Desc',
+            'Test Description',
             null,
         );
 
@@ -59,6 +59,8 @@ final class BookQueryServiceTest extends Unit
         $dto = $this->queryService->findById($book->id);
         $this->assertNotNull($dto);
         $this->assertSame('Test Book', $dto->title);
+        $this->assertSame(2025, $dto->year);
+        $this->assertSame('Test Description', $dto->description);
     }
 
     public function testFindByIdReturnsNullOnNotFound(): void
