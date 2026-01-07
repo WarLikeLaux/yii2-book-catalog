@@ -18,17 +18,17 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
     use DatabaseExceptionHandlerTrait;
     use IdentityAssignmentTrait;
 
+    /** @var \WeakMap<AuthorEntity, Author> */
+    private \WeakMap $identityMap;
+
+    public function __construct()
+    {
+        $this->identityMap = new \WeakMap();
+    }
+
     public function save(AuthorEntity $author): void
     {
-        if ($author->id === null) {
-            $ar = new Author();
-        } else {
-            $ar = Author::findOne($author->id);
-
-            if ($ar === null) {
-                throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
-            }
-        }
+        $ar = $author->id === null ? new Author() : $this->getArForEntity($author);
 
         $ar->fio = $author->fio;
 
@@ -39,6 +39,24 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         }
 
         $this->assignId($author, $ar->id);
+        $this->identityMap[$author] = $ar;
+    }
+
+    private function getArForEntity(AuthorEntity $author): Author
+    {
+        if (isset($this->identityMap[$author])) {
+            return $this->identityMap[$author];
+        }
+
+        $ar = Author::findOne($author->id);
+
+        if ($ar === null) {
+            throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
+        }
+
+        $this->identityMap[$author] = $ar;
+
+        return $ar;
     }
 
     public function get(int $id): AuthorEntity
@@ -49,10 +67,13 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
         }
 
-        return new AuthorEntity(
+        $entity = new AuthorEntity(
             $ar->id,
             $ar->fio,
         );
+        $this->identityMap[$entity] = $ar;
+
+        return $entity;
     }
 
     public function delete(AuthorEntity $author): void

@@ -119,4 +119,19 @@ final class AuthorRepositoryTest extends Unit
         $this->expectExceptionMessage('author.error.fio_exists');
         $this->repository->save($author2);
     }
+
+    public function testSaveReconstitutedEntityWithoutPriorGet(): void
+    {
+        $author = AuthorEntity::create('Original Name');
+        $this->repository->save($author);
+        $authorId = $author->id;
+
+        $freshRepository = Yii::$container->get(AuthorRepositoryInterface::class);
+        $reconstituted = new AuthorEntity($authorId, 'Updated via Reconstitute');
+
+        $freshRepository->save($reconstituted);
+
+        $retrieved = $freshRepository->get($authorId);
+        $this->assertSame('Updated via Reconstitute', $retrieved->fio);
+    }
 }
