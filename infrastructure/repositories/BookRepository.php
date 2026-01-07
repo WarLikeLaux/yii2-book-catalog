@@ -13,6 +13,7 @@ use app\domain\exceptions\StaleDataException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
+use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use RuntimeException;
@@ -33,6 +34,7 @@ final readonly class BookRepository implements BookRepositoryInterface
 
     public function __construct(
         private Connection $db,
+        private ActiveRecordHydrator $hydrator,
     ) {
         $this->identityMap = new \WeakMap();
         $this->authorSnapshots = new \WeakMap();
@@ -41,21 +43,17 @@ final readonly class BookRepository implements BookRepositoryInterface
     public function save(BookEntity $book): void
     {
         $isNew = $book->id === null;
+        $ar = $isNew ? new Book() : $this->getArForEntity($book);
+        $ar->version = $book->version;
 
-        if ($isNew) {
-            $ar = new Book();
-            $ar->version = $book->version;
-        } else {
-            $ar = $this->getArForEntity($book);
-            $ar->version = $book->version;
-        }
-
-        $ar->title = $book->title;
-        $ar->year = $book->year->value;
-        $ar->isbn = $book->isbn->value;
-        $ar->description = $book->description;
-        $ar->cover_url = $book->coverImage?->getPath();
-        $ar->is_published = (int)$book->published;
+        $this->hydrator->hydrate($ar, $book, [
+            'title',
+            'year',
+            'isbn',
+            'description',
+            'cover_url' => static fn(BookEntity $e): ?string => $e->coverImage?->getPath(),
+            'is_published' => static fn(BookEntity $e): int => $e->published ? 1 : 0,
+        ]);
 
         $this->persistBook($ar);
 

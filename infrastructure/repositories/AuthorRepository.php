@@ -67,10 +67,7 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
             throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
         }
 
-        $entity = new AuthorEntity(
-            $ar->id,
-            $ar->fio,
-        );
+        $entity = new AuthorEntity($ar->id, $ar->fio);
         $this->identityMap[$entity] = $ar;
 
         return $entity;
