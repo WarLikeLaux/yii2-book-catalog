@@ -175,6 +175,11 @@ return static function (Config $config): void {
         ->should(new HaveNameMatching('*Controller'))
         ->because('Контроллеры должны иметь суффикс Controller');
 
+    $presentationRules[] = Rule::allClasses()
+        ->that(new ResideInOneOfTheseNamespaces('app\presentation'))
+        ->should(new NotDependsOnTheseNamespaces(['app\domain\entities']))
+        ->because('Слой представления не должен зависеть от сущностей домена напрямую. Используйте DTO или Value Objects.');
+
 
     $config
         ->add($domainSet, ...$domainRules)
