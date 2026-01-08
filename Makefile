@@ -317,6 +317,7 @@ comments:
 
 docs:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/all
+	@./bin/update-sitemap
 	@echo "✅ Документация обновлена (docs/auto)."
 
 tree:
@@ -339,4 +340,6 @@ endif
 
 tag:
 	@if [ -z "$(TAG)" ]; then echo "Usage: make tag TAG"; exit 1; fi
+	@if [ ! -d "docs/ai" ]; then echo "❌ Error: docs/ai directory not found."; exit 1; fi
+	@if [ -z "$$(ls -A docs/ai/*.md 2>/dev/null)" ]; then echo "❌ Error: No markdown files found in docs/ai."; exit 1; fi
 	@awk -v tag="$(TAG)" 'BEGIN{p=0} $$0 ~ "^### "tag {p=1} $$0 ~ "^### " && $$0 !~ "^### "tag {p=0} p' docs/ai/*.md

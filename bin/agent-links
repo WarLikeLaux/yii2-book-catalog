@@ -41,4 +41,11 @@ for entry in "${NESTED_DIRS[@]}"; do
     ln -sf "${prefix}${SOURCE_FILE}" "$dir/$file"
 done
 
-echo "✅ Симлинки созданы: ${SYMLINKS[*]}, .antigravity/rules.md, .agent/rules/rules.md -> $SOURCE_FILE"
+derived_paths=()
+for entry in "${NESTED_DIRS[@]}"; do
+    dir="${entry%%:*}"
+    file="${entry##*:}"
+    derived_paths+=("$dir/$file")
+done
+
+echo "✅ Симлинки созданы: ${SYMLINKS[*]}, ${derived_paths[*]} -> $SOURCE_FILE"
