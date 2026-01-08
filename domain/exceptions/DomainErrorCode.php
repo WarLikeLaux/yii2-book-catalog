@@ -37,4 +37,7 @@ enum DomainErrorCode: string
 
     case IdempotencyKeyInProgress = 'idempotency.error.key_in_progress';
     case IdempotencyStorageUnavailable = 'idempotency.error.storage_unavailable';
+
+    case FileKeyInvalidFormat = 'file.error.key_invalid_format';
+    case FileContentInvalidStream = 'file.error.content_invalid_stream';
 }
