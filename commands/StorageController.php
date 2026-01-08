@@ -76,18 +76,25 @@ final class StorageController extends Controller
     private function isOlderThanTtl(FileKey $key, int $ttlSeconds): bool
     {
         $extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', ''];
+        $maxMtime = null;
 
         foreach ($extensions as $ext) {
             $path = $this->resolvePath($key, $ext);
 
-            if (file_exists($path)) {
-                $mtime = filemtime($path);
-
-                return $mtime !== false && (time() - $mtime) > $ttlSeconds;
+            if (!file_exists($path)) {
+                continue;
             }
+
+            $mtime = filemtime($path);
+
+            if ($mtime === false || ($maxMtime !== null && $mtime <= $maxMtime)) {
+                continue;
+            }
+
+            $maxMtime = $mtime;
         }
 
-        return true;
+        return $maxMtime === null || (time() - $maxMtime) > $ttlSeconds;
     }
 
     private function deleteOrphan(FileKey $key): void

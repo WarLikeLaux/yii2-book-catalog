@@ -40,7 +40,13 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
             throw new RuntimeException('Cannot create file: ' . $fullPath); // @codeCoverageIgnore
         }
 
-        stream_copy_to_stream($stream, $target);
+        $bytesCopied = stream_copy_to_stream($stream, $target);
+
+        if ($bytesCopied === false) { // @codeCoverageIgnoreStart
+            fclose($target);
+            throw new RuntimeException('Failed to copy stream to file: ' . $fullPath);
+        } // @codeCoverageIgnoreEnd
+
         fclose($target);
 
         return $key;
