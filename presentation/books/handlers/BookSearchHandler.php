@@ -32,7 +32,15 @@ final readonly class BookSearchHandler
     {
         $form = new BookSearchForm();
         $form->load($params);
-        $form->validate();
+
+        if (!$form->validate()) {
+            $emptyResult = QueryResult::empty($pagination->page, $pagination->limit);
+
+            return [
+                'searchModel' => $form,
+                'dataProvider' => $this->dataProviderFactory->create($emptyResult),
+            ];
+        }
 
         /** @var BookSearchCriteria $criteria */
         $criteria = $this->autoMapper->map(
