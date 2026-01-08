@@ -73,7 +73,11 @@ abstract readonly class BaseQueryService
         $dto = $this->autoMapper->map($source, $targetClass);
 
         if (!($dto instanceof $targetClass)) {
-            throw new LogicException('AutoMapper returned unexpected type'); // @codeCoverageIgnore
+            throw new LogicException(sprintf( // @codeCoverageIgnoreStart
+                'AutoMapper returned unexpected type: expected %s, got %s',
+                $targetClass,
+                get_debug_type($dto),
+            )); // @codeCoverageIgnoreEnd
         }
 
         return $dto;

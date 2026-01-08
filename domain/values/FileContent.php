@@ -23,6 +23,9 @@ final readonly class FileContent
         }
     }
 
+    /**
+     * @return self Экземпляр объекта, содержащий открытый поток. Вызывающий код должен закрыть его с помощью fclose().
+     */
     public static function fromPath(string $path, ?string $extension = null): self
     {
         $stream = fopen($path, 'rb');
