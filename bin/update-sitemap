@@ -7,9 +7,9 @@ DATE=$(date +%Y-%m-%d)
 
 if [[ -f "$SITEMAP_FILE" ]]; then
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' "s|<lastmod>.*</lastmod>|<lastmod>$DATE</lastmod>|g" "$SITEMAP_FILE"
+        sed -i '' "s|<lastmod>[^<]*</lastmod>|<lastmod>$DATE</lastmod>|g" "$SITEMAP_FILE"
     else
-        sed -i "s|<lastmod>.*</lastmod>|<lastmod>$DATE</lastmod>|g" "$SITEMAP_FILE"
+        sed -i "s|<lastmod>[^<]*</lastmod>|<lastmod>$DATE</lastmod>|g" "$SITEMAP_FILE"
     fi
     echo "✅ sitemap.xml обновлен до $DATE"
 else

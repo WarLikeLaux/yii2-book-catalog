@@ -21,6 +21,11 @@ readonly NESTED_DIRS=(
 
 cd "$ROOT_DIR"
 
+if [[ ! -f "$SOURCE_FILE" ]]; then
+    echo "⚠️  Файл $SOURCE_FILE не найден. Пропускаю создание симлинков."
+    exit 0
+fi
+
 echo "🔗 Создание симлинков для AI агентов..."
 
 for link in "${SYMLINKS[@]}"; do

@@ -5,7 +5,8 @@
         test test-unit test-integration test-e2e cov coverage test-coverage infection inf load-test \
         migrate seed db-mysql db-pgsql db-info db-fresh queue-info \
         docs swagger repomix tree comments ai \
-        diff d dc ds diff-staged diff-cached tag
+        diff d dc ds diff-staged diff-cached tag \
+        bin-exec
 
 COMPOSE=docker compose
 PHP_CONTAINER=php
@@ -182,7 +183,7 @@ _dev_file:
 
 diff d:
 	@git diff || true
-	@git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index /dev/null {} || true
+	@git ls-files -o --exclude-standard -z | xargs -0 -I{} git diff --no-index /dev/null {} || true
 
 diff-staged diff-cached ds dc:
 	@git diff --staged || true

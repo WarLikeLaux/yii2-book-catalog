@@ -3,7 +3,6 @@
 set -euo pipefail
 
 readonly ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-readonly SCRIPT_NAME="$(basename "$0")"
 
 cd "$ROOT_DIR"
 
@@ -71,8 +70,8 @@ setup_env() {
 print_banner() {
     local app_port
     local bug_port
-    app_port=$(grep '^APP_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000)
-    bug_port=$(grep '^BUGGREGATOR_UI_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 9913)
+    app_port=$(grep '^APP_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000)
+    bug_port=$(grep '^BUGGREGATOR_UI_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 9913)
 
     echo ""
     echo "======================================================================"
@@ -143,7 +142,7 @@ cmd_init_force() {
     make seed
 
     local app_port
-    app_port=$(grep '^APP_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000)
+    app_port=$(grep '^APP_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000)
     echo ""
     echo "✅ Проект установлен: http://localhost:$app_port"
 }
