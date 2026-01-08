@@ -32,6 +32,9 @@ abstract readonly class BaseQueryService
         int $pageSize,
         string $dtoClass,
     ): PagedResultInterface {
+        $page = max(1, $page);
+        $pageSize = max(0, $pageSize);
+
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'db' => $this->db,

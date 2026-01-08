@@ -70,6 +70,10 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
             }
         }
 
+        if (!($originalNode instanceof Node\Stmt\Class_)) {
+            return $errors;
+        }
+
         foreach ($originalNode->stmts as $stmt) {
             if ($stmt instanceof ClassMethod) {
                 $errors = [...$errors, ...$this->checkClassMethod($stmt, $scope)];
@@ -139,6 +143,10 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
     private function checkProperty(Property $node, Scope $scope): array
     {
         if (!$node->type instanceof Node) {
+            return [];
+        }
+
+        if ($node->props === []) {
             return [];
         }
 
