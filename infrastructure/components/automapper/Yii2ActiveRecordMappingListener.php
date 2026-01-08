@@ -17,7 +17,7 @@ final class Yii2ActiveRecordMappingListener
 {
     private const string PROPERTY_PATTERN = '/@property(?:-read|-write)?\s+([^\s]+)\s+\$([a-zA-Z_]\w*)/';
 
-    /** @var array<class-string, array<string, string>> */
+    /** @var array<class-string, string[]> */
     private array $cache = [];
 
     private function propertyAlreadyMapped(GenerateMapperEvent $event, string $propertyName): bool
@@ -37,7 +37,7 @@ final class Yii2ActiveRecordMappingListener
 
     /**
      * @param class-string $class
-     * @return array<string, string>
+     * @return string[]
      */
     private function extractPropertiesFromPhpDoc(string $class): array
     {
@@ -57,9 +57,7 @@ final class Yii2ActiveRecordMappingListener
 
         if (preg_match_all(self::PROPERTY_PATTERN, $docComment, $matches, PREG_SET_ORDER) > 0) {
             foreach ($matches as $match) {
-                $type = $match[1];
-                $name = $match[2];
-                $properties[$name] = $type;
+                $properties[] = $match[2];
             }
         }
 
@@ -78,7 +76,7 @@ final class Yii2ActiveRecordMappingListener
 
         $properties = $this->extractPropertiesFromPhpDoc($sourceClass);
 
-        foreach (array_keys($properties) as $propertyName) {
+        foreach ($properties as $propertyName) {
             if ($this->propertyAlreadyMapped($event, $propertyName)) {
                 continue;
             }

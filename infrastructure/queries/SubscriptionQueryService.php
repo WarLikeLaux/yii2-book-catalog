@@ -20,7 +20,7 @@ final readonly class SubscriptionQueryService implements SubscriptionQueryServic
     {
         return Subscription::find()
             ->where(['phone' => $phone, 'author_id' => $authorId])
-            ->exists();
+            ->exists($this->db);
     }
 
     /**

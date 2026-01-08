@@ -242,9 +242,13 @@ final readonly class BookRepository implements BookRepositoryInterface
 
         $current = $book->authorIds;
         $snapshot = $this->authorSnapshots[$book];
-        sort($current);
-        sort($snapshot);
 
-        return $current !== $snapshot;
+        $currentSorted = $current;
+        $snapshotSorted = $snapshot;
+
+        sort($currentSorted);
+        sort($snapshotSorted);
+
+        return $currentSorted !== $snapshotSorted;
     }
 }
