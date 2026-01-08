@@ -45,6 +45,11 @@ final readonly class StrictRepositoryReturnTypeRule implements Rule
 
             $methodReflection = $classReflection->getNativeMethod($method->getName());
             $variants = $methodReflection->getVariants();
+
+            if ($variants === []) {
+                continue;
+            }
+
             $returnType = $variants[0]->getReturnType();
 
             if (!$this->containsBool($returnType)) {

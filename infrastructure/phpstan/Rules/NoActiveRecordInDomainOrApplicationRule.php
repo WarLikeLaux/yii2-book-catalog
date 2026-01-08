@@ -15,12 +15,13 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\UnionType;
 use PHPStan\Analyser\Scope;
+use PHPStan\Node\InClassNode;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * @implements Rule<Node>
+ * @implements Rule<InClassNode>
  * @codeCoverageIgnore Логика статического анализа проверяется тестами PHPStan
  */
 final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
@@ -36,7 +37,7 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
 
     public function getNodeType(): string
     {
-        return Node::class;
+        return InClassNode::class;
     }
 
     public function processNode(Node $node, Scope $scope): array
@@ -45,15 +46,19 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
             return [];
         }
 
-        if ($node instanceof ClassMethod) {
-            return $this->checkClassMethod($node);
+        $node->getClassReflection();
+        $originalNode = $node->getOriginalNode();
+        $errors = [];
+
+        foreach ($originalNode->stmts as $stmt) {
+            if ($stmt instanceof ClassMethod) {
+                $errors = [...$errors, ...$this->checkClassMethod($stmt, $scope)];
+            } elseif ($stmt instanceof Property) {
+                $errors = [...$errors, ...$this->checkProperty($stmt, $scope)];
+            }
         }
 
-        if ($node instanceof Property) {
-            return $this->checkProperty($node);
-        }
-
-        return [];
+        return $errors;
     }
 
     private function isInProtectedNamespace(Scope $scope): bool
@@ -76,7 +81,7 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private function checkClassMethod(ClassMethod $node): array
+    private function checkClassMethod(ClassMethod $node, Scope $scope): array
     {
         $errors = [];
 
@@ -85,7 +90,7 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
                 continue;
             }
 
-            $forbidden = $this->findForbiddenType($param->type);
+            $forbidden = $this->findForbiddenType($param->type, $scope);
 
             if ($forbidden === null) {
                 continue;
@@ -98,7 +103,7 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
         }
 
         if ($node->returnType instanceof Node) {
-            $forbidden = $this->findForbiddenType($node->returnType);
+            $forbidden = $this->findForbiddenType($node->returnType, $scope);
 
             if ($forbidden !== null) {
                 $errors[] = $this->buildError($forbidden, 'return type', $node->name->toString());
@@ -111,13 +116,13 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private function checkProperty(Property $node): array
+    private function checkProperty(Property $node, Scope $scope): array
     {
         if (!$node->type instanceof Node) {
             return [];
         }
 
-        $forbidden = $this->findForbiddenType($node->type);
+        $forbidden = $this->findForbiddenType($node->type, $scope);
 
         if ($forbidden === null) {
             return [];
@@ -128,15 +133,15 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
         return [$this->buildError($forbidden, 'property', $propName)];
     }
 
-    private function findForbiddenType(ComplexType|Identifier|Name $type): ?string
+    private function findForbiddenType(ComplexType|Identifier|Name $type, Scope $scope): ?string
     {
         if ($type instanceof NullableType) {
-            return $this->findForbiddenType($type->type);
+            return $this->findForbiddenType($type->type, $scope);
         }
 
         if ($type instanceof UnionType || $type instanceof IntersectionType) {
             foreach ($type->types as $inner) {
-                $found = $this->findForbiddenType($inner);
+                $found = $this->findForbiddenType($inner, $scope);
 
                 if ($found !== null) {
                     return $found;
@@ -147,13 +152,10 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
         }
 
         if ($type instanceof Name) {
-            $resolved = $type->toString();
+            $resolvedName = $scope->resolveName($type);
 
             foreach (self::FORBIDDEN_CLASSES as $forbidden) {
-                if (
-                    strcasecmp($resolved, $forbidden) === 0
-                    || str_ends_with(strtolower($resolved), '\\' . strtolower($this->getClassBasename($forbidden)))
-                ) {
+                if (strcasecmp($resolvedName, $forbidden) === 0) {
                     return $forbidden;
                 }
             }
@@ -174,12 +176,5 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
         )
             ->identifier('architecture.noActiveRecordInCore')
             ->build();
-    }
-
-    private function getClassBasename(string $class): string
-    {
-        $parts = explode('\\', $class);
-
-        return end($parts);
     }
 }
