@@ -19,7 +19,12 @@ final class IdempotencyControllerTest extends Unit
             ->with(172800)
             ->willReturn(5);
 
-        $controller = new IdempotencyController('idempotency', null, $storage);
+        $controller = new class ('idempotency', null, $storage) extends IdempotencyController {
+            public function stdout($_string): int
+            {
+                return 0;
+            }
+        };
 
         $result = $controller->actionCleanup();
 
@@ -31,12 +36,17 @@ final class IdempotencyControllerTest extends Unit
         $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
         $storage->expects($this->once())
             ->method('deleteExpired')
-            ->with(86400)
+            ->with(3600)
             ->willReturn(3);
 
-        $controller = new IdempotencyController('idempotency', null, $storage);
+        $controller = new class ('idempotency', null, $storage) extends IdempotencyController {
+            public function stdout($_string): int
+            {
+                return 0;
+            }
+        };
 
-        $result = $controller->actionCleanup(24);
+        $result = $controller->actionCleanup(1);
 
         $this->assertSame(ExitCode::OK, $result);
     }
