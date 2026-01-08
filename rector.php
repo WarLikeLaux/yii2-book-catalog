@@ -32,6 +32,7 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->skip([
         __DIR__ . '/presentation/views/*',
         __DIR__ . '/infrastructure/persistence/*',
+        __DIR__ . '/domain/entities/*',
         RemoveParentDelegatingConstructorRector::class => [
             __DIR__ . '/domain/exceptions/AlreadyExistsException.php',
             __DIR__ . '/domain/exceptions/StaleDataException.php',

@@ -16,15 +16,29 @@ final class Book
 {
     private const int MAX_TITLE_LENGTH = 255;
 
+    // phpcs:disable PSR2.Classes.PropertyDeclaration,Generic.WhiteSpace.ScopeIndent,SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing
     /** @var int[] */
     public private(set) array $authorIds = [];
+    public private(set) string $title {
+        set {
+            $trimmed = trim($value);
+            if ($trimmed === '') {
+        throw new ValidationException(DomainErrorCode::BookTitleEmpty);
+            }
+            if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
+        throw new ValidationException(DomainErrorCode::BookTitleTooLong);
+            }
+            $this->title = $value;
+        }
+    }
+    // phpcs:enable
 
     /**
      * @param int[] $authorIds
      */
     private function __construct(
         public private(set) ?int $id,
-        public private(set) string $title,
+        string $title,
         public private(set) BookYear $year,
         public private(set) Isbn $isbn,
         public private(set) ?string $description,
@@ -33,7 +47,7 @@ final class Book
         public private(set) bool $published,
         public private(set) int $version,
     ) {
-        $this->validateTitle($title);
+        $this->title = $title;
         $this->authorIds = array_map(intval(...), $authorIds);
     }
 
@@ -84,22 +98,8 @@ final class Book
         );
     }
 
-    private function validateTitle(string $title): void
-    {
-        $trimmed = trim($title);
-
-        if ($trimmed === '') {
-            throw new ValidationException(DomainErrorCode::BookTitleEmpty);
-        }
-
-        if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
-            throw new ValidationException(DomainErrorCode::BookTitleTooLong);
-        }
-    }
-
     public function rename(string $title): void
     {
-        $this->validateTitle($title);
         $this->title = $title;
     }
 

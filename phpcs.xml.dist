@@ -2,6 +2,11 @@
 <ruleset name="Project">
     <description>Yii2 coding standard.</description>
 
+    <!-- Игнорируем ReturnTypeDeclaration для сущностей с PHP 8.4 Hook, так как это вызывает крэш линтера -->
+    <rule ref="PSR12.Functions.ReturnTypeDeclaration">
+        <exclude-pattern>domain/entities/*</exclude-pattern>
+    </rule>
+
     <file>.</file>
 
     <arg name="extensions" value="php"/>
