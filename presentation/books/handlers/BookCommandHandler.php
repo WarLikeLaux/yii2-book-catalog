@@ -56,12 +56,7 @@ final readonly class BookCommandHandler
 
     public function createBook(BookForm $form): int|null
     {
-        $coverRef = $this->processCoverUpload($form);
-
-        $data = $form->toArray();
-        $data['cover'] = $coverRef;
-        $data['description'] = $data['description'] !== '' ? $data['description'] : null;
-        $data['authorIds'] = array_map(intval(...), (array)$form->authorIds);
+        $data = $this->prepareCommandData($form);
 
         /** @var CreateBookCommand $command */
         $command = $this->autoMapper->map($data, CreateBookCommand::class);
@@ -80,13 +75,8 @@ final readonly class BookCommandHandler
 
     public function updateBook(int $id, BookForm $form): bool
     {
-        $coverRef = $this->processCoverUpload($form);
-
-        $data = $form->toArray();
+        $data = $this->prepareCommandData($form);
         $data['id'] = $id;
-        $data['cover'] = $coverRef;
-        $data['description'] = $data['description'] !== '' ? $data['description'] : null;
-        $data['authorIds'] = array_map(intval(...), (array)$form->authorIds);
 
         /** @var UpdateBookCommand $command */
         $command = $this->autoMapper->map($data, UpdateBookCommand::class);
@@ -100,6 +90,19 @@ final readonly class BookCommandHandler
         );
 
         return $result !== null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function prepareCommandData(BookForm $form): array
+    {
+        $data = $form->toArray();
+        $data['cover'] = $this->processCoverUpload($form);
+        $data['description'] = $data['description'] !== '' ? $data['description'] : null;
+        $data['authorIds'] = array_map(intval(...), (array)$form->authorIds);
+
+        return $data;
     }
 
     public function deleteBook(int $id): bool

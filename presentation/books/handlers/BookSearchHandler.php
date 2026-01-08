@@ -32,6 +32,7 @@ final readonly class BookSearchHandler
     {
         $form = new BookSearchForm();
         $form->load($params);
+        $form->validate();
 
         /** @var BookSearchCriteria $criteria */
         $criteria = $this->autoMapper->map(
