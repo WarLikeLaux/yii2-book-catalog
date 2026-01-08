@@ -15,21 +15,22 @@ use app\domain\values\StoredFileReference;
 use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
+use WeakMap;
 use yii\db\Connection;
 
 final readonly class BookRepository extends BaseActiveRecordRepository implements BookRepositoryInterface
 {
     use IdentityAssignmentTrait;
 
-    /** @var \WeakMap<BookEntity, array<int>> */
-    private \WeakMap $authorSnapshots;
+    /** @var WeakMap<BookEntity, array<int>> */
+    private WeakMap $authorSnapshots;
 
     public function __construct(
         private Connection $db,
         private ActiveRecordHydrator $hydrator,
     ) {
         parent::__construct();
-        $this->authorSnapshots = new \WeakMap();
+        $this->authorSnapshots = new WeakMap();
     }
 
     public function save(BookEntity $book): void
