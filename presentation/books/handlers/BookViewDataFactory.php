@@ -18,6 +18,9 @@ use yii\web\NotFoundHttpException;
 
 final readonly class BookViewDataFactory
 {
+    /**
+     * Initialize the factory with required services for finding, searching, mapping, paging, and resolving file URLs.
+     */
     public function __construct(
         private BookFinderInterface $finder,
         private BookSearcherInterface $searcher,
@@ -48,6 +51,13 @@ final readonly class BookViewDataFactory
         return $this->dataProviderFactory->create($newResult);
     }
 
+    /**
+     * Prepare a BookForm populated with data for the book identified by the given id.
+     *
+     * @param int $id The book identifier.
+     * @return BookForm The form populated with the book's data.
+     * @throws NotFoundHttpException If no book with the given id is found.
+     */
     public function getBookForUpdate(int $id): BookForm
     {
         $dto = $this->finder->findById($id);
@@ -60,6 +70,13 @@ final readonly class BookViewDataFactory
         return $this->autoMapper->map($dto, BookForm::class);
     }
 
+    /**
+     * Retrieve a book by id for viewing and return its DTO with the cover URL resolved.
+     *
+     * @param int $id The book identifier.
+     * @return BookReadDto The book read DTO with the cover URL resolved.
+     * @throws NotFoundHttpException If no book with the given id exists.
+     */
     public function getBookView(int $id): BookReadDto
     {
         $dto = $this->finder->findById($id);
@@ -72,7 +89,9 @@ final readonly class BookViewDataFactory
     }
 
     /**
-     * @return array<int, string>
+     * Provide a map of author IDs to their full names.
+     *
+     * @return array<int,string> Keys are author IDs, values are author full names.
      */
     public function getAuthorsList(): array
     {
@@ -86,6 +105,15 @@ final readonly class BookViewDataFactory
         return $map;
     }
 
+    /**
+     * Create a BookReadDto with the cover URL resolved.
+     *
+     * The returned DTO contains the same data as the input but with `coverUrl`
+     * replaced by the value produced by the file URL resolver.
+     *
+     * @param BookReadDto $dto The source DTO.
+     * @return BookReadDto The new DTO with a resolved `coverUrl`.
+     */
     private function withResolvedUrl(BookReadDto $dto): BookReadDto
     {
         return new BookReadDto(

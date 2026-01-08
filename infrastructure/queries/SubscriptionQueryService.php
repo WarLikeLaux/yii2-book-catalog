@@ -11,11 +11,23 @@ use yii\db\Query;
 
 final readonly class SubscriptionQueryService implements SubscriptionQueryServiceInterface
 {
+    /**
+     * Initializes the query service with a database connection.
+     *
+     * Stores the provided Connection instance for use by the service's query methods.
+     */
     public function __construct(
         private Connection $db,
     ) {
     }
 
+    /**
+     * Check whether a subscription exists for the given phone number and author.
+     *
+     * @param string $phone The subscriber's phone number to look up.
+     * @param int $authorId The author's ID associated with the subscription.
+     * @return bool `true` if a matching subscription exists, `false` otherwise.
+     */
     public function exists(string $phone, int $authorId): bool
     {
         return Subscription::find()
@@ -24,8 +36,14 @@ final readonly class SubscriptionQueryService implements SubscriptionQueryServic
     }
 
     /**
-     * @return iterable<string>
-     */
+         * Yield distinct subscriber phone numbers for all authors of the given book.
+         *
+         * Phones are produced one at a time; query results are fetched in batches to limit memory usage.
+         *
+         * @param int $bookId The book identifier to find associated authors' subscribers for.
+         * @param int $batchSize Maximum number of rows fetched from the database per batch.
+         * @return iterable<string> An iterable that yields subscriber phone numbers as strings.
+         */
     public function getSubscriberPhonesForBook(int $bookId, int $batchSize = 100): iterable
     {
         $query = (new Query())

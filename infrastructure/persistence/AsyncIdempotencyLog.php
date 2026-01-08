@@ -13,12 +13,21 @@ use yii\db\ActiveRecord;
  */
 final class AsyncIdempotencyLog extends ActiveRecord
 {
+    /**
+     * Database table name for this ActiveRecord.
+     *
+     * @return string The table name including the Yii DB prefix placeholder, e.g. '{{%async_idempotency_log}}'.
+     */
     public static function tableName(): string
     {
         return '{{%async_idempotency_log}}';
     }
 
-    /** @return array<array<int|string, mixed>> */
+    /**
+     * Validation rules for the model's attributes.
+     *
+     * @return array<array<int|string, mixed>> Array of validation rule definitions in Yii2 format (each entry specifies attributes and their validators/options).
+     */
     public function rules(): array
     {
         return [

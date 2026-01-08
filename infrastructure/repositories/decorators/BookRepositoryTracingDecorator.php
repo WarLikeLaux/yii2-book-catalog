@@ -37,6 +37,11 @@ final readonly class BookRepositoryTracingDecorator implements BookRepositoryInt
         );
     }
 
+    /**
+     * Trace the deletion operation and delegate removal of the given book to the underlying repository.
+     *
+     * @param Book $book The book entity to delete.
+     */
     #[\Override]
     public function delete(Book $book): void
     {

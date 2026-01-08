@@ -12,8 +12,10 @@ use app\application\common\dto\PaginationDto;
 interface PagedResultInterface
 {
     /**
-     * @return array<int, T>
-     */
+ * Retrieve the models contained in this paged result.
+ *
+ * @return array<int, T> Indexed array of T model objects.
+ */
     public function getModels(): array;
 
     public function getTotalCount(): int;

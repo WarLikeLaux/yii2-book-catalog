@@ -8,5 +8,10 @@ use app\domain\entities\Subscription;
 
 interface SubscriptionRepositoryInterface
 {
-    public function save(Subscription $subscription): void;
+    /**
+ * Persist the given Subscription to the repository.
+ *
+ * @param Subscription $subscription The subscription entity to save.
+ */
+public function save(Subscription $subscription): void;
 }

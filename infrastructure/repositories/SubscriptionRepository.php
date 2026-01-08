@@ -12,6 +12,11 @@ final readonly class SubscriptionRepository extends BaseActiveRecordRepository i
 {
     use IdentityAssignmentTrait;
 
+    /**
+     * Persists a new subscription and updates the domain entity with the generated identifier.
+     *
+     * @param SubscriptionEntity $subscription The domain subscription to save; the entity's phone and authorId are persisted and its id is assigned after saving.
+     */
     public function save(SubscriptionEntity $subscription): void
     {
         $ar = new Subscription();

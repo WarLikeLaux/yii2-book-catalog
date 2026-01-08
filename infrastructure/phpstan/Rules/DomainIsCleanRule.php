@@ -19,11 +19,25 @@ use PHPStan\Rules\RuleErrorBuilder;
  */
 final readonly class DomainIsCleanRule implements Rule
 {
+    /**
+     * Specifies which node type this rule is applied to.
+     *
+     * @return string The fully-qualified class name of the node this rule processes (InClassNode::class).
+     */
     public function getNodeType(): string
     {
         return InClassNode::class;
     }
 
+    /**
+     * Reports static `Yii` usages found inside class nodes that belong to the domain layer.
+     *
+     * Only inspects classes when the surrounding namespace starts with `app\domain` and returns a rule error for each detected `StaticCall` or `StaticPropertyFetch` whose class name is `Yii`.
+     *
+     * @param Node $node The class node to inspect (expected original node to contain statements).
+     * @param Scope $scope The current PHPStan scope used to determine the namespace.
+     * @return \PHPStan\Rules\RuleError[] Array of rule errors, one per detected static `Yii` usage. 
+     */
     public function processNode(Node $node, Scope $scope): array
     {
         $namespace = $scope->getNamespace();

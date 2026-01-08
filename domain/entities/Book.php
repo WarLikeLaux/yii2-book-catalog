@@ -35,7 +35,17 @@ final class Book implements IdentifiableEntityInterface
     // phpcs:enable
 
     /**
-     * @param int[] $authorIds
+     * Create a Book instance populated with the given state.
+     *
+     * @param ?int $id The book identifier, or null if not assigned.
+     * @param string $title The book title.
+     * @param BookYear $year The publication year value object.
+     * @param Isbn $isbn The ISBN value object.
+     * @param string|null $description Optional description text.
+     * @param StoredFileReference|null $coverImage Optional cover image reference.
+     * @param int[] $authorIds Array of author IDs; values will be cast to integers.
+     * @param bool $published Whether the book is published.
+     * @param int $version The entity version number.
      */
     private function __construct(
         public private(set) ?int $id,
@@ -73,7 +83,18 @@ final class Book implements IdentifiableEntityInterface
     }
 
     /**
-     * @param int[] $authorIds
+     * Recreates a Book instance from stored (persisted) state.
+     *
+     * @param int $id The persistent identifier of the book.
+     * @param string $title The book title.
+     * @param BookYear $year The book's publication year value object.
+     * @param Isbn $isbn The book's ISBN value object.
+     * @param string|null $description The book description, or null if none.
+     * @param StoredFileReference|null $coverImage Reference to the stored cover image, or null if none.
+     * @param int[] $authorIds Ordered list of author IDs associated with the book.
+     * @param bool $published Whether the book is published.
+     * @param int $version The persisted version number of the entity.
+     * @return self A Book populated with the provided persisted values.
      */
     public static function reconstitute(
         int $id,
@@ -99,6 +120,12 @@ final class Book implements IdentifiableEntityInterface
         );
     }
 
+    /**
+     * Rename the book by setting a new title.
+     *
+     * @param string $title The new title; leading and trailing whitespace will be trimmed.
+     * @throws ValidationException If the trimmed title is empty or longer than self::MAX_TITLE_LENGTH.
+     */
     public function rename(string $title): void
     {
         $this->title = $title;

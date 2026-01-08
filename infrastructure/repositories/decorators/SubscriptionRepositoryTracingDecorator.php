@@ -16,6 +16,11 @@ final readonly class SubscriptionRepositoryTracingDecorator implements Subscript
     ) {
     }
 
+    /**
+     * Persist the given Subscription using the underlying repository while recording the operation with the tracer.
+     *
+     * @param \app\domain\entities\Subscription $subscription The subscription entity to persist.
+     */
     #[\Override]
     public function save(Subscription $subscription): void
     {

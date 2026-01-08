@@ -32,6 +32,15 @@ final readonly class AuthorCommandHandler
         'author.error.fio_too_long' => 'fio',
     ];
 
+    /**
+     * Initialize the handler with its required dependencies.
+     *
+     * @param AutoMapperInterface $autoMapper Maps form data to command DTOs.
+     * @param CreateAuthorUseCase $createAuthorUseCase Use case for creating authors.
+     * @param UpdateAuthorUseCase $updateAuthorUseCase Use case for updating authors.
+     * @param DeleteAuthorUseCase $deleteAuthorUseCase Use case for deleting authors.
+     * @param WebUseCaseRunner $useCaseRunner Executes use cases with form handling and messaging.
+     */
     public function __construct(
         private AutoMapperInterface $autoMapper,
         private CreateAuthorUseCase $createAuthorUseCase,
@@ -41,6 +50,12 @@ final readonly class AuthorCommandHandler
     ) {
     }
 
+    /**
+     * Create a new author from the provided form data.
+     *
+     * @param AuthorForm $form Form containing the author's input data.
+     * @return int|null The ID of the created author, or `null` if creation failed.
+     */
     public function createAuthor(AuthorForm $form): ?int
     {
         /** @var CreateAuthorCommand $command */
@@ -58,6 +73,13 @@ final readonly class AuthorCommandHandler
         return $result;
     }
 
+    /**
+     * Updates an existing author with data from the provided form.
+     *
+     * @param int $id The author's identifier.
+     * @param AuthorForm $form The form containing updated author data.
+     * @return bool `true` if the author was updated, `false` otherwise.
+     */
     public function updateAuthor(int $id, AuthorForm $form): bool
     {
         /** @var UpdateAuthorCommand $command */

@@ -12,6 +12,11 @@ use yii\db\ActiveRecord;
  */
 final class TestActiveRecordDuplicates extends ActiveRecord
 {
+    /**
+     * Get the database table name associated with this ActiveRecord.
+     *
+     * @return string The table name 'test_duplicates'.
+     */
     public static function tableName(): string
     {
         return 'test_duplicates';

@@ -65,6 +65,11 @@ final class Book extends ActiveRecord
         ];
     }
 
+    /**
+     * Provide human-readable labels for the model's attributes.
+     *
+     * @return array<string,string> Mapping of attribute names to their display labels.
+     */
     public function attributeLabels(): array
     {
         return [
@@ -79,7 +84,11 @@ final class Book extends ActiveRecord
         ];
     }
 
-    /** @return int[] */
+    /**
+     * Provide the IDs of authors related to this book.
+     *
+     * @return int[] The list of related author IDs.
+     */
     #[MapTo(target: BookReadDto::class, property: 'authorIds')]
     public function getAuthorIds(): array
     {
@@ -89,7 +98,11 @@ final class Book extends ActiveRecord
         );
     }
 
-    /** @return array<int, string> */
+    /**
+     * Builds an associative array of author full names keyed by author ID.
+     *
+     * @return array<int,string> Associative array mapping author ID to author full name.
+     */
     #[MapTo(target: BookReadDto::class, property: 'authorNames')]
     public function getAuthorNames(): array
     {
@@ -102,18 +115,33 @@ final class Book extends ActiveRecord
         return $names;
     }
 
+    /**
+     * Returns an ActiveQuery for the Author records related to this Book via the `book_authors` junction table.
+     *
+     * @return ActiveQuery ActiveQuery configured to fetch related Author models for this book.
+     */
     public function getAuthors(): ActiveQuery
     {
         return $this->hasMany(Author::class, ['id' => 'author_id'])
             ->viaTable('book_authors', ['book_id' => 'id']);
     }
 
+    /**
+     * Exposes the book's cover image URL.
+     *
+     * @return string|null The cover image URL, or null if not set.
+     */
     #[MapTo(target: BookReadDto::class, property: 'coverUrl')]
     public function getCoverUrl(): ?string
     {
         return $this->cover_url;
     }
 
+    /**
+     * Indicates whether the book is published.
+     *
+     * @return bool true if the book is published, false otherwise.
+     */
     #[MapTo(target: BookReadDto::class, property: 'isPublished')]
     public function getIsPublished(): bool
     {

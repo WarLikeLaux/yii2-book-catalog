@@ -43,6 +43,12 @@ final class BookForm extends RepositoryAwareForm
     public ?string $fullTitle = null;
     public int $version = 1;
 
+    /**
+     * Populates the form from the request's POST data and extracts an uploaded 'cover' file.
+     *
+     * @param Request $request The HTTP request containing POST data and file uploads.
+     * @return bool `true` if POST data was loaded or a cover file was provided, `false` otherwise.
+     */
     #[CodeCoverageIgnore]
     public function loadFromRequest(Request $request): bool
     {
@@ -91,6 +97,14 @@ final class BookForm extends RepositoryAwareForm
         ];
     }
 
+    /**
+     * Validates that the ISBN value for the given attribute is unique among books.
+     *
+     * Adds a validation error to the model if another book already uses the same ISBN
+     * (excluding the current book when editing).
+     *
+     * @param string $attribute The model attribute name that holds the ISBN value.
+     */
     public function validateIsbnUnique(string $attribute): void
     {
         $value = $this->$attribute;

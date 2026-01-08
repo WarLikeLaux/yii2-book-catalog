@@ -14,6 +14,15 @@ final readonly class FileKey implements Stringable
 
     public private(set) string $value;
 
+    /**
+     * Create a FileKey from a hexadecimal hash string.
+     *
+     * Normalizes the input to lowercase and validates it is a 64-character hexadecimal hash;
+     * throws a ValidationException with DomainErrorCode::FileKeyInvalidFormat on failure.
+     *
+     * @param string $hash The input hash string (case-insensitive).
+     * @throws ValidationException If the normalized hash is not a 64-character hexadecimal string.
+     */
     public function __construct(string $hash)
     {
         $normalized = strtolower($hash);
@@ -26,7 +35,12 @@ final readonly class FileKey implements Stringable
     }
 
     /**
-     * @param resource $stream
+     * Create a FileKey from the contents of a stream by computing the stream's SHA-256 hash.
+     *
+     * The stream is rewound to its original position after hashing.
+     *
+     * @param resource $stream The stream whose contents will be hashed; must be readable and seekable.
+     * @return self A FileKey representing the SHA-256 hex hash of the stream contents.
      */
     public static function fromStream(mixed $stream): self
     {
@@ -37,6 +51,14 @@ final readonly class FileKey implements Stringable
         return new self(hash_final($context));
     }
 
+    /**
+     * Builds a storage path from the file key using two-level directory sharding and an optional extension.
+     *
+     * The path is formatted as "<first2>/<second2>/<hash>[.extension]".
+     *
+     * @param string $extension Optional file extension without a leading dot.
+     * @return string The constructed path string.
+     */
     public function getExtendedPath(string $extension = ''): string
     {
         $suffix = $extension !== '' ? '.' . $extension : '';
@@ -49,11 +71,23 @@ final readonly class FileKey implements Stringable
             . $suffix;
     }
 
+    /**
+     * Determine whether this FileKey represents the same hash as another.
+     *
+     * @param self $other The FileKey to compare against.
+     * @return bool `true` if both instances contain the identical hash value, `false` otherwise.
+     */
     public function equals(self $other): bool
     {
         return $this->value === $other->value;
     }
 
+    /**
+     * Checks whether a string is a valid SHA-256 hex hash.
+     *
+     * @param string $hash The string to validate.
+     * @return bool `true` if the string contains exactly `self::HASH_LENGTH` hexadecimal characters, `false` otherwise.
+     */
     private function isValidHash(string $hash): bool
     {
         if (strlen($hash) !== self::HASH_LENGTH) {
@@ -63,6 +97,11 @@ final readonly class FileKey implements Stringable
         return ctype_xdigit($hash);
     }
 
+    /**
+     * Return the stored hash value.
+     *
+     * @return string The normalized lowercase 64-character hexadecimal hash.
+     */
     public function __toString(): string
     {
         return $this->value;

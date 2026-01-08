@@ -12,6 +12,13 @@ use yii\queue\Queue;
 
 final readonly class NotifySubscribersHandler
 {
+    /**
+     * Create a NotifySubscribersHandler with its required services.
+     *
+     * @param SubscriptionQueryServiceInterface $queryService Provides subscriber phone numbers for a given book.
+     * @param TranslatorInterface $translator Translates notification messages (domain 'app').
+     * @param LoggerInterface $logger Logs dispatch activity and results.
+     */
     public function __construct(
         private SubscriptionQueryServiceInterface $queryService,
         private TranslatorInterface $translator,

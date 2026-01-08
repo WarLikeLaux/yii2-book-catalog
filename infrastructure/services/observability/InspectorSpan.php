@@ -20,6 +20,16 @@ final readonly class InspectorSpan implements SpanInterface
     ) {
     }
 
+    /**
+     * Adds a custom attribute to the underlying span unless the attribute name indicates sensitive data.
+     *
+     * If the attribute name contains "header" or "cookie" (case-insensitive), the attribute is ignored.
+     * The attribute is stored in the span's Custom context using the original key casing.
+     *
+     * @param string $key The attribute name (original casing is preserved when stored).
+     * @param string|int|float|bool $value The attribute value.
+     * @return self The span instance for method chaining.
+     */
     #[\Override]
     public function setAttribute(string $key, string|int|float|bool $value): self
     {

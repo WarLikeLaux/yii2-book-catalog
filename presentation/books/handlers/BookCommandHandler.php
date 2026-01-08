@@ -42,6 +42,18 @@ final readonly class BookCommandHandler
         'book.error.publish_without_authors' => 'authorIds',
     ];
 
+    /**
+     * Create a BookCommandHandler with required use cases, mapper, storage, and runner.
+     *
+     * @param AutoMapperInterface $autoMapper Maps arrays to command DTOs for use cases.
+     * @param CreateBookUseCase $createBookUseCase Use case that handles creating books.
+     * @param UpdateBookUseCase $updateBookUseCase Use case that handles updating books.
+     * @param DeleteBookUseCase $deleteBookUseCase Use case that handles deleting books.
+     * @param PublishBookUseCase $publishBookUseCase Use case that handles publishing books.
+     * @param WebUseCaseRunner $useCaseRunner Executes use cases within a web request context.
+     * @param ContentStorageInterface $contentStorage Persists uploaded file content and returns storage keys.
+     * @param UploadedFileAdapter $uploadedFileAdapter Converts uploaded files into file content accepted by the content storage.
+     */
     public function __construct(
         private AutoMapperInterface $autoMapper,
         private CreateBookUseCase $createBookUseCase,
@@ -54,6 +66,12 @@ final readonly class BookCommandHandler
     ) {
     }
 
+    /**
+     * Create a new book from the provided form data.
+     *
+     * @param BookForm $form Form containing book attributes and optional uploaded cover.
+     * @return int|null The ID of the created book if successful, `null` otherwise.
+     */
     public function createBook(BookForm $form): int|null
     {
         $data = $this->prepareCommandData($form);
@@ -73,6 +91,11 @@ final readonly class BookCommandHandler
         return $result;
     }
 
+    /**
+     * Update an existing book using data from the given form.
+     *
+     * @return bool `true` if the book was updated, `false` otherwise.
+     */
     public function updateBook(int $id, BookForm $form): bool
     {
         $data = $this->prepareCommandData($form);
@@ -93,8 +116,14 @@ final readonly class BookCommandHandler
     }
 
     /**
-     * @return array<string, mixed>
-     */
+         * Prepare form data for creating or updating a book command payload.
+         *
+         * The returned array includes a processed `cover` (stored file reference or null),
+         * `description` normalized to `null` when empty, and `authorIds` cast to integers.
+         *
+         * @param BookForm $form The submitted book form.
+         * @return array<string,mixed> Prepared command data.
+         */
     private function prepareCommandData(BookForm $form): array
     {
         $data = $form->toArray();
@@ -105,6 +134,12 @@ final readonly class BookCommandHandler
         return $data;
     }
 
+    /**
+     * Delete a book by its identifier.
+     *
+     * @param int $id The book identifier.
+     * @return bool `true` if the book was deleted, `false` otherwise.
+     */
     public function deleteBook(int $id): bool
     {
         $command = new DeleteBookCommand($id);
@@ -119,6 +154,11 @@ final readonly class BookCommandHandler
         return (bool)$result;
     }
 
+    /**
+     * Publish the book identified by the given id.
+     *
+     * @return bool `true` if the publish operation succeeded, `false` otherwise.
+     */
     public function publishBook(int $id): bool
     {
         $command = new PublishBookCommand($id);
@@ -133,6 +173,12 @@ final readonly class BookCommandHandler
         return (bool)$result;
     }
 
+    /**
+     * Stores the uploaded cover file from the form and returns a reference to the stored file.
+     *
+     * @param BookForm $form The form containing the cover upload.
+     * @return StoredFileReference|null A StoredFileReference for the saved cover (path includes extension), or `null` if no uploaded file is present on the form.
+     */
     private function processCoverUpload(BookForm $form): StoredFileReference|null
     {
         if (!$form->cover instanceof UploadedFile) {

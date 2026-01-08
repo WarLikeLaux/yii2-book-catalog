@@ -11,6 +11,12 @@ use app\infrastructure\persistence\Author;
 
 final readonly class AuthorQueryService extends BaseQueryService implements AuthorQueryServiceInterface
 {
+    /**
+     * Retrieve an author by ID and return its read DTO.
+     *
+     * @param int $id The author identifier to look up.
+     * @return AuthorReadDto|null The mapped AuthorReadDto if an author with the given ID exists, `null` otherwise.
+     */
     public function findById(int $id): ?AuthorReadDto
     {
         $author = Author::find()->where(['id' => $id])->one($this->db);
@@ -23,7 +29,9 @@ final readonly class AuthorQueryService extends BaseQueryService implements Auth
     }
 
     /**
-     * @return AuthorReadDto[]
+     * Retrieve all authors ordered by the `fio` field in ascending order.
+     *
+     * @return AuthorReadDto[] An indexed array of AuthorReadDto objects ordered by `fio` (ascending).
      */
     public function findAllOrderedByFio(): array
     {
@@ -35,6 +43,16 @@ final readonly class AuthorQueryService extends BaseQueryService implements Auth
         );
     }
 
+    /**
+     * Searches authors by their `fio` field and returns a paged result.
+     *
+     * If `$search` is an empty string, all authors are returned ordered by `fio` ascending.
+     *
+     * @param string $search Substring to match against the `fio` field.
+     * @param int $page Page number to return.
+     * @param int $pageSize Number of items per page.
+     * @return PagedResultInterface A paged result containing `AuthorReadDto` objects for the requested page.
+     */
     public function search(string $search, int $page, int $pageSize): PagedResultInterface
     {
         $query = Author::find()->orderBy(['fio' => SORT_ASC]);
@@ -47,8 +65,10 @@ final readonly class AuthorQueryService extends BaseQueryService implements Auth
     }
 
     /**
-     * @param array<int> $ids
-     * @return array<int>
+     * Returns the subset of given author IDs that do not exist in the persistence layer.
+     *
+     * @param array<int> $ids List of author IDs to check.
+     * @return array<int> Indexed list of IDs from `$ids` that were not found.
      */
     public function findMissingIds(array $ids): array
     {
@@ -69,6 +89,13 @@ final readonly class AuthorQueryService extends BaseQueryService implements Auth
         ));
     }
 
+    /**
+     * Check if an author with the given fio exists.
+     *
+     * @param string $fio The fio value to check for.
+     * @param int|null $excludeId Optional author ID to exclude from the check.
+     * @return bool `true` if an author with the given fio exists, `false` otherwise.
+     */
     public function existsByFio(string $fio, ?int $excludeId = null): bool
     {
         return $this->exists(Author::find()->where(['fio' => $fio]), $excludeId);

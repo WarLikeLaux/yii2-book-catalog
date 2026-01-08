@@ -13,6 +13,11 @@ use yii\db\ActiveRecord;
  */
 final class TestActiveRecord extends ActiveRecord
 {
+    /**
+     * Database table name for this ActiveRecord class.
+     *
+     * @return string The table name associated with this ActiveRecord.
+     */
     public static function tableName(): string
     {
         return 'test_table';

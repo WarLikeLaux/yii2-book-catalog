@@ -10,7 +10,18 @@ interface AuthorRepositoryInterface
 {
     public function save(Author $author): void;
 
-    public function get(int $id): Author;
+    /**
+ * Retrieves an Author by its integer identifier.
+ *
+ * @param int $id The author's ID.
+ * @return Author The Author entity with the given ID.
+ */
+public function get(int $id): Author;
 
-    public function delete(Author $author): void;
+    /**
+ * Removes the given Author from persistent storage.
+ *
+ * @param Author $author The Author entity to delete.
+ */
+public function delete(Author $author): void;
 }

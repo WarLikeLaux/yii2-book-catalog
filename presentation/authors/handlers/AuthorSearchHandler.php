@@ -12,6 +12,12 @@ use AutoMapper\AutoMapperInterface;
 
 final readonly class AuthorSearchHandler
 {
+    /**
+     * Initialize the handler with its required services.
+     *
+     * @param AuthorQueryServiceInterface $queryService Service used to perform author searches.
+     * @param AutoMapperInterface $autoMapper Service used to map form data to search criteria objects.
+     */
     public function __construct(
         private AuthorQueryServiceInterface $queryService,
         private AutoMapperInterface $autoMapper,
@@ -19,8 +25,17 @@ final readonly class AuthorSearchHandler
     }
 
     /**
-     * @param array<string, mixed> $queryParams
-     * @return array<string, mixed>
+     * Handle an author search request and return results formatted for a Select2-like response.
+     *
+     * @param array<string,mixed> $queryParams Raw query parameters used to populate AuthorSearchForm.
+     * @return array<string,mixed> {
+     *     Response array with the following keys:
+     *     @type array<int,array<string,mixed>> $results List of items where each item contains:
+     *           - `id` (scalar): Author identifier.
+     *           - `text` (string): Author display name (`fio`).
+     *     @type array<string,bool> $pagination Pagination info:
+     *           - `more` `true` if additional pages exist, `false` otherwise.
+     * }
      */
     public function search(array $queryParams): array
     {
@@ -55,7 +70,9 @@ final readonly class AuthorSearchHandler
     }
 
     /**
-     * @return array<string, mixed>
+     * Create an empty response formatted for a Select2-compatible component.
+     *
+     * @return array{results: list, pagination: array{more: bool}} Associative array with 'results' as an empty list and 'pagination' containing ['more' => false].
      */
     private function createEmptySelect2Result(): array
     {

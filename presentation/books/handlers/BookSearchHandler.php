@@ -16,6 +16,14 @@ use AutoMapper\AutoMapperInterface;
 
 final readonly class BookSearchHandler
 {
+    /**
+     * Create a new BookSearchHandler with its required dependencies.
+     *
+     * @param AutoMapperInterface $autoMapper Maps form data to domain/search DTOs.
+     * @param BookQueryService $bookQueryService Executes book search queries.
+     * @param PagedResultDataProviderFactory $dataProviderFactory Creates paged data providers from query results.
+     * @param FileUrlResolver $fileUrlResolver Resolves file (cover) URLs for book DTOs.
+     */
     public function __construct(
         private AutoMapperInterface $autoMapper,
         private BookQueryService $bookQueryService,
@@ -25,8 +33,13 @@ final readonly class BookSearchHandler
     }
 
     /**
-     * @param array<string, mixed> $params
-     * @return array<string, mixed>
+     * Prepare data required by the books index view from raw request parameters and pagination.
+     *
+     * @param array<string,mixed> $params Raw input parameters to populate the BookSearchForm.
+     * @param PaginationRequest $pagination Pagination parameters used for search and empty-result construction when the form is invalid.
+     * @return array<string,mixed> Associative array with:
+     *   - `searchModel`: the populated BookSearchForm instance,
+     *   - `dataProvider`: a paged data provider containing BookReadDto items with resolved cover URLs; if the form is invalid, the provider contains an empty result for the requested page and page size.
      */
     public function prepareIndexViewData(array $params, PaginationRequest $pagination): array
     {

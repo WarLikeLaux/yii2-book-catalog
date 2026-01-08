@@ -14,6 +14,15 @@ use RuntimeException;
  */
 trait IdentityAssignmentTrait
 {
+    /**
+     * Assigns an identifier to an identifiable entity using reflection while preventing conflicting overwrites.
+     *
+     * If the entity already has a non-null ID different from the provided one, a RuntimeException is thrown.
+     *
+     * @param IdentifiableEntityInterface $entity The entity whose `id` property will be set.
+     * @param int $id The identifier to assign to the entity.
+     * @throws RuntimeException If the entity's existing non-null ID differs from `$id`.
+     */
     private function assignId(IdentifiableEntityInterface $entity, int $id): void
     {
         $property = new ReflectionProperty($entity::class, 'id');

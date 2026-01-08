@@ -15,6 +15,11 @@ use yii\db\Connection;
 
 abstract readonly class BaseQueryService
 {
+    /**
+     * Initialize the service with required dependencies.
+     *
+     * Stores the provided database connection and automapper for use by query operations.
+     */
     public function __construct(
         protected Connection $db,
         protected AutoMapperInterface $autoMapper,
@@ -22,9 +27,14 @@ abstract readonly class BaseQueryService
     }
 
     /**
+     * Retrieve a paged result from the given query and map each record to instances of the specified DTO class.
+     *
      * @template T of object
-     * @param class-string<T> $dtoClass
-     * @return PagedResultInterface<T>
+     * @param ActiveQueryInterface $query The query used to fetch records.
+     * @param int $page The 1-based page number.
+     * @param int $pageSize Number of items per page.
+     * @param class-string<T> $dtoClass The DTO class to map each record to.
+     * @return PagedResultInterface<T> Paged result containing an array of mapped DTOs, the total record count, and pagination metadata.
      */
     protected function getPagedResult(
         ActiveQueryInterface $query,
@@ -64,9 +74,13 @@ abstract readonly class BaseQueryService
     }
 
     /**
+     * Map a source object to an instance of the specified DTO class.
+     *
      * @template T of object
-     * @param class-string<T> $targetClass
-     * @return T
+     * @param object $source The source object to map from.
+     * @param class-string<T> $targetClass Fully-qualified class name of the target DTO type.
+     * @return T The mapped DTO instance.
+     * @throws LogicException If the mapper returns a value that is not an instance of `$targetClass`.
      */
     protected function mapToDto(object $source, string $targetClass): object
     {
@@ -83,6 +97,13 @@ abstract readonly class BaseQueryService
         return $dto;
     }
 
+    /**
+     * Checks whether any record matches the given query, optionally excluding a specific id.
+     *
+     * @param ActiveQueryInterface $query The query to evaluate.
+     * @param int|null $excludeId If provided, ignores records with this `id` value when checking existence.
+     * @return bool `true` if at least one matching record exists, `false` otherwise.
+     */
     protected function exists(ActiveQueryInterface $query, ?int $excludeId = null): bool
     {
         if ($excludeId !== null) {

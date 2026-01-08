@@ -12,6 +12,9 @@ use Yii;
 
 final readonly class ReportHandler
 {
+    /**
+     * Initializes the handler with the mapper, query service, and use-case runner required to prepare report index view data.
+     */
     public function __construct(
         private ReportCriteriaMapper $reportCriteriaMapper,
         private ReportQueryServiceInterface $reportQueryService,

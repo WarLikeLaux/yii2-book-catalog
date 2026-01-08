@@ -28,6 +28,12 @@ final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositor
         $this->tracer->trace('AuthorRepo::' . __FUNCTION__, fn() => $this->repository->delete($author));
     }
 
+    /**
+     * Retrieve an Author by its identifier while recording the operation in the tracer.
+     *
+     * @param int $id The author's identifier.
+     * @return Author The Author matching the given identifier.
+     */
     #[\Override]
     public function get(int $id): Author
     {

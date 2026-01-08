@@ -17,11 +17,23 @@ use PHPStan\Rules\RuleErrorBuilder;
  */
 final readonly class DomainEntitiesMustBePureRule implements Rule
 {
+    /**
+     * Specify the node class this rule applies to.
+     *
+     * @return string The fully-qualified class name of the node type this rule targets.
+     */
     public function getNodeType(): string
     {
         return InClassNode::class;
     }
 
+    / **
+     * Enforces that classes in the app\domain\entities namespace do not extend other classes.
+     *
+     * @param InClassNode $node The class node being analyzed.
+     * @param Scope $scope The current analysis scope containing namespace information.
+     * @return array<int, \PHPStan\Rules\RuleError> An array containing a single RuleError when the inspected domain entity extends a parent class; an empty array otherwise.
+     */
     public function processNode(Node $node, Scope $scope): array
     {
         $classReflection = $node->getClassReflection();

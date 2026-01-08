@@ -36,6 +36,14 @@ final readonly class BookQueryServiceTracingDecorator implements BookQueryServic
         );
     }
 
+    /**
+     * Searches for books matching the given specification and returns a paginated result.
+     *
+     * @param BookSpecificationInterface $specification Criteria used to filter books.
+     * @param int $page The pagination page number.
+     * @param int $pageSize Number of items per page.
+     * @return PagedResultInterface A paginated collection of books that match the specification.
+     */
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
@@ -47,6 +55,13 @@ final readonly class BookQueryServiceTracingDecorator implements BookQueryServic
         );
     }
 
+    /**
+     * Check whether a book with the given ISBN exists, optionally excluding a specific book ID.
+     *
+     * @param string $isbn The ISBN to check for.
+     * @param int|null $excludeId Optional book ID to exclude from the existence check.
+     * @return bool `true` if a book with the given ISBN exists, `false` otherwise.
+     */
     public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
     {
         return $this->tracer->trace(

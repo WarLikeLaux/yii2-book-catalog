@@ -25,6 +25,14 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     /** @var WeakMap<BookEntity, array<int>> */
     private WeakMap $authorSnapshots;
 
+    /**
+     * Construct the repository with required services and initialize author snapshots.
+     *
+     * Initializes the base repository and a WeakMap used to track per-entity author ID snapshots for change detection.
+     *
+     * @param Connection $db Database connection used for queries and transactions.
+     * @param ActiveRecordHydrator $hydrator Hydrator used to map between domain entities and ActiveRecord models.
+     */
     public function __construct(
         private Connection $db,
         private ActiveRecordHydrator $hydrator,
@@ -33,6 +41,11 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         $this->authorSnapshots = new WeakMap();
     }
 
+    /**
+     * Persists the given BookEntity to storage and synchronizes its author relationships.
+     *
+     * @param BookEntity $book The book to save. If the book is new, an identifier is assigned and identity registered; if existing, its version is advanced.
+     */
     public function save(BookEntity $book): void
     {
         $isNew = $book->id === null;
@@ -60,6 +73,15 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         $this->syncAuthors($book);
     }
 
+    /**
+     * Retrieve the book with the given ID, including its associated authors.
+     *
+     * Also registers the entity/AR identity and stores a snapshot of author IDs for later change detection.
+     *
+     * @param int $id The book identifier.
+     * @return BookEntity The BookEntity reconstructed from persistence.
+     * @throws EntityNotFoundException If no book with the given ID exists (DomainErrorCode::BookNotFound).
+     */
     public function get(int $id): BookEntity
     {
         /** @var Book|null $ar */
@@ -77,8 +99,11 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     }
 
     /**
-     * @throws \app\domain\exceptions\EntityNotFoundException
-     * @throws \app\domain\exceptions\StaleDataException
+     * Retrieve a BookEntity by its id and ensure its persisted version matches the expected version.
+     *
+     * @return \app\domain\entities\BookEntity The reconstituted BookEntity.
+     * @throws \app\domain\exceptions\EntityNotFoundException If no book with the given id exists (DomainErrorCode::BookNotFound).
+     * @throws \app\domain\exceptions\StaleDataException If the stored version does not equal the expected version.
      */
     public function getByIdAndVersion(int $id, int $expectedVersion): BookEntity
     {
@@ -101,14 +126,23 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     }
 
     /**
-     * @throws \app\domain\exceptions\EntityNotFoundException
-     * @throws \yii\base\InvalidConfigException
-     */
+         * Removes the given book from persistent storage.
+         *
+         * @param BookEntity $book The book entity to delete.
+         * @throws \app\domain\exceptions\EntityNotFoundException If the book cannot be found.
+         * @throws \yii\base\InvalidConfigException If the repository or ActiveRecord configuration is invalid.
+         */
     public function delete(BookEntity $book): void
     {
         $this->deleteEntity($book, Book::class, DomainErrorCode::BookNotFound, 'book.error.delete_failed');
     }
 
+    /**
+     * Convert a Book ActiveRecord (including its loaded authors relation) into a domain BookEntity.
+     *
+     * @param Book $ar Book ActiveRecord with its `authors` relation populated.
+     * @return BookEntity The reconstituted BookEntity populated from AR fields and related author IDs.
+     */
     private function mapToEntity(Book $ar): BookEntity
     {
         /** @var Author[] $authors */
@@ -128,6 +162,14 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         );
     }
 
+    /**
+     * Synchronizes the book's author associations in persistent storage to match the entity's `authorIds`.
+     *
+     * If the entity has no `id` the method is a no-op. When changes are detected, it removes associations
+     * for authors no longer present on the entity and inserts associations for newly added authors.
+     *
+     * @param BookEntity $book The book entity whose `authorIds` will be persisted; must have an `id` to perform changes.
+     */
     private function syncAuthors(BookEntity $book): void
     {
         $bookId = $book->id;
@@ -172,7 +214,10 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     }
 
     /**
-     * @return int[]
+     * Retrieve the author IDs associated with the specified book.
+     *
+     * @param int $bookId The book's identifier.
+     * @return int[] Author IDs associated with the book.
      */
     private function getStoredAuthorIds(int $bookId): array
     {
@@ -183,6 +228,14 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         return array_map(intval(...), $ids);
     }
 
+    /**
+     * Determines whether the book's author list differs from the last stored snapshot.
+     *
+     * If no snapshot exists for the given book, this method treats the authors as changed and returns `true`.
+     *
+     * @param BookEntity $book The book whose current author IDs should be compared to the stored snapshot.
+     * @return bool `true` if the current author IDs differ from the snapshot or no snapshot exists, `false` otherwise.
+     */
     private function hasAuthorsChanged(BookEntity $book): bool
     {
         if (!isset($this->authorSnapshots[$book])) {

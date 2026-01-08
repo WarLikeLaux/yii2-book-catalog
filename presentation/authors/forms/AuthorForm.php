@@ -38,6 +38,14 @@ final class AuthorForm extends RepositoryAwareForm
         ];
     }
 
+    /**
+     * Validates that the given attribute's full name (FIO) is unique among authors.
+     *
+     * If another author exists with the same FIO (excluding the current model when `$this->id` is set),
+     * a validation error is added to the attribute using the message key `author.error.fio_exists`.
+     *
+     * @param string $attribute The attribute name whose value contains the FIO to validate.
+     */
     public function validateFioUnique(string $attribute): void
     {
         $value = $this->$attribute;

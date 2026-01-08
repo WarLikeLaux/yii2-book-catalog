@@ -19,12 +19,24 @@ final class Yii2ActiveRecordMappingListener
     /** @var array<class-string, string[]> */
     private array $cache = [];
 
+    /**
+     * Determines if a property name is already present in the event's properties.
+     *
+     * @param GenerateMapperEvent $event The mapper generation event containing current property metadata.
+     * @param string $propertyName The property name to check for an existing mapping.
+     * @return bool `true` if the property is already mapped in the event, `false` otherwise.
+     */
     private function propertyAlreadyMapped(GenerateMapperEvent $event, string $propertyName): bool
     {
         return isset($event->properties[$propertyName]);
     }
 
-    /** @param class-string $class */
+    /**
+     * Determine whether the given class is a Yii2 ActiveRecord subclass.
+     *
+     * @param class-string $class The fully-qualified class name to check.
+     * @return bool `true` if the class exists and is a subclass of `yii\db\ActiveRecord`, `false` otherwise.
+     */
     private function isActiveRecord(string $class): bool
     {
         if (!class_exists($class)) {
@@ -35,8 +47,12 @@ final class Yii2ActiveRecordMappingListener
     }
 
     /**
-     * @param class-string $class
-     * @return string[]
+     * Extracts property names from a class's PHPDoc `@property` annotations.
+     *
+     * Results are cached per class to avoid repeated reflection.
+     *
+     * @param class-string $class Fully-qualified class name whose PHPDoc will be inspected.
+     * @return string[] Property names declared via `@property`, `@property-read`, or `@property-write` in the class docblock.
      */
     private function extractPropertiesFromPhpDoc(string $class): array
     {
@@ -66,6 +82,13 @@ final class Yii2ActiveRecordMappingListener
         return $properties;
     }
 
+    /**
+     * Adds property mappings to the mapper generation event for properties declared via `@property` PHPDoc on Yii2 ActiveRecord sources.
+     *
+     * If the event's source is a class that extends `yii\db\ActiveRecord`, extracts property names from that class's PHPDoc and, for each property not already present in the event, creates a source property (with an array-style read accessor), a target property, and attaches a corresponding PropertyMetadataEvent to `$event->properties`.
+     *
+     * @param GenerateMapperEvent $event The mapper generation event to augment; modified in-place by adding PropertyMetadataEvent entries for discovered properties.
+     */
     public function __invoke(GenerateMapperEvent $event): void
     {
         $sourceClass = $event->mapperMetadata->source;

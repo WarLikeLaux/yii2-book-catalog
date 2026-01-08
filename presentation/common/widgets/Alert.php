@@ -25,7 +25,12 @@ final class Alert extends Widget
     public array $closeButton = [];
 
     /**
-     * {@inheritdoc}
+     * Renders session flash messages as Bootstrap alerts and removes them from the session.
+     *
+     * For each configured alert type, renders one Bootstrap alert per flash message using the
+     * widget's `closeButton` and `options`. Each alert's HTML `id` is "{widgetId}-{type}-{index}",
+     * and its CSS class is the mapped Bootstrap class for the type with any additional class from
+     * `$this->options['class']` appended.
      */
     public function run(): void
     {

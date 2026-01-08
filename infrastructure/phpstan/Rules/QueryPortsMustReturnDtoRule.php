@@ -27,11 +27,29 @@ final readonly class QueryPortsMustReturnDtoRule implements Rule
     private const array QUERY_SERVICE_SUFFIXES = ['QueryServiceInterface'];
     private const array FINDER_SEARCHER_SUFFIXES = ['FinderInterface', 'SearcherInterface'];
 
+    /**
+     * Specifies the PHP-Parser node class this PHPStan rule applies to.
+     *
+     * @return string The fully-qualified node class name that this rule targets (InClassNode).
+     */
     public function getNodeType(): string
     {
         return InClassNode::class;
     }
 
+    /**
+     * Validates methods declared on query port interfaces and returns rule errors for methods with disallowed return types.
+     *
+     * Examines the provided class node; if the class is an application query port (QueryServiceInterface, FinderInterface,
+     * or SearcherInterface under the application ports namespace), each method declared by the class is checked for an
+     * allowed return type. For query services scalars are permitted in addition to DTOs, void, and PagedResultInterface;
+     * for finder/searcher interfaces scalars and ActiveRecord types are disallowed. For each offending method a
+     * PHPStan RuleError is produced (identifier `architecture.queryPortReturnType`) and returned.
+     *
+     * @param Node $node The class node being analyzed (expected to be an InClassNode wrapping the inspected class).
+     * @param Scope $scope The current PHPStan analysis scope.
+     * @return array<int, \PHPStan\Rules\RuleError> Array of RuleError objects describing return-type violations, empty if none.
+     */
     public function processNode(Node $node, Scope $scope): array
     {
         $classReflection = $node->getClassReflection();
@@ -75,6 +93,12 @@ final readonly class QueryPortsMustReturnDtoRule implements Rule
         return $errors;
     }
 
+    /**
+     * Determine the port type for an interface based on its fully-qualified name.
+     *
+     * @param ClassReflection $classReflection Reflection of the class or interface to inspect.
+     * @return string|null `'query_service'` if the interface is in the `app\application\ports` namespace and its name ends with a value from `QUERY_SERVICE_SUFFIXES`; `'finder_searcher'` if it ends with a value from `FINDER_SEARCHER_SUFFIXES`; `null` if the reflection is not an interface, not in the target namespace, or does not match any suffix.
+     */
     private function getPortType(ClassReflection $classReflection): ?string
     {
         if (!$classReflection->isInterface()) {
@@ -102,6 +126,17 @@ final readonly class QueryPortsMustReturnDtoRule implements Rule
         return null;
     }
 
+    /**
+     * Determines whether a given PHPStan Type is an allowed return type for query port methods.
+     *
+     * Considers `void` and `null` allowed. After removing `null`, allows scalar types when `$allowScalars` is true.
+     * Object types are allowed only if they represent a DTO within the application namespace or the configured
+     * paged result interface. Array/iterable types are allowed only when their value types meet the same rules.
+     *
+     * @param Type $type The PHPStan type to validate.
+     * @param bool $allowScalars When true, integer/string/float/boolean types (and iterables of those) are permitted.
+     * @return bool `true` if the type is permitted as a return type for the evaluated port method, `false` otherwise.
+     */
     private function isAllowedReturnType(Type $type, bool $allowScalars): bool
     {
         if ($type->isVoid()->yes() || $type->isNull()->yes()) {
@@ -127,6 +162,12 @@ final readonly class QueryPortsMustReturnDtoRule implements Rule
         return false;
     }
 
+    /**
+     * Determines whether the given type represents a PHP scalar: integer, string, boolean, or float.
+     *
+     * @param Type $type The type to inspect.
+     * @return bool `true` if the type is integer, string, boolean, or float; `false` otherwise.
+     */
     private function isScalarType(Type $type): bool
     {
         return $type->isInteger()->yes()
@@ -135,6 +176,12 @@ final readonly class QueryPortsMustReturnDtoRule implements Rule
             || $type->isFloat()->yes();
     }
 
+    /**
+     * Determines whether an object type is permitted as a query port return.
+     *
+     * @param Type $type The analyzed object type.
+     * @return bool `true` if the type is the paged result interface, a DTO class in the application namespace (class name ends with `Dto`), or has no specific class names; `false` otherwise.
+     */
     private function isAllowedObjectType(Type $type): bool
     {
         $classNames = $type->getObjectClassNames();
@@ -155,6 +202,13 @@ final readonly class QueryPortsMustReturnDtoRule implements Rule
         return count($classNames) === 0;
     }
 
+    /**
+     * Check whether an iterable type's element type is allowed for query port returns.
+     *
+     * @param Type $type The iterable type whose value type will be validated.
+     * @param bool $allowScalars Whether scalar element types are permitted.
+     * @return bool `true` if the iterable's value type is allowed (DTO, `PagedResultInterface`, or scalar when permitted), `false` otherwise.
+     */
     private function isAllowedIterableType(Type $type, bool $allowScalars): bool
     {
         $iterableValueType = $type->getIterableValueType();

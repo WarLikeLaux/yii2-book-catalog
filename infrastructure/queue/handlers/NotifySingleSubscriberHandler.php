@@ -12,12 +12,30 @@ use Throwable;
 
 final readonly class NotifySingleSubscriberHandler
 {
+    /**
+     * Create a new handler with the SMS sender and idempotency storage dependencies.
+     *
+     * @param SmsSenderInterface $sender Service used to send SMS messages.
+     * @param AsyncIdempotencyStorageInterface $idempotencyStorage Storage used to acquire and release idempotency keys to ensure SMS are sent idempotently.
+     */
     public function __construct(
         private SmsSenderInterface $sender,
         private AsyncIdempotencyStorageInterface $idempotencyStorage,
     ) {
     }
 
+    /**
+     * Send an SMS to a single subscriber while ensuring the operation is idempotent.
+     *
+     * Acquires an idempotency lock for the (bookId, phone) pair and returns immediately if the lock cannot be obtained.
+     * If sending fails the lock is released and the original exception is rethrown.
+     *
+     * @param string $phone Recipient phone number.
+     * @param string $message Message body to send.
+     * @param int $bookId Identifier used to scope idempotency for this notification.
+     *
+     * @throws \Throwable Rethrows any exception thrown by the SMS sender after releasing the idempotency lock.
+     */
     public function handle(string $phone, string $message, int $bookId): void
     {
         $idempotencyKey = sprintf('sms:%d:%s', $bookId, md5($phone));

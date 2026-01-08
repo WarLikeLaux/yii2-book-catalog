@@ -11,6 +11,11 @@ use app\application\reports\queries\ReportDto;
 
 final readonly class ReportQueryServiceCachingDecorator implements ReportQueryServiceInterface
 {
+    /**
+     * Initialize the caching decorator with the inner report service and cache.
+     *
+     * @param int $cacheTtl Time-to-live for cached report data in seconds; a value less than or equal to 0 disables caching. Default is 3600.
+     */
     public function __construct(
         private ReportQueryServiceInterface $inner,
         private CacheInterface $cache,
@@ -18,6 +23,14 @@ final readonly class ReportQueryServiceCachingDecorator implements ReportQuerySe
     ) {
     }
 
+    /**
+     * Return a top-authors report for the specified criteria, using a per-year cache.
+     *
+     * The cache key is derived from the report year; if `$criteria->year` is null the current year is used.
+     *
+     * @param ReportCriteria $criteria Criteria that defines the report (may include `year`).
+     * @return ReportDto Report containing the top authors and the year used to generate the report.
+     */
     #[\Override]
     public function getTopAuthorsReport(ReportCriteria $criteria): ReportDto
     {
@@ -38,6 +51,12 @@ final readonly class ReportQueryServiceCachingDecorator implements ReportQuerySe
         return new ReportDto($topAuthors, $year);
     }
 
+    /**
+     * Provide an empty top-authors report for the specified year.
+     *
+     * @param int|null $year Year for the report; if null, the current year is used.
+     * @return ReportDto An empty ReportDto for the given year.
+     */
     #[\Override]
     public function getEmptyTopAuthorsReport(?int $year = null): ReportDto
     {

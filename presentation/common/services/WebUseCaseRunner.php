@@ -79,13 +79,16 @@ final readonly class WebUseCaseRunner
     }
 
     /**
+     * Executes the given use case via the default pipeline, sends a success notification on success, and routes errors to provided callbacks.
+     *
      * @template TCommand of CommandInterface
      * @template TResponse
-     * @param TCommand $command
-     * @param UseCaseInterface<TCommand, TResponse> $useCase
-     * @param callable(DomainException): void $onDomainError
-     * @param (callable(): void)|null $onError
-     * @return TResponse|null
+     * @param TCommand $command The command to execute.
+     * @param UseCaseInterface<TCommand, TResponse> $useCase The use case to run.
+     * @param string $successMessage Message displayed on successful execution.
+     * @param callable(DomainException): void $onDomainError Callback invoked with the DomainException to handle form validation errors.
+     * @param (callable(): void)|null $onError Optional callback invoked on any error before other error handling.
+     * @return TResponse|null The use-case result on success, or `null` if a domain or unexpected error occurred.
      */
     public function executeWithFormErrors(
         CommandInterface $command,
