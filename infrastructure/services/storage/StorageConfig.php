@@ -9,8 +9,6 @@ final readonly class StorageConfig
     public function __construct(
         public string $basePath,
         public string $baseUrl,
-        public string $tempBasePath,
-        public string $tempBaseUrl,
     ) {
     }
 }
