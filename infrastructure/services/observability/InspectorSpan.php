@@ -29,7 +29,6 @@ final readonly class InspectorSpan implements SpanInterface
             return $this;
         }
 
-        // Читаем текущий контекст
         /** @var array<string, mixed> $currentContext */
         $currentContext = $this->item->getContext('Custom');
         $data = $currentContext;

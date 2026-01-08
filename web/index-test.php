@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Важно: этот файл не должен быть доступен в production
 if (!in_array(@$_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])) {
     throw new RuntimeException('Доступ запрещен.');
 }

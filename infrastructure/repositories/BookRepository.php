@@ -118,7 +118,6 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         return BookEntity::reconstitute(
             id: $ar->id,
             title: $ar->title,
-            /** @reconstitution Доверяем данным из БД, обходим валидацию текущего года */
             year: new BookYear($ar->year),
             isbn: new Isbn($ar->isbn),
             description: $ar->description,

@@ -8,18 +8,10 @@ use Yii;
 use yii\bootstrap5\Alert as BootstrapAlert;
 use yii\bootstrap5\Widget;
 
-/**
- * Виджет для отображения Flash-сообщений сессии.
- */
-class Alert extends Widget
+final class Alert extends Widget
 {
-    /**
-     * @var array<string, string> the alert types configuration for the flash messages.
-     * This array is setup as $key => $value, where:
-     * - key: the name of the session flash variable
-     * - value: the bootstrap alert type (i.e. danger, success, info, warning)
-     */
-    public $alertTypes = [
+    /** @var array<string, string> */
+    public array $alertTypes = [
         'error' => 'alert-danger',
         'danger' => 'alert-danger',
         'success' => 'alert-success',
@@ -28,9 +20,9 @@ class Alert extends Widget
     ];
 
     /**
-     * @var array<string, mixed> опции для рендеринга кнопки закрытия.
+     * @var array<string, mixed> $closeButton Опции для рендеринга кнопки закрытия сообщения.
      */
-    public $closeButton = [];
+    public array $closeButton = [];
 
     /**
      * {@inheritdoc}
@@ -43,7 +35,7 @@ class Alert extends Widget
         foreach (array_keys($this->alertTypes) as $type) {
             $flash = $session->getFlash($type);
 
-            foreach ((array) $flash as $i => $message) {
+            foreach ((array)$flash as $i => $message) {
                 echo BootstrapAlert::widget([
                     'body' => $message,
                     'closeButton' => $this->closeButton,

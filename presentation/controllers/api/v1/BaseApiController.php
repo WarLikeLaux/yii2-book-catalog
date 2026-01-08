@@ -9,9 +9,6 @@ use yii\filters\Cors;
 use yii\rest\Controller;
 use yii\web\Response;
 
-/**
- * Base controller for API v1.
- */
 abstract class BaseApiController extends Controller
 {
     /** @return array<int|string, mixed> */
