@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\infrastructure\services\storage;
 
 use app\application\ports\ContentStorageInterface;
+use app\domain\exceptions\ValidationException;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use Generator;
@@ -115,11 +116,11 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
 
             $filename = pathinfo($file->getFilename(), PATHINFO_FILENAME);
 
-            if (strlen($filename) !== 64 || !ctype_xdigit($filename)) {
+            try {
+                yield new FileKey($filename);
+            } catch (ValidationException) {
                 continue;
             }
-
-            yield new FileKey($filename);
         }
     }
 

@@ -13,6 +13,7 @@ use yii\db\Connection;
 final class StorageController extends Controller
 {
     private const int DEFAULT_TTL_HOURS = 24;
+    private const array SUPPORTED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', ''];
 
     public function __construct(
         $id,
@@ -33,12 +34,13 @@ final class StorageController extends Controller
         $referencedKeys = $this->getReferencedFileKeys();
         $this->stdout('Found ' . count($referencedKeys) . " referenced files in database.\n");
 
+        $referencedKeysMap = array_flip($referencedKeys);
         $orphanCount = 0;
         $skippedCount = 0;
         $ttlSeconds = $ttlHours * 3600;
 
         foreach ($this->storage->listAllKeys() as $key) {
-            if (in_array($key->value, $referencedKeys, true)) {
+            if (isset($referencedKeysMap[$key->value])) {
                 continue;
             }
 
@@ -75,10 +77,9 @@ final class StorageController extends Controller
 
     private function isOlderThanTtl(FileKey $key, int $ttlSeconds): bool
     {
-        $extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', ''];
         $maxMtime = null;
 
-        foreach ($extensions as $ext) {
+        foreach (self::SUPPORTED_EXTENSIONS as $ext) {
             $path = $this->resolvePath($key, $ext);
 
             if (!file_exists($path)) {
@@ -99,9 +100,7 @@ final class StorageController extends Controller
 
     private function deleteOrphan(FileKey $key): void
     {
-        $extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', ''];
-
-        foreach ($extensions as $ext) {
+        foreach (self::SUPPORTED_EXTENSIONS as $ext) {
             $this->storage->delete($key, $ext);
         }
 
