@@ -31,7 +31,7 @@ abstract readonly class BaseActiveRecordRepository
      * @return T
      * @throws EntityNotFoundException
      */
-    protected function getArById(int $id, string $arClass, DomainErrorCode $notFoundCode): ActiveRecord
+    protected function getArById(int|string $id, string $arClass, DomainErrorCode $notFoundCode): ActiveRecord
     {
         /** @var T|null $ar */
         $ar = $arClass::findOne($id);
@@ -54,7 +54,7 @@ abstract readonly class BaseActiveRecordRepository
             return $this->identityMap[$entity]; // @phpstan-ignore return.type
         }
 
-        $id = $entity->id ?? $entity->getId(); // @phpstan-ignore-line
+        $id = $this->getEntityId($entity);
 
         $ar = $this->getArById($id, $arClass, $notFoundCode);
 
@@ -78,7 +78,7 @@ abstract readonly class BaseActiveRecordRepository
         DomainErrorCode $notFoundCode,
         string $errorMessage = 'entity.error.delete_failed',
     ): void {
-        $id = $entity->id ?? $entity->getId(); // @phpstan-ignore-line
+        $id = $this->getEntityId($entity);
 
         $ar = $this->getArById($id, $arClass, $notFoundCode);
 
@@ -126,5 +126,10 @@ abstract readonly class BaseActiveRecordRepository
 
         return DatabaseErrorCode::isDuplicate($driverCode)
             || DatabaseErrorCode::isDuplicate($sqlState);
+    }
+
+    protected function getEntityId(object $entity): int|string
+    {
+        return $entity->id ?? $entity->getId(); // @phpstan-ignore-line
     }
 }
