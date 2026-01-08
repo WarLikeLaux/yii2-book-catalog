@@ -57,4 +57,19 @@ final class QueryResultTest extends Unit
         $this->assertSame(100, $updated->getTotalCount());
         $this->assertSame($pagination, $updated->getPagination());
     }
+
+    public function testEmptyCreatesResultWithEmptyModels(): void
+    {
+        $result = QueryResult::empty(3, 25);
+
+        $this->assertSame([], $result->getModels());
+        $this->assertSame(0, $result->getTotalCount());
+
+        $pagination = $result->getPagination();
+        $this->assertNotNull($pagination);
+        $this->assertSame(3, $pagination->page);
+        $this->assertSame(25, $pagination->pageSize);
+        $this->assertSame(0, $pagination->totalCount);
+        $this->assertSame(0, $pagination->totalPages);
+    }
 }
