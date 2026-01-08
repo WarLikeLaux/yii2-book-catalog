@@ -74,4 +74,13 @@ abstract readonly class BaseQueryService
 
         return $dto;
     }
+
+    protected function exists(ActiveQueryInterface $query, ?int $excludeId = null): bool
+    {
+        if ($excludeId !== null) {
+            $query->andWhere(['<>', 'id', $excludeId]);
+        }
+
+        return $query->exists($this->db);
+    }
 }
