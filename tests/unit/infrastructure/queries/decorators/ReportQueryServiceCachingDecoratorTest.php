@@ -94,14 +94,13 @@ final class ReportQueryServiceCachingDecoratorTest extends Unit
         $expectedData = [['id' => 1, 'fio' => 'Test', 'books_count' => 10]];
         $expectedDto = new ReportDto($expectedData, $year);
 
+        $this->inner->expects($this->once())
+            ->method('getTopAuthorsReport')
+            ->willReturn($expectedDto);
+
         $this->cache->expects($this->once())
             ->method('getOrSet')
-            ->willReturnCallback(function ($_key, $callback) use ($expectedDto) {
-                $this->inner->expects($this->once())
-                    ->method('getTopAuthorsReport')
-                    ->willReturn($expectedDto);
-                return $callback();
-            });
+            ->willReturnCallback(static fn ($key, $callback) => $callback()); // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter -- Параметр $key обязателен для сигнатуры, но не используется в моке
 
         $criteria = new ReportCriteria($year);
         $dto = $this->decorator->getTopAuthorsReport($criteria);

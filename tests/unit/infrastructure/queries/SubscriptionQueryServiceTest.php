@@ -24,6 +24,7 @@ final class SubscriptionQueryServiceTest extends Unit
         $this->queryService = Yii::$container->get(SubscriptionQueryServiceInterface::class);
         $this->repository = Yii::$container->get(SubscriptionRepositoryInterface::class);
         SubscriptionAR::deleteAll();
+        Yii::$app->db->createCommand()->delete('book_authors')->execute();
         Book::deleteAll();
         Author::deleteAll();
     }

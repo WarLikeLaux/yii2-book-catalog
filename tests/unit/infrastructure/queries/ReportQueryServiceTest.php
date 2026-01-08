@@ -88,7 +88,7 @@ final class ReportQueryServiceTest extends Unit
         $book = new Book();
         $book->title = $title;
         $book->year = $year;
-        $book->isbn = '978316148410' . random_int(0, 9);
+        $book->isbn = '978316148410' . (abs(crc32($title . $year)) % 10);
         $book->description = 'Test description';
         $book->is_published = true;
         $book->save(false);

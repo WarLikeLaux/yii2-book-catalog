@@ -40,9 +40,9 @@ final class AsyncIdempotencyRepositoryTest extends Unit
 
     public function testReleaseNonExistentKeyDoesNotThrow(): void
     {
-        $this->repository->release('non-existent');
+        $this->expectNotToPerformAssertions();
 
-        $this->assertTrue(true);
+        $this->repository->release('non-existent');
     }
 
     public function testDeleteExpiredRemovesOldRecords(): void
