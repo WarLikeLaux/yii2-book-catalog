@@ -12,7 +12,6 @@ use AutoMapper\Extractor\ReadAccessor;
 use ReflectionClass;
 use yii\db\ActiveRecord;
 
-/** @codeCoverageIgnore */
 final class Yii2ActiveRecordMappingListener
 {
     private const string PROPERTY_PATTERN = '/@property(?:-read|-write)?\s+([^\s]+)\s+\$([a-zA-Z_]\w*)/';
@@ -29,7 +28,7 @@ final class Yii2ActiveRecordMappingListener
     private function isActiveRecord(string $class): bool
     {
         if (!class_exists($class)) {
-            return false;
+            return false; // @codeCoverageIgnore
         }
 
         return is_subclass_of($class, ActiveRecord::class);
