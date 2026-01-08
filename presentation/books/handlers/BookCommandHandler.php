@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace app\presentation\books\handlers;
 
+use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\commands\PublishBookCommand;
+use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\PublishBookUseCase;
@@ -14,9 +16,8 @@ use app\application\common\dto\TemporaryFile;
 use app\application\ports\FileStorageInterface;
 use app\domain\exceptions\DomainException;
 use app\presentation\books\forms\BookForm;
-use app\presentation\books\mappers\BookFormMapper;
-use app\presentation\books\mappers\DomainErrorToFormMapper;
 use app\presentation\common\services\WebUseCaseRunner;
+use AutoMapper\AutoMapperInterface;
 use Yii;
 use yii\web\UploadedFile;
 
@@ -26,9 +27,19 @@ use yii\web\UploadedFile;
  */
 final readonly class BookCommandHandler
 {
+    private const array ERROR_TO_FIELD_MAP = [
+        'isbn.error.invalid_format' => 'isbn',
+        'year.error.too_old' => 'year',
+        'year.error.future' => 'year',
+        'book.error.title_empty' => 'title',
+        'book.error.title_too_long' => 'title',
+        'book.error.isbn_change_published' => 'isbn',
+        'book.error.invalid_author_id' => 'authorIds',
+        'book.error.publish_without_authors' => 'authorIds',
+    ];
+
     public function __construct(
-        private BookFormMapper $mapper,
-        private DomainErrorToFormMapper $errorMapper,
+        private AutoMapperInterface $autoMapper,
         private CreateBookUseCase $createBookUseCase,
         private UpdateBookUseCase $updateBookUseCase,
         private DeleteBookUseCase $deleteBookUseCase,
@@ -42,7 +53,15 @@ final readonly class BookCommandHandler
     {
         $tempFile = $this->uploadCover($form);
         $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
-        $command = $this->mapper->toCreateCommand($form, $permanentRef);
+
+        $data = $form->toArray();
+        $data['cover'] = $permanentRef;
+        $data['description'] = $data['description'] !== '' ? $data['description'] : null;
+        // Transform authorIds to array of ints (auto-mapper might handle this if types match, but forcing intval is safer as per prev manual mapper)
+        $data['authorIds'] = array_map(intval(...), (array)$form->authorIds);
+
+        /** @var CreateBookCommand $command */
+        $command = $this->autoMapper->map($data, CreateBookCommand::class);
 
         $result = $this->useCaseRunner->executeWithFormErrors(
             $command,
@@ -61,7 +80,15 @@ final readonly class BookCommandHandler
     {
         $tempFile = $this->uploadCover($form);
         $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
-        $command = $this->mapper->toUpdateCommand($id, $form, $permanentRef);
+
+        $data = $form->toArray();
+        $data['id'] = $id;
+        $data['cover'] = $permanentRef;
+        $data['description'] = $data['description'] !== '' ? $data['description'] : null;
+        $data['authorIds'] = array_map(intval(...), (array)$form->authorIds);
+
+        /** @var UpdateBookCommand $command */
+        $command = $this->autoMapper->map($data, UpdateBookCommand::class);
         return (bool) $this->useCaseRunner->executeWithFormErrors(
             $command,
             $this->updateBookUseCase,
@@ -112,7 +139,7 @@ final readonly class BookCommandHandler
 
     private function addFormError(BookForm $form, DomainException $e): void
     {
-        $field = $this->errorMapper->getFieldForError($e->getMessage());
+        $field = self::ERROR_TO_FIELD_MAP[$e->getMessage()] ?? null;
         $message = Yii::t('app', $e->getMessage());
 
         $form->addError($field ?? 'title', $message);

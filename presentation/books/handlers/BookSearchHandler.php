@@ -6,16 +6,18 @@ namespace app\presentation\books\handlers;
 
 use app\application\books\queries\BookQueryService;
 use app\application\books\queries\BookReadDto;
+use app\application\books\queries\BookSearchCriteria;
 use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
-use app\presentation\books\mappers\BookSearchCriteriaMapper;
+use app\presentation\books\forms\BookSearchForm;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
+use AutoMapper\AutoMapperInterface;
 
 final readonly class BookSearchHandler
 {
     public function __construct(
-        private BookSearchCriteriaMapper $bookSearchCriteriaMapper,
+        private AutoMapperInterface $autoMapper,
         private BookQueryService $bookQueryService,
         private PagedResultDataProviderFactory $dataProviderFactory,
         private FileUrlResolver $fileUrlResolver,
@@ -28,8 +30,15 @@ final readonly class BookSearchHandler
      */
     public function prepareIndexViewData(array $params, PaginationRequest $pagination): array
     {
-        $form = $this->bookSearchCriteriaMapper->toForm($params);
-        $criteria = $this->bookSearchCriteriaMapper->toCriteria($form, $pagination->page, $pagination->limit);
+        $form = new BookSearchForm();
+        $form->load($params);
+
+        /** @var BookSearchCriteria $criteria */
+        $criteria = $this->autoMapper->map(
+            $form->toArray() + ['page' => $pagination->page, 'pageSize' => $pagination->limit],
+            BookSearchCriteria::class,
+        );
+
         $result = $this->bookQueryService->search($criteria);
 
         $resolvedItems = [];

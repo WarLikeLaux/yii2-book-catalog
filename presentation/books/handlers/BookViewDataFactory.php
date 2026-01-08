@@ -10,9 +10,9 @@ use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookFinderInterface;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\forms\BookForm;
-use app\presentation\books\mappers\BookFormMapper;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
+use AutoMapper\AutoMapperInterface;
 use yii\data\DataProviderInterface;
 use yii\web\NotFoundHttpException;
 
@@ -22,7 +22,7 @@ final readonly class BookViewDataFactory
         private BookFinderInterface $finder,
         private BookSearcherInterface $searcher,
         private AuthorQueryServiceInterface $authorQueryService,
-        private BookFormMapper $mapper,
+        private AutoMapperInterface $autoMapper,
         private PagedResultDataProviderFactory $dataProviderFactory,
         private FileUrlResolver $resolver,
     ) {
@@ -56,7 +56,8 @@ final readonly class BookViewDataFactory
              throw new NotFoundHttpException();
         }
 
-        return $this->mapper->toForm($dto);
+        /** @var BookForm */
+        return $this->autoMapper->map($dto, BookForm::class);
     }
 
     public function getBookView(int $id): BookReadDto
