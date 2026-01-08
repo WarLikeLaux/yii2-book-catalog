@@ -11,9 +11,9 @@ use app\application\ports\BookFinderInterface;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookViewDataFactory;
-use app\presentation\books\mappers\BookFormMapper;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
+use AutoMapper\AutoMapperInterface;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 use yii\web\NotFoundHttpException;
@@ -23,7 +23,7 @@ final class BookViewDataFactoryTest extends Unit
     private BookFinderInterface&MockObject $finder;
     private BookSearcherInterface&MockObject $searcher;
     private AuthorQueryServiceInterface&MockObject $authorQueryService;
-    private BookFormMapper&MockObject $mapper;
+    private AutoMapperInterface&MockObject $autoMapper;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private FileUrlResolver $resolver;
     private BookViewDataFactory $factory;
@@ -33,7 +33,7 @@ final class BookViewDataFactoryTest extends Unit
         $this->finder = $this->createMock(BookFinderInterface::class);
         $this->searcher = $this->createMock(BookSearcherInterface::class);
         $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $this->mapper = $this->createMock(BookFormMapper::class);
+        $this->autoMapper = $this->createMock(AutoMapperInterface::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $this->resolver = new FileUrlResolver('/uploads');
 
@@ -41,7 +41,7 @@ final class BookViewDataFactoryTest extends Unit
             $this->finder,
             $this->searcher,
             $this->authorQueryService,
-            $this->mapper,
+            $this->autoMapper,
             $this->dataProviderFactory,
             $this->resolver,
         );
@@ -81,9 +81,9 @@ final class BookViewDataFactoryTest extends Unit
             ->with(1)
             ->willReturn($dto);
 
-        $this->mapper->expects($this->once())
-            ->method('toForm')
-            ->with($dto)
+        $this->autoMapper->expects($this->once())
+            ->method('map')
+            ->with($dto, BookForm::class)
             ->willReturn($form);
 
         $result = $this->factory->getBookForUpdate(1);

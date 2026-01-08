@@ -9,8 +9,8 @@ use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorViewDataFactory;
-use app\presentation\authors\mappers\AuthorFormMapper;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use AutoMapper\AutoMapperInterface;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 use yii\data\DataProviderInterface;
@@ -19,19 +19,19 @@ use yii\web\NotFoundHttpException;
 final class AuthorViewDataFactoryTest extends Unit
 {
     private AuthorQueryServiceInterface&MockObject $queryService;
-    private AuthorFormMapper&MockObject $mapper;
+    private AutoMapperInterface&MockObject $autoMapper;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private AuthorViewDataFactory $factory;
 
     protected function _before(): void
     {
         $this->queryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $this->mapper = $this->createMock(AuthorFormMapper::class);
+        $this->autoMapper = $this->createMock(AutoMapperInterface::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
 
         $this->factory = new AuthorViewDataFactory(
             $this->queryService,
-            $this->mapper,
+            $this->autoMapper,
             $this->dataProviderFactory,
         );
     }
@@ -66,9 +66,9 @@ final class AuthorViewDataFactoryTest extends Unit
             ->with(1)
             ->willReturn($dto);
 
-        $this->mapper->expects($this->once())
-            ->method('toForm')
-            ->with($dto)
+        $this->autoMapper->expects($this->once())
+            ->method('map')
+            ->with($dto, AuthorForm::class)
             ->willReturn($form);
 
         $result = $this->factory->getAuthorForUpdate(1);
