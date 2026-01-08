@@ -61,15 +61,15 @@ final class ContentAddressableStorageTest extends Unit
         $key = $this->storage->save($content1);
 
         $path = $this->tempDir . '/' . $key->getExtendedPath('txt');
-        $originalMtime = filemtime($path);
-
-        sleep(1);
+        $pastMtime = time() - 10;
+        touch($path, $pastMtime);
+        clearstatcache();
 
         $content2 = $this->createFileContent('original content');
         $this->storage->save($content2);
 
         clearstatcache();
-        $this->assertSame($originalMtime, filemtime($path));
+        $this->assertSame($pastMtime, filemtime($path));
     }
 
     public function testExistsReturnsTrueForExistingFile(): void
@@ -191,7 +191,13 @@ final class ContentAddressableStorageTest extends Unit
             return;
         }
 
-        $files = array_diff(scandir($dir), ['.', '..']);
+        $scan = scandir($dir);
+
+        if ($scan === false) {
+            return;
+        }
+
+        $files = array_diff($scan, ['.', '..']);
 
         foreach ($files as $file) {
             $path = $dir . '/' . $file;

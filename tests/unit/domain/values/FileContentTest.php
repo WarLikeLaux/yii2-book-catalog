@@ -129,7 +129,13 @@ final class FileContentTest extends Unit
             return;
         }
 
-        $files = array_diff(scandir($dir), ['.', '..']);
+        $scan = scandir($dir);
+
+        if ($scan === false) {
+            return;
+        }
+
+        $files = array_diff($scan, ['.', '..']);
 
         foreach ($files as $file) {
             $path = $dir . '/' . $file;

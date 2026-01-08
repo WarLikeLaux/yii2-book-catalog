@@ -91,7 +91,7 @@ final class BookCommandHandlerTest extends Unit
         $form->cover = $this->createUploadedFile();
 
         $createCommand = $this->createMock(CreateBookCommand::class);
-        $ref = $this->mockContentStorageWithCover();
+        $this->mockContentStorageWithCover();
 
         $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
 
@@ -296,7 +296,7 @@ final class BookCommandHandlerTest extends Unit
         ]);
     }
 
-    private function mockContentStorageWithCover(): StoredFileReference
+    private function mockContentStorageWithCover(): void
     {
         $fileContent = $this->createMock(FileContent::class);
         $fileContent->extension = 'jpg';
@@ -311,8 +311,6 @@ final class BookCommandHandlerTest extends Unit
             ->method('save')
             ->with($fileContent)
             ->willReturn($fileKey);
-
-        return new StoredFileReference($fileKey->getExtendedPath('jpg'));
     }
 
     private function mockUseCaseRunnerSimple(mixed $returnValue = null): void
