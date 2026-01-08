@@ -183,7 +183,7 @@ _dev_file:
 
 diff d:
 	@git diff || true
-	@git ls-files -o --exclude-standard -z | xargs -0 -I{} git diff --no-index /dev/null {} || true
+	@git ls-files -o --exclude-standard -z | xargs -0 -n1 git diff --no-index /dev/null -- 2>/dev/null || true
 
 diff-staged diff-cached ds dc:
 	@git diff --staged || true
