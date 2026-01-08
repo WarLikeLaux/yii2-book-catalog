@@ -15,6 +15,4 @@ interface BookRepositoryInterface
     public function getByIdAndVersion(int $id, int $expectedVersion): Book;
 
     public function delete(Book $book): void;
-
-    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool;
 }

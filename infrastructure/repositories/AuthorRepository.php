@@ -86,17 +86,6 @@ final readonly class AuthorRepository implements AuthorRepositoryInterface
         }
     }
 
-    public function existsByFio(string $fio, ?int $excludeId = null): bool
-    {
-        $query = Author::find()->where(['fio' => $fio]);
-
-        if ($excludeId !== null) {
-            $query->andWhere(['<>', 'id', $excludeId]);
-        }
-
-        return $query->exists();
-    }
-
     /** @codeCoverageIgnore */
     private function persistAuthor(Author $ar): void
     {

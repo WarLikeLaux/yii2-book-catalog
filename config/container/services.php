@@ -17,15 +17,17 @@ use app\application\ports\FileStorageInterface;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
 use app\application\ports\RateLimitInterface;
-use app\application\ports\ReportRepositoryInterface;
+use app\application\ports\ReportQueryServiceInterface;
+use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
-use app\application\reports\queries\ReportQueryService;
-use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\queries\AuthorQueryService;
 use app\infrastructure\queries\BookQueryService;
 use app\infrastructure\queries\decorators\BookQueryServiceTracingDecorator;
+use app\infrastructure\queries\decorators\ReportQueryServiceCachingDecorator;
+use app\infrastructure\queries\ReportQueryService;
+use app\infrastructure\queries\SubscriptionQueryService as InfraSubscriptionQueryService;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use app\infrastructure\services\LogCategory;
 use app\infrastructure\services\storage\LocalFileStorage;
@@ -33,7 +35,6 @@ use app\infrastructure\services\storage\StorageConfig;
 use app\infrastructure\services\YiiPsrLogger;
 use app\presentation\services\FileUrlResolver;
 use yii\di\Container;
-use yii\di\Instance;
 
 return static fn (array $params) => [
     'definitions' => [
@@ -48,14 +49,13 @@ return static fn (array $params) => [
 
         AuthorQueryServiceInterface::class => AuthorQueryService::class,
 
-        ReportQueryService::class => [
-            'class' => ReportQueryService::class,
-            '__construct()' => [
-                Instance::of(ReportRepositoryInterface::class),
-                Instance::of(CacheInterface::class),
-                $params['reports']['cacheTtl'] ?? 3600,
-            ],
-        ],
+        SubscriptionQueryServiceInterface::class => InfraSubscriptionQueryService::class,
+
+        ReportQueryServiceInterface::class => static fn(Container $c): ReportQueryServiceInterface => new ReportQueryServiceCachingDecorator(
+            $c->get(ReportQueryService::class),
+            $c->get(CacheInterface::class),
+            $params['reports']['cacheTtl'] ?? 3600,
+        ),
 
         FileStorageInterface::class => static function () use ($params) {
             $storageParams = $params['storage'];
@@ -69,7 +69,7 @@ return static fn (array $params) => [
         },
 
         NotifySubscribersHandler::class => static fn(Container $c): NotifySubscribersHandler => new NotifySubscribersHandler(
-            $c->get(SubscriptionQueryService::class),
+            $c->get(SubscriptionQueryServiceInterface::class),
             $c->get(TranslatorInterface::class),
             new YiiPsrLogger(LogCategory::SMS),
         ),

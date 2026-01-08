@@ -13,6 +13,4 @@ interface AuthorRepositoryInterface
     public function get(int $id): Author;
 
     public function delete(Author $author): void;
-
-    public function existsByFio(string $fio, ?int $excludeId = null): bool;
 }

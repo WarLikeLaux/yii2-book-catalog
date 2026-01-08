@@ -139,17 +139,6 @@ final readonly class BookRepository implements BookRepositoryInterface
         }
     }
 
-    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
-    {
-        $query = Book::find()->andWhere(['isbn' => $isbn]);
-
-        if ($excludeId !== null) {
-            $query->andWhere(['<>', 'id', $excludeId]);
-        }
-
-        return $query->exists();
-    }
-
     private function mapToEntity(Book $ar): BookEntity
     {
         /** @var Author[] $authors */

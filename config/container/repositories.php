@@ -7,7 +7,6 @@ use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\RateLimitInterface;
-use app\application\ports\ReportRepositoryInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\repositories\AsyncIdempotencyRepository;
@@ -17,11 +16,9 @@ use app\infrastructure\repositories\decorators\AuthorRepositoryTracingDecorator;
 use app\infrastructure\repositories\decorators\BookRepositoryTracingDecorator;
 use app\infrastructure\repositories\decorators\IdempotencyRepositoryTracingDecorator;
 use app\infrastructure\repositories\decorators\RateLimitRepositoryTracingDecorator;
-use app\infrastructure\repositories\decorators\ReportRepositoryTracingDecorator;
 use app\infrastructure\repositories\decorators\SubscriptionRepositoryTracingDecorator;
 use app\infrastructure\repositories\IdempotencyRepository;
 use app\infrastructure\repositories\RateLimitRepository;
-use app\infrastructure\repositories\ReportRepository;
 use app\infrastructure\repositories\SubscriptionRepository;
 use Psr\Log\LoggerInterface;
 use yii\di\Container;
@@ -64,11 +61,5 @@ return static fn (array $_params) => [
         $c,
         SubscriptionRepository::class,
         SubscriptionRepositoryTracingDecorator::class,
-    ),
-
-    ReportRepositoryInterface::class => static fn(Container $c): ReportRepositoryInterface => TracingFactory::create(
-        $c,
-        ReportRepository::class,
-        ReportRepositoryTracingDecorator::class,
     ),
 ];
