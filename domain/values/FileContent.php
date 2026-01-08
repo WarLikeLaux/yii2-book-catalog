@@ -28,6 +28,10 @@ final readonly class FileContent
      */
     public static function fromPath(string $path, ?string $extension = null): self
     {
+        if (!file_exists($path)) {
+            throw new RuntimeException('File not found: ' . $path);
+        }
+
         $stream = fopen($path, 'rb');
 
         if ($stream === false) {
@@ -50,6 +54,15 @@ final readonly class FileContent
     public function getStream(): mixed
     {
         return $this->stream;
+    }
+
+    public function __destruct()
+    {
+        if (!is_resource($this->stream)) {
+            return;
+        }
+
+        fclose($this->stream);
     }
 
     public function computeKey(): FileKey
