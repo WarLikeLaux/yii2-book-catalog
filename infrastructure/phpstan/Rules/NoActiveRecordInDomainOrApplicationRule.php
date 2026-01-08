@@ -49,6 +49,27 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
         $originalNode = $node->getOriginalNode();
         $errors = [];
 
+        if ($originalNode instanceof Node\Stmt\Class_ && $originalNode->extends instanceof Name) {
+            $parentClass = $scope->resolveName($originalNode->extends);
+
+            foreach (self::FORBIDDEN_CLASSES as $forbidden) {
+                $normalizedForbidden = ltrim($forbidden, '\\');
+                $normalizedParent = ltrim($parentClass, '\\');
+
+                if (strcasecmp($normalizedParent, $normalizedForbidden) === 0) {
+                    $errors[] = RuleErrorBuilder::message(
+                        sprintf(
+                            'Extending %s is forbidden in domain and application layers. Use domain entities or DTOs instead.',
+                            $forbidden,
+                        ),
+                    )
+                        ->identifier('architecture.noActiveRecordInCore')
+                        ->build();
+                    break;
+                }
+            }
+        }
+
         foreach ($originalNode->stmts as $stmt) {
             if ($stmt instanceof ClassMethod) {
                 $errors = [...$errors, ...$this->checkClassMethod($stmt, $scope)];
