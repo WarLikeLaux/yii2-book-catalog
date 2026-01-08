@@ -9,9 +9,12 @@ use app\domain\values\FileKey;
 use app\infrastructure\services\storage\ContentAddressableStorage;
 use app\infrastructure\services\storage\StorageConfig;
 use Codeception\Test\Unit;
+use tests\_support\RemovesDirectoriesTrait;
 
 final class ContentAddressableStorageTest extends Unit
 {
+    use RemovesDirectoriesTrait;
+
     private string $tempDir;
     private ContentAddressableStorage $storage;
 
@@ -183,27 +186,5 @@ final class ContentAddressableStorageTest extends Unit
         file_put_contents($tempFile, $textContent);
 
         return FileContent::fromPath($tempFile);
-    }
-
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $scan = scandir($dir);
-
-        if ($scan === false) {
-            return;
-        }
-
-        $files = array_diff($scan, ['.', '..']);
-
-        foreach ($files as $file) {
-            $path = $dir . '/' . $file;
-            is_dir($path) ? $this->removeDir($path) : unlink($path);
-        }
-
-        rmdir($dir);
     }
 }

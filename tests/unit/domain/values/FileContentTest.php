@@ -8,9 +8,13 @@ use app\domain\exceptions\DomainException;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use Codeception\Test\Unit;
+use RuntimeException;
+use tests\_support\RemovesDirectoriesTrait;
 
 final class FileContentTest extends Unit
 {
+    use RemovesDirectoriesTrait;
+
     private string $tempDir;
 
     protected function _before(): void
@@ -71,7 +75,7 @@ final class FileContentTest extends Unit
 
     public function testFromPathThrowsOnMissingFile(): void
     {
-        $this->expectException(\Throwable::class);
+        $this->expectException(RuntimeException::class);
 
         FileContent::fromPath($this->tempDir . '/non-existent.txt');
     }
@@ -121,27 +125,5 @@ final class FileContentTest extends Unit
 
         fclose($stream1);
         fclose($stream2);
-    }
-
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $scan = scandir($dir);
-
-        if ($scan === false) {
-            return;
-        }
-
-        $files = array_diff($scan, ['.', '..']);
-
-        foreach ($files as $file) {
-            $path = $dir . '/' . $file;
-            is_dir($path) ? $this->removeDir($path) : unlink($path);
-        }
-
-        rmdir($dir);
     }
 }
