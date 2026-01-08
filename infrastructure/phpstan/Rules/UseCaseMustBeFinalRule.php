@@ -5,31 +5,33 @@ declare(strict_types=1);
 namespace app\infrastructure\phpstan\Rules;
 
 use PhpParser\Node;
-use PhpParser\Node\Stmt\Class_;
 use PHPStan\Analyser\Scope;
+use PHPStan\Node\InClassNode;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * @implements Rule<Class_>
+ * @implements Rule<InClassNode>
  * @codeCoverageIgnore Логика статического анализа проверяется тестами PHPStan
  */
 final readonly class UseCaseMustBeFinalRule implements Rule
 {
     public function getNodeType(): string
     {
-        return Class_::class;
+        return InClassNode::class;
     }
 
     public function processNode(Node $node, Scope $_scope): array
     {
-        if ($node->isAbstract() || $node->isAnonymous()) {
+        $classReflection = $node->getClassReflection();
+
+        if ($classReflection->isAbstract() || $classReflection->isAnonymous()) {
             return [];
         }
 
-        $className = (string)$node->name;
+        $className = $classReflection->getName();
 
-        if (str_ends_with($className, 'UseCase') && !$node->isFinal()) {
+        if (str_ends_with($className, 'UseCase') && !$classReflection->isFinal()) {
             return [
                 RuleErrorBuilder::message(sprintf('UseCase class %s must be final.', $className))
                     ->identifier('architecture.useCaseFinal')
