@@ -33,38 +33,25 @@ final class AuthorSearchHandlerTest extends Unit
 
     public function testSearchReturnsEmptyResultWhenValidationFails(): void
     {
-        $queryParams = ['invalid' => 'params'];
-
-        // We cannot mock 'new AuthorSearchForm()' easily in unit tests without extensive DI or factory
-        // But AuthorSearchForm is a simple model. We can rely on it being created.
-        // However, if we pass invalid params, it should fail validation.
-        // Let's assume validation fails for empty input if rules say so?
-        // AuthorSearchForm rules: nothing is required. 'q' is safe attribute probably?
-        // Wait, AuthorSearchHandler creates `new AuthorSearchForm()`.
-        // If I cannot mock it, I must ensure the test data causes validation failure if I want to test that branch.
-        // Or I should accept that I test the real form.
-
-        // Actually, AuthorSearchForm rules are empty or simple.
-        // If I want to trigger validation error, I might need to pass something that violates a rule.
-        // But AuthorSearchHandler does `load($queryParams)`.
-        // If I pass ['AuthorSearchForm' => ['field' => 'invalid']], it might load.
-        // If I can't mock the form creation inside the handler, I should integration test it or rely on real object behavior.
-
-        // Let's Skip the "validation fails" test if it's hard to trigger without mocking new.
-        // Or better, AuthorSearchForm validation is part of the Handler logic now (instance creation).
-        // Since I can't mock `new`, I'll test the happy path primarily or try to trigger validation error.
-        // Example: 'q' should be string. If I pass array?
+        $queryParams = ['q' => str_repeat('a', 256)];
 
         $this->queryService->expects($this->never())->method('search');
 
-        // To reliably fail validation of a real Model without rules is hard.
-        // Assuming we just test the happy path here where map is called.
+        $result = $this->handler->search($queryParams);
+
+        $expectedResult = [
+            'results' => [],
+            'pagination' => [
+                'more' => false,
+            ],
+        ];
+
+        $this->assertSame($expectedResult, $result);
     }
 
     public function testSearchReturnsMappedResultsWhenValidationPasses(): void
     {
         $queryParams = ['q' => 'test'];
-        // AuthorSearchForm loads this.
 
         $criteria = new AuthorSearchCriteria('test', 1, 20);
 
