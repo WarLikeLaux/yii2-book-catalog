@@ -10,7 +10,9 @@
 COMPOSE=docker compose
 PHP_CONTAINER=php
 DB_TEST_NAME=yii2basic_test
+
 .DEFAULT_GOAL := help
+bin-exec: ; @chmod +x bin/*
 
 ifeq ($(firstword $(MAKECMDGOALS)),$(filter $(firstword $(MAKECMDGOALS)),req require req-dev require-dev))
   COMPOSER_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
@@ -87,15 +89,13 @@ help:
 # 🐳 DOCKER И ОКРУЖЕНИЕ
 # =================================================================================================
 
-install: init
-install-force: init-force
+install: bin-exec init
+install-force: bin-exec init-force
 
 init-force:
-	@chmod +x bin/*
 	@./bin/bootstrap init-force
 
 init:
-	@chmod +x bin/*
 	@./bin/bootstrap init
 
 up:
@@ -134,16 +134,13 @@ perms:
 	echo "⚠️  Docker chown недоступен (rootless?), только chmod"
 	@./bin/fix-perms
 
-setup:
-	@chmod +x bin/*
+setup: bin-exec
 	@./bin/bootstrap setup
 
-configure:
-	@chmod +x bin/*
+configure: bin-exec
 	@./bin/bootstrap configure
 
-env:
-	@chmod +x bin/*
+env: bin-exec
 	@./bin/setup-env
 
 clean:
