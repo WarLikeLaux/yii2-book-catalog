@@ -11,6 +11,7 @@ use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\presentation\authors\forms\AuthorForm;
+use app\presentation\common\handlers\UseCaseHandlerTrait;
 use app\presentation\common\services\WebUseCaseRunner;
 use AutoMapper\AutoMapperInterface;
 use Yii;
@@ -21,6 +22,16 @@ use Yii;
  */
 final readonly class AuthorCommandHandler
 {
+    use UseCaseHandlerTrait;
+
+    /** @noRector \Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPrivateClassConstantRector */
+    private const array ERROR_TO_FIELD_MAP = [
+        'author.error.fio_exists' => 'fio',
+        'author.error.fio_empty' => 'fio',
+        'author.error.fio_too_short' => 'fio',
+        'author.error.fio_too_long' => 'fio',
+    ];
+
     public function __construct(
         private AutoMapperInterface $autoMapper,
         private CreateAuthorUseCase $createAuthorUseCase,
@@ -35,13 +46,15 @@ final readonly class AuthorCommandHandler
         /** @var CreateAuthorCommand $command */
         $command = $this->autoMapper->map($form, CreateAuthorCommand::class);
 
-        $result = $this->useCaseRunner->execute(
+        /** @var int|null $result */
+        $result = $this->executeWithForm(
+            $this->useCaseRunner,
+            $form,
             $command,
             $this->createAuthorUseCase,
             Yii::t('app', 'author.success.created'),
         );
 
-        /** @var int|null $result */
         return $result;
     }
 
@@ -50,11 +63,12 @@ final readonly class AuthorCommandHandler
         /** @var UpdateAuthorCommand $command */
         $command = $this->autoMapper->map(['id' => $id] + $form->toArray(), UpdateAuthorCommand::class);
 
-        $result = $this->useCaseRunner->execute(
+        $result = $this->executeWithForm(
+            $this->useCaseRunner,
+            $form,
             $command,
             $this->updateAuthorUseCase,
             Yii::t('app', 'author.success.updated'),
-            ['author_id' => $id],
         );
 
         return $result !== null;

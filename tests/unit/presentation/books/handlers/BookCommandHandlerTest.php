@@ -155,6 +155,38 @@ final class BookCommandHandlerTest extends Unit
         $this->assertNull($result);
     }
 
+    public function testCreateBookWithUnknownDomainExceptionAddsDefaultFormError(): void
+    {
+        $form = $this->createMock(BookForm::class);
+        $form->cover = null;
+
+        $command = $this->createMock(CreateBookCommand::class);
+        $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
+
+        $this->autoMapper->expects($this->once())
+            ->method('map')
+            ->willReturn($command);
+
+        $exception = new ValidationException(DomainErrorCode::EntityAlreadyExists);
+
+        $form->expects($this->once())->method('attributes')->willReturn(['title', 'description']);
+
+        $form->expects($this->once())
+            ->method('addError')
+            ->with('title', $this->anything());
+
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(static function ($_command, $_useCase, $_msg, $onDomainError, $_onError) use ($exception) {
+                $onDomainError($exception);
+                return null;
+            });
+
+        $result = $this->handler->createBook($form);
+
+        $this->assertNull($result);
+    }
+
     public function testUpdateBookReturnsTrueOnSuccess(): void
     {
         $form = $this->createMock(BookForm::class);

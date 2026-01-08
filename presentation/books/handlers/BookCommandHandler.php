@@ -14,8 +14,8 @@ use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\dto\TemporaryFile;
 use app\application\ports\FileStorageInterface;
-use app\domain\exceptions\DomainException;
 use app\presentation\books\forms\BookForm;
+use app\presentation\common\handlers\UseCaseHandlerTrait;
 use app\presentation\common\services\WebUseCaseRunner;
 use AutoMapper\AutoMapperInterface;
 use Yii;
@@ -27,6 +27,9 @@ use yii\web\UploadedFile;
  */
 final readonly class BookCommandHandler
 {
+    use UseCaseHandlerTrait;
+
+    /** @noRector \Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPrivateClassConstantRector */
     private const array ERROR_TO_FIELD_MAP = [
         'isbn.error.invalid_format' => 'isbn',
         'year.error.too_old' => 'year',
@@ -57,22 +60,20 @@ final readonly class BookCommandHandler
         $data = $form->toArray();
         $data['cover'] = $permanentRef;
         $data['description'] = $data['description'] !== '' ? $data['description'] : null;
-        // Transform authorIds to array of ints (auto-mapper might handle this if types match, but forcing intval is safer as per prev manual mapper)
         $data['authorIds'] = array_map(intval(...), (array)$form->authorIds);
 
         /** @var CreateBookCommand $command */
         $command = $this->autoMapper->map($data, CreateBookCommand::class);
 
-        $result = $this->useCaseRunner->executeWithFormErrors(
+        /** @var int|null $result */
+        $result = $this->executeWithForm(
+            $this->useCaseRunner,
+            $form,
             $command,
             $this->createBookUseCase,
             Yii::t('app', 'book.success.created'),
-            function (DomainException $e) use ($form): void {
-                $this->addFormError($form, $e);
-            },
         );
 
-        /** @var int|null $result */
         return $result;
     }
 
@@ -89,14 +90,16 @@ final readonly class BookCommandHandler
 
         /** @var UpdateBookCommand $command */
         $command = $this->autoMapper->map($data, UpdateBookCommand::class);
-        return (bool) $this->useCaseRunner->executeWithFormErrors(
+
+        $result = $this->executeWithForm(
+            $this->useCaseRunner,
+            $form,
             $command,
             $this->updateBookUseCase,
             Yii::t('app', 'book.success.updated'),
-            function (DomainException $e) use ($form): void {
-                $this->addFormError($form, $e);
-            },
         );
+
+        return $result !== null;
     }
 
     public function deleteBook(int $id): bool
@@ -135,13 +138,5 @@ final readonly class BookCommandHandler
         }
 
         return null;
-    }
-
-    private function addFormError(BookForm $form, DomainException $e): void
-    {
-        $field = self::ERROR_TO_FIELD_MAP[$e->getMessage()] ?? null;
-        $message = Yii::t('app', $e->getMessage());
-
-        $form->addError($field ?? 'title', $message);
     }
 }
