@@ -29,7 +29,7 @@ final class Book implements IdentifiableEntityInterface
             if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
         throw new ValidationException(DomainErrorCode::BookTitleTooLong);
             }
-            $this->title = $value;
+            $this->title = $trimmed;
         }
     }
     // phpcs:enable

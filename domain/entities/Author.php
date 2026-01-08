@@ -26,7 +26,7 @@ final class Author implements IdentifiableEntityInterface
             if (mb_strlen($trimmed) > self::MAX_FIO_LENGTH) {
                 throw new ValidationException(DomainErrorCode::AuthorFioTooLong);
             }
-            $this->fio = $value;
+            $this->fio = $trimmed;
         }
     }
     // phpcs:enable
