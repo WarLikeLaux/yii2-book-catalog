@@ -15,7 +15,7 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
 {
     public function findById(int $id): ?BookReadDto
     {
-        $book = Book::find()->where(['id' => $id])->one($this->db);
+        $book = Book::find()->byId($id)->one($this->db);
 
         if ($book === null) {
             return null;

@@ -8,6 +8,7 @@ use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
 use app\application\ports\PagedResultInterface;
 use AutoMapper\AutoMapperInterface;
+use LogicException;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveQueryInterface;
 use yii\db\Connection;
@@ -46,7 +47,7 @@ abstract readonly class BaseQueryService
         );
 
         $totalCount = $dataProvider->getTotalCount();
-        $totalPages = (int)ceil($totalCount / $pageSize);
+        $totalPages = $pageSize > 0 ? (int)ceil($totalCount / $pageSize) : 0;
 
         $pagination = new PaginationDto(
             page: $page,
@@ -70,7 +71,10 @@ abstract readonly class BaseQueryService
     protected function mapToDto(object $source, string $targetClass): object
     {
         $dto = $this->autoMapper->map($source, $targetClass);
-        assert($dto instanceof $targetClass);
+
+        if (!($dto instanceof $targetClass)) {
+            throw new LogicException('AutoMapper returned unexpected type'); // @codeCoverageIgnore
+        }
 
         return $dto;
     }
