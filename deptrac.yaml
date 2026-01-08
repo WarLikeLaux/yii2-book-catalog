@@ -89,7 +89,5 @@ deptrac:
       - Yii
     app\infrastructure\services\notifications\FlashNotificationService:
       - Yii
-    app\infrastructure\services\storage\LocalFileStorage:
-      - Yii
     app\infrastructure\services\observability\TracerBootstrap:
       - Yii

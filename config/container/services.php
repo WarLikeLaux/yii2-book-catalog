@@ -12,8 +12,8 @@ use app\application\ports\BookFinderInterface;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookSearcherInterface;
 use app\application\ports\CacheInterface;
+use app\application\ports\ContentStorageInterface;
 use app\application\ports\EventPublisherInterface;
-use app\application\ports\FileStorageInterface;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
 use app\application\ports\RateLimitInterface;
@@ -30,9 +30,10 @@ use app\infrastructure\queries\ReportQueryService;
 use app\infrastructure\queries\SubscriptionQueryService as InfraSubscriptionQueryService;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use app\infrastructure\services\LogCategory;
-use app\infrastructure\services\storage\LocalFileStorage;
+use app\infrastructure\services\storage\ContentAddressableStorage;
 use app\infrastructure\services\storage\StorageConfig;
 use app\infrastructure\services\YiiPsrLogger;
+use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\services\FileUrlResolver;
 use yii\di\Container;
 
@@ -57,16 +58,16 @@ return static fn (array $params) => [
             $params['reports']['cacheTtl'] ?? 3600,
         ),
 
-        FileStorageInterface::class => static function () use ($params) {
+        ContentStorageInterface::class => static function () use ($params) {
             $storageParams = $params['storage'];
             $config = new StorageConfig(
-                $storageParams['basePath'],
+                Yii::getAlias($storageParams['basePath']),
                 $storageParams['baseUrl'],
-                $storageParams['tempBasePath'],
-                $storageParams['tempBaseUrl'],
             );
-            return new LocalFileStorage($config);
+            return new ContentAddressableStorage($config);
         },
+
+        UploadedFileAdapter::class => UploadedFileAdapter::class,
 
         NotifySubscribersHandler::class => static fn(Container $c): NotifySubscribersHandler => new NotifySubscribersHandler(
             $c->get(SubscriptionQueryServiceInterface::class),

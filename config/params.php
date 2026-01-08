@@ -13,8 +13,6 @@ return [
     'storage' => [
         'basePath' => '@app/web/uploads',
         'baseUrl' => '/uploads',
-        'tempBasePath' => '@app/web/uploads/temp',
-        'tempBaseUrl' => '/uploads/temp',
         'placeholderUrl' => 'https://picsum.photos/seed/{seed}/400/600',
     ],
     'idempotency' => [

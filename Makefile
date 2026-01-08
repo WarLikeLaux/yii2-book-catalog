@@ -211,12 +211,6 @@ deptrac:
 arkitect:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phparkitect check
 
-_arch-deptrac:
-	./vendor/bin/deptrac analyze
-
-_arch-arkitect:
-	./vendor/bin/phparkitect check
-
 arch: deptrac arkitect
 
 audit:
