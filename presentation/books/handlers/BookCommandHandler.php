@@ -12,9 +12,10 @@ use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\application\common\dto\TemporaryFile;
-use app\application\ports\FileStorageInterface;
+use app\application\ports\ContentStorageInterface;
+use app\domain\values\StoredFileReference;
 use app\presentation\books\forms\BookForm;
+use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\common\handlers\UseCaseHandlerTrait;
 use app\presentation\common\services\WebUseCaseRunner;
 use AutoMapper\AutoMapperInterface;
@@ -48,17 +49,17 @@ final readonly class BookCommandHandler
         private DeleteBookUseCase $deleteBookUseCase,
         private PublishBookUseCase $publishBookUseCase,
         private WebUseCaseRunner $useCaseRunner,
-        private FileStorageInterface $fileStorage,
+        private ContentStorageInterface $contentStorage,
+        private UploadedFileAdapter $uploadedFileAdapter,
     ) {
     }
 
     public function createBook(BookForm $form): int|null
     {
-        $tempFile = $this->uploadCover($form);
-        $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
+        $coverRef = $this->processCoverUpload($form);
 
         $data = $form->toArray();
-        $data['cover'] = $permanentRef;
+        $data['cover'] = $coverRef;
         $data['description'] = $data['description'] !== '' ? $data['description'] : null;
         $data['authorIds'] = array_map(intval(...), (array)$form->authorIds);
 
@@ -79,12 +80,11 @@ final readonly class BookCommandHandler
 
     public function updateBook(int $id, BookForm $form): bool
     {
-        $tempFile = $this->uploadCover($form);
-        $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
+        $coverRef = $this->processCoverUpload($form);
 
         $data = $form->toArray();
         $data['id'] = $id;
-        $data['cover'] = $permanentRef;
+        $data['cover'] = $coverRef;
         $data['description'] = $data['description'] !== '' ? $data['description'] : null;
         $data['authorIds'] = array_map(intval(...), (array)$form->authorIds);
 
@@ -130,13 +130,15 @@ final readonly class BookCommandHandler
         return (bool)$result;
     }
 
-    /** @codeCoverageIgnore Делегирует в FileStorage, который покрыт отдельно */
-    private function uploadCover(BookForm $form): TemporaryFile|null
+    private function processCoverUpload(BookForm $form): StoredFileReference|null
     {
-        if ($form->cover instanceof UploadedFile) {
-            return $this->fileStorage->saveTemporary($form->cover->tempName, $form->cover->extension);
+        if (!$form->cover instanceof UploadedFile) {
+            return null;
         }
 
-        return null;
+        $fileContent = $this->uploadedFileAdapter->toFileContent($form->cover);
+        $fileKey = $this->contentStorage->save($fileContent);
+
+        return new StoredFileReference($fileKey->getExtendedPath($fileContent->extension));
     }
 }
