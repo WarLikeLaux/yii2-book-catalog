@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace app\presentation\authors\handlers;
 
+use app\application\authors\commands\CreateAuthorCommand;
 use app\application\authors\commands\DeleteAuthorCommand;
+use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\presentation\authors\forms\AuthorForm;
-use app\presentation\authors\mappers\AuthorFormMapper;
 use app\presentation\common\services\WebUseCaseRunner;
+use AutoMapper\AutoMapperInterface;
 use Yii;
 
 /**
@@ -20,7 +22,7 @@ use Yii;
 final readonly class AuthorCommandHandler
 {
     public function __construct(
-        private AuthorFormMapper $mapper,
+        private AutoMapperInterface $autoMapper,
         private CreateAuthorUseCase $createAuthorUseCase,
         private UpdateAuthorUseCase $updateAuthorUseCase,
         private DeleteAuthorUseCase $deleteAuthorUseCase,
@@ -30,7 +32,8 @@ final readonly class AuthorCommandHandler
 
     public function createAuthor(AuthorForm $form): ?int
     {
-        $command = $this->mapper->toCreateCommand($form);
+        /** @var CreateAuthorCommand $command */
+        $command = $this->autoMapper->map($form, CreateAuthorCommand::class);
 
         $result = $this->useCaseRunner->execute(
             $command,
@@ -44,7 +47,8 @@ final readonly class AuthorCommandHandler
 
     public function updateAuthor(int $id, AuthorForm $form): bool
     {
-        $command = $this->mapper->toUpdateCommand($id, $form);
+        /** @var UpdateAuthorCommand $command */
+        $command = $this->autoMapper->map(['id' => $id] + $form->toArray(), UpdateAuthorCommand::class);
 
         $result = $this->useCaseRunner->execute(
             $command,

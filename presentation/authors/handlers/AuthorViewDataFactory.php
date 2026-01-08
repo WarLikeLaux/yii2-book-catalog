@@ -7,8 +7,8 @@ namespace app\presentation\authors\handlers;
 use app\application\authors\queries\AuthorReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\authors\forms\AuthorForm;
-use app\presentation\authors\mappers\AuthorFormMapper;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use AutoMapper\AutoMapperInterface;
 use yii\data\DataProviderInterface;
 use yii\web\NotFoundHttpException;
 
@@ -16,7 +16,7 @@ final readonly class AuthorViewDataFactory
 {
     public function __construct(
         private AuthorQueryServiceInterface $queryService,
-        private AuthorFormMapper $mapper,
+        private AutoMapperInterface $autoMapper,
         private PagedResultDataProviderFactory $dataProviderFactory,
     ) {
     }
@@ -31,7 +31,9 @@ final readonly class AuthorViewDataFactory
     {
         $dto = $this->queryService->findById($id)
             ?? throw new NotFoundHttpException();
-        return $this->mapper->toForm($dto);
+
+        /** @var AuthorForm */
+        return $this->autoMapper->map($dto, AuthorForm::class);
     }
 
     public function getAuthorView(int $id): AuthorReadDto

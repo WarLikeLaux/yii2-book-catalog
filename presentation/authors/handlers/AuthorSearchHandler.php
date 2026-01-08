@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace app\presentation\authors\handlers;
 
-use app\application\authors\queries\AuthorSearchResponse;
+use app\application\authors\queries\AuthorReadDto;
+use app\application\authors\queries\AuthorSearchCriteria;
 use app\application\ports\AuthorQueryServiceInterface;
-use app\presentation\authors\mappers\AuthorSearchCriteriaMapper;
-use app\presentation\authors\mappers\AuthorSelect2Mapper;
+use app\presentation\authors\forms\AuthorSearchForm;
+use AutoMapper\AutoMapperInterface;
 
 final readonly class AuthorSearchHandler
 {
     public function __construct(
-        private AuthorSearchCriteriaMapper $authorSearchCriteriaMapper,
-        private AuthorSelect2Mapper $authorSelect2Mapper,
         private AuthorQueryServiceInterface $queryService,
+        private AutoMapperInterface $autoMapper,
     ) {
     }
 
@@ -24,29 +24,46 @@ final readonly class AuthorSearchHandler
      */
     public function search(array $queryParams): array
     {
-        $form = $this->authorSearchCriteriaMapper->toForm($queryParams);
+        $form = new AuthorSearchForm();
+        $form->load($queryParams);
 
         if (!$form->validate()) {
-            return $this->authorSelect2Mapper->emptyResult();
+            return $this->createEmptySelect2Result();
         }
 
-        $criteria = $this->authorSearchCriteriaMapper->toCriteria($form);
+        /** @var AuthorSearchCriteria $criteria */
+        $criteria = $this->autoMapper->map($form, AuthorSearchCriteria::class);
+
         $result = $this->queryService->search(
             $criteria->search,
             $criteria->page,
             $criteria->pageSize,
         );
 
-        /** @var \app\application\authors\queries\AuthorReadDto[] $items */
-        $items = $result->getModels();
+        /** @var \app\application\authors\queries\AuthorReadDto[] $models */
+        $models = $result->getModels();
 
-        $responseData = new AuthorSearchResponse(
-            items: $items,
-            total: $result->getTotalCount(),
-            page: $criteria->page,
-            pageSize: $criteria->pageSize,
-        );
+        return [
+            'results' => array_map(static fn(AuthorReadDto $dto): array => [
+                'id' => $dto->id,
+                'text' => $dto->fio,
+            ], $models),
+            'pagination' => [
+                'more' => $criteria->page * $criteria->pageSize < $result->getTotalCount(),
+            ],
+        ];
+    }
 
-        return $this->authorSelect2Mapper->mapToSelect2($responseData);
+    /**
+     * @return array<string, mixed>
+     */
+    private function createEmptySelect2Result(): array
+    {
+        return [
+            'results' => [],
+            'pagination' => [
+                'more' => false,
+            ],
+        ];
     }
 }
