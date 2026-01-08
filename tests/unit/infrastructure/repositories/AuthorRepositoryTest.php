@@ -68,24 +68,6 @@ final class AuthorRepositoryTest extends Unit
         $this->repository->get($author->id);
     }
 
-    public function testExistsByFio(): void
-    {
-        $author = AuthorEntity::create('Existing');
-        $this->repository->save($author);
-
-        $this->assertTrue($this->repository->existsByFio('Existing'));
-        $this->assertFalse($this->repository->existsByFio('Non Existent'));
-    }
-
-    public function testExistsByFioWithExcludeId(): void
-    {
-        $author = AuthorEntity::create('Unique Author');
-        $this->repository->save($author);
-
-        $this->assertFalse($this->repository->existsByFio('Unique Author', $author->id));
-        $this->assertTrue($this->repository->existsByFio('Unique Author', 99999));
-    }
-
     public function testGetThrowsExceptionOnNotFound(): void
     {
         $this->expectException(EntityNotFoundException::class);

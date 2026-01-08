@@ -324,4 +324,38 @@ final class BookQueryServiceTest extends Unit
 
         $this->assertGreaterThanOrEqual(1, $result->getTotalCount());
     }
+
+    public function testExistsByIsbnReturnsTrue(): void
+    {
+        $book = BookEntity::create(
+            'ISBN Test',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null,
+        );
+        $this->repository->save($book);
+
+        $this->assertTrue($this->queryService->existsByIsbn('9783161484100'));
+    }
+
+    public function testExistsByIsbnReturnsFalse(): void
+    {
+        $this->assertFalse($this->queryService->existsByIsbn('9783161484100'));
+    }
+
+    public function testExistsByIsbnWithExcludeId(): void
+    {
+        $book = BookEntity::create(
+            'ISBN Exclude Test',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null,
+        );
+        $this->repository->save($book);
+
+        $this->assertFalse($this->queryService->existsByIsbn('9783161484100', $book->id));
+        $this->assertTrue($this->queryService->existsByIsbn('9783161484100', 99999));
+    }
 }

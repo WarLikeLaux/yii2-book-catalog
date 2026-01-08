@@ -133,4 +133,26 @@ final class AuthorQueryServiceTest extends Unit
 
         $this->assertSame([99998, 99999], $result);
     }
+
+    public function testExistsByFioReturnsTrue(): void
+    {
+        $author = AuthorEntity::create('Unique FIO');
+        $this->repository->save($author);
+
+        $this->assertTrue($this->queryService->existsByFio('Unique FIO'));
+    }
+
+    public function testExistsByFioReturnsFalse(): void
+    {
+        $this->assertFalse($this->queryService->existsByFio('Nonexistent FIO'));
+    }
+
+    public function testExistsByFioWithExcludeId(): void
+    {
+        $author = AuthorEntity::create('Exclude FIO');
+        $this->repository->save($author);
+
+        $this->assertFalse($this->queryService->existsByFio('Exclude FIO', $author->id));
+        $this->assertTrue($this->queryService->existsByFio('Exclude FIO', 99999));
+    }
 }

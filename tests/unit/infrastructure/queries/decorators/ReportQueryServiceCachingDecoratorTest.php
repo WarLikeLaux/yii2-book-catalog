@@ -2,26 +2,27 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\application\reports\queries;
+namespace tests\unit\infrastructure\queries\decorators;
 
 use app\application\ports\CacheInterface;
-use app\application\ports\ReportRepositoryInterface;
+use app\application\ports\ReportQueryServiceInterface;
 use app\application\reports\queries\ReportCriteria;
-use app\application\reports\queries\ReportQueryService;
+use app\application\reports\queries\ReportDto;
+use app\infrastructure\queries\decorators\ReportQueryServiceCachingDecorator;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class ReportQueryServiceTest extends Unit
+final class ReportQueryServiceCachingDecoratorTest extends Unit
 {
-    private ReportRepositoryInterface&MockObject $repository;
+    private ReportQueryServiceInterface&MockObject $inner;
     private CacheInterface&MockObject $cache;
-    private ReportQueryService $service;
+    private ReportQueryServiceCachingDecorator $decorator;
 
     protected function _before(): void
     {
-        $this->repository = $this->createMock(ReportRepositoryInterface::class);
+        $this->inner = $this->createMock(ReportQueryServiceInterface::class);
         $this->cache = $this->createMock(CacheInterface::class);
-        $this->service = new ReportQueryService($this->repository, $this->cache);
+        $this->decorator = new ReportQueryServiceCachingDecorator($this->inner, $this->cache);
     }
 
     public function testGetTopAuthorsReportUsesCurrentYearByDefault(): void
@@ -39,7 +40,7 @@ final class ReportQueryServiceTest extends Unit
 
         $criteria = new ReportCriteria(null);
 
-        $dto = $this->service->getTopAuthorsReport($criteria);
+        $dto = $this->decorator->getTopAuthorsReport($criteria);
 
         $this->assertSame($currentYear, $dto->year);
     }
@@ -59,7 +60,7 @@ final class ReportQueryServiceTest extends Unit
 
         $criteria = new ReportCriteria($year);
 
-        $dto = $this->service->getTopAuthorsReport($criteria);
+        $dto = $this->decorator->getTopAuthorsReport($criteria);
 
         $this->assertSame($year, $dto->year);
     }
@@ -76,68 +77,70 @@ final class ReportQueryServiceTest extends Unit
             ->method('getOrSet')
             ->willReturn($cachedData);
 
-        $this->repository->expects($this->never())
-            ->method('getTopAuthorsByYear');
+        $this->inner->expects($this->never())
+            ->method('getTopAuthorsReport');
 
         $criteria = new ReportCriteria($year);
 
-        $dto = $this->service->getTopAuthorsReport($criteria);
+        $dto = $this->decorator->getTopAuthorsReport($criteria);
 
         $this->assertSame($cachedData, $dto->topAuthors);
         $this->assertSame($year, $dto->year);
     }
 
-    public function testCacheCallbackInvokesRepository(): void
+    public function testCacheCallbackInvokesInner(): void
     {
         $year = 2022;
         $expectedData = [['id' => 1, 'fio' => 'Test', 'books_count' => 10]];
+        $expectedDto = new ReportDto($expectedData, $year);
 
         $this->cache->expects($this->once())
             ->method('getOrSet')
-            ->willReturnCallback(function ($_key, $callback) use ($expectedData) {
-                $this->repository->expects($this->once())
-                    ->method('getTopAuthorsByYear')
-                    ->with(2022, 10)
-                    ->willReturn($expectedData);
+            ->willReturnCallback(function ($_key, $callback) use ($expectedDto) {
+                $this->inner->expects($this->once())
+                    ->method('getTopAuthorsReport')
+                    ->willReturn($expectedDto);
                 return $callback();
             });
 
         $criteria = new ReportCriteria($year);
-        $dto = $this->service->getTopAuthorsReport($criteria);
+        $dto = $this->decorator->getTopAuthorsReport($criteria);
 
         $this->assertSame($expectedData, $dto->topAuthors);
     }
 
-    public function testGetEmptyTopAuthorsReportUsesCurrentYearByDefault(): void
+    public function testGetEmptyTopAuthorsReportDelegatesToInner(): void
     {
-        $dto = $this->service->getEmptyTopAuthorsReport();
-        $this->assertSame((int)date('Y'), $dto->year);
-        $this->assertSame([], $dto->topAuthors);
-    }
+        $expectedDto = new ReportDto([], 2000);
 
-    public function testGetEmptyTopAuthorsReportUsesProvidedYear(): void
-    {
-        $dto = $this->service->getEmptyTopAuthorsReport(2000);
+        $this->inner->expects($this->once())
+            ->method('getEmptyTopAuthorsReport')
+            ->with(2000)
+            ->willReturn($expectedDto);
+
+        $dto = $this->decorator->getEmptyTopAuthorsReport(2000);
+
         $this->assertSame(2000, $dto->year);
+        $this->assertSame([], $dto->topAuthors);
     }
 
     public function testGetTopAuthorsReportBypassesCacheWhenTtlIsZero(): void
     {
         $year = 2023;
         $expectedData = [['id' => 1, 'fio' => 'Direct', 'books_count' => 5]];
+        $expectedDto = new ReportDto($expectedData, $year);
 
-        $this->repository->expects($this->once())
-            ->method('getTopAuthorsByYear')
-            ->with($year, 10)
-            ->willReturn($expectedData);
+        $this->inner->expects($this->once())
+            ->method('getTopAuthorsReport')
+            ->willReturn($expectedDto);
 
         $this->cache->expects($this->never())
             ->method('getOrSet');
 
-        $service = new ReportQueryService($this->repository, $this->cache, 0);
+        $decorator = new ReportQueryServiceCachingDecorator($this->inner, $this->cache, 0);
 
         $criteria = new ReportCriteria($year);
-        $dto = $service->getTopAuthorsReport($criteria);
+        $dto = $decorator->getTopAuthorsReport($criteria);
 
         $this->assertSame($expectedData, $dto->topAuthors);
         $this->assertSame($year, $dto->year);

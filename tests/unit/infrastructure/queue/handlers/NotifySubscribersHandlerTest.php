@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\queue\handlers;
 
-use app\application\ports\SubscriptionRepositoryInterface;
+use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\TranslatorInterface;
-use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use app\infrastructure\queue\NotifySingleSubscriberJob;
 use Codeception\Test\Unit;
@@ -17,13 +16,11 @@ final class NotifySubscribersHandlerTest extends Unit
 {
     public function testHandlePushesJobsForSubscribers(): void
     {
-        $repository = $this->createMock(SubscriptionRepositoryInterface::class);
-        $repository->expects($this->once())
+        $queryService = $this->createMock(SubscriptionQueryServiceInterface::class);
+        $queryService->expects($this->once())
             ->method('getSubscriberPhonesForBook')
-            ->with(12, 100)
+            ->with(12)
             ->willReturn(['+7900', '+7901']);
-
-        $queryService = new SubscriptionQueryService($repository);
 
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->expects($this->once())
