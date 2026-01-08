@@ -46,4 +46,12 @@ final readonly class BookQueryServiceTracingDecorator implements BookQueryServic
             fn(): PagedResultInterface => $this->service->searchBySpecification($specification, $page, $pageSize),
         );
     }
+
+    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
+    {
+        return $this->tracer->trace(
+            'BookQuery::' . __FUNCTION__,
+            fn(): bool => $this->service->existsByIsbn($isbn, $excludeId),
+        );
+    }
 }

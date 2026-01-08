@@ -33,13 +33,4 @@ final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositor
     {
         return $this->tracer->trace('AuthorRepo::' . __FUNCTION__, fn(): Author => $this->repository->get($id));
     }
-
-    #[\Override]
-    public function existsByFio(string $fio, ?int $excludeId = null): bool
-    {
-        return $this->tracer->trace(
-            'AuthorRepo::' . __FUNCTION__,
-            fn(): bool => $this->repository->existsByFio($fio, $excludeId),
-        );
-    }
 }
