@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\infrastructure\repositories;
 
+use app\domain\common\IdentifiableEntityInterface;
 use ReflectionProperty;
 use RuntimeException;
 
@@ -13,7 +14,7 @@ use RuntimeException;
  */
 trait IdentityAssignmentTrait
 {
-    private function assignId(object $entity, int $id): void
+    private function assignId(IdentifiableEntityInterface $entity, int $id): void
     {
         $property = new ReflectionProperty($entity::class, 'id');
 

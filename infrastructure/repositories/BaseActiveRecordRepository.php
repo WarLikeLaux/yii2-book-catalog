@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\infrastructure\repositories;
 
+use app\domain\common\IdentifiableEntityInterface;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
@@ -17,7 +18,7 @@ use yii\db\StaleObjectException;
 
 abstract readonly class BaseActiveRecordRepository
 {
-    /** @var WeakMap<object, ActiveRecord> */
+    /** @var WeakMap<IdentifiableEntityInterface, ActiveRecord> */
     protected WeakMap $identityMap;
 
     public function __construct()
@@ -48,7 +49,7 @@ abstract readonly class BaseActiveRecordRepository
      * @param class-string<T> $arClass
      * @return T
      */
-    protected function getArForEntity(object $entity, string $arClass, DomainErrorCode $notFoundCode): ActiveRecord
+    protected function getArForEntity(IdentifiableEntityInterface $entity, string $arClass, DomainErrorCode $notFoundCode): ActiveRecord
     {
         if (isset($this->identityMap[$entity])) {
             return $this->identityMap[$entity]; // @phpstan-ignore return.type
@@ -63,7 +64,7 @@ abstract readonly class BaseActiveRecordRepository
         return $ar;
     }
 
-    protected function registerIdentity(object $entity, ActiveRecord $ar): void
+    protected function registerIdentity(IdentifiableEntityInterface $entity, ActiveRecord $ar): void
     {
         $this->identityMap[$entity] = $ar;
     }
@@ -73,7 +74,7 @@ abstract readonly class BaseActiveRecordRepository
      * @param class-string<T> $arClass
      */
     protected function deleteEntity(
-        object $entity,
+        IdentifiableEntityInterface $entity,
         string $arClass,
         DomainErrorCode $notFoundCode,
         string $errorMessage = 'entity.error.delete_failed',
@@ -128,8 +129,12 @@ abstract readonly class BaseActiveRecordRepository
             || DatabaseErrorCode::isDuplicate($sqlState);
     }
 
-    protected function getEntityId(object $entity): int|string
+    protected function getEntityId(IdentifiableEntityInterface $entity): int
     {
-        return $entity->id ?? $entity->getId(); // @phpstan-ignore-line
+        if ($entity->id === null) {
+            throw new RuntimeException('Entity has no ID.'); // @codeCoverageIgnore
+        }
+
+        return $entity->id;
     }
 }
