@@ -193,8 +193,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         $current = $book->authorIds;
         $snapshot = $this->authorSnapshots[$book];
 
-        $currentSorted = $current;
-        $snapshotSorted = $snapshot;
+        $currentSorted = [...$current];
+        $snapshotSorted = [...$snapshot];
 
         sort($currentSorted);
         sort($snapshotSorted);
