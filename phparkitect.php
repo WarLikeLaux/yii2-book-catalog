@@ -142,6 +142,7 @@ return static function (Config $config): void {
         ->that(new ResideInOneOfTheseNamespaces('app\infrastructure\repositories'))
         ->andThat(new IsNotInterface())
         ->andThat(new IsNotTrait())
+        ->andThat(new IsNotAbstract())
         ->should(new IsFinal())
         ->because('Реализации репозиториев должны быть final');
 
@@ -156,6 +157,7 @@ return static function (Config $config): void {
         ->that(new ResideInOneOfTheseNamespaces('app\infrastructure\repositories'))
         ->andThat(new IsNotInterface())
         ->andThat(new IsNotTrait())
+        ->andThat(new IsNotAbstract())
         ->should(new Implement('app\application\ports\*'))
         ->because('Репозитории должны реализовывать порты');
 
