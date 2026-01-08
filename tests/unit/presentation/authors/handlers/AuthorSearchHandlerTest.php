@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\authors\handlers;
 
-use app\application\authors\queries\AuthorQueryService;
 use app\application\authors\queries\AuthorSearchCriteria;
 use app\application\authors\queries\AuthorSearchResponse;
+use app\application\ports\AuthorQueryServiceInterface;
+use app\application\ports\PagedResultInterface;
 use app\presentation\authors\forms\AuthorSearchForm;
 use app\presentation\authors\handlers\AuthorSearchHandler;
 use app\presentation\authors\mappers\AuthorSearchCriteriaMapper;
@@ -18,14 +19,14 @@ final class AuthorSearchHandlerTest extends Unit
 {
     private AuthorSearchCriteriaMapper|MockObject $criteriaMapper;
     private AuthorSelect2Mapper|MockObject $select2Mapper;
-    private AuthorQueryService|MockObject $queryService;
+    private AuthorQueryServiceInterface|MockObject $queryService;
     private AuthorSearchHandler $handler;
 
     protected function _before(): void
     {
         $this->criteriaMapper = $this->createMock(AuthorSearchCriteriaMapper::class);
         $this->select2Mapper = $this->createMock(AuthorSelect2Mapper::class);
-        $this->queryService = $this->createMock(AuthorQueryService::class);
+        $this->queryService = $this->createMock(AuthorQueryServiceInterface::class);
 
         $this->handler = new AuthorSearchHandler(
             $this->criteriaMapper,
@@ -67,22 +68,25 @@ final class AuthorSearchHandlerTest extends Unit
             ->with($queryParams)
             ->willReturn($form);
 
-        $criteria = $this->createMock(AuthorSearchCriteria::class);
+        $criteria = new AuthorSearchCriteria('test', 1, 20);
         $this->criteriaMapper->expects($this->once())
             ->method('toCriteria')
             ->with($form)
             ->willReturn($criteria);
 
-        $queryResult = new AuthorSearchResponse([], 0, 1, 20);
+        $pagedResult = $this->createMock(PagedResultInterface::class);
+        $pagedResult->method('getModels')->willReturn([]);
+        $pagedResult->method('getTotalCount')->willReturn(0);
+
         $this->queryService->expects($this->once())
             ->method('search')
-            ->with($criteria)
-            ->willReturn($queryResult);
+            ->with('test', 1, 20)
+            ->willReturn($pagedResult);
 
         $expectedResult = ['results' => [['id' => 1, 'text' => 'Test Author']]];
         $this->select2Mapper->expects($this->once())
             ->method('mapToSelect2')
-            ->with($queryResult)
+            ->with($this->isInstanceOf(AuthorSearchResponse::class))
             ->willReturn($expectedResult);
 
         $result = $this->handler->search($queryParams);

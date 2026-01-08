@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\presentation\books\handlers;
 
-use app\application\authors\queries\AuthorQueryService;
 use app\application\books\queries\BookReadDto;
 use app\application\common\dto\QueryResult;
+use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookFinderInterface;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\forms\BookForm;
@@ -21,7 +21,7 @@ final readonly class BookViewDataFactory
     public function __construct(
         private BookFinderInterface $finder,
         private BookSearcherInterface $searcher,
-        private AuthorQueryService $authorQueryService,
+        private AuthorQueryServiceInterface $authorQueryService,
         private BookFormMapper $mapper,
         private PagedResultDataProviderFactory $dataProviderFactory,
         private FileUrlResolver $resolver,
@@ -75,7 +75,14 @@ final readonly class BookViewDataFactory
      */
     public function getAuthorsList(): array
     {
-        return $this->authorQueryService->getAuthorsMap();
+        $authors = $this->authorQueryService->findAllOrderedByFio();
+        $map = [];
+
+        foreach ($authors as $author) {
+            $map[$author->id] = $author->fio;
+        }
+
+        return $map;
     }
 
     private function withResolvedUrl(BookReadDto $dto): BookReadDto

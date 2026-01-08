@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\books\handlers;
 
-use app\application\authors\queries\AuthorQueryService;
+use app\application\authors\queries\AuthorReadDto;
 use app\application\books\queries\BookReadDto;
+use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookFinderInterface;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\forms\BookForm;
@@ -21,7 +22,7 @@ final class BookViewDataFactoryTest extends Unit
 {
     private BookFinderInterface&MockObject $finder;
     private BookSearcherInterface&MockObject $searcher;
-    private AuthorQueryService&MockObject $authorQueryService;
+    private AuthorQueryServiceInterface&MockObject $authorQueryService;
     private BookFormMapper&MockObject $mapper;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private FileUrlResolver $resolver;
@@ -31,7 +32,7 @@ final class BookViewDataFactoryTest extends Unit
     {
         $this->finder = $this->createMock(BookFinderInterface::class);
         $this->searcher = $this->createMock(BookSearcherInterface::class);
-        $this->authorQueryService = $this->createMock(AuthorQueryService::class);
+        $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
         $this->mapper = $this->createMock(BookFormMapper::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $this->resolver = new FileUrlResolver('/uploads');
@@ -130,16 +131,19 @@ final class BookViewDataFactoryTest extends Unit
         $this->assertSame('/uploads/cover.jpg', $result->coverUrl);
     }
 
-    public function testGetAuthorsListDelegatesToQueryService(): void
+    public function testGetAuthorsListReturnsMapFromPort(): void
     {
-        $expectedMap = [1 => 'Author A', 2 => 'Author B'];
+        $authors = [
+            new AuthorReadDto(1, 'Author A'),
+            new AuthorReadDto(2, 'Author B'),
+        ];
 
         $this->authorQueryService->expects($this->once())
-            ->method('getAuthorsMap')
-            ->willReturn($expectedMap);
+            ->method('findAllOrderedByFio')
+            ->willReturn($authors);
 
         $result = $this->factory->getAuthorsList();
 
-        $this->assertSame($expectedMap, $result);
+        $this->assertSame([1 => 'Author A', 2 => 'Author B'], $result);
     }
 }
