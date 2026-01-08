@@ -61,6 +61,7 @@ final class Yii2ActiveRecordMappingListener
             }
         }
 
+        $properties = array_unique($properties);
         $this->cache[$class] = $properties;
 
         return $properties;

@@ -58,7 +58,7 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
 
     public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
     {
-        $query = Book::find()->andWhere(['isbn' => $isbn]);
+        $query = Book::find()->where(['isbn' => $isbn]);
 
         if ($excludeId !== null) {
             $query->andWhere(['<>', 'id', $excludeId]);
