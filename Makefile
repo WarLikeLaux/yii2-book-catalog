@@ -233,7 +233,7 @@ _test-init:
 
 test: _test-init
 	@echo "🚀 Запуск всех тестов с генерацией отчетов..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration,unit \
+	@$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app ./vendor/bin/codecept run integration,unit \
 		--ext DotReporter \
 		--coverage-text --coverage-xml --coverage-html \
 		--coverage-phpunit --xml=junit.xml --no-colors

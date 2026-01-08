@@ -92,7 +92,6 @@ abstract readonly class BaseActiveRecordRepository
      * @throws StaleDataException
      * @throws AlreadyExistsException
      * @throws IntegrityException
-     * @codeCoverageIgnore
      */
     protected function persist(
         ActiveRecord $model,
