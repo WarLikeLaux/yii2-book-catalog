@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\books\handlers;
 
-use app\application\books\queries\BookQueryService;
 use app\application\common\dto\PaginationRequest;
+use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\books\handlers\BookSearchHandler;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
@@ -18,7 +18,7 @@ use yii\data\ArrayDataProvider;
 final class BookSearchHandlerTest extends Unit
 {
     private AutoMapperInterface&MockObject $autoMapper;
-    private BookQueryService&MockObject $bookQueryService;
+    private BookQueryServiceInterface&MockObject $bookQueryService;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private FileUrlResolver&MockObject $fileUrlResolver;
     private BookSearchHandler $handler;
@@ -26,7 +26,7 @@ final class BookSearchHandlerTest extends Unit
     protected function _before(): void
     {
         $this->autoMapper = $this->createMock(AutoMapperInterface::class);
-        $this->bookQueryService = $this->createMock(BookQueryService::class);
+        $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $this->fileUrlResolver = $this->createMock(FileUrlResolver::class);
 
@@ -55,6 +55,7 @@ final class BookSearchHandlerTest extends Unit
         $this->assertArrayHasKey('searchModel', $result);
         $this->assertArrayHasKey('dataProvider', $result);
         $this->assertInstanceOf(BookSearchForm::class, $result['searchModel']);
+        $this->assertInstanceOf(ArrayDataProvider::class, $result['dataProvider']);
         $this->assertTrue($result['searchModel']->hasErrors());
     }
 }

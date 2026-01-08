@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace app\presentation\books\handlers;
 
-use app\application\books\queries\BookQueryService;
 use app\application\books\queries\BookReadDto;
 use app\application\books\queries\BookSearchCriteria;
 use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
+use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
@@ -18,7 +18,7 @@ final readonly class BookSearchHandler
 {
     public function __construct(
         private AutoMapperInterface $autoMapper,
-        private BookQueryService $bookQueryService,
+        private BookQueryServiceInterface $bookQueryService,
         private PagedResultDataProviderFactory $dataProviderFactory,
         private FileUrlResolver $fileUrlResolver,
     ) {
@@ -48,7 +48,11 @@ final readonly class BookSearchHandler
             BookSearchCriteria::class,
         );
 
-        $result = $this->bookQueryService->search($criteria);
+        $result = $this->bookQueryService->search(
+            $criteria->globalSearch,
+            $criteria->page,
+            $criteria->pageSize,
+        );
 
         $resolvedItems = [];
 
