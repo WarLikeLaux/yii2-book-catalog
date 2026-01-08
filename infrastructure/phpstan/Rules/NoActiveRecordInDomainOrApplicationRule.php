@@ -46,7 +46,6 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
             return [];
         }
 
-        $node->getClassReflection();
         $originalNode = $node->getOriginalNode();
         $errors = [];
 

@@ -10,6 +10,9 @@ use Codeception\Test\Unit;
 
 final class AsyncIdempotencyRepositoryTest extends Unit
 {
+    private const int DEFAULT_TTL = 172800;
+    private const int OLD_TIMESTAMP_OFFSET = 200000;
+
     private AsyncIdempotencyRepository $repository;
 
     protected function _before(): void
@@ -49,7 +52,7 @@ final class AsyncIdempotencyRepositoryTest extends Unit
     {
         $model = new AsyncIdempotencyLog();
         $model->idempotency_key = 'old-key';
-        $model->created_at = time() - 200000;
+        $model->created_at = time() - self::OLD_TIMESTAMP_OFFSET;
         $model->save();
 
         $this->repository->acquire('new-key');

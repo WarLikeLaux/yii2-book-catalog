@@ -108,4 +108,17 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
         $this->repository->testPersist($model);
     }
+
+    public function testPersistThrowsRuntimeExceptionWithDefaultMessageOnSaveFailureWithoutErrors(): void
+    {
+        $model = $this->makeEmpty(ActiveRecord::class, [
+            'save' => false,
+            'getFirstErrors' => [],
+        ]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('entity.error.save_failed');
+
+        $this->repository->testPersist($model);
+    }
 }
