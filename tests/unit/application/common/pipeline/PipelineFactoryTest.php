@@ -6,7 +6,6 @@ namespace tests\unit\application\common\pipeline;
 
 use app\application\common\IdempotencyServiceInterface;
 use app\application\common\pipeline\PipelineFactory;
-use app\application\ports\FileStorageInterface;
 use app\application\ports\PipelineInterface;
 use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
@@ -17,7 +16,6 @@ final class PipelineFactoryTest extends Unit
 {
     private TracerInterface&MockObject $tracer;
     private TransactionInterface&MockObject $transaction;
-    private FileStorageInterface&MockObject $fileStorage;
     private IdempotencyServiceInterface&MockObject $idempotencyService;
     private PipelineFactory $factory;
 
@@ -25,13 +23,11 @@ final class PipelineFactoryTest extends Unit
     {
         $this->tracer = $this->createMock(TracerInterface::class);
         $this->transaction = $this->createMock(TransactionInterface::class);
-        $this->fileStorage = $this->createMock(FileStorageInterface::class);
         $this->idempotencyService = $this->createMock(IdempotencyServiceInterface::class);
 
         $this->factory = new PipelineFactory(
             $this->tracer,
             $this->transaction,
-            $this->fileStorage,
             $this->idempotencyService,
         );
     }
@@ -43,23 +39,9 @@ final class PipelineFactoryTest extends Unit
         $this->assertInstanceOf(PipelineInterface::class, $pipeline);
     }
 
-    public function testCreateWithFileLifecycleReturnsPipeline(): void
-    {
-        $pipeline = $this->factory->createWithFileLifecycle();
-
-        $this->assertInstanceOf(PipelineInterface::class, $pipeline);
-    }
-
     public function testCreateWithoutIdempotencyReturnsPipeline(): void
     {
         $pipeline = $this->factory->createWithoutIdempotency();
-
-        $this->assertInstanceOf(PipelineInterface::class, $pipeline);
-    }
-
-    public function testCreateWithFileLifecycleWithoutIdempotencyReturnsPipeline(): void
-    {
-        $pipeline = $this->factory->createWithFileLifecycleWithoutIdempotency();
 
         $this->assertInstanceOf(PipelineInterface::class, $pipeline);
     }

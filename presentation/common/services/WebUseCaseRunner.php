@@ -96,7 +96,7 @@ final readonly class WebUseCaseRunner
     ): mixed {
         try {
             /** @var TResponse $result */
-            $result = $this->pipelineFactory->createWithFileLifecycle()->execute($command, $useCase);
+            $result = $this->pipelineFactory->createDefault()->execute($command, $useCase);
             $this->notifier->success($successMessage);
             return $result;
         } catch (DomainException $e) {

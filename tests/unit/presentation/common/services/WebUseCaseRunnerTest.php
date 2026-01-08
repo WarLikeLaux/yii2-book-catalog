@@ -144,7 +144,7 @@ final class WebUseCaseRunnerTest extends Unit
         $useCase = $this->createMock(UseCaseInterface::class);
         $pipeline = $this->createMock(PipelineInterface::class);
 
-        $this->pipelineFactory->expects($this->once())->method('createWithFileLifecycle')->willReturn($pipeline);
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
         $pipeline->expects($this->once())->method('execute')->willReturn(42);
 
         $this->notifier->expects($this->once())->method('success')->with('created');
@@ -166,7 +166,7 @@ final class WebUseCaseRunnerTest extends Unit
         $pipeline = $this->createMock(PipelineInterface::class);
         $exception = new ValidationException(DomainErrorCode::BookTitleEmpty);
 
-        $this->pipelineFactory->expects($this->once())->method('createWithFileLifecycle')->willReturn($pipeline);
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
         $pipeline->expects($this->once())->method('execute')->willThrowException($exception);
 
         $onErrorCalled = false;
@@ -196,7 +196,7 @@ final class WebUseCaseRunnerTest extends Unit
         $pipeline = $this->createMock(PipelineInterface::class);
         $exception = new \RuntimeException('unexpected error');
 
-        $this->pipelineFactory->expects($this->once())->method('createWithFileLifecycle')->willReturn($pipeline);
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
         $pipeline->expects($this->once())->method('execute')->willThrowException($exception);
 
         $onErrorCalled = false;
