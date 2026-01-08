@@ -94,6 +94,17 @@ final readonly class BookQueryService implements BookQueryServiceInterface
         );
     }
 
+    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
+    {
+        $query = Book::find()->andWhere(['isbn' => $isbn]);
+
+        if ($excludeId !== null) {
+            $query->andWhere(['<>', 'id', $excludeId]);
+        }
+
+        return $query->exists();
+    }
+
     private function mapToDto(Book $book): BookReadDto
     {
         $dto = $this->autoMapper->map($book, BookReadDto::class);

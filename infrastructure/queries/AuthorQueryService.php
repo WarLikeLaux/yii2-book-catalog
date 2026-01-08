@@ -102,6 +102,17 @@ final readonly class AuthorQueryService implements AuthorQueryServiceInterface
         ));
     }
 
+    public function existsByFio(string $fio, ?int $excludeId = null): bool
+    {
+        $query = Author::find()->where(['fio' => $fio]);
+
+        if ($excludeId !== null) {
+            $query->andWhere(['<>', 'id', $excludeId]);
+        }
+
+        return $query->exists();
+    }
+
     private function mapToDto(Author $author): AuthorReadDto
     {
         $dto = $this->autoMapper->map($author, AuthorReadDto::class);
