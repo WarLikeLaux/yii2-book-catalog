@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+readonly SCRIPT_NAME="$(basename "$0")"
+
+cd "$ROOT_DIR"
+
+show_help() {
+    cat << 'EOF'
+Использование: bin/bootstrap [команда]
+
+Команды:
+  init        Полная инициализация проекта (интерактивно)
+  init-force  Принудительная инициализация (без вопросов)
+  setup       Настройка окружения (права, папки, .env)
+  configure   Перенастройка .env (интерактивно)
+
+Без аргументов: показывает эту справку.
+EOF
+}
+
+confirm() {
+    local message="$1"
+    echo ""
+    echo "======================================================================"
+    echo "$message"
+    echo "======================================================================"
+    read -p "   Продолжить? [y/N] " ans
+    if [[ ! "$ans" =~ ^[yY]$ ]]; then
+        echo "❌ Отменено пользователем."
+        exit 1
+    fi
+}
+
+ensure_dirs() {
+    mkdir -p web/uploads runtime/debug runtime/logs runtime/cache runtime/sessions
+}
+
+ensure_permissions() {
+    echo "🔧 Исправление прав..."
+    ./bin/fix-perms
+}
+
+ensure_scripts_executable() {
+    chmod +x bin/*
+}
+
+setup_env() {
+    local force="${1:-}"
+
+    if [[ "$force" == "-y" ]]; then
+        ./bin/setup-env -y
+        return
+    fi
+
+    if [[ -f .env ]]; then
+        echo "❓ Файл .env найден."
+        read -p "   Перезаписать его (сбросить настройки)? [y/N] " ans
+        if [[ "$ans" =~ ^[yY]$ ]]; then
+            ./bin/setup-env
+        else
+            echo "✅ .env оставлен без изменений."
+        fi
+    else
+        ./bin/setup-env -y
+    fi
+}
+
+print_banner() {
+    local app_port
+    local bug_port
+    app_port=$(grep '^APP_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000)
+    bug_port=$(grep '^BUGGREGATOR_UI_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 9913)
+
+    echo ""
+    echo "======================================================================"
+    echo "🚀 ПРОЕКТ ГОТОВ К РАБОТЕ"
+    echo "======================================================================"
+    echo "🌍 Сайт:        http://localhost:$app_port"
+    echo "📄 API Docs:    http://localhost:$app_port/api"
+    echo "🐞 Buggregator: http://localhost:$bug_port"
+    echo "======================================================================"
+}
+
+cmd_setup() {
+    ensure_permissions
+    ./bin/agent-links
+    ensure_dirs
+    ensure_scripts_executable
+    setup_env
+}
+
+cmd_configure() {
+    confirm "⚠️  ПОЛНАЯ ПЕРЕНАСТРОЙКА ОКРУЖЕНИЯ"
+    ensure_permissions
+    ensure_dirs
+    ensure_scripts_executable
+    ./bin/setup-env
+}
+
+cmd_init() {
+    confirm "🚨  ПОЛНАЯ ИНИЦИАЛИЗАЦИЯ ПРОЕКТА
+
+Будут выполнены следующие действия:
+  1. 🛠  Настройка окружения (права, папки, .env)
+  2. 🔗 Создание симлинков для AI агентов
+  3. 🐳 Пересоздание и запуск контейнеров
+  4. 📦 Установка зависимостей (composer install)
+  5. 🗄  Применение миграций и заливка тестовых данных"
+
+    cmd_setup
+    make up
+    make composer
+    make migrate
+    make seed
+    print_banner
+}
+
+cmd_init_force() {
+    echo "🚀 Принудительная установка (без вопросов)..."
+    ensure_dirs
+    ensure_scripts_executable
+    ./bin/setup-env -y
+    make up
+    echo "⏳ Ожидание запуска базы данных..."
+    sleep 5
+    make composer
+    make migrate
+    make seed
+
+    local app_port
+    app_port=$(grep '^APP_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000)
+    echo ""
+    echo "✅ Проект установлен: http://localhost:$app_port"
+}
+
+case "${1:-}" in
+    init)
+        cmd_init
+        ;;
+    init-force)
+        cmd_init_force
+        ;;
+    setup)
+        cmd_setup
+        ;;
+    configure)
+        cmd_configure
+        ;;
+    -h|--help|help|"")
+        show_help
+        ;;
+    *)
+        echo "❌ Неизвестная команда: $1"
+        show_help
+        exit 1
+        ;;
+esac

@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+readonly SOURCE_FILE="CLAUDE.md"
+
+readonly SYMLINKS=(
+    "GEMINI.md"
+    "AGENTS.md"
+    "GROK.md"
+    ".cursorrules"
+    ".clinerules"
+    ".windsurfrules"
+)
+
+readonly NESTED_DIRS=(
+    ".antigravity:rules.md"
+    ".agent/rules:rules.md"
+)
+
+cd "$ROOT_DIR"
+
+echo "🔗 Создание симлинков для AI агентов..."
+
+for link in "${SYMLINKS[@]}"; do
+    ln -sf "$SOURCE_FILE" "$link"
+done
+
+for entry in "${NESTED_DIRS[@]}"; do
+    dir="${entry%%:*}"
+    file="${entry##*:}"
+    mkdir -p "$dir"
+
+    depth=$(echo "$dir" | tr -cd '/' | wc -c)
+    prefix=""
+    for ((i = 0; i <= depth; i++)); do
+        prefix="../$prefix"
+    done
+
+    ln -sf "${prefix}${SOURCE_FILE}" "$dir/$file"
+done
+
+echo "✅ Симлинки созданы: ${SYMLINKS[*]}, .antigravity/rules.md, .agent/rules/rules.md -> $SOURCE_FILE"

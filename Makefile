@@ -90,49 +90,13 @@ help:
 install: init
 install-force: init-force
 
-init-force: _mkdirs
-	@echo "🚀 Принудительная установка (Без вопросов)..."
-	@chmod +x bin/setup-env
-	@./bin/setup-env -y
-	@$(MAKE) up
-	@echo "⏳ Ожидание запуска базы данных..."
-	@sleep 5
-	@$(MAKE) composer
-	@$(MAKE) migrate
-	@$(MAKE) seed
-	@APP_PORT=$$(grep '^APP_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000); \
-	echo ""; \
-	echo "✅ Проект установлен: http://localhost:$$APP_PORT"
+init-force:
+	@chmod +x bin/*
+	@./bin/bootstrap init-force
 
-init: _init_confirm setup ai up composer migrate seed
-	@APP_PORT=$$(grep '^APP_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 8000); \
-	BUG_PORT=$$(grep '^BUGGREGATOR_UI_PORT=' .env | cut -d '=' -f2 | tr -d '"' | tr -d ' ' || echo 9913); \
-	echo ""; \
-	echo "======================================================================"; \
-	echo "🚀 ПРОЕКТ ГОТОВ К РАБОТЕ"; \
-	echo "======================================================================"; \
-	echo "🌍 Сайт:        http://localhost:$$APP_PORT"; \
-	echo "📄 API Docs:    http://localhost:$$APP_PORT/api"; \
-	echo "🐞 Buggregator: http://localhost:$$BUG_PORT"; \
-	echo "======================================================================"
-
-_init_confirm:
-	@echo ""
-	@echo "======================================================================"
-	@echo "🚨  ВНИМАНИЕ: ПОЛНАЯ ИНИЦИАЛИЗАЦИЯ ПРОЕКТА"
-	@echo "======================================================================"
-	@echo "Будут выполнены следующие действия:"
-	@echo "  1. 🛠  Настройка окружения (права, папки, .env)"
-	@echo "  2. 🔗 Создание симлинков для AI агентов"
-	@echo "  3. 🐳 Пересоздание и запуск контейнеров (docker compose up)"
-	@echo "  4. 📦 Установка зависимостей (composer install)"
-	@echo "  5. 🗄  Применение миграций и заливка тестовых данных (seed)"
-	@echo ""
-	@read -p "   Вы готовы продолжить? [y/N] " ans; \
-	if [ "$$ans" != "y" ] && [ "$$ans" != "Y" ]; then \
-		echo "❌ Отменено пользователем."; \
-		exit 1; \
-	fi
+init:
+	@chmod +x bin/*
+	@./bin/bootstrap init
 
 up:
 	@driver=$${DB_DRIVER:-mysql}; \
@@ -168,50 +132,19 @@ perms:
 	@HOST_UID=$$(id -u) HOST_GID=$$(id -g); \
 	$(COMPOSE) run --rm -u root $(PHP_CONTAINER) chown -R $$HOST_UID:$$HOST_GID /app 2>/dev/null || \
 	echo "⚠️  Docker chown недоступен (rootless?), только chmod"
-	@$(MAKE) _fix_code_perms
-	@echo "✅ Права доступа восстановлены."
+	@./bin/fix-perms
 
-setup: perms ai _mkdirs
-	@chmod +x bin/setup-env
-	@chmod +x bin/list-comments
-	@if [ -f .env ]; then \
-		echo "❓ Файл .env найден."; \
-		read -p "   Перезаписать его (сбросить настройки)? [y/N] " ans; \
-		if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
-			./bin/setup-env; \
-		else \
-			echo "✅ .env оставлен без изменений."; \
-		fi \
-	else \
-		./bin/setup-env -y; \
-	fi
+setup:
+	@chmod +x bin/*
+	@./bin/bootstrap setup
 
-configure: perms _mkdirs
-	@echo "⚠️  Вы запускаете полную перенастройку окружения."
-	@echo "   Это обновит файл .env и может изменить порты."
-	@read -p "   Вы уверены? [y/N] " ans; \
-	if [ "$$ans" != "y" ] && [ "$$ans" != "Y" ]; then \
-		echo "❌ Отменено."; \
-		exit 1; \
-	fi
-	@chmod +x bin/setup-env
-	@./bin/setup-env
+configure:
+	@chmod +x bin/*
+	@./bin/bootstrap configure
 
 env:
-	@chmod +x bin/setup-env
+	@chmod +x bin/*
 	@./bin/setup-env
-
-_fix_code_perms:
-	@echo "🔒 Нормализация прав (dirs=755, files=644)..."
-	@find . -maxdepth 1 -type f \( -name "*.php" -o -name "*.json" -o -name "*.lock" -o -name "*.xml" -o -name "*.dist" -o -name "*.yaml" -o -name "*.yml" -o -name "*.md" -o -name "*.neon" -o -name ".env*" -o -name ".git*" -o -name "Makefile" -o -name "Dockerfile" \) -exec chmod 644 {} + 2>/dev/null || true
-	@find application domain infrastructure presentation config tests migrations docs web -type d -exec chmod 755 {} + 2>/dev/null || true
-	@find application domain infrastructure presentation config tests migrations docs -type f -exec chmod 644 {} + 2>/dev/null || true
-	@find web -type f \( -name "*.php" -o -name "*.css" -o -name "*.js" -o -name "*.html" -o -name "*.ico" -o -name "*.txt" \) -exec chmod 644 {} + 2>/dev/null || true
-	@chmod -R 755 bin 2>/dev/null || true
-	@chmod 755 yii 2>/dev/null || true
-
-_mkdirs:
-	mkdir -p web/uploads runtime/debug runtime/logs runtime/cache runtime/sessions
 
 clean:
 	@echo "🧹 Очистка кэша и логов..."
@@ -296,13 +229,7 @@ audit:
 # =================================================================================================
 
 _test-init:
-	@echo "🔧 Подготовка тестовой базы ($(DB_DRIVER))..."
-ifeq ($(DB_DRIVER),pgsql)
-	@$(COMPOSE) exec -T pgsql sh -c 'psql -U "$$POSTGRES_USER" -d postgres -c "SELECT 1 FROM pg_database WHERE datname = '\''$(DB_TEST_NAME)'\''" | grep -q 1 || psql -U "$$POSTGRES_USER" -d postgres -c "CREATE DATABASE $(DB_TEST_NAME)"' 2>/dev/null || true
-else
-	@$(COMPOSE) exec -T db sh -c 'mysql -uroot -p"$$MYSQL_ROOT_PASSWORD" -h127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS $(DB_TEST_NAME); GRANT ALL PRIVILEGES ON $(DB_TEST_NAME).* TO \"$$MYSQL_USER\"@\"%\"; FLUSH PRIVILEGES;"' 2>&1 | grep -v "Using a password" || true
-endif
-	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "DB_NAME=$(DB_TEST_NAME) ./yii migrate --interactive=0 --migrationPath=@app/migrations" > /dev/null
+	@DB_DRIVER=$(DB_DRIVER) DB_TEST_NAME=$(DB_TEST_NAME) COMPOSE="$(COMPOSE)" ./bin/test-db-prepare
 
 test: _test-init
 	@echo "🚀 Запуск всех тестов с генерацией отчетов..."
@@ -327,11 +254,7 @@ test-e2e: _test-init
 
 test-coverage coverage cov:
 	@if [ ! -f tests/_output/coverage.xml ]; then $(MAKE) test; fi
-	@echo "----------------------------------------------------------------------"
-	@$(COMPOSE) exec $(PHP_CONTAINER) head -n 9 tests/_output/coverage.txt
-	@echo "----------------------------------------------------------------------"
-	@php -r '$$xml = simplexml_load_file("tests/_output/coverage.xml"); $$out = ""; foreach ($$xml->project->xpath("//file") as $$file) { $$miss = []; foreach ($$file->line as $$line) { if ((string)$$line["count"] === "0" && (string)$$line["type"] === "stmt") { $$miss[] = (string)$$line["num"]; } } if (!empty($$miss)) { $$name = str_replace("$(CURDIR)/", "", (string)$$file["name"]); $$out .= "\033[1;31m✘ $$name\033[0m" . PHP_EOL . "   Lines: " . implode(", ", $$miss) . PHP_EOL; } } if ($$out !== "") { echo "🔍 Непокрытые строки:" . PHP_EOL . $$out . "----------------------------------------------------------------------" . PHP_EOL; }'
-	@echo "Полный отчет: tests/_output/coverage/index.html"
+	@./bin/coverage-report
 
 test-infection infection inf:
 	@if [ ! -f tests/_output/coverage-phpunit.xml ]; then $(MAKE) test; fi
@@ -406,18 +329,7 @@ repomix:
 	@npx -y repomix --style markdown --output repomix-output.md
 
 ai:
-	@echo "🔗 Создание симлинков для AI агентов..."
-	@ln -sf CLAUDE.md GEMINI.md
-	@ln -sf CLAUDE.md AGENTS.md
-	@ln -sf CLAUDE.md GROK.md
-	@ln -sf CLAUDE.md .cursorrules
-	@ln -sf CLAUDE.md .clinerules
-	@ln -sf CLAUDE.md .windsurfrules
-	@mkdir -p .antigravity
-	@ln -sf ../CLAUDE.md .antigravity/rules.md
-	@mkdir -p .agent/rules
-	@ln -sf ../../CLAUDE.md .agent/rules/rules.md
-	@echo "✅ Симлинки созданы: GEMINI.md, AGENTS.md, GROK.MD, .cursorrules, .clinerules, .windsurfrules, .antigravity/rules.md, .agent/rules/rules.md -> CLAUDE.md"
+	@./bin/agent-links
 
 TAG := $(word 2,$(MAKECMDGOALS))
 ifneq ($(TAG),)

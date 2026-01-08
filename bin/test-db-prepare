@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly DB_TEST_NAME="${DB_TEST_NAME:-yii2basic_test}"
+readonly DB_DRIVER="${DB_DRIVER:-mysql}"
+readonly COMPOSE="${COMPOSE:-docker compose}"
+
+prepare_mysql() {
+    echo "🔧 Подготовка тестовой базы MySQL..."
+    $COMPOSE exec -T db sh -c '
+        mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -h127.0.0.1 -e "
+            CREATE DATABASE IF NOT EXISTS '"$DB_TEST_NAME"';
+            GRANT ALL PRIVILEGES ON '"$DB_TEST_NAME"'.* TO \"$MYSQL_USER\"@\"%\";
+            FLUSH PRIVILEGES;
+        "
+    ' 2>&1 | grep -v "Using a password" || true
+}
+
+prepare_pgsql() {
+    echo "🔧 Подготовка тестовой базы PostgreSQL..."
+    $COMPOSE exec -T pgsql sh -c '
+        psql -U "$POSTGRES_USER" -d postgres -c "
+            SELECT 1 FROM pg_database WHERE datname = '"'$DB_TEST_NAME'"'
+        " | grep -q 1 || psql -U "$POSTGRES_USER" -d postgres -c "
+            CREATE DATABASE '"$DB_TEST_NAME"'
+        "
+    ' 2>/dev/null || true
+}
+
+run_migrations() {
+    echo "🔄 Применение миграций..."
+    $COMPOSE exec -T php sh -c "DB_NAME=$DB_TEST_NAME ./yii migrate --interactive=0 --migrationPath=@app/migrations" > /dev/null
+}
+
+case "$DB_DRIVER" in
+    pgsql)
+        prepare_pgsql
+        ;;
+    mysql|*)
+        prepare_mysql
+        ;;
+esac
+
+run_migrations
+
+echo "✅ Тестовая база готова ($DB_DRIVER: $DB_TEST_NAME)"

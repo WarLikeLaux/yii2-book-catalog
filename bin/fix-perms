@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+readonly CODE_DIRS=("application" "domain" "infrastructure" "presentation" "config" "tests" "migrations" "docs" "web")
+readonly ROOT_EXTENSIONS=("php" "json" "lock" "xml" "dist" "yaml" "yml" "md" "neon")
+readonly WEB_EXTENSIONS=("php" "css" "js" "html" "ico" "txt")
+
+cd "$ROOT_DIR"
+
+echo "🔒 Нормализация прав (dirs=755, files=644)..."
+
+for ext in "${ROOT_EXTENSIONS[@]}"; do
+    find . -maxdepth 1 -type f -name "*.$ext" -exec chmod 644 {} + 2>/dev/null || true
+done
+
+find . -maxdepth 1 -type f \( -name ".env*" -o -name ".git*" -o -name "Makefile" -o -name "Dockerfile" \) -exec chmod 644 {} + 2>/dev/null || true
+
+for dir in "${CODE_DIRS[@]}"; do
+    if [[ -d "$dir" ]]; then
+        find "$dir" -type d -exec chmod 755 {} + 2>/dev/null || true
+
+        if [[ "$dir" == "web" ]]; then
+            for ext in "${WEB_EXTENSIONS[@]}"; do
+                find "$dir" -type f -name "*.$ext" -exec chmod 644 {} + 2>/dev/null || true
+            done
+        else
+            find "$dir" -type f -exec chmod 644 {} + 2>/dev/null || true
+        fi
+    fi
+done
+
+chmod -R 755 bin 2>/dev/null || true
+chmod 755 yii 2>/dev/null || true
+
+echo "✅ Права доступа нормализованы."

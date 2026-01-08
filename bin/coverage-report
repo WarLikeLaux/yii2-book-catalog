@@ -1,0 +1,106 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+final class CoverageReportGenerator
+{
+    private const string C_RESET = "\033[0m";
+    private const string C_RED = "\033[1;31m";
+    private const string C_GREEN = "\033[32m";
+
+    public function __construct(
+        private readonly string $rootPath,
+        private readonly string $coverageXmlPath,
+        private readonly string $coverageTxtPath
+    ) {
+    }
+
+    public function run(): int
+    {
+        if (!file_exists($this->coverageXmlPath)) {
+            echo "⚠️  Файл coverage.xml не найден. Запустите 'make test' для генерации.\n";
+            return 1;
+        }
+
+        $this->printSummary();
+        $this->printUncoveredLines();
+        $this->printFooter();
+
+        return 0;
+    }
+
+    private function printSummary(): void
+    {
+        echo "----------------------------------------------------------------------\n";
+
+        if (file_exists($this->coverageTxtPath)) {
+            $lines = file($this->coverageTxtPath, FILE_IGNORE_NEW_LINES);
+            if ($lines !== false) {
+                $output = array_slice($lines, 0, 9);
+                echo implode("\n", $output) . "\n";
+            }
+        }
+
+        echo "----------------------------------------------------------------------\n";
+    }
+
+    private function printUncoveredLines(): void
+    {
+        $xml = simplexml_load_file($this->coverageXmlPath);
+        if ($xml === false) {
+            echo "❌ Не удалось загрузить coverage.xml\n";
+            return;
+        }
+
+        $uncovered = [];
+
+        foreach ($xml->project->xpath('//file') as $file) {
+            $missedLines = [];
+
+            foreach ($file->line as $line) {
+                $count = (string) $line['count'];
+                $type = (string) $line['type'];
+
+                if ($count === '0' && $type === 'stmt') {
+                    $missedLines[] = (string) $line['num'];
+                }
+            }
+
+            if (!empty($missedLines)) {
+                $fileName = str_replace($this->rootPath . '/', '', (string) $file['name']);
+                $uncovered[$fileName] = $missedLines;
+            }
+        }
+
+        if (empty($uncovered)) {
+            echo self::C_GREEN . "✅ Все строки покрыты тестами!" . self::C_RESET . "\n";
+            return;
+        }
+
+        echo "🔍 Непокрытые строки:\n";
+
+        foreach ($uncovered as $fileName => $lines) {
+            echo self::C_RED . "✘ " . $fileName . self::C_RESET . "\n";
+            echo "   Lines: " . implode(', ', $lines) . "\n";
+        }
+
+        echo "----------------------------------------------------------------------\n";
+    }
+
+    private function printFooter(): void
+    {
+        echo "Полный отчет: tests/_output/coverage/index.html\n";
+    }
+}
+
+$rootPath = dirname(__DIR__);
+$outputDir = $rootPath . '/tests/_output';
+
+$generator = new CoverageReportGenerator(
+    $rootPath,
+    $outputDir . '/coverage.xml',
+    $outputDir . '/coverage.txt'
+);
+
+exit($generator->run());
