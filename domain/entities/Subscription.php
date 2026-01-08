@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\domain\entities;
 
-final class Subscription
+use app\domain\common\IdentifiableEntityInterface;
+
+final class Subscription implements IdentifiableEntityInterface
 {
     public function __construct(
         public private(set) ?int $id,

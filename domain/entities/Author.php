@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace app\domain\entities;
 
+use app\domain\common\IdentifiableEntityInterface;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
 
-final class Author
+final class Author implements IdentifiableEntityInterface
 {
     private const int MIN_FIO_LENGTH = 2;
     private const int MAX_FIO_LENGTH = 255;

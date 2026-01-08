@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\domain\entities;
 
+use app\domain\common\IdentifiableEntityInterface;
 use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
@@ -12,7 +13,7 @@ use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
 
-final class Book
+final class Book implements IdentifiableEntityInterface
 {
     private const int MAX_TITLE_LENGTH = 255;
 
