@@ -12,6 +12,7 @@ use app\presentation\authors\handlers\AuthorViewDataFactory;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use AutoMapper\AutoMapperInterface;
 use Codeception\Test\Unit;
+use LogicException;
 use PHPUnit\Framework\MockObject\MockObject;
 use yii\data\DataProviderInterface;
 use yii\web\NotFoundHttpException;
@@ -86,6 +87,26 @@ final class AuthorViewDataFactoryTest extends Unit
         $this->expectException(NotFoundHttpException::class);
 
         $this->factory->getAuthorForUpdate(999);
+    }
+
+    public function testGetAuthorForUpdateThrowsWhenAutoMapperReturnsWrongType(): void
+    {
+        $dto = new AuthorReadDto(1, 'Test Author');
+
+        $this->queryService->expects($this->once())
+            ->method('findById')
+            ->with(1)
+            ->willReturn($dto);
+
+        $this->autoMapper->expects($this->once())
+            ->method('map')
+            ->with($dto, AuthorForm::class)
+            ->willReturn(new \stdClass());
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('getAuthorForUpdate expects AuthorForm.');
+
+        $this->factory->getAuthorForUpdate(1);
     }
 
     public function testGetAuthorViewReturnsDto(): void

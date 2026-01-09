@@ -15,6 +15,7 @@ use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
 use AutoMapper\AutoMapperInterface;
 use Codeception\Test\Unit;
+use LogicException;
 use PHPUnit\Framework\MockObject\MockObject;
 use yii\web\NotFoundHttpException;
 
@@ -89,6 +90,37 @@ final class BookViewDataFactoryTest extends Unit
         $result = $this->factory->getBookForUpdate(1);
 
         $this->assertSame($form, $result);
+    }
+
+    public function testGetBookForUpdateThrowsWhenAutoMapperReturnsWrongType(): void
+    {
+        $dto = new BookReadDto(
+            id: 1,
+            title: 'Test',
+            year: 2020,
+            description: null,
+            isbn: '9780132350884',
+            authorIds: [],
+            authorNames: [],
+            coverUrl: null,
+            isPublished: false,
+            version: 1,
+        );
+
+        $this->finder->expects($this->once())
+            ->method('findById')
+            ->with(1)
+            ->willReturn($dto);
+
+        $this->autoMapper->expects($this->once())
+            ->method('map')
+            ->with($dto, BookForm::class)
+            ->willReturn(new \stdClass());
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('AutoMapper returned unexpected type: expected');
+
+        $this->factory->getBookForUpdate(1);
     }
 
     public function testGetBookViewThrowsNotFoundWhenBookNotExists(): void

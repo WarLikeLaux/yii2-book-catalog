@@ -9,6 +9,7 @@ use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use AutoMapper\AutoMapperInterface;
+use LogicException;
 use yii\data\DataProviderInterface;
 use yii\web\NotFoundHttpException;
 
@@ -31,8 +32,13 @@ final readonly class AuthorViewDataFactory
     {
         $dto = $this->queryService->findById($id) ?? throw new NotFoundHttpException();
 
-        /** @var AuthorForm */
-        return $this->autoMapper->map($dto, AuthorForm::class);
+        $form = $this->autoMapper->map($dto, AuthorForm::class);
+
+        if (!$form instanceof AuthorForm) {
+            throw new LogicException('getAuthorForUpdate expects AuthorForm.');
+        }
+
+        return $form;
     }
 
     public function getAuthorView(int $id): AuthorReadDto

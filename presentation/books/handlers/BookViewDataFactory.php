@@ -13,6 +13,7 @@ use app\presentation\books\forms\BookForm;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
 use AutoMapper\AutoMapperInterface;
+use LogicException;
 use yii\data\DataProviderInterface;
 use yii\web\NotFoundHttpException;
 
@@ -50,23 +51,23 @@ final readonly class BookViewDataFactory
 
     public function getBookForUpdate(int $id): BookForm
     {
-        $dto = $this->finder->findById($id);
+        $dto = $this->getBookById($id);
+        $form = $this->autoMapper->map($dto, BookForm::class);
 
-        if (!$dto instanceof BookReadDto) {
-            throw new NotFoundHttpException();
+        if (!$form instanceof BookForm) {
+            throw new LogicException(sprintf(
+                'AutoMapper returned unexpected type: expected %s, got %s',
+                BookForm::class,
+                get_debug_type($form),
+            ));
         }
 
-        /** @var BookForm */
-        return $this->autoMapper->map($dto, BookForm::class);
+        return $form;
     }
 
     public function getBookView(int $id): BookReadDto
     {
-        $dto = $this->finder->findById($id);
-
-        if (!$dto instanceof BookReadDto) {
-            throw new NotFoundHttpException();
-        }
+        $dto = $this->getBookById($id);
 
         return $this->withResolvedUrl($dto);
     }
@@ -100,5 +101,16 @@ final readonly class BookViewDataFactory
             $dto->isPublished,
             $dto->version,
         );
+    }
+
+    private function getBookById(int $id): BookReadDto
+    {
+        $dto = $this->finder->findById($id);
+
+        if (!$dto instanceof BookReadDto) {
+            throw new NotFoundHttpException();
+        }
+
+        return $dto;
     }
 }
