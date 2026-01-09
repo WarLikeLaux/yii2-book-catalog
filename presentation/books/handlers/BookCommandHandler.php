@@ -13,6 +13,9 @@ use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\ports\ContentStorageInterface;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\DomainException;
+use app\domain\exceptions\OperationFailedException;
 use app\domain\values\StoredFileReference;
 use app\presentation\books\forms\BookForm;
 use app\presentation\common\adapters\UploadedFileAdapter;
@@ -42,12 +45,33 @@ final readonly class BookCommandHandler
     ) {
     }
 
+    /**
+     * @return array<string, string>
+     */
+    protected function getErrorFieldMap(): array
+    {
+        return [
+            'isbn.error.invalid_format' => 'isbn',
+            'year.error.too_old' => 'year',
+            'year.error.future' => 'year',
+            'book.error.title_empty' => 'title',
+            'book.error.title_too_long' => 'title',
+            'book.error.isbn_change_published' => 'isbn',
+            'book.error.invalid_author_id' => 'authorIds',
+            'book.error.publish_without_authors' => 'authorIds',
+        ];
+    }
+
     public function createBook(BookForm $form): int|null
     {
-        $data = $this->prepareCommandData($form);
-
-        /** @var CreateBookCommand $command */
-        $command = $this->autoMapper->map($data, CreateBookCommand::class);
+        try {
+            $data = $this->prepareCommandData($form);
+            /** @var CreateBookCommand $command */
+            $command = $this->autoMapper->map($data, CreateBookCommand::class);
+        } catch (\Throwable $e) {
+            $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 400, $e));
+            return null;
+        }
 
         /** @var int|null */
         return $this->executeWithForm(
@@ -61,11 +85,15 @@ final readonly class BookCommandHandler
 
     public function updateBook(int $id, BookForm $form): bool
     {
-        $data = $this->prepareCommandData($form);
-        $data['id'] = $id;
-
-        /** @var UpdateBookCommand $command */
-        $command = $this->autoMapper->map($data, UpdateBookCommand::class);
+        try {
+            $data = $this->prepareCommandData($form);
+            $data['id'] = $id;
+            /** @var UpdateBookCommand $command */
+            $command = $this->autoMapper->map($data, UpdateBookCommand::class);
+        } catch (\Throwable $e) {
+            $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 400, $e));
+            return false;
+        }
 
         return $this->executeWithForm(
             $this->useCaseRunner,
@@ -83,8 +111,10 @@ final readonly class BookCommandHandler
     {
         $data = $form->toArray();
         $data['cover'] = $this->processCoverUpload($form);
-        $data['description'] = $data['description'] !== '' ? $data['description'] : null;
-        $data['authorIds'] = array_map(intval(...), (array)$form->authorIds);
+        $data['description'] = ($data['description'] ?? '') !== '' ? $data['description'] : null;
+
+        $authorIds = (array)($form->authorIds ?? []);
+        $data['authorIds'] = array_map(intval(...), array_filter($authorIds, is_numeric(...)));
 
         return $data;
     }
@@ -123,9 +153,13 @@ final readonly class BookCommandHandler
             return null;
         }
 
-        $fileContent = $this->uploadedFileAdapter->toFileContent($form->cover);
-        $fileKey = $this->contentStorage->save($fileContent);
-
-        return new StoredFileReference($fileKey->getExtendedPath($fileContent->extension));
+        try {
+            $fileContent = $this->uploadedFileAdapter->toFileContent($form->cover);
+            $fileKey = $this->contentStorage->save($fileContent);
+            return new StoredFileReference($fileKey->getExtendedPath($fileContent->extension));
+        } catch (\Throwable $e) {
+            $form->addError('cover', Yii::t('app', 'file.error.storage_operation_failed') . ': ' . $e->getMessage());
+            throw $e;
+        }
     }
 }

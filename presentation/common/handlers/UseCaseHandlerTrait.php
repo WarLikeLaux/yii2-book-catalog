@@ -14,9 +14,12 @@ use yii\base\Model;
 trait UseCaseHandlerTrait
 {
     /**
-     * Any class using this trait SHOULD define a public const ERROR_TO_FIELD_MAP = []
-     * mapping DomainException message keys to form field names.
+     * @return array<string, string>
      */
+    protected function getErrorFieldMap(): array
+    {
+        return []; // @codeCoverageIgnore
+    }
 
     /**
      * @template TCommand of CommandInterface
@@ -41,7 +44,7 @@ trait UseCaseHandlerTrait
 
     protected function addFormError(Model $form, DomainException $e): void
     {
-        $errorToFieldMap = defined('static::ERROR_TO_FIELD_MAP') ? static::ERROR_TO_FIELD_MAP : [];
+        $errorToFieldMap = $this->getErrorFieldMap();
         $field = $errorToFieldMap[$e->getMessage()] ?? null;
         $message = Yii::t('app', $e->getMessage());
 

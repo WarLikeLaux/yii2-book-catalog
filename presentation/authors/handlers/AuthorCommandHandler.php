@@ -33,10 +33,28 @@ final readonly class AuthorCommandHandler
     ) {
     }
 
+    /**
+     * @return array<string, string>
+     */
+    protected function getErrorFieldMap(): array
+    {
+        return [
+            'author.error.fio_exists' => 'fio',
+            'author.error.fio_empty' => 'fio',
+            'author.error.fio_too_short' => 'fio',
+            'author.error.fio_too_long' => 'fio',
+        ];
+    }
+
     public function createAuthor(AuthorForm $form): ?int
     {
-        /** @var CreateAuthorCommand $command */
-        $command = $this->autoMapper->map($form, CreateAuthorCommand::class);
+        try {
+            /** @var CreateAuthorCommand $command */
+            $command = $this->autoMapper->map($form, CreateAuthorCommand::class);
+        } catch (\Throwable $e) {
+            $form->addError('fio', Yii::t('app', 'author.error.create_failed') . ': ' . $e->getMessage());
+            return null;
+        }
 
         /** @var int|null */
         return $this->executeWithForm(
@@ -50,8 +68,13 @@ final readonly class AuthorCommandHandler
 
     public function updateAuthor(int $id, AuthorForm $form): bool
     {
-        /** @var UpdateAuthorCommand $command */
-        $command = $this->autoMapper->map(['id' => $id] + $form->toArray(), UpdateAuthorCommand::class);
+        try {
+            /** @var UpdateAuthorCommand $command */
+            $command = $this->autoMapper->map(array_merge($form->toArray(), ['id' => $id]), UpdateAuthorCommand::class);
+        } catch (\Throwable $e) {
+            $form->addError('fio', Yii::t('app', 'author.error.update_failed') . ': ' . $e->getMessage());
+            return false;
+        }
 
         return $this->executeWithForm(
             $this->useCaseRunner,

@@ -47,4 +47,5 @@ enum DomainErrorCode: string
     case EntityDeleteFailed = 'error.entity_delete_failed';
     case EntityPersistFailed = 'error.entity_persist_failed';
     case EntityIdMissing = 'error.entity_id_missing';
+    case MapperFailed = 'error.mapper_failed';
 }

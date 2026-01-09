@@ -91,6 +91,10 @@ final class BookSearchHandlerTest extends Unit
 
         $this->dataProviderFactory->expects($this->once())
             ->method('create')
+            ->with($this->callback(static function (PagedResultInterface $result) use ($dto) {
+                $models = $result->getModels();
+                return count($models) === 1 && $models[0]->coverUrl === 'resolved.jpg';
+            }))
             ->willReturn(new ArrayDataProvider(['allModels' => [$dto]]));
 
         $result = $this->handler->prepareIndexViewData($params, $pagination);

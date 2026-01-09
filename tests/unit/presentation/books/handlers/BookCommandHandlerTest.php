@@ -252,6 +252,43 @@ final class BookCommandHandlerTest extends Unit
         $this->assertTrue($result);
     }
 
+    public function testCreateBookReturnsNullOnMappingError(): void
+    {
+        $form = $this->createMock(BookForm::class);
+        $form->method('toArray')->willReturn([]);
+        $form->method('attributes')->willReturn(['title']);
+        $this->autoMapper->method('map')->willThrowException(new \RuntimeException('Fail'));
+
+        $form->expects($this->once())->method('addError');
+
+        $this->assertNull($this->handler->createBook($form));
+    }
+
+    public function testUpdateBookReturnsFalseOnMappingError(): void
+    {
+        $form = $this->createMock(BookForm::class);
+        $form->method('toArray')->willReturn([]);
+        $form->method('attributes')->willReturn(['title']);
+        $this->autoMapper->method('map')->willThrowException(new \RuntimeException('Fail'));
+
+        $form->expects($this->once())->method('addError');
+
+        $this->assertFalse($this->handler->updateBook(1, $form));
+    }
+
+    public function testProcessCoverUploadThrowsOnError(): void
+    {
+        $form = $this->createMock(BookForm::class);
+        $form->method('attributes')->willReturn(['title']);
+        $file = $this->createUploadedFile();
+        $form->cover = $file;
+
+        $this->uploadedFileAdapter->method('toFileContent')->willThrowException(new \RuntimeException('Disk error'));
+        $form->expects($this->atLeastOnce())->method('addError');
+
+        $this->assertFalse($this->handler->updateBook(1, $form));
+    }
+
     public function testPublishBookExecutesUseCase(): void
     {
         $bookId = 123;
