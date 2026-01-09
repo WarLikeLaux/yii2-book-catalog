@@ -5,15 +5,6 @@ declare(strict_types=1);
 namespace app\infrastructure\phpstan\Rules;
 
 use PhpParser\Node;
-use PhpParser\Node\ComplexType;
-use PhpParser\Node\Expr\Variable;
-use PhpParser\Node\Identifier;
-use PhpParser\Node\IntersectionType;
-use PhpParser\Node\Name;
-use PhpParser\Node\NullableType;
-use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Stmt\Property;
-use PhpParser\Node\UnionType;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\InClassNode;
 use PHPStan\Reflection\ClassReflection;
@@ -47,7 +38,7 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
             return [];
         }
 
-        $originalNode = $node->getOriginalNode();
+        $node->getOriginalNode();
         $errors = [];
         $classReflection = $scope->getClassReflection();
 
@@ -60,18 +51,18 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
                             $ancestor->getName(),
                         ),
                     )->identifier('architecture.noActiveRecord')->build();
-                    // Once a forbidden ancestor is found, no need to check further ancestors for this class
-                    // as the error is already reported.
                     break;
                 }
             }
-        }
 
-        foreach ($originalNode->stmts as $stmt) {
-            if ($stmt instanceof ClassMethod) {
-                $errors = [...$errors, ...$this->checkClassMethod($stmt, $scope)];
-            } elseif ($stmt instanceof Property) {
-                $errors = [...$errors, ...$this->checkProperty($stmt, $scope)];
+            $nativeReflection = $classReflection->getNativeReflection();
+
+            foreach ($nativeReflection->getMethods() as $method) {
+                $errors = [...$errors, ...$this->checkReflectionMethod($method)];
+            }
+
+            foreach ($nativeReflection->getProperties() as $property) {
+                $errors = [...$errors, ...$this->checkReflectionProperty($property)];
             }
         }
 
@@ -98,34 +89,39 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private function checkClassMethod(ClassMethod $node, Scope $scope): array
+    private function checkReflectionMethod(\ReflectionMethod $method): array
     {
         $errors = [];
 
-        foreach ($node->params as $param) {
-            if ($param->type === null) {
+        foreach ($method->getParameters() as $param) {
+            $type = $param->getType();
+
+            if ($type === null) {
                 continue;
             }
 
-            $forbidden = $this->findForbiddenType($param->type, $scope);
+            $typeNames = $this->extractTypeNames($type);
 
-            if ($forbidden === null) {
-                continue;
+            foreach ($typeNames as $typeName) {
+                if (!$this->isForbidden($typeName)) {
+                    continue;
+                }
+
+                $errors[] = $this->buildError($typeName, 'parameter', $param->getName());
             }
-
-            $paramName = $param->var instanceof Variable && is_string($param->var->name)
-                ? $param->var->name
-                : 'unknown';
-            $errors[] = $this->buildError($forbidden, 'parameter', $paramName);
         }
 
-        $returnType = $node->returnType;
+        $returnType = $method->getReturnType();
 
-        if ($returnType instanceof Node) {
-            $forbidden = $this->findForbiddenType($returnType, $scope);
+        if ($returnType !== null) {
+            $typeNames = $this->extractTypeNames($returnType);
 
-            if ($forbidden !== null) {
-                $errors[] = $this->buildError($forbidden, 'return type', $node->name->toString());
+            foreach ($typeNames as $typeName) {
+                if (!$this->isForbidden($typeName)) {
+                    continue;
+                }
+
+                $errors[] = $this->buildError($typeName, 'return type', $method->getName());
             }
         }
 
@@ -135,56 +131,63 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private function checkProperty(Property $node, Scope $scope): array
+    private function checkReflectionProperty(\ReflectionProperty $property): array
     {
-        if (!$node->type instanceof Node) {
-            return [];
-        }
+        $type = $property->getType();
 
-        $forbidden = $this->findForbiddenType($node->type, $scope);
-
-        if ($forbidden === null) {
+        if ($type === null) {
             return [];
         }
 
         $errors = [];
+        $typeNames = $this->extractTypeNames($type);
 
-        foreach ($node->props as $prop) {
-             $errors[] = $this->buildError($forbidden, 'property', $prop->name->toString());
+        foreach ($typeNames as $typeName) {
+            if (!$this->isForbidden($typeName)) {
+                continue;
+            }
+
+            $errors[] = $this->buildError($typeName, 'property', $property->getName());
         }
 
         return $errors;
     }
 
-    private function findForbiddenType(ComplexType|Identifier|Name $type, Scope $scope): ?string
+    /**
+     * @return string[]
+     */
+    private function extractTypeNames(\ReflectionType $type): array
     {
-        if ($type instanceof NullableType) {
-            return $this->findForbiddenType($type->type, $scope);
+        if ($type instanceof \ReflectionNamedType) {
+            return [$type->getName()];
         }
 
-        if ($type instanceof UnionType || $type instanceof IntersectionType) {
-            foreach ($type->types as $inner) {
-                $found = $this->findForbiddenType($inner, $scope);
+        if ($type instanceof \ReflectionUnionType || $type instanceof \ReflectionIntersectionType) {
+            $names = [];
 
-                if ($found !== null) {
-                    return $found;
+            foreach ($type->getTypes() as $innerType) {
+                if (!($innerType instanceof \ReflectionNamedType)) {
+                    continue;
                 }
+
+                $names[] = $innerType->getName();
             }
 
-            return null;
+            return $names;
         }
 
-        if ($type instanceof Name) {
-            $resolvedName = $scope->resolveName($type);
+        return [];
+    }
 
-            foreach (self::FORBIDDEN_CLASSES as $forbidden) {
-                if ($this->isForbiddenClass($resolvedName, $forbidden)) {
-                    return $forbidden;
-                }
+    private function isForbidden(string $className): bool
+    {
+        foreach (self::FORBIDDEN_CLASSES as $forbidden) {
+            if ($this->isForbiddenClass($className, $forbidden)) {
+                return true;
             }
         }
 
-        return null;
+        return false;
     }
 
     private function isForbiddenClass(string $className, string $forbidden): bool
