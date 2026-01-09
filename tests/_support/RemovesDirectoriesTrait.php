@@ -11,19 +11,47 @@ trait RemovesDirectoriesTrait
         $dir = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
         if (!is_dir($dir) || is_link($dir)) {
-            if (is_link($dir) || is_file($dir)) {
-                @unlink(rtrim($dir, DIRECTORY_SEPARATOR));
-            }
-
+            $this->deleteFileOrLink(rtrim($dir, DIRECTORY_SEPARATOR));
             return;
         }
 
+        $this->deleteDirectoryRecursively($dir);
+    }
+
+    private function deleteFileOrLink(string $path): void
+    {
+        if (!is_link($path) && !is_file($path)) {
+            return;
+        }
+
+        $realPath = realpath($path);
+
+        if ($realPath === false) {
+            return;
+        }
+
+        $normalizedPath = rtrim($realPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+        if (!$this->isPathAllowed($normalizedPath)) {
+            return;
+        }
+
+        if (!unlink($path)) {
+            throw new DirectoryRemovalException("Failed to delete file: {$path}");
+        }
+    }
+
+    private function deleteDirectoryRecursively(string $dir): void
+    {
         $realPath = realpath($dir);
 
-        if (
-            $realPath === false
-            || !$this->isPathAllowed(rtrim($realPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)
-        ) {
+        if ($realPath === false) {
+            return;
+        }
+
+        $normalizedPath = rtrim($realPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+        if (!$this->isPathAllowed($normalizedPath)) {
             return;
         }
 
@@ -37,21 +65,50 @@ trait RemovesDirectoriesTrait
             $path = $fileinfo->getPathname();
             $realEntryPath = realpath($path);
 
-            if (
-                    $realEntryPath === false
-                    || !str_starts_with(rtrim($realEntryPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR, $realPath)
-            ) {
+            if ($realEntryPath === false) {
+                $this->deleteBrokenSymlink($path, $fileinfo, $normalizedPath);
+                continue;
+            }
+
+            $normalizedEntryPath = rtrim($realEntryPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+            if (!str_starts_with($normalizedEntryPath, $normalizedPath)) {
                 continue;
             }
 
             if ($fileinfo->isLink() || !$fileinfo->isDir()) {
-                @unlink($path);
-            } else {
-                @rmdir($path);
+                if (!unlink($path)) {
+                    throw new DirectoryRemovalException("Failed to delete file: {$path}");
+                }
+
+                continue;
+            }
+
+            if (!rmdir($path)) {
+                throw new DirectoryRemovalException("Failed to delete directory: {$path}");
             }
         }
 
-        @rmdir(rtrim($dir, DIRECTORY_SEPARATOR));
+        if (!rmdir(rtrim($dir, DIRECTORY_SEPARATOR))) {
+            throw new DirectoryRemovalException("Failed to delete directory: {$dir}");
+        }
+    }
+
+    private function deleteBrokenSymlink(string $path, \SplFileInfo $fileinfo, string $normalizedPath): void
+    {
+        if (!$fileinfo->isLink()) {
+            return;
+        }
+
+        $normalizedEntryPath = rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+        if (!str_starts_with($normalizedEntryPath, $normalizedPath)) {
+            return;
+        }
+
+        if (!unlink($path)) {
+            throw new DirectoryRemovalException("Failed to delete symlink: {$path}");
+        }
     }
 
     private function isPathAllowed(string $realPath): bool

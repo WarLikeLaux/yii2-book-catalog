@@ -7,10 +7,13 @@ namespace tests\unit\presentation\common\adapters;
 use app\domain\values\FileContent;
 use app\presentation\common\adapters\UploadedFileAdapter;
 use Codeception\Test\Unit;
+use tests\_support\RemovesDirectoriesTrait;
 use yii\web\UploadedFile;
 
 final class UploadedFileAdapterTest extends Unit
 {
+    use RemovesDirectoriesTrait;
+
     private string $tempDir;
     private UploadedFileAdapter $adapter;
 
@@ -74,21 +77,5 @@ final class UploadedFileAdapterTest extends Unit
             'size' => filesize($tempPath),
             'error' => UPLOAD_ERR_OK,
         ]);
-    }
-
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $files = array_diff(scandir($dir), ['.', '..']);
-
-        foreach ($files as $file) {
-            $path = $dir . '/' . $file;
-            is_dir($path) ? $this->removeDir($path) : unlink($path);
-        }
-
-        rmdir($dir);
     }
 }
