@@ -13,6 +13,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 /**
  * @implements Rule<InClassNode>
  * @codeCoverageIgnore Логика статического анализа проверяется тестами PHPStan
+ * @phpcs:disable SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
  */
 final readonly class UseCaseMustBeFinalRule implements Rule
 {
@@ -35,6 +36,7 @@ final readonly class UseCaseMustBeFinalRule implements Rule
             return [
                 RuleErrorBuilder::message(sprintf('UseCase class %s must be final.', $className))
                     ->identifier('architecture.useCaseFinal')
+                    ->line($node->getStartLine())
                     ->build(),
             ];
         }
