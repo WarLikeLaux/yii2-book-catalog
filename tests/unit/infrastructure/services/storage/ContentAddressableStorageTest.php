@@ -102,6 +102,28 @@ final class ContentAddressableStorageTest extends Unit
         );
     }
 
+    public function testGetModificationTimeReturnsTimestamp(): void
+    {
+        $content = $this->createFileContent('test content');
+        $key = $this->storage->save($content);
+
+        $mtime = $this->storage->getModificationTime($key, 'txt');
+
+        $this->assertIsInt($mtime);
+        $this->assertLessThanOrEqual(time(), $mtime);
+        $this->assertGreaterThan(time() - 60, $mtime);
+    }
+
+    public function testGetModificationTimeThrowsOnMissingFile(): void
+    {
+        $key = new FileKey(str_repeat('f', 64));
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failed to get modification time');
+
+        $this->storage->getModificationTime($key, 'txt');
+    }
+
     public function testListAllKeysReturnsStoredKeys(): void
     {
         $content1 = $this->createFileContent('content one');

@@ -66,6 +66,19 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
         return $this->config->baseUrl . '/' . $key->getExtendedPath($extension);
     }
 
+    public function getModificationTime(FileKey $key, string $extension = ''): int
+    {
+        $relativePath = $key->getExtendedPath($extension);
+        $fullPath = $this->resolvePath($relativePath);
+        $mtime = @filemtime($fullPath);
+
+        if ($mtime === false) {
+             throw new RuntimeException("Failed to get modification time for file: {$fullPath}"); // @codeCoverageIgnore
+        }
+
+        return $mtime;
+    }
+
     /**
      * @return iterable<FileKey>
      */
@@ -89,7 +102,10 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
             return;
         }
 
-        unlink($fullPath);
+        if (!@unlink($fullPath)) {
+             throw new RuntimeException("Failed to delete file: {$fullPath}"); // @codeCoverageIgnore
+        }
+
         $this->cleanupEmptyDirectories(dirname($fullPath));
     }
 
@@ -135,7 +151,12 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
                 break; // @codeCoverageIgnore
             }
 
-            rmdir($dir);
+            if (!@rmdir($dir)) {
+                 // Directory might have been re-populated or permission issue; just usage log or ignore if non-critical
+                 // For now, consistent with previous behavior, we just stop bubbling up
+                 break; // @codeCoverageIgnore
+            }
+
             $dir = dirname($dir);
         }
     }

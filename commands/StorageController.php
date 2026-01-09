@@ -9,6 +9,7 @@ use app\domain\values\FileKey;
 use yii\console\Controller;
 use yii\console\ExitCode;
 use yii\db\Connection;
+use yii\db\Query;
 
 final class StorageController extends Controller
 {
@@ -20,7 +21,6 @@ final class StorageController extends Controller
         $module,
         private readonly ContentStorageInterface $storage,
         private readonly Connection $db,
-        private readonly string $storagePath,
         $config = [],
     ) {
         parent::__construct($id, $module, $config);
@@ -37,25 +37,32 @@ final class StorageController extends Controller
         $referencedKeysMap = array_flip($referencedKeys);
         $orphanCount = 0;
         $skippedCount = 0;
+        $errorCount = 0;
         $ttlSeconds = $ttlHours * 3600;
 
         foreach ($this->storage->listAllKeys() as $key) {
-            if (isset($referencedKeysMap[$key->value])) {
-                continue;
-            }
+            try {
+                if (isset($referencedKeysMap[$key->value])) {
+                    continue;
+                }
 
-            if (!$this->isOlderThanTtl($key, $ttlSeconds)) {
-                $skippedCount++;
-                continue;
-            }
+                if (!$this->isOlderThanTtl($key, $ttlSeconds)) {
+                    $skippedCount++;
+                    continue;
+                }
 
-            $this->deleteOrphan($key);
-            $orphanCount++;
+                $this->deleteOrphan($key);
+                $orphanCount++;
+            } catch (\Throwable $e) {
+                $this->stderr("Error processing file key {$key->value}: " . $e->getMessage() . "\n");
+                $errorCount++;
+            }
         }
 
         $this->stdout("\nGarbage collection complete.\n");
         $this->stdout("Deleted: {$orphanCount} orphan files\n");
         $this->stdout("Skipped: {$skippedCount} files (younger than TTL)\n");
+        $this->stdout("Errors:  {$errorCount}\n");
 
         return ExitCode::OK;
     }
@@ -65,9 +72,11 @@ final class StorageController extends Controller
      */
     private function getReferencedFileKeys(): array
     {
-        $urls = $this->db
-            ->createCommand('SELECT cover_url FROM books WHERE cover_url IS NOT NULL')
-            ->queryColumn();
+        $urls = (new Query())
+            ->select('cover_url')
+            ->from('books')
+            ->where(['IS NOT', 'cover_url', null])
+            ->column($this->db);
 
         return array_map(
             static fn(string $url): string => pathinfo($url, PATHINFO_FILENAME),
@@ -80,15 +89,13 @@ final class StorageController extends Controller
         $maxMtime = null;
 
         foreach (self::SUPPORTED_EXTENSIONS as $ext) {
-            $path = $this->resolvePath($key, $ext);
-
-            if (!file_exists($path)) {
+            try {
+                $mtime = $this->storage->getModificationTime($key, $ext);
+            } catch (\RuntimeException) {
                 continue;
             }
 
-            $mtime = filemtime($path);
-
-            if ($mtime === false || ($maxMtime !== null && $mtime <= $maxMtime)) {
+            if ($maxMtime !== null && $mtime <= $maxMtime) {
                 continue;
             }
 
@@ -105,10 +112,5 @@ final class StorageController extends Controller
         }
 
         $this->stdout("  Deleted orphan: {$key->value}\n");
-    }
-
-    private function resolvePath(FileKey $key, string $extension): string
-    {
-        return $this->storagePath . '/' . $key->getExtendedPath($extension);
     }
 }

@@ -15,6 +15,8 @@ interface ContentStorageInterface
 
     public function getUrl(FileKey $key, string $extension = ''): string;
 
+    public function getModificationTime(FileKey $key, string $extension = ''): int;
+
     /**
      * @return iterable<FileKey>
      */
