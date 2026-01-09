@@ -39,8 +39,6 @@ final class FileContentTest extends Unit
         $this->assertSame('txt', $content->extension);
         $this->assertSame('text/plain', $content->mimeType);
         $this->assertSame($stream, $content->getStream());
-
-        fclose($stream);
     }
 
     public function testThrowsOnInvalidResource(): void
@@ -102,8 +100,6 @@ final class FileContentTest extends Unit
 
         $this->assertInstanceOf(FileKey::class, $key);
         $this->assertSame(hash('sha256', $textContent), $key->value);
-
-        fclose($stream);
     }
 
     public function testComputeKeyIsDeterministic(): void
@@ -122,8 +118,5 @@ final class FileContentTest extends Unit
         $content2 = new FileContent($stream2, 'txt', 'text/plain');
 
         $this->assertTrue($content1->computeKey()->equals($content2->computeKey()));
-
-        fclose($stream1);
-        fclose($stream2);
     }
 }

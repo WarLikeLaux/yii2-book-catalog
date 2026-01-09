@@ -6,7 +6,6 @@ namespace app\domain\values;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
-use RuntimeException;
 
 final readonly class FileContent
 {
@@ -23,19 +22,16 @@ final readonly class FileContent
         }
     }
 
-    /**
-     * @return self Экземпляр объекта, содержащий открытый поток. Вызывающий код должен закрыть его с помощью fclose().
-     */
     public static function fromPath(string $path, ?string $extension = null): self
     {
         if (!file_exists($path)) {
-            throw new RuntimeException('File not found: ' . $path);
+            throw new ValidationException(DomainErrorCode::FileFileNotFound);
         }
 
-        $stream = fopen($path, 'rb');
+        $stream = @fopen($path, 'rb');
 
         if ($stream === false) {
-            throw new RuntimeException('Cannot open file: ' . $path); // @codeCoverageIgnore
+            throw new ValidationException(DomainErrorCode::FileOpenFailed); // @codeCoverageIgnore
         }
 
         $extension ??= pathinfo($path, PATHINFO_EXTENSION);
@@ -59,7 +55,7 @@ final readonly class FileContent
     public function __destruct()
     {
         if (!is_resource($this->stream)) {
-            return;
+            return; // @codeCoverageIgnore
         }
 
         fclose($this->stream);
