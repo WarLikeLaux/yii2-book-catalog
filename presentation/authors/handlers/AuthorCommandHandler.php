@@ -60,8 +60,9 @@ final readonly class AuthorCommandHandler
 
     public function updateAuthor(int $id, AuthorForm $form): bool
     {
+        $form->id = $id;
         /** @var UpdateAuthorCommand $command */
-        $command = $this->autoMapper->map(['id' => $id] + $form->toArray(), UpdateAuthorCommand::class);
+        $command = $this->autoMapper->map($form, UpdateAuthorCommand::class);
 
         $result = $this->executeWithForm(
             $this->useCaseRunner,

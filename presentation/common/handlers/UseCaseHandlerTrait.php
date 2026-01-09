@@ -42,6 +42,7 @@ trait UseCaseHandlerTrait
 
         if ($field === null) {
             $attributes = $form->attributes();
+            /** @var string|false $firstAttribute */
             $firstAttribute = reset($attributes);
             $field = $firstAttribute !== false ? $firstAttribute : 'id';
         }
