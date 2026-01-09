@@ -25,6 +25,7 @@ use app\presentation\common\services\WebUseCaseRunner;
 use AutoMapper\AutoMapperInterface;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 use yii\web\UploadedFile;
 
 final class BookCommandHandlerTest extends Unit
@@ -39,6 +40,7 @@ final class BookCommandHandlerTest extends Unit
     private WebUseCaseRunner&MockObject $useCaseRunner;
     private ContentStorageInterface&MockObject $contentStorage;
     private UploadedFileAdapter&MockObject $uploadedFileAdapter;
+    private LoggerInterface&MockObject $logger;
     private BookCommandHandler $handler;
 
     protected function _before(): void
@@ -52,6 +54,8 @@ final class BookCommandHandlerTest extends Unit
         $this->contentStorage = $this->createMock(ContentStorageInterface::class);
         $this->uploadedFileAdapter = $this->createMock(UploadedFileAdapter::class);
 
+        $this->logger = $this->createMock(LoggerInterface::class);
+
         $this->handler = new BookCommandHandler(
             $this->autoMapper,
             $this->createBookUseCase,
@@ -61,6 +65,7 @@ final class BookCommandHandlerTest extends Unit
             $this->useCaseRunner,
             $this->contentStorage,
             $this->uploadedFileAdapter,
+            $this->logger,
         );
     }
 
@@ -287,6 +292,21 @@ final class BookCommandHandlerTest extends Unit
         $form->expects($this->atLeastOnce())->method('addError');
 
         $this->assertFalse($this->handler->updateBook(1, $form));
+    }
+
+    public function testCreateBookReturnsNullOnCoverUploadError(): void
+    {
+        $form = $this->createMock(BookForm::class);
+        $form->method('attributes')->willReturn(['title']);
+        $file = $this->createUploadedFile();
+        $form->cover = $file;
+
+        $this->uploadedFileAdapter->method('toFileContent')->willThrowException(new \RuntimeException('Disk error'));
+
+        $this->logger->expects($this->once())->method('error');
+        $form->expects($this->atLeastOnce())->method('addError')->with('cover', $this->anything());
+
+        $this->assertNull($this->handler->createBook($form));
     }
 
     public function testPublishBookExecutesUseCase(): void

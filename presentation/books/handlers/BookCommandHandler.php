@@ -22,6 +22,7 @@ use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\common\handlers\UseCaseHandlerTrait;
 use app\presentation\common\services\WebUseCaseRunner;
 use AutoMapper\AutoMapperInterface;
+use Psr\Log\LoggerInterface;
 use Yii;
 use yii\web\UploadedFile;
 
@@ -42,6 +43,7 @@ final readonly class BookCommandHandler
         private WebUseCaseRunner $useCaseRunner,
         private ContentStorageInterface $contentStorage,
         private UploadedFileAdapter $uploadedFileAdapter,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -65,11 +67,19 @@ final readonly class BookCommandHandler
     public function createBook(BookForm $form): int|null
     {
         try {
-            $data = $this->prepareCommandData($form);
+            $cover = $this->processCoverUpload($form);
+        } catch (\Throwable $e) {
+            $this->logger->error('Failed to upload book cover', ['exception' => $e]);
+            $form->addError('cover', Yii::t('app', 'file.error.storage_operation_failed'));
+            return null;
+        }
+
+        try {
+            $data = $this->prepareCommandData($form, $cover);
             /** @var CreateBookCommand $command */
             $command = $this->autoMapper->map($data, CreateBookCommand::class);
         } catch (\Throwable $e) {
-            $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 400, $e));
+            $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 0, $e));
             return null;
         }
 
@@ -86,12 +96,20 @@ final readonly class BookCommandHandler
     public function updateBook(int $id, BookForm $form): bool
     {
         try {
-            $data = $this->prepareCommandData($form);
+            $cover = $this->processCoverUpload($form);
+        } catch (\Throwable $e) {
+            $this->logger->error('Failed to upload book cover', ['exception' => $e, 'book_id' => $id]);
+            $form->addError('cover', Yii::t('app', 'file.error.storage_operation_failed'));
+            return false;
+        }
+
+        try {
+            $data = $this->prepareCommandData($form, $cover);
             $data['id'] = $id;
             /** @var UpdateBookCommand $command */
             $command = $this->autoMapper->map($data, UpdateBookCommand::class);
         } catch (\Throwable $e) {
-            $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 400, $e));
+            $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 0, $e));
             return false;
         }
 
@@ -107,10 +125,10 @@ final readonly class BookCommandHandler
     /**
      * @return array<string, mixed>
      */
-    private function prepareCommandData(BookForm $form): array
+    private function prepareCommandData(BookForm $form, StoredFileReference|null $cover = null): array
     {
         $data = $form->toArray();
-        $data['cover'] = $this->processCoverUpload($form);
+        $data['cover'] = $cover;
         $data['description'] = ($data['description'] ?? '') !== '' ? $data['description'] : null;
 
         $authorIds = (array)($form->authorIds ?? []);
@@ -153,13 +171,8 @@ final readonly class BookCommandHandler
             return null;
         }
 
-        try {
-            $fileContent = $this->uploadedFileAdapter->toFileContent($form->cover);
-            $fileKey = $this->contentStorage->save($fileContent);
-            return new StoredFileReference($fileKey->getExtendedPath($fileContent->extension));
-        } catch (\Throwable $e) {
-            $form->addError('cover', Yii::t('app', 'file.error.storage_operation_failed') . ': ' . $e->getMessage());
-            throw $e;
-        }
+        $fileContent = $this->uploadedFileAdapter->toFileContent($form->cover);
+        $fileKey = $this->contentStorage->save($fileContent);
+        return new StoredFileReference($fileKey->getExtendedPath($fileContent->extension));
     }
 }

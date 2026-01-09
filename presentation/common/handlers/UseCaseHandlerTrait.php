@@ -52,9 +52,13 @@ trait UseCaseHandlerTrait
             $attributes = $form->attributes();
             /** @var string|false $firstAttribute */
             $firstAttribute = reset($attributes);
-            $field = $firstAttribute !== false ? $firstAttribute : 'id';
+            $field = $firstAttribute !== false ? $firstAttribute : null;
         }
 
-        $form->addError($field, $message);
+        if ($field !== null && in_array($field, $form->attributes(), true)) {
+            $form->addError($field, $message);
+        } else {
+            $form->addError('', $message);
+        }
     }
 }

@@ -17,6 +17,7 @@ use app\presentation\common\services\WebUseCaseRunner;
 use AutoMapper\AutoMapperInterface;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class AuthorCommandHandlerTest extends Unit
 {
@@ -25,6 +26,7 @@ final class AuthorCommandHandlerTest extends Unit
     private UpdateAuthorUseCase&MockObject $updateAuthorUseCase;
     private DeleteAuthorUseCase&MockObject $deleteAuthorUseCase;
     private WebUseCaseRunner&MockObject $useCaseRunner;
+    private LoggerInterface&MockObject $logger;
     private AuthorCommandHandler $handler;
 
     protected function _before(): void
@@ -35,23 +37,28 @@ final class AuthorCommandHandlerTest extends Unit
         $this->deleteAuthorUseCase = $this->createMock(DeleteAuthorUseCase::class);
         $this->useCaseRunner = $this->createMock(WebUseCaseRunner::class);
 
+        $this->logger = $this->createMock(LoggerInterface::class);
+
         $this->handler = new AuthorCommandHandler(
             $this->autoMapper,
             $this->createAuthorUseCase,
             $this->updateAuthorUseCase,
             $this->deleteAuthorUseCase,
             $this->useCaseRunner,
+            $this->logger,
         );
     }
 
     public function testCreateAuthorReturnsIdOnSuccess(): void
     {
         $form = $this->createMock(AuthorForm::class);
+        $formData = ['fio' => 'Test Author'];
+        $form->method('toArray')->willReturn($formData);
         $command = $this->createMock(CreateAuthorCommand::class);
 
         $this->autoMapper->expects($this->once())
             ->method('map')
-            ->with($form, CreateAuthorCommand::class)
+            ->with($formData, CreateAuthorCommand::class)
             ->willReturn($command);
 
         $this->useCaseRunner->method('executeWithFormErrors')->willReturn(123);
@@ -63,6 +70,7 @@ final class AuthorCommandHandlerTest extends Unit
     {
         $form = $this->createMock(AuthorForm::class);
         $form->method('attributes')->willReturn(['fio']);
+        $form->method('toArray')->willReturn(['fio' => 'Invalid']);
         $this->autoMapper->method('map')->willThrowException(new \RuntimeException('Mapping failed'));
 
         $form->expects($this->once())->method('addError');
@@ -100,6 +108,8 @@ final class AuthorCommandHandlerTest extends Unit
     public function testCreateAuthorAddsFormErrorOnDomainException(): void
     {
         $form = $this->createMock(AuthorForm::class);
+        $form->method('attributes')->willReturn(['fio']);
+        $form->method('toArray')->willReturn(['fio' => 'Duplicate']);
         $command = $this->createMock(CreateAuthorCommand::class);
         $this->autoMapper->method('map')->willReturn($command);
 
@@ -115,6 +125,30 @@ final class AuthorCommandHandlerTest extends Unit
         $form->expects($this->once())
             ->method('addError')
             ->with('fio', $this->anything());
+
+        $this->handler->createAuthor($form);
+    }
+
+    public function testCreateAuthorAddsGlobalErrorWhenNoAttributes(): void
+    {
+        $form = $this->createMock(AuthorForm::class);
+        $form->method('attributes')->willReturn([]);
+        $form->method('toArray')->willReturn(['fio' => 'Duplicate']);
+        $command = $this->createMock(CreateAuthorCommand::class);
+        $this->autoMapper->method('map')->willReturn($command);
+
+        $exception = new ValidationException(DomainErrorCode::AuthorFioExists);
+
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
+                $onDomainError($exception);
+                return null;
+            });
+
+        $form->expects($this->once())
+            ->method('addError')
+            ->with('', $this->anything());
 
         $this->handler->createAuthor($form);
     }

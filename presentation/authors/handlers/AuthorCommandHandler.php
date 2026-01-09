@@ -14,6 +14,7 @@ use app\presentation\authors\forms\AuthorForm;
 use app\presentation\common\handlers\UseCaseHandlerTrait;
 use app\presentation\common\services\WebUseCaseRunner;
 use AutoMapper\AutoMapperInterface;
+use Psr\Log\LoggerInterface;
 use Yii;
 
 /**
@@ -30,6 +31,7 @@ final readonly class AuthorCommandHandler
         private UpdateAuthorUseCase $updateAuthorUseCase,
         private DeleteAuthorUseCase $deleteAuthorUseCase,
         private WebUseCaseRunner $useCaseRunner,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -49,10 +51,12 @@ final readonly class AuthorCommandHandler
     public function createAuthor(AuthorForm $form): ?int
     {
         try {
+            $data = $this->prepareCommandData($form);
             /** @var CreateAuthorCommand $command */
-            $command = $this->autoMapper->map($form, CreateAuthorCommand::class);
+            $command = $this->autoMapper->map($data, CreateAuthorCommand::class);
         } catch (\Throwable $e) {
-            $form->addError('fio', Yii::t('app', 'author.error.create_failed') . ': ' . $e->getMessage());
+            $this->logger->error('Failed to map author form to CreateAuthorCommand', ['exception' => $e]);
+            $form->addError('fio', Yii::t('app', 'author.error.create_failed'));
             return null;
         }
 
@@ -69,10 +73,13 @@ final readonly class AuthorCommandHandler
     public function updateAuthor(int $id, AuthorForm $form): bool
     {
         try {
+            $data = $this->prepareCommandData($form);
+            $data['id'] = $id;
             /** @var UpdateAuthorCommand $command */
-            $command = $this->autoMapper->map(array_merge($form->toArray(), ['id' => $id]), UpdateAuthorCommand::class);
+            $command = $this->autoMapper->map($data, UpdateAuthorCommand::class);
         } catch (\Throwable $e) {
-            $form->addError('fio', Yii::t('app', 'author.error.update_failed') . ': ' . $e->getMessage());
+            $this->logger->error('Failed to map author form to UpdateAuthorCommand', ['exception' => $e, 'author_id' => $id]);
+            $form->addError('fio', Yii::t('app', 'author.error.update_failed'));
             return false;
         }
 
@@ -97,5 +104,13 @@ final readonly class AuthorCommandHandler
         );
 
         return $result !== null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function prepareCommandData(AuthorForm $form): array
+    {
+        return $form->toArray();
     }
 }
