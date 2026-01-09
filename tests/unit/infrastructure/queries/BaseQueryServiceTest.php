@@ -17,7 +17,14 @@ final class BaseQueryServiceTest extends Unit
 {
     public function testExistsWithActiveQueryAndExcludeId(): void
     {
-        $service = $this->createService();
+        $conn = $this->makeEmpty(Connection::class);
+        $mapper = $this->makeEmpty(AutoMapperInterface::class);
+        $service = new class ($conn, $mapper) extends BaseQueryService {
+            public function checkExists(ActiveQueryInterface $query, ?int $excludeId): bool
+            {
+                return $this->exists($query, $excludeId);
+            }
+        };
 
         $query = $this->createMock(ActiveQuery::class);
         $query->modelClass = new class extends ActiveRecord {
@@ -41,7 +48,14 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsWithNullExcludeId(): void
     {
-        $service = $this->createService();
+        $conn = $this->makeEmpty(Connection::class);
+        $mapper = $this->makeEmpty(AutoMapperInterface::class);
+        $service = new class ($conn, $mapper) extends BaseQueryService {
+            public function checkExists(ActiveQueryInterface $query, ?int $excludeId): bool
+            {
+                return $this->exists($query, $excludeId);
+            }
+        };
 
         $query = $this->createMock(ActiveQueryInterface::class);
         $query->expects($this->once())
@@ -53,7 +67,14 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsThrowsLogicExceptionForNonActiveQuery(): void
     {
-        $service = $this->createService();
+        $conn = $this->makeEmpty(Connection::class);
+        $mapper = $this->makeEmpty(AutoMapperInterface::class);
+        $service = new class ($conn, $mapper) extends BaseQueryService {
+            public function checkExists(ActiveQueryInterface $query, int $excludeId): void
+            {
+                $this->exists($query, $excludeId);
+            }
+        };
 
         $nonActiveQuery = $this->makeEmpty(ActiveQueryInterface::class);
 
@@ -65,7 +86,14 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsThrowsLogicExceptionForModelWithoutPrimaryKey(): void
     {
-        $service = $this->createService();
+        $conn = $this->makeEmpty(Connection::class);
+        $mapper = $this->makeEmpty(AutoMapperInterface::class);
+        $service = new class ($conn, $mapper) extends BaseQueryService {
+            public function checkExists(ActiveQueryInterface $query, int $excludeId): void
+            {
+                $this->exists($query, $excludeId);
+            }
+        };
 
         $query = $this->createMock(ActiveQuery::class);
 
@@ -82,18 +110,5 @@ final class BaseQueryServiceTest extends Unit
         $this->expectExceptionMessage('must have a primary key');
 
         $service->checkExists($query, 123);
-    }
-
-    private function createService(): BaseQueryService
-    {
-        return new class (
-            $this->makeEmpty(Connection::class),
-            $this->makeEmpty(AutoMapperInterface::class)
-        ) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, ?int $excludeId): bool
-            {
-                return $this->exists($query, $excludeId);
-            }
-        };
     }
 }

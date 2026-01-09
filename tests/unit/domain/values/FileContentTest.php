@@ -51,7 +51,7 @@ final class FileContentTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('file.error.content_invalid_stream');
 
-        new FileContent('not a stream', self::EXTENSION, self::MIME_TYPE);
+        $_ = new FileContent('not a stream', self::EXTENSION, self::MIME_TYPE);
     }
 
     public function testThrowsOnClosedStream(): void
@@ -62,7 +62,7 @@ final class FileContentTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('file.error.content_invalid_stream');
 
-        new FileContent($stream, self::EXTENSION, self::MIME_TYPE);
+        $_ = new FileContent($stream, self::EXTENSION, self::MIME_TYPE);
     }
 
     public function testFromPathCreatesValidContent(): void
