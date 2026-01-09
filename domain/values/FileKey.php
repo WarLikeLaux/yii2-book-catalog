@@ -48,11 +48,11 @@ final readonly class FileKey implements Stringable
         $suffix = $normalizedExtension !== '' ? '.' . $normalizedExtension : '';
 
         return substr($this->value, 0, 2)
-            . '/'
-            . substr($this->value, 2, 2)
-            . '/'
-            . $this->value
-            . $suffix;
+        . '/'
+        . substr($this->value, 2, 2)
+        . '/'
+        . $this->value
+        . $suffix;
     }
 
     public function equals(self $other): bool

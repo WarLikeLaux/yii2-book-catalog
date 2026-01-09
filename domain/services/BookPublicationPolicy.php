@@ -35,13 +35,13 @@ final readonly class BookPublicationPolicy
     public function canPublish(Book $book): bool
     {
         return $book->authorIds !== []
-            && $book->coverImage instanceof StoredFileReference
-            && $this->hasValidDescription($book->description);
+        && $book->coverImage instanceof StoredFileReference
+        && $this->hasValidDescription($book->description);
     }
 
     private function hasValidDescription(?string $description): bool
     {
         return $description !== null
-            && mb_strlen(trim($description)) >= self::MIN_DESCRIPTION_LENGTH;
+        && mb_strlen(trim($description)) >= self::MIN_DESCRIPTION_LENGTH;
     }
 }

@@ -40,7 +40,7 @@ final readonly class IdempotencyMiddleware implements MiddlewareInterface
 
             if ($record instanceof IdempotencyRecordDto && $record->isFinished()) {
                 if (!array_key_exists('result', $record->data)) {
-                     throw new BusinessRuleException(DomainErrorCode::IdempotencyStorageUnavailable);
+                    throw new BusinessRuleException(DomainErrorCode::IdempotencyStorageUnavailable);
                 }
 
                 return $record->data['result'];
