@@ -15,6 +15,9 @@ final class NotifySingleSubscriberHandlerTest extends Unit
 {
     public function testHandleSendsSmsWhenAcquireSucceeds(): void
     {
+        $secret = 'test-secret';
+        $idempotencyKey = sprintf('sms:%d:%s', 15, hash_hmac('sha256', '+7900', $secret));
+
         $sender = $this->createMock(SmsSenderInterface::class);
         $sender->expects($this->once())
             ->method('send')
@@ -23,6 +26,7 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
         $storage->expects($this->once())
             ->method('acquire')
+            ->with($idempotencyKey)
             ->willReturn(true);
         $storage->expects($this->never())
             ->method('release');
@@ -32,12 +36,15 @@ final class NotifySingleSubscriberHandlerTest extends Unit
             ->method('info')
             ->with('SMS notification sent successfully', $this->anything());
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger);
+        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
         $handler->handle('+7900', 'message', 15);
     }
 
     public function testHandleSkipsWhenAcquireFails(): void
     {
+        $secret = 'test-secret';
+        $idempotencyKey = sprintf('sms:%d:%s', 15, hash_hmac('sha256', '+7900', $secret));
+
         $sender = $this->createMock(SmsSenderInterface::class);
         $sender->expects($this->never())
             ->method('send');
@@ -45,6 +52,7 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
         $storage->expects($this->once())
             ->method('acquire')
+            ->with($idempotencyKey)
             ->willReturn(false);
         $storage->expects($this->never())
             ->method('release');
@@ -54,12 +62,15 @@ final class NotifySingleSubscriberHandlerTest extends Unit
             ->method('info')
             ->with('Skipping duplicate SMS notification', $this->anything());
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger);
+        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
         $handler->handle('+7900', 'message', 15);
     }
 
     public function testHandleReleasesOnFailure(): void
     {
+        $secret = 'test-secret';
+        $idempotencyKey = sprintf('sms:%d:%s', 15, hash_hmac('sha256', '+7900', $secret));
+
         $sender = $this->createMock(SmsSenderInterface::class);
         $sender->expects($this->once())
             ->method('send')
@@ -68,6 +79,7 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
         $storage->expects($this->once())
             ->method('acquire')
+            ->with($idempotencyKey)
             ->willReturn(true);
         $storage->expects($this->once())
             ->method('release');
@@ -77,7 +89,7 @@ final class NotifySingleSubscriberHandlerTest extends Unit
             ->method('error')
             ->with('SMS notification failed', $this->anything());
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger);
+        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
 
         $this->expectException(RuntimeException::class);
         $handler->handle('+7900', 'message', 15);
@@ -85,11 +97,14 @@ final class NotifySingleSubscriberHandlerTest extends Unit
 
     public function testHandleLogsErrorWhenReleaseFails(): void
     {
+        $secret = 'test-secret';
+        $idempotencyKey = sprintf('sms:%d:%s', 15, hash_hmac('sha256', '+7900', $secret));
+
         $sender = $this->createMock(SmsSenderInterface::class);
         $sender->method('send')->willThrowException(new RuntimeException('primary fail'));
 
         $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
-        $storage->method('acquire')->willReturn(true);
+        $storage->method('acquire')->with($idempotencyKey)->willReturn(true);
         $storage->method('release')->willThrowException(new RuntimeException('release fail'));
 
         $logger = $this->createMock(LoggerInterface::class);
@@ -105,7 +120,7 @@ final class NotifySingleSubscriberHandlerTest extends Unit
                 };
             });
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger);
+        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('primary fail');
