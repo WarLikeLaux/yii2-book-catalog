@@ -1,7 +1,7 @@
 .PHONY: help install install-force init setup env configure perms clean \
         up down restart logs shell tinker sms-logs \
         composer req require req-dev require-dev \
-        dev _dev_full _dev_file fix ci check pr lint lint-fix rector rector-fix analyze deptrac arkitect arch audit \
+        dev _dev_full _dev_file fix ci check pr lint lint-fix rector rector-fix analyze prettier prettier-fix deptrac arkitect arch audit \
         test test-unit test-integration test-e2e cov coverage test-coverage infection inf load-test \
         migrate seed db-mysql db-pgsql db-info db-fresh queue-info \
         docs swagger repomix tree comments ai \
@@ -52,7 +52,7 @@ help:
 	@echo "  pr               🚀 Полная проверка (check + e2e + infection)"
 	@echo ""
 	@echo "💻 РАЗРАБОТКА:"
-	@echo "  dev              🛠️  Полный цикл (CS Fixer + Rector + PHPStan)"
+	@echo "  dev              🛠️  Полный цикл (Prettier + CS Fixer + Rector + PHPStan)"
 	@echo "  dev [FILE]       🔍 Быстрая проверка файла (только CS Fixer)"
 	@echo "  comments         📝 Показать TODO и заметки"
 	@echo "  tree             🌳 Показать структуру проекта"
@@ -173,12 +173,19 @@ req-dev require-dev:
 # =================================================================================================
 
 ci: lint analyze
-fix: lint-fix rector-fix
+fix: prettier-fix lint-fix rector-fix
 dev:
-	@if [ -z "$(FILE_ARG)" ]; then \
-		$(MAKE) _dev_full; \
+	@lockdir="$(CURDIR)/.dev.lock"; \
+	if mkdir "$$lockdir" 2>/dev/null; then \
+		trap 'rmdir "$$lockdir"' EXIT; \
+		if [ -z "$(FILE_ARG)" ]; then \
+			$(MAKE) _dev_full; \
+		else \
+			$(MAKE) _dev_file; \
+		fi; \
 	else \
-		$(MAKE) _dev_file; \
+		echo "⛔ dev уже запущен в другом процессе."; \
+		exit 1; \
 	fi
 _dev_full: fix ci
 _dev_file:
@@ -206,6 +213,12 @@ rector-fix:
 analyze:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan analyse --memory-limit=2G
 
+prettier:
+	$(COMPOSE) exec $(PHP_CONTAINER) sh -c "{ git ls-files '*.md'; git ls-files --others --exclude-standard '*.md'; } | xargs node ./vendor/npm-asset/prettier/bin/prettier.cjs --check"
+
+prettier-fix:
+	$(COMPOSE) exec $(PHP_CONTAINER) sh -c "{ git ls-files '*.md'; git ls-files --others --exclude-standard '*.md'; } | xargs node ./vendor/npm-asset/prettier/bin/prettier.cjs --write"
+
 deptrac:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/deptrac analyze
 
@@ -224,14 +237,22 @@ audit:
 _test-init:
 	@DB_DRIVER=$(DB_DRIVER) DB_TEST_NAME=$(DB_TEST_NAME) COMPOSE="$(COMPOSE)" ./bin/test-db-prepare
 
-test: _test-init
-	@echo "🚀 Запуск всех тестов с генерацией отчетов..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app ./vendor/bin/codecept run integration,unit \
-		--ext DotReporter \
-		--coverage-text --coverage-xml --coverage-html \
-		--coverage-phpunit --xml=junit.xml --no-colors
-	@sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml
-	@$(MAKE) cov
+test:
+	@lockdir="$(CURDIR)/.test.lock"; \
+	if mkdir "$$lockdir" 2>/dev/null; then \
+		trap 'rmdir "$$lockdir"' EXIT; \
+		$(MAKE) _test-init; \
+		echo "🚀 Запуск всех тестов с генерацией отчетов..."; \
+		$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app ./vendor/bin/codecept run integration,unit \
+			--ext DotReporter \
+			--coverage-text --coverage-xml --coverage-html \
+			--coverage-phpunit --xml=junit.xml --no-colors; \
+		sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml; \
+		$(MAKE) cov; \
+	else \
+		echo "⛔ Тесты уже запущены в другом процессе."; \
+		exit 1; \
+	fi
 
 test-unit:
 	@echo "🚀 Запуск Unit тестов..."
