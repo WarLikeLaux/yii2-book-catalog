@@ -40,6 +40,11 @@ enum DomainErrorCode: string
 
     case FileKeyInvalidFormat = 'file.error.key_invalid_format';
     case FileContentInvalidStream = 'file.error.content_invalid_stream';
-    case FileFileNotFound = 'file.error.not_found';
+    case FileNotFound = 'file.error.not_found';
     case FileOpenFailed = 'file.error.open_failed';
+    case FileStorageOperationFailed = 'file.error.storage_operation_failed';
+
+    case EntityDeleteFailed = 'error.entity_delete_failed';
+    case EntityPersistFailed = 'error.entity_persist_failed';
+    case EntityIdMissing = 'error.entity_id_missing';
 }
