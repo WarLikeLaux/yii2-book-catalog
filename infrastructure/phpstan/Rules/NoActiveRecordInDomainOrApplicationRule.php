@@ -15,6 +15,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 /**
  * @implements Rule<InClassNode>
  * @codeCoverageIgnore Логика статического анализа проверяется тестами PHPStan
+ * @noRector
  */
 final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
 {
@@ -32,26 +33,24 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
         return InClassNode::class;
     }
 
-    public function processNode(Node $node, Scope $scope): array
+    public function processNode(Node $_node, Scope $scope): array
     {
         if (!$this->isInProtectedNamespace($scope)) {
             return [];
         }
 
-        $node->getOriginalNode();
         $errors = [];
         $classReflection = $scope->getClassReflection();
 
         if ($classReflection instanceof ClassReflection) {
             foreach ($classReflection->getAncestors() as $ancestor) {
                 if (in_array($ancestor->getName(), self::FORBIDDEN_CLASSES, true)) {
-                    $errors[] = RuleErrorBuilder::message(
+                    return [RuleErrorBuilder::message(
                         sprintf(
                             'Extending %s is forbidden in domain and application layers. Use domain entities or DTOs instead.',
                             $ancestor->getName(),
                         ),
-                    )->identifier('architecture.noActiveRecord')->build();
-                    break;
+                    )->identifier('architecture.noActiveRecord')->build()];
                 }
             }
 
@@ -100,9 +99,7 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
                 continue;
             }
 
-            $typeNames = $this->extractTypeNames($type);
-
-            foreach ($typeNames as $typeName) {
+            foreach ($this->extractTypeNamesRecursive($type) as $typeName) {
                 if (!$this->isForbidden($typeName)) {
                     continue;
                 }
@@ -114,9 +111,7 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
         $returnType = $method->getReturnType();
 
         if ($returnType !== null) {
-            $typeNames = $this->extractTypeNames($returnType);
-
-            foreach ($typeNames as $typeName) {
+            foreach ($this->extractTypeNamesRecursive($returnType) as $typeName) {
                 if (!$this->isForbidden($typeName)) {
                     continue;
                 }
@@ -140,9 +135,8 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
         }
 
         $errors = [];
-        $typeNames = $this->extractTypeNames($type);
 
-        foreach ($typeNames as $typeName) {
+        foreach ($this->extractTypeNamesRecursive($type) as $typeName) {
             if (!$this->isForbidden($typeName)) {
                 continue;
             }
@@ -156,7 +150,7 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
     /**
      * @return string[]
      */
-    private function extractTypeNames(\ReflectionType $type): array
+    private function extractTypeNamesRecursive(\ReflectionType $type): array
     {
         if ($type instanceof \ReflectionNamedType) {
             return [$type->getName()];
@@ -166,14 +160,10 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
             $names = [];
 
             foreach ($type->getTypes() as $innerType) {
-                if (!($innerType instanceof \ReflectionNamedType)) {
-                    continue;
-                }
-
-                $names[] = $innerType->getName();
+                $names = [...$names, ...$this->extractTypeNamesRecursive($innerType)];
             }
 
-            return $names;
+            return array_unique($names);
         }
 
         return [];

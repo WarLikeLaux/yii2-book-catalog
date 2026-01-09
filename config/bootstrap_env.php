@@ -12,9 +12,12 @@ $dotenv->required('DB_DRIVER')->allowedValues(['mysql', 'pgsql']);
 $dotenv->required('YII_ENV')->allowedValues(['dev', 'prod', 'test']);
 $dotenv->required('YII_DEBUG')->isBoolean();
 $dotenv->required(['DB_NAME', 'DB_USER', 'DB_PASSWORD'])->notEmpty();
-$dotenv->required('SMS_API_KEY')->notEmpty();
 
 require_once __DIR__ . '/env.php';
+
+if (env('YII_ENV') === 'prod') {
+    $dotenv->required('SMS_API_KEY')->notEmpty();
+}
 
 defined('YII_DEBUG') || define('YII_DEBUG', env('YII_DEBUG', false));
 defined('YII_ENV') || define('YII_ENV', env('YII_ENV', 'prod'));

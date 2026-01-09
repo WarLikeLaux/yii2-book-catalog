@@ -335,9 +335,6 @@ tag:
 	@if [ -z "$(TAG)" ]; then echo "Usage: make tag TAG (где TAG — заголовок раздела в markdown)"; exit 1; fi
 	@if [ ! -d "docs/ai" ]; then echo "❌ Error: docs/ai directory not found."; exit 1; fi
 	@if [ -z "$$(ls -A docs/ai/*.md 2>/dev/null)" ]; then echo "❌ Error: No markdown files found in docs/ai."; exit 1; fi
-	@# FNR==1{p=0} - сброс флага печати для каждого нового файла
-	@# $$0 ~ "^### "tag - начало нужной секции
-	@# p && $$0 ~ "^#" - конец секции при встрече следующего заголовка
 	@awk -v tag="$(TAG)" 'BEGIN{p=0} FNR==1{p=0} $$0 ~ "^### "tag"($$|[^[:alnum:]_])"{p=1} p && $$0 ~ "^#" && $$0 !~ "^### "tag"($$|[^[:alnum:]_])"{p=0} p' docs/ai/*.md
 
 # =================================================================================================
