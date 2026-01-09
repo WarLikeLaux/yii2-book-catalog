@@ -30,18 +30,6 @@ final readonly class BookCommandHandler
 {
     use UseCaseHandlerTrait;
 
-    /** @noRector \Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPrivateClassConstantRector */
-    private const array ERROR_TO_FIELD_MAP = [
-        'isbn.error.invalid_format' => 'isbn',
-        'year.error.too_old' => 'year',
-        'year.error.future' => 'year',
-        'book.error.title_empty' => 'title',
-        'book.error.title_too_long' => 'title',
-        'book.error.isbn_change_published' => 'isbn',
-        'book.error.invalid_author_id' => 'authorIds',
-        'book.error.publish_without_authors' => 'authorIds',
-    ];
-
     public function __construct(
         private AutoMapperInterface $autoMapper,
         private CreateBookUseCase $createBookUseCase,
@@ -61,16 +49,14 @@ final readonly class BookCommandHandler
         /** @var CreateBookCommand $command */
         $command = $this->autoMapper->map($data, CreateBookCommand::class);
 
-        /** @var int|null $result */
-        $result = $this->executeWithForm(
+        /** @var int|null */
+        return $this->executeWithForm(
             $this->useCaseRunner,
             $form,
             $command,
             $this->createBookUseCase,
             Yii::t('app', 'book.success.created'),
         );
-
-        return $result;
     }
 
     public function updateBook(int $id, BookForm $form): bool
@@ -81,15 +67,13 @@ final readonly class BookCommandHandler
         /** @var UpdateBookCommand $command */
         $command = $this->autoMapper->map($data, UpdateBookCommand::class);
 
-        $result = $this->executeWithForm(
+        return $this->executeWithForm(
             $this->useCaseRunner,
             $form,
             $command,
             $this->updateBookUseCase,
             Yii::t('app', 'book.success.updated'),
-        );
-
-        return $result !== null;
+        ) !== null;
     }
 
     /**

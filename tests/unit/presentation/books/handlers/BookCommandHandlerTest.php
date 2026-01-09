@@ -111,6 +111,7 @@ final class BookCommandHandlerTest extends Unit
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = $this->createUploadedFile();
+        $form->method('attributes')->willReturn(['title']);
 
         $this->mockContentStorageWithCover();
 
@@ -130,6 +131,7 @@ final class BookCommandHandlerTest extends Unit
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = null;
+        $form->method('attributes')->willReturn(['isbn']);
 
         $command = $this->createMock(CreateBookCommand::class);
         $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
@@ -146,7 +148,7 @@ final class BookCommandHandlerTest extends Unit
 
         $this->useCaseRunner->expects($this->once())
             ->method('executeWithFormErrors')
-            ->willReturnCallback(static function ($_command, $_useCase, $_msg, $onDomainError, $_onError) use ($exception) {
+            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
                 $onDomainError($exception);
                 return null;
             });
@@ -160,6 +162,7 @@ final class BookCommandHandlerTest extends Unit
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = null;
+        $form->method('attributes')->willReturn(['title', 'description']);
 
         $command = $this->createMock(CreateBookCommand::class);
         $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
@@ -170,15 +173,13 @@ final class BookCommandHandlerTest extends Unit
 
         $exception = new ValidationException(DomainErrorCode::EntityAlreadyExists);
 
-        $form->expects($this->once())->method('attributes')->willReturn(['title', 'description']);
-
         $form->expects($this->once())
             ->method('addError')
             ->with('title', $this->anything());
 
         $this->useCaseRunner->expects($this->once())
             ->method('executeWithFormErrors')
-            ->willReturnCallback(static function ($_command, $_useCase, $_msg, $onDomainError, $_onError) use ($exception) {
+            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
                 $onDomainError($exception);
                 return null;
             });
@@ -213,6 +214,7 @@ final class BookCommandHandlerTest extends Unit
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = $this->createUploadedFile();
+        $form->method('attributes')->willReturn(['title']);
 
         $this->mockContentStorageWithCover();
 

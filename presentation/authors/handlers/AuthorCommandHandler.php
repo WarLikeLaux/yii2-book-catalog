@@ -24,14 +24,6 @@ final readonly class AuthorCommandHandler
 {
     use UseCaseHandlerTrait;
 
-    /** @noRector \Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPrivateClassConstantRector */
-    private const array ERROR_TO_FIELD_MAP = [
-        'author.error.fio_exists' => 'fio',
-        'author.error.fio_empty' => 'fio',
-        'author.error.fio_too_short' => 'fio',
-        'author.error.fio_too_long' => 'fio',
-    ];
-
     public function __construct(
         private AutoMapperInterface $autoMapper,
         private CreateAuthorUseCase $createAuthorUseCase,
@@ -46,33 +38,28 @@ final readonly class AuthorCommandHandler
         /** @var CreateAuthorCommand $command */
         $command = $this->autoMapper->map($form, CreateAuthorCommand::class);
 
-        /** @var int|null $result */
-        $result = $this->executeWithForm(
+        /** @var int|null */
+        return $this->executeWithForm(
             $this->useCaseRunner,
             $form,
             $command,
             $this->createAuthorUseCase,
             Yii::t('app', 'author.success.created'),
         );
-
-        return $result;
     }
 
     public function updateAuthor(int $id, AuthorForm $form): bool
     {
-        $form->id = $id;
         /** @var UpdateAuthorCommand $command */
-        $command = $this->autoMapper->map($form, UpdateAuthorCommand::class);
+        $command = $this->autoMapper->map(['id' => $id] + $form->toArray(), UpdateAuthorCommand::class);
 
-        $result = $this->executeWithForm(
+        return $this->executeWithForm(
             $this->useCaseRunner,
             $form,
             $command,
             $this->updateAuthorUseCase,
             Yii::t('app', 'author.success.updated'),
-        );
-
-        return $result !== null;
+        ) !== null;
     }
 
     public function deleteAuthor(int $id): bool

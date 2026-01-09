@@ -14,6 +14,11 @@ use yii\base\Model;
 trait UseCaseHandlerTrait
 {
     /**
+     * Any class using this trait SHOULD define a public const ERROR_TO_FIELD_MAP = []
+     * mapping DomainException message keys to form field names.
+     */
+
+    /**
      * @template TCommand of CommandInterface
      * @template TResponse
      * @param TCommand $command
