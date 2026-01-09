@@ -9,6 +9,10 @@ if (!YII_ENV_DEV && env('COOKIE_VALIDATION_KEY', '') === '') {
     throw new RuntimeException('COOKIE_VALIDATION_KEY must be set in production');
 }
 
+if (!YII_ENV_DEV && YII_ENV !== 'test' && ($params['idempotency']['smsPhoneHashKey'] ?? '') === 'changeme') {
+    throw new RuntimeException('SMS_IDEMPOTENCY_HASH_KEY must be changed in production');
+}
+
 $config = [
     'id' => 'basic',
     'name' => 'Yii 2 Book Catalog',

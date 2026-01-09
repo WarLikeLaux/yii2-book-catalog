@@ -38,6 +38,7 @@ use app\infrastructure\services\storage\StorageConfig;
 use app\infrastructure\services\YiiPsrLogger;
 use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\services\FileUrlResolver;
+use yii\base\InvalidConfigException;
 use yii\di\Container;
 
 return static fn (array $params) => [
@@ -77,12 +78,20 @@ return static fn (array $params) => [
             $c->get(TranslatorInterface::class),
             new YiiPsrLogger(LogCategory::SMS),
         ),
-        NotifySingleSubscriberHandler::class => static fn(Container $c) => new NotifySingleSubscriberHandler(
-            $c->get(SmsSenderInterface::class),
-            $c->get(AsyncIdempotencyStorageInterface::class),
-            new YiiPsrLogger(LogCategory::SMS),
-            (string)($params['idempotency']['smsPhoneHashKey'] ?? ''),
-        ),
+        NotifySingleSubscriberHandler::class => static function (Container $c) use ($params): NotifySingleSubscriberHandler {
+            $hashKey = (string)($params['idempotency']['smsPhoneHashKey'] ?? '');
+
+            if ($hashKey === '') {
+                throw new InvalidConfigException('Missing required config: smsPhoneHashKey');
+            }
+
+            return new NotifySingleSubscriberHandler(
+                $c->get(SmsSenderInterface::class),
+                $c->get(AsyncIdempotencyStorageInterface::class),
+                new YiiPsrLogger(LogCategory::SMS),
+                $hashKey,
+            );
+        },
 
         FileUrlResolver::class => static function () use ($params) {
             $storageParams = $params['storage'];

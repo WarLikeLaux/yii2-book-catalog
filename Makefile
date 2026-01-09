@@ -14,7 +14,7 @@ PHP_CONTAINER=php
 DB_TEST_NAME=yii2basic_test
 
 .DEFAULT_GOAL := help
-bin-exec: ; @chmod +x bin/*
+bin-exec: ; @if [ -d bin ]; then find bin -maxdepth 1 -type f -exec chmod +x {} +; fi
 
 ifeq ($(firstword $(MAKECMDGOALS)),$(filter $(firstword $(MAKECMDGOALS)),req require req-dev require-dev))
   COMPOSER_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))

@@ -38,7 +38,7 @@
         "jolicode/automapper": "^9.5"
     },
     "require-dev": {
-        "npm-asset/prettier": "3.7.4",
+        "npm-asset/prettier": "^3.7.4",
         "symfony/var-dumper": "^5.4 || ^6.0 || ^7.0",
         "yiisoft/yii2-debug": "~2.1.0",
         "yiisoft/yii2-gii": "~2.2.0",
