@@ -113,6 +113,21 @@ final class BaseActiveRecordRepositoryTest extends Unit
         $this->repository->testPersist($model);
     }
 
+    public function testPersistRethrowsIntegrityExceptionWhenErrorInfoIsNull(): void
+    {
+        $exception = new IntegrityException(self::OTHER_ERROR);
+        $model = $this->makeEmpty(ActiveRecord::class, [
+            'save' => static function () use ($exception) {
+                throw $exception;
+            },
+        ]);
+
+        $this->expectException(IntegrityException::class);
+        $this->expectExceptionMessage(self::OTHER_ERROR);
+
+        $this->repository->testPersist($model);
+    }
+
     public function testPersistThrowsRuntimeExceptionWithDefaultMessageOnSaveFailureWithoutErrors(): void
     {
         $model = $this->makeEmpty(ActiveRecord::class, [

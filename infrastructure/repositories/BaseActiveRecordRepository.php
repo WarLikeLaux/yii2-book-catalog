@@ -120,8 +120,13 @@ abstract readonly class BaseActiveRecordRepository
 
     private function isDuplicateError(IntegrityException $e): bool
     {
-        $driverCode = $e->errorInfo[1] ?? null;
-        $sqlState = $e->errorInfo[0] ?? null;
+        /** @phpstan-ignore cast.useless */
+        $info = (array)$e->errorInfo;
+
+        /** @var int|string|null $driverCode */
+        $driverCode = $info[1] ?? null;
+        /** @var int|string|null $sqlState */
+        $sqlState = $info[0] ?? null;
 
         return DatabaseErrorCode::isDuplicate($driverCode)
         || DatabaseErrorCode::isDuplicate($sqlState);
@@ -129,22 +134,29 @@ abstract readonly class BaseActiveRecordRepository
 
     protected function getEntityId(IdentifiableEntityInterface $entity): int
     {
-        if ($entity->id === null) {
+        $id = $entity->getId();
+
+        if ($id === null) {
             throw new OperationFailedException(DomainErrorCode::EntityIdMissing); // @codeCoverageIgnore
         }
 
-        return $entity->id;
+        return $id;
     }
 
     private function removeIdentityById(int $id): void
     {
-        foreach ($this->identityMap as $entity => $activeRecord) {
-            unset($activeRecord);
+        $toRemove = [];
 
-            if ($entity->id !== $id) {
+        // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+        foreach ($this->identityMap as $entity => $activeRecord) {
+            if ($entity->getId() !== $id) {
                 continue;
             }
 
+            $toRemove[] = $entity;
+        }
+
+        foreach ($toRemove as $entity) {
             unset($this->identityMap[$entity]);
         }
     }
