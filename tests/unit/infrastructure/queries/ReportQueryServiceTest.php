@@ -103,6 +103,33 @@ final class ReportQueryServiceTest extends Unit
         $this->assertSame(1, (int)$result->topAuthors[0]['books_count']);
     }
 
+    public function testGetTopAuthorsReportCountsBooksForMultipleAuthors(): void
+    {
+        $authorId1 = $this->createAuthor('Author One');
+        $authorId2 = $this->createAuthor('Author Two');
+
+        $bookId = $this->createPublishedBookForAuthor($authorId1, 'Shared Book', 2024);
+
+        Yii::$app->db->createCommand()
+            ->insert('{{%book_authors}}', ['book_id' => $bookId, 'author_id' => $authorId2])
+            ->execute();
+
+        $criteria = new ReportCriteria(2024);
+        $result = $this->service->getTopAuthorsReport($criteria);
+
+        $this->assertCount(2, $result->topAuthors);
+
+        $firstAuthor = $result->topAuthors[0];
+        $this->assertSame('Author One', $firstAuthor['fio']);
+        $this->assertSame(1, (int)$firstAuthor['books_count']);
+        $this->assertSame($authorId1, (int)$firstAuthor['id']);
+
+        $secondAuthor = $result->topAuthors[1];
+        $this->assertSame('Author Two', $secondAuthor['fio']);
+        $this->assertSame(1, (int)$secondAuthor['books_count']);
+        $this->assertSame($authorId2, (int)$secondAuthor['id']);
+    }
+
     public function testGetEmptyTopAuthorsReport(): void
     {
         $result = $this->service->getEmptyTopAuthorsReport(2020);
@@ -134,7 +161,10 @@ final class ReportQueryServiceTest extends Unit
         $book = new Book();
         $book->title = $title;
         $book->year = $year;
-        $book->isbn = (string)random_int(1000000000000, 9999999999999);
+        static $counter = 0;
+        $counter++;
+        // Generate a 13-digit number deterministically: prefix 978 + padded counter
+        $book->isbn = '978' . str_pad((string)$counter, 10, '0', STR_PAD_LEFT);
         $book->description = 'Test description';
         $book->is_published = true;
         $book->save(false);
