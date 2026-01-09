@@ -47,4 +47,9 @@ final class Author implements IdentifiableEntityInterface
     {
         $this->fio = $fio;
     }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 }

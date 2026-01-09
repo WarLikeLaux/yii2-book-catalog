@@ -104,6 +104,11 @@ final class Book implements IdentifiableEntityInterface
         $this->title = $title;
     }
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
     public function changeYear(BookYear $year): void
     {
         $this->year = $year;

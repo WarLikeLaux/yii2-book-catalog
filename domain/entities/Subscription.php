@@ -19,4 +19,9 @@ final class Subscription implements IdentifiableEntityInterface
     {
         return new self(null, $phone, $authorId);
     }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 }
