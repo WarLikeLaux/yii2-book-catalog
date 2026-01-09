@@ -296,7 +296,7 @@ final class BookCommandHandlerTest extends Unit
         ]);
     }
 
-    private function mockContentStorageWithCover(): StoredFileReference
+    private function mockContentStorageWithCover(): void
     {
         $stream = fopen('php://memory', 'r+b');
         fwrite($stream, 'test content');
@@ -314,8 +314,6 @@ final class BookCommandHandlerTest extends Unit
             ->method('save')
             ->with($fileContent)
             ->willReturn($fileKey);
-
-        return new StoredFileReference($fileKey->getExtendedPath('jpg'));
     }
 
     private function mockUseCaseRunnerSimple(mixed $returnValue = null): void

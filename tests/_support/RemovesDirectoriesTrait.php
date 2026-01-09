@@ -8,23 +8,43 @@ trait RemovesDirectoriesTrait
 {
     private function removeDir(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (!is_dir($dir) || is_link($dir)) {
+            if (is_link($dir) || is_file($dir)) {
+                @unlink($dir);
+            }
+
             return;
         }
 
-        $scan = scandir($dir);
+        $realPath = realpath($dir);
+        $allowedBases = [
+            realpath(sys_get_temp_dir()),
+            realpath(__DIR__ . '/../_output'),
+        ];
 
-        if ($scan === false) {
+        $isAllowed = false;
+
+        foreach ($allowedBases as $base) {
+            if ($base !== false && $realPath !== false && str_starts_with($realPath, $base)) {
+                $isAllowed = true;
+                break;
+            }
+        }
+
+        if (!$isAllowed) {
             return;
         }
 
-        $files = array_diff($scan, ['.', '..']);
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST,
+        );
 
-        foreach ($files as $file) {
-            $path = $dir . '/' . $file;
-            is_dir($path) ? $this->removeDir($path) : unlink($path);
+        foreach ($files as $fileinfo) {
+            $todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
+            @$todo($fileinfo->getRealPath());
         }
 
-        rmdir($dir);
+        @rmdir($dir);
     }
 }
