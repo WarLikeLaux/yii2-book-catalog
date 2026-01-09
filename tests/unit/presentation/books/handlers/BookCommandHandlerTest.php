@@ -362,27 +362,21 @@ final class BookCommandHandlerTest extends Unit
         $stream = fopen('php://memory', 'r+b');
         $this->assertIsResource($stream);
 
-        try {
-            fwrite($stream, 'test content');
-            rewind($stream);
+        fwrite($stream, 'test content');
+        rewind($stream);
 
-            $fileContent = new FileContent($stream, 'jpg', 'image/jpeg');
-            $fileKey = new FileKey(self::TEST_HASH);
+        $fileContent = new FileContent($stream, 'jpg', 'image/jpeg');
+        $fileKey = new FileKey(self::TEST_HASH);
 
-            $this->uploadedFileAdapter->expects($this->once())
-                ->method('toFileContent')
-                ->with($this->callback(static fn($arg) => $arg instanceof UploadedFile))
-                ->willReturn($fileContent);
+        $this->uploadedFileAdapter->expects($this->once())
+            ->method('toFileContent')
+            ->with($this->callback(static fn($arg) => $arg instanceof UploadedFile))
+            ->willReturn($fileContent);
 
-            $this->contentStorage->expects($this->once())
-                ->method('save')
-                ->with($this->equalTo($fileContent))
-                ->willReturn($fileKey);
-        } finally {
-            if (is_resource($stream)) {
-                fclose($stream);
-            }
-        }
+        $this->contentStorage->expects($this->once())
+            ->method('save')
+            ->with($this->equalTo($fileContent))
+            ->willReturn($fileKey);
     }
 
     private function mockUseCaseRunnerSimple(mixed $returnValue = null): void

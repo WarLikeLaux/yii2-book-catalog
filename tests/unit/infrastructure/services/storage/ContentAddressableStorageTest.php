@@ -12,6 +12,7 @@ use app\domain\values\FileKey;
 use app\infrastructure\services\storage\ContentAddressableStorage;
 use app\infrastructure\services\storage\StorageConfig;
 use Codeception\Test\Unit;
+use ReflectionMethod;
 use tests\_support\RemovesDirectoriesTrait;
 
 final class ContentAddressableStorageTest extends Unit
@@ -63,8 +64,6 @@ final class ContentAddressableStorageTest extends Unit
         $expectedPath = $this->tempDir . DIRECTORY_SEPARATOR . $key->getExtendedPath(self::EXTENSION);
         $this->assertFileExists($expectedPath);
         $this->assertSame(self::TEST_CONTENT, file_get_contents($expectedPath));
-
-        unset($content);
     }
 
     public function testSaveIsIdempotent(): void
@@ -256,6 +255,16 @@ final class ContentAddressableStorageTest extends Unit
 
         $this->assertDirectoryDoesNotExist($dir2);
         $this->assertDirectoryDoesNotExist($dir1);
+    }
+
+    public function testNormalizePathHandlesRootDirectory(): void
+    {
+        $method = new ReflectionMethod(ContentAddressableStorage::class, 'normalizePath');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->storage, '/');
+
+        $this->assertSame('/', $result);
     }
 
     private function createFileContent(string $textContent): FileContent
