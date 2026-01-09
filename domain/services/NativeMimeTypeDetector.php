@@ -11,13 +11,13 @@ final readonly class NativeMimeTypeDetector implements MimeTypeDetectorInterface
     private Closure $canUseMimeContentType;
     private Closure $detectWithMimeContentType;
     private Closure $canUseFinfo;
-    private Closure $detectWithFinfo;
+    private FinfoFunctions $finfoFunctions;
 
     public function __construct(
         ?Closure $canUseMimeContentType = null,
         ?Closure $detectWithMimeContentType = null,
         ?Closure $canUseFinfo = null,
-        ?Closure $detectWithFinfo = null,
+        ?FinfoFunctions $finfoFunctions = null,
     ) {
         $this->canUseMimeContentType = $canUseMimeContentType
         ?? static fn(): bool => function_exists('mime_content_type');
@@ -25,16 +25,7 @@ final readonly class NativeMimeTypeDetector implements MimeTypeDetectorInterface
         ?? mime_content_type(...);
         $this->canUseFinfo = $canUseFinfo
         ?? static fn(): bool => function_exists('finfo_open');
-        $this->detectWithFinfo = $detectWithFinfo ?? static function (string $path): string|false {
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mimeValue = $finfo === false ? false : finfo_file($finfo, $path);
-
-            if ($finfo !== false) {
-                finfo_close($finfo);
-            }
-
-            return $mimeValue;
-        };
+        $this->finfoFunctions = $finfoFunctions ?? FinfoFunctions::fromNative();
     }
 
     public function detect(string $path): string
@@ -47,10 +38,22 @@ final readonly class NativeMimeTypeDetector implements MimeTypeDetectorInterface
         }
 
         if (($this->canUseFinfo)()) {
-            $mimeValue = ($this->detectWithFinfo)($path);
+            $mimeValue = $this->detectWithFinfo($path);
             return $mimeValue !== false ? $mimeValue : $mimeType;
         }
 
         return $mimeType;
+    }
+
+    private function detectWithFinfo(string $path): string|false
+    {
+        $finfo = ($this->finfoFunctions->open)(FILEINFO_MIME_TYPE);
+        $mimeValue = $finfo === false ? false : ($this->finfoFunctions->file)($finfo, $path);
+
+        if ($finfo !== false) {
+            ($this->finfoFunctions->close)($finfo);
+        }
+
+        return $mimeValue;
     }
 }
