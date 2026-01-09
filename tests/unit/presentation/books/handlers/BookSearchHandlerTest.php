@@ -13,14 +13,12 @@ use app\presentation\books\forms\BookSearchForm;
 use app\presentation\books\handlers\BookSearchHandler;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
-use AutoMapper\AutoMapperInterface;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 use yii\data\ArrayDataProvider;
 
 final class BookSearchHandlerTest extends Unit
 {
-    private AutoMapperInterface&MockObject $autoMapper;
     private BookQueryServiceInterface&MockObject $bookQueryService;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private FileUrlResolver&MockObject $fileUrlResolver;
@@ -28,7 +26,6 @@ final class BookSearchHandlerTest extends Unit
 
     protected function _before(): void
     {
-        $this->autoMapper = $this->createMock(AutoMapperInterface::class);
         $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $this->fileUrlResolver = $this->createMock(FileUrlResolver::class);

@@ -79,8 +79,7 @@ final class FileKeyTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('file.error.key_invalid_format');
 
-        $key = new FileKey($invalidHash);
-        $this->assertInstanceOf(FileKey::class, $key);
+        new FileKey($invalidHash);
     }
 
     public function testFromStreamCreatesValidKey(): void
