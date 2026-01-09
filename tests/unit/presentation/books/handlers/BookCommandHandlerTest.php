@@ -289,6 +289,7 @@ final class BookCommandHandlerTest extends Unit
         $form->cover = $file;
 
         $this->uploadedFileAdapter->method('toFileContent')->willThrowException(new \RuntimeException('Disk error'));
+        $this->contentStorage->expects($this->never())->method('save');
         $form->expects($this->atLeastOnce())->method('addError');
 
         $this->assertFalse($this->handler->updateBook(1, $form));
@@ -302,6 +303,7 @@ final class BookCommandHandlerTest extends Unit
         $form->cover = $file;
 
         $this->uploadedFileAdapter->method('toFileContent')->willThrowException(new \RuntimeException('Disk error'));
+        $this->contentStorage->expects($this->never())->method('save');
 
         $this->logger->expects($this->once())->method('error');
         $form->expects($this->atLeastOnce())->method('addError')->with('cover', $this->anything());
@@ -358,21 +360,29 @@ final class BookCommandHandlerTest extends Unit
     private function mockContentStorageWithCover(): void
     {
         $stream = fopen('php://memory', 'r+b');
-        fwrite($stream, 'test content');
-        rewind($stream);
+        $this->assertIsResource($stream);
 
-        $fileContent = new FileContent($stream, 'jpg', 'image/jpeg');
+        try {
+            fwrite($stream, 'test content');
+            rewind($stream);
 
-        $fileKey = new FileKey(self::TEST_HASH);
+            $fileContent = new FileContent($stream, 'jpg', 'image/jpeg');
+            $fileKey = new FileKey(self::TEST_HASH);
 
-        $this->uploadedFileAdapter->expects($this->once())
-            ->method('toFileContent')
-            ->willReturn($fileContent);
+            $this->uploadedFileAdapter->expects($this->once())
+                ->method('toFileContent')
+                ->with($this->callback(static fn($arg) => $arg instanceof UploadedFile))
+                ->willReturn($fileContent);
 
-        $this->contentStorage->expects($this->once())
-            ->method('save')
-            ->with($fileContent)
-            ->willReturn($fileKey);
+            $this->contentStorage->expects($this->once())
+                ->method('save')
+                ->with($this->equalTo($fileContent))
+                ->willReturn($fileKey);
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
     }
 
     private function mockUseCaseRunnerSimple(mixed $returnValue = null): void
