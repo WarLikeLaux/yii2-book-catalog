@@ -10,7 +10,9 @@ use app\application\ports\PagedResultInterface;
 use AutoMapper\AutoMapperInterface;
 use LogicException;
 use yii\data\ActiveDataProvider;
+use yii\db\ActiveQuery;
 use yii\db\ActiveQueryInterface;
+use yii\db\ActiveRecord;
 use yii\db\Connection;
 
 abstract readonly class BaseQueryService
@@ -91,7 +93,17 @@ abstract readonly class BaseQueryService
     protected function exists(ActiveQueryInterface $query, ?int $excludeId = null): bool
     {
         if ($excludeId !== null) {
-            $query->andWhere(['<>', 'id', $excludeId]);
+            if (!$query instanceof ActiveQuery) {
+                throw new LogicException('Query must be an instance of ActiveQuery to support dynamic primary key exclusion');
+            }
+
+            /** @var string $modelClass */
+            $modelClass = $query->modelClass; // @phpstan-ignore-line
+
+            if (is_a($modelClass, ActiveRecord::class, true)) {
+                $primaryKey = $modelClass::primaryKey()[0];
+                $query->andWhere(['<>', $primaryKey, $excludeId]);
+            }
         }
 
         return $query->exists($this->db);
