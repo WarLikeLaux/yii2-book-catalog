@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\queries\decorators;
+namespace tests\unit\infrastructure\queries\decorators;
 
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\TracerInterface;

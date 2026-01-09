@@ -71,10 +71,14 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
             ->where(['IS NOT', 'cover_url', null])
             ->column($this->db);
 
-        return array_map(
+        $keys = array_map(
             $this->extractCoverKeyFromUrl(...),
             $urls,
         );
+
+        $keys = array_filter($keys, static fn(string $key): bool => $key !== '');
+
+        return array_values(array_unique($keys));
     }
 
     private function extractCoverKeyFromUrl(string $url): string

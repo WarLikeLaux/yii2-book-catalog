@@ -153,7 +153,7 @@ final class ContentAddressableStorageTest extends Unit
         $key2 = $this->storage->save($content2);
 
         $keys = iterator_to_array($this->storage->listAllKeys());
-        $keyValues = array_map(static fn(FileKey $k): string => $k->value, $keys);
+        $keyValues = array_map(static fn(FileKey $key): string => $key->value, $keys);
 
         $this->assertContains($key1->value, $keyValues);
         $this->assertContains($key2->value, $keyValues);
@@ -180,7 +180,7 @@ final class ContentAddressableStorageTest extends Unit
         $key = $this->storage->save($content);
 
         $keys = iterator_to_array($this->storage->listAllKeys());
-        $keyValues = array_map(static fn(FileKey $k): string => $k->value, $keys);
+        $keyValues = array_map(static fn(FileKey $key): string => $key->value, $keys);
 
         $this->assertCount(1, $keys);
         $this->assertContains($key->value, $keyValues);

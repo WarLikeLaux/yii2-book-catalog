@@ -34,9 +34,12 @@ final readonly class BookPublicationPolicy
 
     public function canPublish(Book $book): bool
     {
-        return $book->authorIds !== []
-        && $book->coverImage instanceof StoredFileReference
-        && $this->hasValidDescription($book->description);
+        try {
+            $this->ensureCanPublish($book);
+            return true;
+        } catch (ValidationException | BusinessRuleException) {
+            return false;
+        }
     }
 
     private function hasValidDescription(?string $description): bool

@@ -36,7 +36,7 @@ final class ReportQueryServiceTest extends Unit
     public function testGetTopAuthorsReportUsesCurrentYearByDefault(): void
     {
         $currentYear = (int)date('Y');
-        $criteria = new ReportCriteria(null);
+        $criteria = new ReportCriteria();
         $result = $this->service->getTopAuthorsReport($criteria);
 
         $this->assertSame($currentYear, $result->year);
@@ -161,10 +161,8 @@ final class ReportQueryServiceTest extends Unit
         $book = new Book();
         $book->title = $title;
         $book->year = $year;
-        static $counter = 0;
-        $counter++;
-        // Generate a 13-digit number deterministically: prefix 978 + padded counter
-        $book->isbn = '978' . str_pad((string)$counter, 10, '0', STR_PAD_LEFT);
+        $uniqueSuffix = (string)(int)(microtime(true) * 10000);
+        $book->isbn = '978' . str_pad(substr($uniqueSuffix, -10), 10, '0', STR_PAD_LEFT);
         $book->description = 'Test description';
         $book->is_published = true;
         $book->save(false);
