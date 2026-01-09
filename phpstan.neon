@@ -86,6 +86,8 @@ services:
 			- phpstan.rules.rule
 	-
 		class: app\infrastructure\phpstan\Rules\NoActiveRecordInDomainOrApplicationRule
+		arguments:
+			reflectionProvider: @reflectionProvider
 		tags:
 			- phpstan.rules.rule
 	-

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\commands\support;
 
+use stdClass;
 use Symfony\Component\Yaml\Yaml;
 use Yii;
 use yii\db\TableSchema;
@@ -164,6 +165,16 @@ final readonly class AutoDocService
 
     private function mapTable(TableSchema $tableSchema): array
     {
+        return [
+            'columns' => $this->mapColumns($tableSchema),
+            'primary_key' => array_values($tableSchema->primaryKey),
+            'foreign_keys' => $this->mapForeignKeys($tableSchema) ?: new stdClass(),
+            'indexes' => $this->mapIndexes($tableSchema) ?: new stdClass(),
+        ];
+    }
+
+    private function mapColumns(TableSchema $tableSchema): array
+    {
         $columns = [];
 
         foreach ($tableSchema->columns as $column) {
@@ -175,6 +186,11 @@ final readonly class AutoDocService
             ];
         }
 
+        return $columns;
+    }
+
+    private function mapForeignKeys(TableSchema $tableSchema): array
+    {
         $foreignKeys = [];
 
         foreach ($tableSchema->foreignKeys as $foreignKey) {
@@ -196,11 +212,29 @@ final readonly class AutoDocService
             }
         }
 
-        return [
-            'columns' => $columns,
-            'primary_key' => array_values($tableSchema->primaryKey),
-            'foreign_keys' => $foreignKeys ?: new \stdClass(),
-        ];
+        return $foreignKeys;
+    }
+
+    private function mapIndexes(TableSchema $tableSchema): array
+    {
+        $schema = Yii::$app->db->schema;
+        $indexes = [];
+
+        try {
+            $dbIndexes = $schema->findUniqueIndexes($tableSchema);
+
+            foreach ($dbIndexes as $indexName => $columns) {
+                $indexes[] = [
+                    'name' => $indexName,
+                    'columns' => is_array($columns) ? $columns : [$columns],
+                    'unique' => true,
+                ];
+            }
+        } catch (\Throwable) {
+            return [];
+        }
+
+        return $indexes;
     }
 
     private function parseControllerRoutes(string $file): array
@@ -338,8 +372,8 @@ final readonly class AutoDocService
             'name' => $name,
             'class' => $ns . chr(92) . $name,
             'table' => $table,
-            'behaviors' => str_contains($content, 'TimestampBehavior::class') ? ['TimestampBehavior'] : new \stdClass(),
-            'relations' => $this->extractRelations($content) ?: new \stdClass(),
+            'behaviors' => str_contains($content, 'TimestampBehavior::class') ? ['TimestampBehavior'] : new stdClass(),
+            'relations' => $this->extractRelations($content) ?: new stdClass(),
             'validation' => $this->extractRulesSummary($content),
         ];
     }
@@ -360,7 +394,7 @@ final readonly class AutoDocService
             $summary[] = sprintf('%s (%s)', $fields, $m[2]);
         }
 
-        preg_match_all("/\[\s*'(\w+)'\s*,\s*'(\w+)'/", $rulesBlock, $simpleMatches, PREG_SET_ORDER);
+        preg_match_all("/\[\s*'(\w+)'\s*,\s*'(\w+)'\s*\]/", $rulesBlock, $simpleMatches, PREG_SET_ORDER);
 
         foreach ($simpleMatches as $m) {
             $entry = sprintf('%s (%s)', $m[1], $m[2]);
@@ -424,6 +458,11 @@ final readonly class AutoDocService
         FileHelper::createDirectory(dirname($path));
         $yaml = Yaml::dump($data, 10, 2);
         $yaml = str_replace('{  }', '{}', $yaml);
+        $yaml = preg_replace(
+            '/(foreign_keys|indexes|behaviors|relations|validation):\s+null/',
+            '$1: {}',
+            $yaml,
+        );
         file_put_contents($path, $yaml);
     }
 }

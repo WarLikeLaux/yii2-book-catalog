@@ -103,7 +103,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
     public function testPersistRethrowsGenericIntegrityException(): void
     {
-        $exception = new IntegrityException(self::OTHER_ERROR, [self::DUPLICATE_SQLSTATE, 1234, self::OTHER_ERROR]);
+        $exception = new IntegrityException(self::OTHER_ERROR, [self::DUPLICATE_SQLSTATE, self::OTHER_ERROR_CODE, self::OTHER_ERROR]);
         $model = $this->makeEmpty(ActiveRecord::class, [
             'save' => static function () use ($exception) {
                 throw $exception;

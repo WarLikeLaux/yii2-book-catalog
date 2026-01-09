@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace app\commands;
 
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\ContentStorageInterface;
 use app\domain\values\FileKey;
+use Yii;
 use yii\console\Controller;
 use yii\console\ExitCode;
-use yii\db\Connection;
-use yii\db\Query;
 
 final class StorageController extends Controller
 {
@@ -20,7 +20,7 @@ final class StorageController extends Controller
         $id,
         $module,
         private readonly ContentStorageInterface $storage,
-        private readonly Connection $db,
+        private readonly BookQueryServiceInterface $bookQuery,
         $config = [],
     ) {
         parent::__construct($id, $module, $config);
@@ -28,11 +28,17 @@ final class StorageController extends Controller
 
     public function actionGc(int $ttlHours = self::DEFAULT_TTL_HOURS): int
     {
-        $this->stdout("Starting storage garbage collection...\n");
-        $this->stdout("TTL: {$ttlHours} hours\n\n");
+        $this->stdout(Yii::t('app', 'storage.gc.starting') . "\n");
+        $this->stdout(Yii::t('app', 'storage.gc.ttl', ['hours' => $ttlHours]) . "\n\n");
 
-        $referencedKeys = $this->getReferencedFileKeys();
-        $this->stdout('Found ' . count($referencedKeys) . " referenced files in database.\n");
+        try {
+            $referencedKeys = $this->bookQuery->getReferencedCoverKeys();
+        } catch (\Throwable $e) {
+            $this->stderr(Yii::t('app', 'storage.gc.error.fetch_keys', ['error' => $e->getMessage()]) . "\n");
+            return ExitCode::DATAERR;
+        }
+
+        $this->stdout(Yii::t('app', 'storage.gc.found_referenced', ['count' => count($referencedKeys)]) . "\n");
 
         $referencedKeysMap = array_flip($referencedKeys);
         $orphanCount = 0;
@@ -40,48 +46,39 @@ final class StorageController extends Controller
         $errorCount = 0;
         $ttlSeconds = $ttlHours * 3600;
 
-        foreach ($this->storage->listAllKeys() as $key) {
-            try {
-                if (isset($referencedKeysMap[$key->value])) {
-                    continue;
-                }
+        try {
+            foreach ($this->storage->listAllKeys() as $key) {
+                try {
+                    if (isset($referencedKeysMap[$key->value])) {
+                        continue;
+                    }
 
-                if (!$this->isOlderThanTtl($key, $ttlSeconds)) {
-                    $skippedCount++;
-                    continue;
-                }
+                    if (!$this->isOlderThanTtl($key, $ttlSeconds)) {
+                        $skippedCount++;
+                        continue;
+                    }
 
-                $this->deleteOrphan($key);
-                $orphanCount++;
-            } catch (\Throwable $e) {
-                $this->stderr("Error processing file key {$key->value}: " . $e->getMessage() . "\n");
-                $errorCount++;
+                    $this->deleteOrphan($key);
+                    $orphanCount++;
+                } catch (\Throwable $e) {
+                    $this->stderr(Yii::t('app', 'storage.gc.error.processing', [
+                        'key' => $key->value,
+                        'error' => $e->getMessage(),
+                    ]) . "\n");
+                    $errorCount++;
+                }
             }
+        } catch (\Throwable $e) {
+            $this->stderr(Yii::t('app', 'storage.gc.error.critical', ['error' => $e->getMessage()]) . "\n");
+            return ExitCode::IOERR;
         }
 
-        $this->stdout("\nGarbage collection complete.\n");
-        $this->stdout("Deleted: {$orphanCount} orphan files\n");
-        $this->stdout("Skipped: {$skippedCount} files (younger than TTL)\n");
-        $this->stdout("Errors:  {$errorCount}\n");
+        $this->stdout("\n" . Yii::t('app', 'storage.gc.complete') . "\n");
+        $this->stdout(Yii::t('app', 'storage.gc.deleted', ['count' => $orphanCount]) . "\n");
+        $this->stdout(Yii::t('app', 'storage.gc.skipped', ['count' => $skippedCount]) . "\n");
+        $this->stdout(Yii::t('app', 'storage.gc.errors', ['count' => $errorCount]) . "\n");
 
         return ExitCode::OK;
-    }
-
-    /**
-     * @return string[]
-     */
-    private function getReferencedFileKeys(): array
-    {
-        $urls = (new Query())
-            ->select('cover_url')
-            ->from('books')
-            ->where(['IS NOT', 'cover_url', null])
-            ->column($this->db);
-
-        return array_map(
-            static fn(string $url): string => pathinfo($url, PATHINFO_FILENAME),
-            $urls,
-        );
     }
 
     private function isOlderThanTtl(FileKey $key, int $ttlSeconds): bool
@@ -111,6 +108,6 @@ final class StorageController extends Controller
             $this->storage->delete($key, $ext);
         }
 
-        $this->stdout("  Deleted orphan: {$key->value}\n");
+        $this->stdout(Yii::t('app', 'storage.gc.deleted_orphan', ['key' => $key->value]) . "\n");
     }
 }
