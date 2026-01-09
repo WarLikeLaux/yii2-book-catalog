@@ -60,4 +60,20 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
     {
         return $this->exists(Book::find()->where(['isbn' => $isbn]), $excludeId);
     }
+
+    /**
+     * @return string[]
+     */
+    public function getReferencedCoverKeys(): array
+    {
+        $urls = Book::find()
+            ->select('cover_url')
+            ->where(['IS NOT', 'cover_url', null])
+            ->column($this->db);
+
+        return array_map(
+            static fn(string $url): string => pathinfo($url, PATHINFO_FILENAME),
+            $urls,
+        );
+    }
 }
