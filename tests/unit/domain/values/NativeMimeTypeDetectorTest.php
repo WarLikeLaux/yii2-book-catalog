@@ -13,9 +13,9 @@ final class NativeMimeTypeDetectorTest extends Unit
     {
         $detector = new NativeMimeTypeDetector(
             static fn(): bool => true,
-            static fn(string $path): string|false => $path === '' ? 'application/x-mime' : 'application/x-mime',
+            static fn(string $path): string|false => $path === '' ? '' : 'application/x-mime',
             static fn(): bool => true,
-            static fn(string $path): string|false => $path === '' ? 'application/x-finfo' : 'application/x-finfo',
+            static fn(string $path): string|false => $path === '' ? '' : 'application/x-finfo',
         );
 
         $result = $detector->detect('path');
@@ -27,9 +27,9 @@ final class NativeMimeTypeDetectorTest extends Unit
     {
         $detector = new NativeMimeTypeDetector(
             static fn(): bool => false,
-            static fn(string $path): string|false => $path === '' ? 'application/x-mime' : 'application/x-mime',
+            static fn(string $path): string|false => $path === '' ? '' : 'application/x-mime',
             static fn(): bool => true,
-            static fn(string $path): string|false => $path === '' ? 'application/x-finfo' : 'application/x-finfo',
+            static fn(string $path): string|false => $path === '' ? '' : 'application/x-finfo',
         );
 
         $result = $detector->detect('path');
@@ -51,7 +51,7 @@ final class NativeMimeTypeDetectorTest extends Unit
         try {
             $detector = new NativeMimeTypeDetector(
                 static fn(): bool => false,
-                static fn(string $path): string|false => $path === '' ? 'application/x-mime' : 'application/x-mime',
+                static fn(string $path): string|false => $path === '' ? '' : 'application/x-mime',
                 static fn(): bool => true,
                 null,
             );
@@ -68,9 +68,9 @@ final class NativeMimeTypeDetectorTest extends Unit
     {
         $detector = new NativeMimeTypeDetector(
             static fn(): bool => false,
-            static fn(string $path): string|false => $path === '' ? 'application/x-mime' : 'application/x-mime',
+            static fn(string $path): string|false => $path === '' ? '' : 'application/x-mime',
             static fn(): bool => false,
-            static fn(string $path): string|false => $path === '' ? 'application/x-finfo' : 'application/x-finfo',
+            static fn(string $path): string|false => $path === '' ? '' : 'application/x-finfo',
         );
 
         $result = $detector->detect('path');
