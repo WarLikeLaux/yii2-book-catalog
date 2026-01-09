@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\books\handlers;
 
+use app\application\books\queries\BookReadDto;
+use app\application\common\dto\PaginationDto;
 use app\application\common\dto\PaginationRequest;
 use app\application\ports\BookQueryServiceInterface;
+use app\application\ports\PagedResultInterface;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\books\handlers\BookSearchHandler;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
@@ -31,7 +34,6 @@ final class BookSearchHandlerTest extends Unit
         $this->fileUrlResolver = $this->createMock(FileUrlResolver::class);
 
         $this->handler = new BookSearchHandler(
-            $this->autoMapper,
             $this->bookQueryService,
             $this->dataProviderFactory,
             $this->fileUrlResolver,
@@ -57,5 +59,47 @@ final class BookSearchHandlerTest extends Unit
         $this->assertInstanceOf(BookSearchForm::class, $result['searchModel']);
         $this->assertInstanceOf(ArrayDataProvider::class, $result['dataProvider']);
         $this->assertTrue($result['searchModel']->hasErrors());
+    }
+
+    public function testPrepareIndexViewDataReturnsDataOnSuccess(): void
+    {
+        $params = ['globalSearch' => 'query'];
+        $pagination = new PaginationRequest(1, 20);
+
+        $dto = new BookReadDto(
+            1,
+            'Test Book',
+            2021,
+            'Description',
+            '978-3-16-148410-0',
+            [],
+            [],
+            'cover.jpg',
+        );
+
+        $pagedResult = $this->createMock(PagedResultInterface::class);
+        $pagedResult->method('getModels')->willReturn([$dto]);
+        $pagedResult->method('getTotalCount')->willReturn(1);
+        $pagedResult->method('getPagination')->willReturn(new PaginationDto(1, 20, 1, 1));
+
+        $this->bookQueryService->expects($this->once())
+            ->method('search')
+            ->with('query', 1, 20)
+            ->willReturn($pagedResult);
+
+        $this->fileUrlResolver->expects($this->once())
+            ->method('resolveCoverUrl')
+            ->with('cover.jpg', 1)
+            ->willReturn('resolved.jpg');
+
+        $this->dataProviderFactory->expects($this->once())
+            ->method('create')
+            ->willReturn(new ArrayDataProvider(['allModels' => [$dto]]));
+
+        $result = $this->handler->prepareIndexViewData($params, $pagination);
+
+        $this->assertArrayHasKey('searchModel', $result);
+        $this->assertArrayHasKey('dataProvider', $result);
+        $this->assertFalse($result['searchModel']->hasErrors());
     }
 }

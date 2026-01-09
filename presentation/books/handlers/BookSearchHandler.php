@@ -5,19 +5,16 @@ declare(strict_types=1);
 namespace app\presentation\books\handlers;
 
 use app\application\books\queries\BookReadDto;
-use app\application\books\queries\BookSearchCriteria;
 use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
-use AutoMapper\AutoMapperInterface;
 
 final readonly class BookSearchHandler
 {
     public function __construct(
-        private AutoMapperInterface $autoMapper,
         private BookQueryServiceInterface $bookQueryService,
         private PagedResultDataProviderFactory $dataProviderFactory,
         private FileUrlResolver $fileUrlResolver,
@@ -42,16 +39,10 @@ final readonly class BookSearchHandler
             ];
         }
 
-        /** @var BookSearchCriteria $criteria */
-        $criteria = $this->autoMapper->map(
-            $form->toArray() + ['page' => $pagination->page, 'pageSize' => $pagination->limit],
-            BookSearchCriteria::class,
-        );
-
         $result = $this->bookQueryService->search(
-            $criteria->globalSearch,
-            $criteria->page,
-            $criteria->pageSize,
+            $form->globalSearch,
+            $pagination->page,
+            $pagination->limit,
         );
 
         $resolvedItems = [];

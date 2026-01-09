@@ -33,7 +33,7 @@ abstract readonly class BaseQueryService
         string $dtoClass,
     ): PagedResultInterface {
         $page = max(1, $page);
-        $pageSize = max(0, $pageSize);
+        $pageSize = max(1, $pageSize);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -44,13 +44,15 @@ abstract readonly class BaseQueryService
             ],
         ]);
 
+        $mapCallback = fn(object $model): object => $this->mapToDto($model, $dtoClass);
+
         $models = array_map(
-            fn(object $model): object => $this->mapToDto($model, $dtoClass),
+            $mapCallback,
             $dataProvider->getModels(),
         );
 
         $totalCount = $dataProvider->getTotalCount();
-        $totalPages = $pageSize > 0 ? (int)ceil($totalCount / $pageSize) : 0;
+        $totalPages = (int)ceil($totalCount / $pageSize);
 
         $pagination = new PaginationDto(
             page: $page,
