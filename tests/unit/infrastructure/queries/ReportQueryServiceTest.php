@@ -88,6 +88,7 @@ final class ReportQueryServiceTest extends Unit
         $book->title = 'Unpublished';
         $book->year = 2024;
         $book->isbn = '9783161484999';
+        $book->description = 'Test description';
         $book->is_published = false;
         $book->save(false);
 
@@ -130,13 +131,10 @@ final class ReportQueryServiceTest extends Unit
 
     private function createPublishedBookForAuthor(int $authorId, string $title, int $year): int
     {
-        static $isbnCounter = 100;
-        $isbnCounter++;
-
         $book = new Book();
         $book->title = $title;
         $book->year = $year;
-        $book->isbn = '9783161484' . $isbnCounter;
+        $book->isbn = (string)random_int(1000000000000, 9999999999999);
         $book->description = 'Test description';
         $book->is_published = true;
         $book->save(false);
