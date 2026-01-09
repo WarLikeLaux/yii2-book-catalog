@@ -16,6 +16,7 @@ use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\UnionType;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\InClassNode;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -49,23 +50,22 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
         $originalNode = $node->getOriginalNode();
         $errors = [];
 
-        if ($originalNode instanceof Node\Stmt\Class_ && $originalNode->extends instanceof Name) {
-            $parentClass = $scope->resolveName($originalNode->extends);
+        if ($originalNode instanceof Node\Stmt\Class_) {
+            $classReflection = $scope->getClassReflection();
 
-            foreach (self::FORBIDDEN_CLASSES as $forbidden) {
-                $normalizedForbidden = ltrim($forbidden, '\\');
-                $normalizedParent = ltrim($parentClass, '\\');
-
-                if (strcasecmp($normalizedParent, $normalizedForbidden) === 0) {
-                    $errors[] = RuleErrorBuilder::message(
-                        sprintf(
-                            'Extending %s is forbidden in domain and application layers. Use domain entities or DTOs instead.',
-                            $forbidden,
-                        ),
-                    )
-                        ->identifier('architecture.noActiveRecordInCore')
-                        ->build();
-                    break;
+            if ($classReflection instanceof ClassReflection) {
+                foreach ($classReflection->getAncestors() as $ancestor) {
+                    if (in_array($ancestor->getName(), self::FORBIDDEN_CLASSES, true)) {
+                        $errors[] = RuleErrorBuilder::message(
+                            sprintf(
+                                'Extending %s is forbidden in domain and application layers. Use domain entities or DTOs instead.',
+                                $ancestor->getName(),
+                            ),
+                        )->identifier('architecture.noActiveRecord')->build();
+                        // Once a forbidden ancestor is found, no need to check further ancestors for this class
+                        // as the error is already reported.
+                        break;
+                    }
                 }
             }
         }
@@ -126,8 +126,10 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
             $errors[] = $this->buildError($forbidden, 'parameter', $paramName);
         }
 
-        if ($node->returnType instanceof Node) {
-            $forbidden = $this->findForbiddenType($node->returnType, $scope);
+        $returnType = $node->returnType; // Extract to variable for PHPStan analysis
+
+        if ($returnType instanceof Node) {
+            $forbidden = $this->findForbiddenType($returnType, $scope);
 
             if ($forbidden !== null) {
                 $errors[] = $this->buildError($forbidden, 'return type', $node->name->toString());
@@ -146,19 +148,19 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
             return [];
         }
 
-        if ($node->props === []) {
-            return [];
-        }
-
         $forbidden = $this->findForbiddenType($node->type, $scope);
 
         if ($forbidden === null) {
             return [];
         }
 
-        $propName = $node->props[0]->name->toString();
+        $errors = [];
 
-        return [$this->buildError($forbidden, 'property', $propName)];
+        foreach ($node->props as $prop) {
+             $errors[] = $this->buildError($forbidden, 'property', $prop->name->toString());
+        }
+
+        return $errors;
     }
 
     private function findForbiddenType(ComplexType|Identifier|Name $type, Scope $scope): ?string
@@ -183,13 +185,18 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
             $resolvedName = $scope->resolveName($type);
 
             foreach (self::FORBIDDEN_CLASSES as $forbidden) {
-                if (strcasecmp($resolvedName, $forbidden) === 0) {
+                if ($this->isForbiddenClass($resolvedName, $forbidden)) {
                     return $forbidden;
                 }
             }
         }
 
         return null;
+    }
+
+    private function isForbiddenClass(string $className, string $forbidden): bool
+    {
+        return strcasecmp(ltrim($className, '\\'), ltrim($forbidden, '\\')) === 0;
     }
 
     private function buildError(string $forbiddenClass, string $context, string $name): IdentifierRuleError
