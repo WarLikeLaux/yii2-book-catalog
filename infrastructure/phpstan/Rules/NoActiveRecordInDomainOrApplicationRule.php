@@ -49,29 +49,22 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
 
         $originalNode = $node->getOriginalNode();
         $errors = [];
+        $classReflection = $scope->getClassReflection();
 
-        if ($originalNode instanceof Node\Stmt\Class_) {
-            $classReflection = $scope->getClassReflection();
-
-            if ($classReflection instanceof ClassReflection) {
-                foreach ($classReflection->getAncestors() as $ancestor) {
-                    if (in_array($ancestor->getName(), self::FORBIDDEN_CLASSES, true)) {
-                        $errors[] = RuleErrorBuilder::message(
-                            sprintf(
-                                'Extending %s is forbidden in domain and application layers. Use domain entities or DTOs instead.',
-                                $ancestor->getName(),
-                            ),
-                        )->identifier('architecture.noActiveRecord')->build();
-                        // Once a forbidden ancestor is found, no need to check further ancestors for this class
-                        // as the error is already reported.
-                        break;
-                    }
+        if ($classReflection instanceof ClassReflection) {
+            foreach ($classReflection->getAncestors() as $ancestor) {
+                if (in_array($ancestor->getName(), self::FORBIDDEN_CLASSES, true)) {
+                    $errors[] = RuleErrorBuilder::message(
+                        sprintf(
+                            'Extending %s is forbidden in domain and application layers. Use domain entities or DTOs instead.',
+                            $ancestor->getName(),
+                        ),
+                    )->identifier('architecture.noActiveRecord')->build();
+                    // Once a forbidden ancestor is found, no need to check further ancestors for this class
+                    // as the error is already reported.
+                    break;
                 }
             }
-        }
-
-        if (!($originalNode instanceof Node\Stmt\Class_)) {
-            return $errors;
         }
 
         foreach ($originalNode->stmts as $stmt) {
@@ -126,7 +119,7 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
             $errors[] = $this->buildError($forbidden, 'parameter', $paramName);
         }
 
-        $returnType = $node->returnType; // Extract to variable for PHPStan analysis
+        $returnType = $node->returnType;
 
         if ($returnType instanceof Node) {
             $forbidden = $this->findForbiddenType($returnType, $scope);
