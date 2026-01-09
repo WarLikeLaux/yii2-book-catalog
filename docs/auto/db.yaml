@@ -1,7 +1,27 @@
 meta:
   title: 'Database Schema'
-  updated_at: '2026-01-03T02:11:24+00:00'
+  updated_at: '2026-01-09T02:29:54+00:00'
 tables:
+  async_idempotency_log:
+    columns:
+      -
+        name: id
+        type: int
+        nullable: false
+        default: null
+      -
+        name: idempotency_key
+        type: varchar(128)
+        nullable: false
+        default: null
+      -
+        name: created_at
+        type: int
+        nullable: false
+        default: null
+    primary_key:
+      - id
+    foreign_keys: {  }
   authors:
     columns:
       -

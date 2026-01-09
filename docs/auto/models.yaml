@@ -1,7 +1,19 @@
 meta:
   title: 'ActiveRecord Models'
-  updated_at: '2026-01-03T02:11:24+00:00'
+  updated_at: '2026-01-09T02:29:54+00:00'
 models:
+  AsyncIdempotencyLog:
+    name: AsyncIdempotencyLog
+    class: app\infrastructure\persistence\AsyncIdempotencyLog
+    table: '{{%async_idempotency_log}}'
+    behaviors: {  }
+    relations: {  }
+    validation:
+      - 'idempotency_key,created_at (required)'
+      - 'created_at (integer)'
+      - 'idempotency_key (string)'
+      - 'idempotency_key (unique)'
+      - 'idempotency_key (created_at)'
   Author:
     name: Author
     class: app\infrastructure\persistence\Author
