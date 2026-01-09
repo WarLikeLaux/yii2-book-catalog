@@ -6,12 +6,79 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.17.0] - 2026-01-06 — "Архитектурный сдвиг и бесконечный скролл"
+## [0.18.0] - 2026-01-09 - "Декларативный маппинг, CAS-хранилище и укрепление инфраструктуры"
+
+> Масштабное обновление, охватывающее более 110 коммитов: внедрен AutoMapper для декларативного маппинга DTO и механизм ActiveRecordHydrator для автоматизации сохранения сущностей. Реализована система хранения CAS (Content-Addressable Storage) и механизмы идемпотентности для повышения надежности очередей. Архитектура ядра формализована в ADR #13, усилена строгими правилами PHPStan и унифицированной обработкой ошибок через UseCaseHandlerTrait. Проведен масштабный рефакторинг Makefile и инструментов тестирования для стабилизации CI/CD.
+
+<details>
+<summary>Подробности изменений</summary>
+
+### 🚀 Новые функции и возможности
+- **#32** - внедрена библиотека **AutoMapper** и атрибуты `MapTo` для декларативного преобразования объектов ([c1e465e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c1e465e), [21be436](https://github.com/WarLikeLaux/yii2-book-catalog/commit/21be436), [639f3ff](https://github.com/WarLikeLaux/yii2-book-catalog/commit/639f3ff))
+- **#32** - реализовано автоматическое удаление лишних пробелов (trimming) в доменных сущностях ([71ff241](https://github.com/WarLikeLaux/yii2-book-catalog/commit/71ff241))
+- **#32** - реализован **ActiveRecordHydrator** для автоматического сохранения состояния сущностей ([b01028a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b01028a), [04a9626](https://github.com/WarLikeLaux/yii2-book-catalog/commit/04a9626))
+- **#32** - реализована **контентно-адресуемая система хранения** (Content-Addressable Storage) для оптимизации работы с файлами ([a9747e6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a9747e6), [72940d0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/72940d0), [29673c9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/29673c9), [bdee41b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bdee41b), [23ef66f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/23ef66f))
+- **#32** - доработана контентно-адресуемая система хранения: стандартизированы исключения, добавлена поддержка расширений и первичных ключей ([a9747e6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a9747e6), [5329b4c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5329b4c), [a41f8cc](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a41f8cc))
+- **#32** - внедрена поддержка слушателей маппинга для Yii2 ActiveRecord ([9fe70f4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9fe70f4))
+- **#32** - реализовано асинхронное хранилище **идемпотентности** для очередей ([a9b2ec2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a9b2ec2), [b8ea1f0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b8ea1f0))
+- **#32** - внедрен интерфейс **IdentifiableEntityInterface** для стандартизации работы с идентификаторами ([9231e55](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9231e55))
+- **#32** - добавлена поддержка расширений файлов, времени модификации и валидации путей в слое хранения ([23ef66f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/23ef66f), [52f11da](https://github.com/WarLikeLaux/yii2-book-catalog/commit/52f11da), [c904f8e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c904f8e))
+- **#32** - добавлена консольная команда `StorageController` для обслуживания хранилища и очистки от сиротских файлов ([19687e1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/19687e1), [6a6e7e5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6a6e7e5))
+- **#32** - добавлены новые доменные коды ошибок и обновлены переводы ([150f1fb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/150f1fb))
+
+### 🛠 Рефакторинг и архитектура
+- **#32** - масштабный рефакторинг презентационного слоя: замена ручных мапперов на **AutoMapper** ([885f1a5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/885f1a5), [429b3e1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/429b3e1), [0f6734a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0f6734a))
+- **#32** - внедрен **BaseQueryService** и **BaseActiveRecordRepository** для унификации логики доступа к данным ([ba83beb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ba83beb), [b960b0e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b960b0e), [8544a8d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8544a8d), [2eb9cd1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2eb9cd1), [6c41af6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6c41af6), [b9d7f0d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b9d7f0d), [4c061ca](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4c061ca), [11c2c3a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/11c2c3a))
+- **#32** - исправлены побочные эффекты сортировки массивов в репозитории книг ([e290eb2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e290eb2))
+- **#32** - внедрен трейт **UseCaseHandlerTrait** для унифицированной обработки результатов и маппинга ошибок ([533b5ea](https://github.com/WarLikeLaux/yii2-book-catalog/commit/533b5ea), [68c152a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/68c152a), [e9b153d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e9b153d), [60593e8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/60593e8))
+- **#32** - рефакторинг инфраструктурных компонентов и сервисов запросов ([cb6a568](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cb6a568))
+- **#32** - реализована эффективная очистка WeakMap в репозиториях для предотвращения утечек памяти ([46cac51](https://github.com/WarLikeLaux/yii2-book-catalog/commit/46cac51))
+- **#32** - оптимизировано извлечение идентификаторов сущностей в базовом репозитории ([485567c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/485567c))
+- **#32** - репозитории переведены на использование **ActiveRecordHydrator**, **Identity Map** и строгую типизацию ([04a9626](https://github.com/WarLikeLaux/yii2-book-catalog/commit/04a9626), [e65855d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e65855d), [b8cf289](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b8cf289), [f74adf2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f74adf2))
+- **#32** - внедрен **UploadedFileAdapter** для чистой обработки загрузок вне контроллеров ([0125b98](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0125b98), [ed66287](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ed66287))
+- **#32** - рефакторинг поиска книг: переход на интерфейс Query Service и унификация хендлеров ([9c481f6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9c481f6), [682527b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/682527b), [91928ed](https://github.com/WarLikeLaux/yii2-book-catalog/commit/91928ed), [8118ac5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8118ac5))
+- **#32** - добавлена поддержка пустых результатов (empty factory) в QueryResult и соответствующие тесты ([0fdd749](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0fdd749), [2907ba3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2907ba3))
+- **#32** - проведена изоляция инфраструктуры и презентации через новые интерфейсы и декораторы ([f245bb0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f245bb0), [e144cab](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e144cab), [af07bf9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/af07bf9))
+- **#32** - рефакторинг **FileContent** и системы хранения: переход на доменные исключения и удаление легаси middleware ([43d076f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/43d076f), [33ac91c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/33ac91c), [bdee41b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bdee41b), [2d94980](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2d94980))
+- **#32** - централизована валидация переменных окружения через **Dotenv** ([84867db](https://github.com/WarLikeLaux/yii2-book-catalog/commit/84867db), [a91a105](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a91a105))
+
+### 🧪 Тестирование
+- **#32** - внедрен **RemovesDirectoriesTrait** для декларативного удаления директорий в тестах ([57b1052](https://github.com/WarLikeLaux/yii2-book-catalog/commit/57b1052))
+- **#32** - расширено покрытие тестами для новых инфраструктурных компонентов, мапперов и базовых сервисов ([5e72a89](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5e72a89), [581f8af](https://github.com/WarLikeLaux/yii2-book-catalog/commit/581f8af), [c3434b8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c3434b8), [12fc530](https://github.com/WarLikeLaux/yii2-book-catalog/commit/12fc530), [52dd179](https://github.com/WarLikeLaux/yii2-book-catalog/commit/52dd179))
+- **#32** - обновлена конфигурация инструментов тестирования и добавлены вспомогательные ресурсы ([10d5a30](https://github.com/WarLikeLaux/yii2-book-catalog/commit/10d5a30))
+- **#32** - стабилизированы тесты идемпотентности, очереди уведомлений и поиска при валидационных ошибках ([f9ca737](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f9ca737), [2e4bb43](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e4bb43), [c2705ba](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c2705ba), [4d868e1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4d868e1))
+- **#32** - обновлен мок хранилища с обложками в тестах хендлеров ([86f72d5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/86f72d5))
+- **#32** - удалены неиспользуемые DTO (AuthorSearchResponse) и обновлены тесты IdentifiableEntity ([b7e96e8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b7e96e8), [4c568c3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4c568c3))
+- **#32** - улучшена надежность и читаемость unit-тестов: удалены неиспользуемые хелперы и добавлены строгие ассерты ([3cd12e8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3cd12e8), [342d7fa](https://github.com/WarLikeLaux/yii2-book-catalog/commit/342d7fa), [e2dcc83](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e2dcc83))
+
+### ⚙️ Инфраструктура
+- **#32** - внедрены новые правила **PHPStan** для контроля использования ActiveRecord, изоляции слоев и типизации ([c6333aa](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c6333aa), [876e37a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/876e37a), [f1689a2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f1689a2), [9b13db0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9b13db0), [db7738d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/db7738d), [50ba834](https://github.com/WarLikeLaux/yii2-book-catalog/commit/50ba834), [07021d4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/07021d4), [9e96c52](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9e96c52), [b53c3cc](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b53c3cc), [6880b8b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6880b8b), [878e384](https://github.com/WarLikeLaux/yii2-book-catalog/commit/878e384))
+- **#32** - оптимизирована загрузка конфигураций и стандартизованы выражения `include` ([9baeab0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9baeab0))
+- **#32** - упрощен код и удалены избыточные комментарии из доменной логики и сервисов ([979ae2b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/979ae2b), [b2c33c2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b2c33c2))
+- **#32** - рефакторинг **Makefile**: перенос логики в изолированные bash-скрипты и оптимизация утилит ([d062726](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d062726), [fd87b22](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fd87b22), [5fcc6e3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5fcc6e3), [737940b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/737940b), [2b366b5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2b366b5))
+- **#32** - обновлены скрипты развертывания и инфраструктурные инструменты во время сборки ([d82a28a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d82a28a), [307c0af](https://github.com/WarLikeLaux/yii2-book-catalog/commit/307c0af))
+- **#32** - из конфигурации консольного приложения удалены нетехнические комментарии ([95c325b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/95c325b))
+- **#32** - доработана автоматическая генерация документации и сервис AutoDoc ([e1fe5b8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e1fe5b8), [bdfaddd](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bdfaddd))
+- **#32** - оптимизирована работа с частичными индексами в PostgreSQL для обложек книг ([665c851](https://github.com/WarLikeLaux/yii2-book-catalog/commit/665c851))
+- **#32** - удалены файлы конфигурации IDE (.vscode) ([774e8ac](https://github.com/WarLikeLaux/yii2-book-catalog/commit/774e8ac))
+- **#32** - стандартизованы правила **Rector** и линтинга для новых архитектурных паттернов ([f95cb93](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f95cb93), f95cb93)
+
+### 📝 Документация
+- **#32** - добавлен **ADR #13** о принципах построения инфраструктурного ядра ([c92ab94](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c92ab94))
+- **#31** - актуализирована документация проекта и реализован лендинг ([f82832a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f82832a), [ba9ca50](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ba9ca50))
+- **#32** - доработан **DI-контейнер** и конфигурация репозиториев ([6dd0e8a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6dd0e8a))
+- **#32** - рефакторинг поиска и бизнес-логики для соответствия новым сервисам ([ad616d2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ad616d2))
+- **#32** - добавлена поддержка **Generics** для PagedResult и QueryResult ([33a23e9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/33a23e9))
+- **#31** - обновлен **CHANGELOG.md** с исправлением разметки и добавлением пропущенных коммитов ([d1126db](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d1126db), [3a61e4f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3a61e4f))
+</details>
+
+## [0.17.0] - 2026-01-06 - "Архитектурный сдвиг и бесконечный скролл"
 
 > Масштабный релиз, внедряющий современную инфраструктуру обработки команд (Command Pipeline), переход на типизированные коды ошибок и реализацию бесконечного скролла с использованием HTMX. Значительно усилен контроль качества через архитектурные тесты (PHPArkitect) и глубокий рефакторинг в соответствии с принципом разделения интерфейсов (ISP).
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#31** - консолидирована логика полнотекстового поиска с использованием LIKE в качестве запасного варианта ([0f3b965](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0f3b965))
 - **#31** - внедрена инфраструктура pipeline команд и middleware ([d1b5b0a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d1b5b0a))
@@ -67,12 +134,13 @@
 </details>
 
 
-## [0.16.0] - 2026-01-04 — "Надежность тестов и архитектурная стандартизация"
+## [0.16.0] - 2026-01-04 - "Надежность тестов и архитектурная стандартизация"
 
 > Это фундаментальный релиз, в котором проведена полная стандартизация кодовой базы и значительное архитектурное укрепление. Внедрены строгие правила линтинга (PHPCS/Slevomat), достигнуто честное 100% покрытие кода тестами и внедрены продвинутые механизмы внедрения зависимостей через обертки компонентов. Архитектурно осуществлен переход на специализированные DTO для пагинации, стабилизирована работа с PostgreSQL и реализован `TransactionalEventPublisher` для гарантированной доставки событий. Устранены риски переполнения памяти при работе с файлами, внедрен `LogSmsSender` для безопасной разработки и добавлена серия ADR (Architectural Decision Records) для прозрачной истории ключевых решений.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#30** - реализованы **обертки компонентов** для решения рекурсии DI и включено автовайринг инфраструктуры ([075516a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/075516a))
 - **#30** - реализована поддержка идентификации на стороне БД через `IdentityAssignmentTrait` и рефлексию ([e458178](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e458178))
@@ -126,7 +194,7 @@
 - **#30** - синхронизированы ссылки на ADR в докблоках по всему проекту ([11fc001](https://github.com/WarLikeLaux/yii2-book-catalog/commit/11fc001), [d77ef6f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d77ef6f))
 </details>
 
-## [0.15.0] - 2026-01-04 — "Rate Limiting и Readonly"
+## [0.15.0] - 2026-01-04 - "Rate Limiting и Readonly"
 
 > Внедрено ограничение скорости запросов (Rate Limiting) для защиты API. Доменные сущности стали иммутабельными благодаря readonly свойствам PHP 8.2+. Добавлен драйвер PSR-20 Clock и View Models для разделения логики представления. Интеграция GLightbox оживила галерею, а Graceful Shutdown сделал воркеры надежнее.
 
@@ -175,12 +243,13 @@
 - **#29** - обновлены метаданные и заголовки **workflow** ([60b0cf8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/60b0cf8))
 </details>
 
-## [0.14.0] - 2026-01-03 — "PostgreSQL, PsySH и Observability"
+## [0.14.0] - 2026-01-03 - "PostgreSQL, PsySH и Observability"
 
 > Ключевой релиз, внедряющий полноценную поддержку PostgreSQL и мульти-базовую архитектуру. Система стала полностью агностик к базе данных. Инструментарий разработчика вышел на новый уровень с интеграцией PsySH и расширенными возможностями отладки. Значительно улучшена наблюдаемость (Observability) благодаря сквозной трассировке асинхронных операций. Добавлен виджет системной информации и устранены архитектурные ограничения в адаптерах. Весь проект прошел через визуальное обновление документации с новым hero-баннером и улучшенной структурой README.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#28** - добавлена поддержка PostgreSQL и мульти-базовая конфигурация ([08e18bf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/08e18bf))
 - **#28** - добавлен интерактивный shell с интеграцией PsySH ([84fc999](https://github.com/WarLikeLaux/yii2-book-catalog/commit/84fc999))
@@ -222,12 +291,13 @@
 - **#28** - уточнены инструкции воркфлоу коммитов ([b6a45f4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b6a45f4))
 </details>
 
-## [0.13.0] - 2026-01-02 — "Сверхзвуковая идемпотентность, гибкость и точный поиск"
+## [0.13.0] - 2026-01-02 - "Сверхзвуковая идемпотентность, гибкость и точный поиск"
 
 > Масштабный рефакторинг инфраструктуры и внедрение продвинутых паттернов. Реализована полноценная идемпотентность с отслеживанием статусов, внедрены спецификации и политики для чистоты домена. Архитектура стала еще более отчуждаемой благодаря разделению интерфейсов (ISP), маппингу событий и консолидации локализации. Улучшены механизмы поиска и валидации. UI получил мощный заряд динамики с клиентской генерацией данных и современными виджетами.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#27** - улучшен быстрый поиск и исправлен полнотекстовой поиск авторов через MATCH ([6b2f33d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6b2f33d))
 - **#27** - внедрен паттерн **Specification** для формализации критериев поиска и фильтрации книг ([460ad6b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/460ad6b))
@@ -272,7 +342,7 @@
 
 ### 🐛 Исправления
 - **#27** - исправлена обработка `null` для версии в `OptimisticLockBehavior` ([978c917](https://github.com/WarLikeLaux/yii2-book-catalog/commit/978c917))
-- **#27** - исправлены нарушения Deptrac путем переноса `YiiAuthService` в слой адаптеров ([513f555](https://github.com/WarLikeLaux/yii2-book-catalog/commit/513f555))
+- **#27** - исправлены нарушения Deptrac путем переноса `YiiAuthService` в слой адаптеров ([513f555](https://github.Hcom/WarLikeLaux/yii2-book-catalog/commit/513f555))
 
 ### 📝 Документация
 - **#27** - обновлена ARCHITECTURE.md: добавлен пример Use Case и описана новая структура ([a73529a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a73529a))
@@ -288,12 +358,13 @@
 - **#27** - добавлена конфигурация идемпотентности в `params.php` ([79ce100](https://github.com/WarLikeLaux/yii2-book-catalog/commit/79ce100))
 </details>
 
-## [0.12.0] - 2026-01-01 — "Блокировки и события"
+## [0.12.0] - 2026-01-01 - "Блокировки и события"
 
 > Внедрена оптимистичная блокировка для предотвращения конфликтов редактирования и механизмы Mutex для контроля конкурентных процессов. Архитектура стала чище: произошел отказ от `UseCaseExecutor` в пользу прямого выполнения UseCase, улучшены DI в репозиториях и поддержка вложенных транзакций.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#26** - реализована **оптимистичная блокировка** для сущности `Book` для защиты от конкурентных правок ([9069ab9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9069ab9))
 - **#26** - реализован порт и адаптер **Mutex** для контроля конкурентного доступа ([3b0ac9b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3b0ac9b))
@@ -322,12 +393,13 @@
 - **#26** - обновлены зависимости проекта и общая конфигурация ([77d3ce2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/77d3ce2))
 </details>
 
-## [0.11.0] - 2025-12-31 — "Чистая валидация"
+## [0.11.0] - 2025-12-31 - "Чистая валидация"
 
 > Рефакторинг системы валидации и форм. Декораторы трассировки переехали в отдельную директорию. Обновлена конфигурация и тесты.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🛠 Рефакторинг и архитектура
 - **#25** - рефакторинг валидации и форм ([6bec513](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6bec513))
 - **#25** - рефакторинг расположения декораторов трассировки ([cf1f985](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cf1f985))
@@ -341,12 +413,13 @@
 - **#25** - обновлен `CHANGELOG.md` ([0b2f1d4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0b2f1d4), [384f907](https://github.com/WarLikeLaux/yii2-book-catalog/commit/384f907))
 </details>
 
-## [0.10.0] - 2025-12-30 — "Полноценный домен"
+## [0.10.0] - 2025-12-30 - "Полноценный домен"
 
-> Наконец-то доменные сущности стали по-настоящему богатыми. Внедрен полноценный Distributed Tracing (Inspector APM) и наблюдаемость. Инфраструктура тестов переведена на современные сьюты (Integration/E2E), покрытие — честные 100%. Плюс Redis-кеширование и правильный Docker-маппинг.
+> Наконец-то доменные сущности стали по-настоящему богатыми. Внедрен полноценный Distributed Tracing (Inspector APM) и наблюдаемость. Инфраструктура тестов переведена на современные сьюты (Integration/E2E), покрытие - честные 100%. Плюс Redis-кеширование и правильный Docker-маппинг.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#24** - реализована трассировка **Inspector APM** для мониторинга SQL и HTTP запросов ([a5c4843](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a5c4843))
 - **#23** - реализована система наблюдаемости (**Observability**) и воркфлоу для AI-агентов ([884d32e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/884d32e))
@@ -402,19 +475,20 @@
 - **#22** - синхронизирована документация с актуальным кодом и структурой проекта ([ff70c60](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ff70c60))
 - **#22** - обновлен `ARCHITECTURE.md` для отражения реализации Rich Domain Entities ([34ae98f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/34ae98f))
 - **#22** - README приведен в соответствие с модульной структурой проекта (секция 12) ([654ae42](https://github.com/WarLikeLaux/yii2-book-catalog/commit/654ae42))
-- **#22** - Rich Domain Model исключен из раздела архитектурных компромиссов ([d611f91](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d611f91))
+- **#22** - Rich Domain Model исключен из раздела архитектурных компромиссов ([d611f91](https://github.Hcom/WarLikeLaux/yii2-book-catalog/commit/d611f91))
 - **#21** - обновлена документация проекта и метрики покрытия ([cf44dc6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cf44dc6))
 - **#19** - синхронизированы недостающие хеши в списке изменений ([9e707de](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9e707de))
 - **#22** - обновлен CHANGELOG.md для версии 0.10.0 ([2f1b21b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2f1b21b))
 </details>
 
 
-## [0.9.0] - 2025-12-28 — "Идемпотентность"
+## [0.9.0] - 2025-12-28 - "Идемпотентность"
 
 > HTTP-запросы теперь защищены от дублирования через `Idempotency-Key`. Добавлены строгие правила безопасности PHPStan, внедрен валидатор документации и MSI доведен до 96%. Порядок.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🛡️ Безопасность
 - **#19** - внедрены строгие правила безопасности (`strict-rules`) и исправлены ошибки типизации ([56e4c08](https://github.com/WarLikeLaux/yii2-book-catalog/commit/56e4c08))
 
@@ -439,7 +513,7 @@
 - **#19** - рефакторинг внедрения зависимостей в инфраструктурном слое ([fbcaf1f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fbcaf1f))
 - **#18** - рефакторинг Makefile: новые команды `make dev`, `make ci`, `make pr`, `make fix` ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 - **#18** - удалены избыточные `@codeCoverageIgnoreStart/End` блоки в репозиториях ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
-- **#18** - упрощена конфигурация CI — coverage берётся из `codeception.yml` ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
+- **#18** - упрощена конфигурация CI - coverage берётся из `codeception.yml` ([2e3eff4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e3eff4))
 
 ### ⚙️ Инфраструктура
 - **#19** - увеличен тайм-аут composer для предотвращения ошибок загрузки ([9d8c06b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9d8c06b))
@@ -462,15 +536,16 @@
 </details>
 
 
-## [0.8.0] - 2025-12-27 — "REST & Rector"
+## [0.8.0] - 2025-12-27 - "REST & Rector"
 
 > REST API для книг с OpenAPI-документацией и Swagger. Rector автоматом причесал код под PHP 8.4. CI научился запускать Selenium и приёмочные тесты. MSI 92%.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#17** - реализован **REST API** для книг с поддержкой OpenAPI спецификации ([4ac7aa2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4ac7aa2))
-- **#17** - внедрена автоматическая генерация документации Swagger и настроены заголовки безопасности (HSTS, CSP, X-Frame-Options) ([4ac7aa2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4ac7aa2))
+- **#17** - внедрена автоматическая генерация документации Swagger и настроены заголовки безопасности (HSTS, CSP, X-Frame-Options) ([4ac7aa2](https://github.Hcom/WarLikeLaux/yii2-book-catalog/commit/4ac7aa2))
 
 ### 🛠 Рефакторинг и архитектура
 - **#16** - внедрен **Rector** для автоматического рефакторинга под стандарты **PHP 8.4** (readonly классы, типизация) ([9351974](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9351974))
@@ -507,13 +582,15 @@
 - **#16** - обновлена статистика проекта и оформление команд в README ([1af7cdf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1af7cdf))
 - **#16** - выполнен откат HTML-ссылок на Markdown для соблюдения политики безопасности GitHub ([904d466](https://github.com/WarLikeLaux/yii2-book-catalog/commit/904d466))
 - **#15** - интегрированы архитектурные диаграммы и документация по безопасности ([17b0075](https://github.com/WarLikeLaux/yii2-book-catalog/commit/17b0075))
+</details>
 
-## [0.7.0] - 2025-12-27 — "Value Objects"
+## [0.7.0] - 2025-12-27 - "Value Objects"
 
 > Сервисы разделены на Command и View, внедрены Isbn и BookYear как Value Objects. Добавлено 100+ новых тестов, покрытие выросло с 76% до 88%. Устранен анти-паттерн "Supervisor Controller".
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🛠 Рефакторинг и архитектура
 - **#14** - полное разделение Presentation Services на **Command Services** (Write) и **View Services** (Read) для всех контроллеров (Books, Authors, Subscriptions) ([fb0a11c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fb0a11c))
 - **#14** - внедрение Value Objects (`Isbn`, `BookYear`) для инкапсуляции бизнес-правил валидации ([70df022](https://github.com/WarLikeLaux/yii2-book-catalog/commit/70df022))
@@ -529,7 +606,7 @@
 - **#14** - добавлено **100+ новых тестов**, покрытие кода выросло с **~76%** до **~88%** ([0458b42](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0458b42))
 - **#14** - Unit-тесты для: YiiPsrLogger, Queue Jobs, User, Subscription, PagedResultDataProvider, AuthorSelect2Mapper, UseCaseExecutor (query), QueryResult, валидаторов (UniqueIsbn, AuthorExists, UniqueFio, Isbn), форм (BookForm, SubscriptionForm, ReportFilterForm)
 - **#14** - Functional-тесты для: CRUD Book/Author, Use Cases (Update/Delete Book, Author Use Cases), SubscriptionController, SiteController, SubscriptionViewService
-- **#14** - исправлен баг в `UpdateBookUseCase` — добавлены недостающие импорты Value Objects (`BookYear`, `Isbn`)
+- **#14** - исправлен баг в `UpdateBookUseCase` - добавлены недостающие импорты Value Objects (`BookYear`, `Isbn`)
 
 ### 📝 Документация
 - **#14** - обновлен README: актуализирована структура проекта, описано разделение сервисов и использование DDD Value Objects ([a83f74d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a83f74d))
@@ -538,12 +615,13 @@
 - **#14** - обновлен README.md ([5f6ac06](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5f6ac06), [7eb7350](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7eb7350), [208230f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/208230f))
 </details>
 
-## [0.6.0] - 2025-12-25 — "Clean Layers"
+## [0.6.0] - 2025-12-25 - "Clean Layers"
 
-> Глобальный рефакторинг на слои Clean Architecture. Selenium в docker-compose, TranslatorInterface для независимых переводов. Проведена очистка легаси — удалены Vagrant и .bowerrc.
+> Глобальный рефакторинг на слои Clean Architecture. Selenium в docker-compose, TranslatorInterface для независимых переводов. Проведена очистка легаси - удалены Vagrant и .bowerrc.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#12** - добавлена поддержка TranslatorInterface и адаптер YiiTranslatorAdapter для независимых переводов ([27378fb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/27378fb))
 - **#12** - добавлен сервис Selenium в docker-compose для приемочного тестирования ([77f05bd](https://github.com/WarLikeLaux/yii2-book-catalog/commit/77f05bd))
@@ -568,12 +646,13 @@
 - **#13** - создан CHANGELOG.md для документирования значимых изменений проекта ([deb21ae](https://github.com/WarLikeLaux/yii2-book-catalog/commit/deb21ae))
 </details>
 
-## [0.5.0] - 2025-12-22 — "UseCaseExecutor"
+## [0.5.0] - 2025-12-22 - "UseCaseExecutor"
 
-> Появился UseCaseExecutor — стандартизированное выполнение бизнес-логики. Пагинация, динамическое кеширование схемы БД, рефакторинг контроллеров на Presentation Services.
+> Появился UseCaseExecutor - стандартизированное выполнение бизнес-логики. Пагинация, динамическое кеширование схемы БД, рефакторинг контроллеров на Presentation Services.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#10** - созданы DTO результаты для форм (BookCreateFormResult, BookUpdateFormResult) и обновлены сервисы подготовки форм ([60325bb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/60325bb))
 - **#8** - реализован UseCaseExecutor для стандартизированного выполнения бизнес-логики с обработкой ошибок и уведомлениями ([f6926ee](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f6926ee))
@@ -600,12 +679,13 @@
 - **#9** - обновлен README: разъяснены неймспейсы слоев и ответственность presentation services ([2a9feec](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2a9feec), [ae17838](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ae17838), [be9a8cf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/be9a8cf), [3bedce1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3bedce1))
 </details>
 
-## [0.4.0] - 2025-12-21 — "Commands & Queries"
+## [0.4.0] - 2025-12-21 - "Commands & Queries"
 
 > Полный переход на Command/Query/UseCase. Удален старый слой сервисов, внедрены Rich Models. Строгая типизация везде.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🛠 Рефакторинг и архитектура
 - **#6** - рефакторинг приложения на использование паттернов Command, Query и Use Case ([463ce48](https://github.com/WarLikeLaux/yii2-book-catalog/commit/463ce48))
 - **#6** - удаление старого слоя сервисов и внедрение новых форм ([463ce48](https://github.com/WarLikeLaux/yii2-book-catalog/commit/463ce48))
@@ -620,12 +700,13 @@
 - **#7** - обновлен README ([de05984](https://github.com/WarLikeLaux/yii2-book-catalog/commit/de05984))
 </details>
 
-## [0.3.0] - 2025-12-04 — "BookSearch"
+## [0.3.0] - 2025-12-04 - "BookSearch"
 
 > Добавлена модель BookSearch и интегрирован поиск в SiteController.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#4** - внедрена модель BookSearch и интегрирована функциональность поиска в SiteController ([aacfa95](https://github.com/WarLikeLaux/yii2-book-catalog/commit/aacfa95))
 
@@ -636,12 +717,13 @@
 - **#4** - удалена лишняя пустая строка в файле миграции ([085f32b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/085f32b))
 </details>
 
-## [0.2.0] - 2025-12-03 — "SMS & Очереди"
+## [0.2.0] - 2025-12-03 - "SMS & Очереди"
 
-> PSR-логирование для SMS, валидация ISBN, Select2 для авторов, нормализация телефонов E164. Fan-out паттерн в очереди — NotifySingleSubscriberJob.
+> PSR-логирование для SMS, валидация ISBN, Select2 для авторов, нормализация телефонов E164. Fan-out паттерн в очереди - NotifySingleSubscriberJob.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#4** - добавлена поддержка PSR логирования для SMS сервисов и внедрен YiiPsrLogger ([9de1d48](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9de1d48))
 - **#4** - реализована валидация ISBN и рефакторинг процесса создания книг ([94f7712](https://github.com/WarLikeLaux/yii2-book-catalog/commit/94f7712))
@@ -662,12 +744,13 @@
 - **#4** - стандартизирован синтаксис массивов ([730da45](https://github.com/WarLikeLaux/yii2-book-catalog/commit/730da45))
 </details>
 
-## [0.1.0] - 2025-12-02 — "Hello World"
+## [0.1.0] - 2025-12-02 - "Hello World"
 
 > Стартовая точка. Каталог книг на Yii2 + PHP 8.4, Docker Compose с PHP/MySQL/Queue, базовый CRUD и сидинг.
 
 <details>
 <summary>Подробности изменений</summary>
+
 ### 🚀 Новые функции и возможности
 - **#2** - реализована базовая система каталога книг: CRUD авторов и книг, воркфлоу подписок ([cc58972](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cc58972))
 - **#2** - добавлена консольная команда сидирования (seed) демо-данных ([cc58972](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cc58972))
