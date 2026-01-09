@@ -47,15 +47,19 @@ trait UseCaseHandlerTrait
         $errorToFieldMap = $this->getErrorFieldMap();
         $field = $errorToFieldMap[$e->getMessage()] ?? null;
         $message = Yii::t('app', $e->getMessage());
+        $attributes = $form->attributes();
+
+        if ($field !== null && !in_array($field, $attributes, true)) {
+            $field = null;
+        }
 
         if ($field === null) {
-            $attributes = $form->attributes();
             /** @var string|false $firstAttribute */
             $firstAttribute = reset($attributes);
             $field = $firstAttribute !== false ? $firstAttribute : null;
         }
 
-        if ($field !== null && in_array($field, $form->attributes(), true)) {
+        if ($field !== null && in_array($field, $attributes, true)) {
             $form->addError($field, $message);
         } else {
             $form->addError('', $message);

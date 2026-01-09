@@ -158,7 +158,8 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
 
     private function cleanupEmptyDirectories(string $dir): void
     {
-        $basePath = $this->config->basePath;
+        $basePath = $this->normalizePath($this->config->basePath);
+        $dir = $this->normalizePath($dir);
 
         while ($dir !== $basePath && is_dir($dir)) {
             $files = scandir($dir);
@@ -171,18 +172,28 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
                 break; // @codeCoverageIgnore
             }
 
-            $dir = dirname($dir);
+            $dir = $this->normalizePath(dirname($dir));
         }
+    }
+
+    private function normalizePath(string $path): string
+    {
+        $normalized = str_replace('\\', '/', $path);
+        $normalized = rtrim($normalized, '/');
+
+        if ($normalized === '') {
+            $normalized = '/';
+        }
+
+        if (PHP_OS_FAMILY === 'Windows') { // @codeCoverageIgnore
+            return strtolower($normalized); // @codeCoverageIgnore
+        }
+
+        return $normalized;
     }
 
     private function validateExtension(string $extension): void
     {
-        if ($extension === '') {
-            return;
-        }
-
-        if (preg_match('#[\\/\\\\\.]|\.\.#', $extension) !== 0) {
-            throw new ValidationException(DomainErrorCode::FileKeyInvalidFormat);
-        }
+        FileKey::assertValidExtension($extension);
     }
 }

@@ -11,16 +11,19 @@ use Throwable;
 
 final readonly class NotifySingleSubscriberHandler
 {
+    private const string HASH_ALGORITHM = 'sha256';
+
     public function __construct(
         private SmsSenderInterface $sender,
         private AsyncIdempotencyStorageInterface $idempotencyStorage,
         private LoggerInterface $logger,
+        private string $phoneHashKey,
     ) {
     }
 
     public function handle(string $phone, string $message, int $bookId): void
     {
-        $phoneHash = hash('sha256', $phone);
+        $phoneHash = hash_hmac(self::HASH_ALGORITHM, $phone, $this->phoneHashKey);
         $idempotencyKey = sprintf('sms:%d:%s', $bookId, $phoneHash);
 
         if (!$this->idempotencyStorage->acquire($idempotencyKey)) {
