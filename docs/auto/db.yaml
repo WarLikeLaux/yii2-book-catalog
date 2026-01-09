@@ -1,6 +1,6 @@
 meta:
   title: 'Database Schema'
-  updated_at: '2026-01-09T02:29:54+00:00'
+  updated_at: '2026-01-09T03:22:43+00:00'
 tables:
   async_idempotency_log:
     columns:
@@ -21,7 +21,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: null
   authors:
     columns:
       -
@@ -36,7 +36,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: null
   book_authors:
     columns:
       -
@@ -113,7 +113,7 @@ tables:
         default: 1
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: null
   idempotency_keys:
     columns:
       -
@@ -153,7 +153,7 @@ tables:
         default: finished
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: null
   migration:
     columns:
       -
@@ -168,7 +168,7 @@ tables:
         default: null
     primary_key:
       - version
-    foreign_keys: {  }
+    foreign_keys: null
   queue:
     columns:
       -
@@ -223,7 +223,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: null
   subscriptions:
     columns:
       -

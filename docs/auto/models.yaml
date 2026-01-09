@@ -1,13 +1,13 @@
 meta:
   title: 'ActiveRecord Models'
-  updated_at: '2026-01-09T02:29:54+00:00'
+  updated_at: '2026-01-09T03:22:43+00:00'
 models:
   AsyncIdempotencyLog:
     name: AsyncIdempotencyLog
     class: app\infrastructure\persistence\AsyncIdempotencyLog
     table: '{{%async_idempotency_log}}'
-    behaviors: {  }
-    relations: {  }
+    behaviors: null
+    relations: null
     validation:
       - 'idempotency_key,created_at (required)'
       - 'created_at (integer)'
@@ -18,7 +18,7 @@ models:
     name: Author
     class: app\infrastructure\persistence\Author
     table: authors
-    behaviors: {  }
+    behaviors: null
     relations:
       -
         method: getBooks()
@@ -53,8 +53,8 @@ models:
     name: IdempotencyKey
     class: app\infrastructure\persistence\IdempotencyKey
     table: '{{%idempotency_keys}}'
-    behaviors: {  }
-    relations: {  }
+    behaviors: null
+    relations: null
     validation:
       - 'idempotency_key,status,created_at,expires_at (required)'
       - 'status_code,created_at,expires_at (integer)'

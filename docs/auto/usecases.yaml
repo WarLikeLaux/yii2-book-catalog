@@ -1,28 +1,28 @@
 meta:
   title: 'Application Use Cases'
-  updated_at: '2026-01-09T02:29:54+00:00'
+  updated_at: '2026-01-09T03:22:43+00:00'
 usecases:
   CreateAuthorUseCase:
-    command: object
+    command: CreateAuthorCommand
     module: authors
   CreateBookUseCase:
-    command: object
+    command: CreateBookCommand
     module: books
   DeleteAuthorUseCase:
-    command: object
+    command: DeleteAuthorCommand
     module: authors
   DeleteBookUseCase:
-    command: object
+    command: DeleteBookCommand
     module: books
   PublishBookUseCase:
-    command: object
+    command: PublishBookCommand
     module: books
   SubscribeUseCase:
-    command: object
+    command: SubscribeCommand
     module: subscriptions
   UpdateAuthorUseCase:
-    command: object
+    command: UpdateAuthorCommand
     module: authors
   UpdateBookUseCase:
-    command: object
+    command: UpdateBookCommand
     module: books

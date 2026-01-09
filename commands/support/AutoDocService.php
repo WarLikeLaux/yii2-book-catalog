@@ -104,7 +104,15 @@ final readonly class AutoDocService
             }
 
             $name = $matches[1];
-            $command = preg_match('/execute\(\s*(\w+)\s+\$command\)/', $content, $m) ? $m[1] : 'void';
+            $command = 'void';
+
+            if (preg_match('/@param\s+([A-Za-z0-9_\\\]+)\s+\$command/', $content, $docM)) {
+                $parts = explode('\\', $docM[1]);
+                $command = end($parts);
+            } elseif (preg_match('/execute\(\s*(\w+)\s+\$command\)/', $content, $sigM)) {
+                $command = $sigM[1];
+            }
+
             $useCases[$name] = [
                 'command' => $command,
                 'module' => basename(dirname($file, 2)),
@@ -191,7 +199,7 @@ final readonly class AutoDocService
         return [
             'columns' => $columns,
             'primary_key' => array_values($tableSchema->primaryKey),
-            'foreign_keys' => $foreignKeys,
+            'foreign_keys' => $foreignKeys ?: new \stdClass(),
         ];
     }
 
@@ -330,8 +338,8 @@ final readonly class AutoDocService
             'name' => $name,
             'class' => $ns . chr(92) . $name,
             'table' => $table,
-            'behaviors' => str_contains($content, 'TimestampBehavior::class') ? ['TimestampBehavior'] : [],
-            'relations' => $this->extractRelations($content),
+            'behaviors' => str_contains($content, 'TimestampBehavior::class') ? ['TimestampBehavior'] : new \stdClass(),
+            'relations' => $this->extractRelations($content) ?: new \stdClass(),
             'validation' => $this->extractRulesSummary($content),
         ];
     }
@@ -414,6 +422,8 @@ final readonly class AutoDocService
         }
 
         FileHelper::createDirectory(dirname($path));
-        file_put_contents($path, Yaml::dump($data, 10, 2));
+        $yaml = Yaml::dump($data, 10, 2);
+        $yaml = str_replace('{  }', '{}', $yaml);
+        file_put_contents($path, $yaml);
     }
 }
