@@ -110,13 +110,11 @@ abstract readonly class BaseQueryService
                 throw new LogicException(sprintf('Model %s must have a primary key', get_debug_type($modelClass)));
             }
 
-                    $q = clone $query;
+            $q = clone $query;
 
-                    $this->applyExcludeCondition($q, $primaryKeys, $excludeId);
+            $this->applyExcludeCondition($q, $primaryKeys, $excludeId);
 
-
-
-                    return $q->exists($this->db);
+            return $q->exists($this->db);
         }
 
         return $query->exists($this->db);

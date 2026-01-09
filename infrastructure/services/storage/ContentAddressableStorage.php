@@ -81,7 +81,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
         $mtime = @filemtime($fullPath);
 
         if ($mtime === false) {
-             throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
+            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
         }
 
         return $mtime;
@@ -112,7 +112,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
         }
 
         if (!@unlink($fullPath)) {
-             throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
+            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
         }
 
         $this->cleanupEmptyDirectories(dirname($fullPath));
@@ -168,7 +168,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
             }
 
             if (!@rmdir($dir)) {
-                 break; // @codeCoverageIgnore
+                break; // @codeCoverageIgnore
             }
 
             $dir = dirname($dir);

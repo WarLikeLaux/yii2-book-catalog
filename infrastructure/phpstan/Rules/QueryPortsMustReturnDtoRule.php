@@ -61,10 +61,10 @@ final readonly class QueryPortsMustReturnDtoRule implements Rule
             $startLine = $method->getStartLine();
 
             $message = $allowScalars
-                ? 'Method %s::%s() must return DTO, scalar, void, or PagedResultInterface. ' .
-                  'Returning ActiveRecord or untyped array is forbidden.'
-                : 'Method %s::%s() must return DTO, void, or PagedResultInterface. ' .
-                  'Finder/Searcher interfaces must return DTO, not scalar or ActiveRecord.';
+            ? 'Method %s::%s() must return DTO, scalar, void, or PagedResultInterface. ' .
+            'Returning ActiveRecord or untyped array is forbidden.'
+            : 'Method %s::%s() must return DTO, void, or PagedResultInterface. ' .
+            'Finder/Searcher interfaces must return DTO, not scalar or ActiveRecord.';
 
             $errors[] = RuleErrorBuilder::message(sprintf($message, $classReflection->getName(), $method->getName()))
                 ->identifier('architecture.queryPortReturnType')
@@ -130,9 +130,9 @@ final readonly class QueryPortsMustReturnDtoRule implements Rule
     private function isScalarType(Type $type): bool
     {
         return $type->isInteger()->yes()
-            || $type->isString()->yes()
-            || $type->isBoolean()->yes()
-            || $type->isFloat()->yes();
+        || $type->isString()->yes()
+        || $type->isBoolean()->yes()
+        || $type->isFloat()->yes();
     }
 
     private function isAllowedObjectType(Type $type): bool
