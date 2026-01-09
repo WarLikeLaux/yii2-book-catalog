@@ -45,6 +45,8 @@ final class ContentAddressableStorageTest extends Unit
         $expectedPath = $this->tempDir . '/' . $key->getExtendedPath('txt');
         $this->assertFileExists($expectedPath);
         $this->assertSame('test content', file_get_contents($expectedPath));
+
+        unset($content);
     }
 
     public function testSaveIsIdempotent(): void
@@ -204,9 +206,10 @@ final class ContentAddressableStorageTest extends Unit
 
     private function createFileContent(string $textContent): FileContent
     {
-        $tempFile = $this->tempDir . '/source-' . uniqid() . '.txt';
-        file_put_contents($tempFile, $textContent);
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, $textContent);
+        rewind($stream);
 
-        return FileContent::fromPath($tempFile);
+        return new FileContent($stream, 'txt', 'text/plain');
     }
 }

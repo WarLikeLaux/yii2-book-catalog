@@ -55,7 +55,7 @@ final class ReportQueryServiceTest extends Unit
 
         $this->assertCount(2, $result->topAuthors);
         $this->assertSame('Author One', $result->topAuthors[0]['fio']);
-        $this->assertSame('2', (string)$result->topAuthors[0]['books_count']);
+        $this->assertSame(2, (int)$result->topAuthors[0]['books_count']);
     }
 
     public function testGetEmptyTopAuthorsReport(): void

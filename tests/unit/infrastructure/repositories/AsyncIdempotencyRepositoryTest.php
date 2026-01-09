@@ -57,7 +57,7 @@ final class AsyncIdempotencyRepositoryTest extends Unit
 
         $this->repository->acquire('new-key');
 
-        $deleted = $this->repository->deleteExpired(172800);
+        $deleted = $this->repository->deleteExpired(self::DEFAULT_TTL);
 
         $this->assertSame(1, $deleted);
         $this->assertFalse($this->repository->acquire('new-key'));
@@ -67,7 +67,7 @@ final class AsyncIdempotencyRepositoryTest extends Unit
     {
         $this->repository->acquire('new-key');
 
-        $deleted = $this->repository->deleteExpired(172800);
+        $deleted = $this->repository->deleteExpired(self::DEFAULT_TTL);
 
         $this->assertSame(0, $deleted);
     }
