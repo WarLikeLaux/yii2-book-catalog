@@ -8,8 +8,8 @@ use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
 use app\domain\exceptions\StaleDataException;
-use app\infrastructure\repositories\BaseActiveRecordRepository;
 use Codeception\Test\Unit;
+use tests\support\StubActiveRecordRepository;
 use yii\db\ActiveRecord;
 use yii\db\IntegrityException;
 use yii\db\StaleObjectException;
@@ -23,18 +23,11 @@ final class BaseActiveRecordRepositoryTest extends Unit
     private const string OTHER_ERROR = 'Other error';
     private const int OTHER_ERROR_CODE = 1234;
 
-    private object $repository;
+    private StubActiveRecordRepository $repository;
 
     protected function _before(): void
     {
-        $this->repository = new class extends BaseActiveRecordRepository {
-            public function testPersist(
-                ActiveRecord $model,
-                ?DomainErrorCode $duplicateError = null,
-            ): void {
-                $this->persist($model, $duplicateError);
-            }
-        };
+        $this->repository = new StubActiveRecordRepository();
     }
 
     public function testPersistSuccess(): void
