@@ -28,7 +28,7 @@ final readonly class NotifySingleSubscriberHandler
 
         if (!$this->idempotencyStorage->acquire($idempotencyKey)) {
             $this->logger->info('Skipping duplicate SMS notification', [
-                'phone' => $phone,
+                'phone' => $this->maskPhone($phone),
                 'book_id' => $bookId,
                 'idempotency_key' => $idempotencyKey,
             ]);
@@ -39,7 +39,7 @@ final readonly class NotifySingleSubscriberHandler
             $this->sender->send($phone, $message);
 
             $this->logger->info('SMS notification sent successfully', [
-                'phone' => $phone,
+                'phone' => $this->maskPhone($phone),
                 'book_id' => $bookId,
             ]);
         } catch (Throwable $exception) {
@@ -53,7 +53,7 @@ final readonly class NotifySingleSubscriberHandler
             }
 
             $this->logger->error('SMS notification failed', [
-                'phone' => $phone,
+                'phone' => $this->maskPhone($phone),
                 'book_id' => $bookId,
                 'error' => $exception->getMessage(),
                 'exception_class' => $exception::class,
@@ -61,5 +61,16 @@ final readonly class NotifySingleSubscriberHandler
 
             throw $exception;
         }
+    }
+
+    private function maskPhone(string $phone): string
+    {
+        $len = strlen($phone);
+
+        if ($len <= 4) {
+            return str_repeat('*', $len);
+        }
+
+        return substr($phone, 0, 2) . str_repeat('*', $len - 4) . substr($phone, -2);
     }
 }

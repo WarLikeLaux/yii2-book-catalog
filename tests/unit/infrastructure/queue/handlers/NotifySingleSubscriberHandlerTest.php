@@ -34,7 +34,11 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())
             ->method('info')
-            ->with('SMS notification sent successfully', $this->anything());
+            ->with('SMS notification sent successfully', $this->callback(function (array $context): bool {
+                $this->assertArrayHasKey('phone', $context);
+                $this->assertArrayHasKey('book_id', $context);
+                return true;
+            }));
 
         $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
         $handler->handle('+7900', 'message', 15);
@@ -60,7 +64,12 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())
             ->method('info')
-            ->with('Skipping duplicate SMS notification', $this->anything());
+            ->with('Skipping duplicate SMS notification', $this->callback(function (array $context): bool {
+                $this->assertArrayHasKey('phone', $context);
+                $this->assertArrayHasKey('book_id', $context);
+                $this->assertArrayHasKey('idempotency_key', $context);
+                return true;
+            }));
 
         $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
         $handler->handle('+7900', 'message', 15);
@@ -82,7 +91,8 @@ final class NotifySingleSubscriberHandlerTest extends Unit
             ->with($idempotencyKey)
             ->willReturn(true);
         $storage->expects($this->once())
-            ->method('release');
+            ->method('release')
+            ->with($idempotencyKey);
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())
@@ -112,7 +122,8 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $matcher = $this->exactly(2);
         $logger->expects($matcher)
             ->method('error')
-            ->willReturnCallback(function (string $message) use ($matcher): void {
+            ->willReturnCallback(function (string $message, array $context = []) use ($matcher): void {
+                $this->assertIsArray($context);
                 match ($matcher->numberOfInvocations()) {
                     1 => $this->assertSame('Failed to release idempotency key', $message),
                     2 => $this->assertSame('SMS notification failed', $message),
@@ -126,5 +137,30 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $this->expectExceptionMessage('primary fail');
 
         $handler->handle('+7900', 'message', 15);
+    }
+
+    public function testHandleMasksShortPhone(): void
+    {
+        $secret = 'test-secret';
+        $shortPhone = '1234';
+        $idempotencyKey = sprintf('sms:%d:%s', 42, hash_hmac('sha256', $shortPhone, $secret));
+
+        $sender = $this->createMock(SmsSenderInterface::class);
+        $sender->expects($this->once())
+            ->method('send')
+            ->with($shortPhone, 'msg');
+
+        $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
+        $storage->method('acquire')->with($idempotencyKey)->willReturn(true);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('info')
+            ->with('SMS notification sent successfully', $this->callback(
+                static fn (array $ctx): bool => $ctx['phone'] === '****',
+            ));
+
+        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
+        $handler->handle($shortPhone, 'msg', 42);
     }
 }
