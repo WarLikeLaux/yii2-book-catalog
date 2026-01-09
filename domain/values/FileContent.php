@@ -24,22 +24,31 @@ final readonly class FileContent
 
     public static function fromPath(string $path, ?string $extension = null): self
     {
-        if (!file_exists($path)) {
+        if (!is_file($path) || !is_readable($path)) {
             throw new ValidationException(DomainErrorCode::FileNotFound);
         }
 
-        $stream = @fopen($path, 'rb');
+        $stream = fopen($path, 'rb');
 
         if ($stream === false) {
             throw new ValidationException(DomainErrorCode::FileOpenFailed); // @codeCoverageIgnore
         }
 
         $extension ??= pathinfo($path, PATHINFO_EXTENSION);
-        $mimeType = mime_content_type($path);
+        $mimeType = 'application/octet-stream';
 
-        if ($mimeType === false) {
-            $mimeType = 'application/octet-stream'; // @codeCoverageIgnore
-        }
+        if (function_exists('mime_content_type')) {
+            $mimeValue = mime_content_type($path);
+            $mimeType = $mimeValue !== false ? $mimeValue : $mimeType;
+        } elseif (function_exists('finfo_open')) { // @codeCoverageIgnoreStart
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+
+            if ($finfo !== false) {
+                $mimeValue = finfo_file($finfo, $path);
+                $mimeType = $mimeValue !== false ? $mimeValue : $mimeType;
+                finfo_close($finfo);
+            }
+        } // @codeCoverageIgnoreEnd
 
         return new self($stream, $extension, $mimeType);
     }

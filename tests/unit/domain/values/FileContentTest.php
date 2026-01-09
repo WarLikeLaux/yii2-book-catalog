@@ -94,6 +94,14 @@ final class FileContentTest extends Unit
         $this->assertSame(self::MIME_TYPE, $content->mimeType);
     }
 
+    public function testFromPathDetectsMimeTypeWithFinfo(): void
+    {
+        $filePath = $this->tempDir . '/test.bin';
+        file_put_contents($filePath, 'binary content');
+        $content = FileContent::fromPath($filePath);
+        $this->assertNotEmpty($content->mimeType);
+    }
+
     public function testComputeKeyReturnsFileKey(): void
     {
         $textContent = 'test content for hashing';

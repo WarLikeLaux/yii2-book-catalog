@@ -21,8 +21,8 @@ trait RemovesDirectoriesTrait
         $realPath = realpath($dir);
 
         if (
-                $realPath === false
-                || !$this->isPathAllowed(rtrim($realPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)
+            $realPath === false
+            || !$this->isPathAllowed(rtrim($realPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)
         ) {
             return;
         }

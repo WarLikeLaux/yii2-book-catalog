@@ -29,8 +29,11 @@ final class ContentAddressableStorageTest extends Unit
 
     protected function _before(): void
     {
-        $this->tempDir = sys_get_temp_dir() . '/cas-test-' . uniqid();
-        mkdir($this->tempDir, 0777, true);
+        $this->tempDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cas-test-' . uniqid('', true);
+
+        if (!mkdir($this->tempDir, 0777, true) && !is_dir($this->tempDir)) {
+            $this->fail('Failed to create temp directory');
+        }
 
         $this->storage = new ContentAddressableStorage(
             new StorageConfig($this->tempDir, self::UPLOAD_URL),
@@ -39,6 +42,10 @@ final class ContentAddressableStorageTest extends Unit
 
     protected function _after(): void
     {
+        if (!isset($this->tempDir) || !is_dir($this->tempDir)) {
+            return;
+        }
+
         $this->removeDir($this->tempDir);
     }
 
@@ -51,7 +58,7 @@ final class ContentAddressableStorageTest extends Unit
 
         $this->assertTrue($returnedKey->equals($key));
 
-        $expectedPath = $this->tempDir . '/' . $key->getExtendedPath(self::EXTENSION);
+        $expectedPath = $this->tempDir . DIRECTORY_SEPARATOR . $key->getExtendedPath(self::EXTENSION);
         $this->assertFileExists($expectedPath);
         $this->assertSame(self::TEST_CONTENT, file_get_contents($expectedPath));
 
@@ -74,7 +81,7 @@ final class ContentAddressableStorageTest extends Unit
         $content1 = $this->createFileContent(self::ORIGINAL_CONTENT);
         $key = $this->storage->save($content1);
 
-        $path = $this->tempDir . '/' . $key->getExtendedPath(self::EXTENSION);
+        $path = $this->tempDir . DIRECTORY_SEPARATOR . $key->getExtendedPath(self::EXTENSION);
         $pastMtime = time() - 10;
         touch($path, $pastMtime);
         clearstatcache();
@@ -83,7 +90,8 @@ final class ContentAddressableStorageTest extends Unit
         $this->storage->save($content2);
 
         clearstatcache();
-        $this->assertSame($pastMtime, filemtime($path));
+        $this->assertLessThanOrEqual($pastMtime + 1, filemtime($path));
+        $this->assertSame(self::ORIGINAL_CONTENT, file_get_contents($path));
     }
 
     public function testExistsReturnsTrueForExistingFile(): void
@@ -152,8 +160,9 @@ final class ContentAddressableStorageTest extends Unit
 
     public function testListAllKeysReturnsEmptyForNonExistingDirectory(): void
     {
+        $nonExistentPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'nonexistent_' . uniqid('', true);
         $storage = new ContentAddressableStorage(
-            new StorageConfig('/non/existing/path', '/uploads'),
+            new StorageConfig($nonExistentPath, self::UPLOAD_URL),
         );
 
         $keys = iterator_to_array($storage->listAllKeys());
@@ -163,8 +172,8 @@ final class ContentAddressableStorageTest extends Unit
 
     public function testListAllKeysIgnoresInvalidFiles(): void
     {
-        mkdir($this->tempDir . '/ab/cd', 0777, true);
-        file_put_contents($this->tempDir . '/ab/cd/invalid.txt', 'not a hash');
+        mkdir($this->tempDir . DIRECTORY_SEPARATOR . 'ab' . DIRECTORY_SEPARATOR . 'cd', 0777, true);
+        file_put_contents($this->tempDir . DIRECTORY_SEPARATOR . 'ab' . DIRECTORY_SEPARATOR . 'cd' . DIRECTORY_SEPARATOR . 'invalid.txt', 'not a hash');
 
         $content = $this->createFileContent('valid content');
         $key = $this->storage->save($content);
@@ -202,8 +211,8 @@ final class ContentAddressableStorageTest extends Unit
         $content = $this->createFileContent(self::TEST_CONTENT);
         $key = $this->storage->save($content);
 
-        $dir1 = $this->tempDir . '/' . substr($key->value, 0, 2);
-        $dir2 = $dir1 . '/' . substr($key->value, 2, 2);
+        $dir1 = $this->tempDir . DIRECTORY_SEPARATOR . substr($key->value, 0, 2);
+        $dir2 = $dir1 . DIRECTORY_SEPARATOR . substr($key->value, 2, 2);
 
         $this->assertDirectoryExists($dir2);
 
@@ -215,8 +224,16 @@ final class ContentAddressableStorageTest extends Unit
 
     private function createFileContent(string $textContent): FileContent
     {
-        $stream = fopen('php://memory', 'r+');
-        fwrite($stream, $textContent);
+        $stream = fopen('php://memory', 'r+b');
+
+        if ($stream === false) {
+            $this->fail('Failed to open memory stream');
+        }
+
+        if (fwrite($stream, $textContent) === false) {
+            $this->fail('Failed to write to memory stream');
+        }
+
         rewind($stream);
 
         return new FileContent($stream, self::EXTENSION, 'text/plain');

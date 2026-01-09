@@ -44,13 +44,13 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
 
         $bytesCopied = stream_copy_to_stream($stream, $target);
 
-        // @codeCoverageIgnoreStart
         if ($bytesCopied === false) {
+            // @codeCoverageIgnoreStart
             fclose($target);
+            @unlink($fullPath);
             throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed);
+            // @codeCoverageIgnoreEnd
         }
-
-        // @codeCoverageIgnoreEnd
 
         fclose($target);
 
