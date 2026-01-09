@@ -8,10 +8,15 @@ use Symfony\Component\Yaml\Yaml;
 use Yii;
 use yii\console\Controller;
 
-final readonly class ProjectMapPrinter
+final class ProjectMapPrinter
 {
+    private ?bool $isGitAvailable = null;
+    private ?string $appPath = null;
+    private ?Controller $output = null;
+
     public function print(Controller $output): void
     {
+        $this->output = $output;
         $configPath = Yii::getAlias('@app/docs/structure.yaml');
 
         if (!is_string($configPath) || !file_exists($configPath)) {
@@ -31,13 +36,13 @@ final readonly class ProjectMapPrinter
                 continue;
             }
 
-            $this->renderLayer($output, $dir, $data, $modules);
+            $this->renderLayer($output, $dir, $data);
         }
 
         $this->renderModulesSection($output, $modules);
     }
 
-    private function renderLayer(Controller $output, string $dir, array $data, array $_modulesConfig): void
+    private function renderLayer(Controller $output, string $dir, array $data): void
     {
         $output->stdout(sprintf("%-23s - %s\n", $dir . '/', $data['description'] ?? ''));
 
@@ -90,7 +95,7 @@ final readonly class ProjectMapPrinter
         $layerPath = Yii::getAlias('@app/' . $dir);
 
         if ($this->shouldSkipChildren($dir)) {
-            return [[], $configChildren, [], $layerPath];
+            return [$configChildren, $configChildren, [], $layerPath];
         }
 
         $actualChildren = $this->listDirectories($layerPath);
@@ -250,7 +255,9 @@ final readonly class ProjectMapPrinter
 
     private function shouldSkipRoot(string $dir): bool
     {
-        return in_array($dir, ['assets', 'db-data', 'db-data-pgsql'], true);
+        $path = Yii::getAlias('@app/' . $dir);
+
+        return $this->isGitIgnored($path);
     }
 
     /**
@@ -264,12 +271,50 @@ final readonly class ProjectMapPrinter
             return $dirs;
         }
 
+        $fullPaths = [];
+        $dirMap = [];
+
+        foreach ($dirs as $dir) {
+            $fullPath = $path . DIRECTORY_SEPARATOR . $dir;
+            $fullPaths[] = $fullPath;
+            $dirMap[$fullPath] = $dir;
+        }
+
+        $command = sprintf(
+            'git -C %s check-ignore --stdin',
+            escapeshellarg($this->getAppPath()),
+        );
+
+        $descriptorspec = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+
+        $process = proc_open($command, $descriptorspec, $pipes);
+
+        if (!is_resource($process)) {
+            return $dirs;
+        }
+
+        fwrite($pipes[0], implode("\n", $fullPaths));
+        fclose($pipes[0]);
+
+        $ignoredPaths = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+
+        proc_close($process);
+
+        $ignoredList = array_filter(explode("\n", (string)$ignoredPaths));
+        $ignoredSet = array_flip($ignoredList);
+
         $filtered = [];
 
         foreach ($dirs as $dir) {
             $fullPath = $path . DIRECTORY_SEPARATOR . $dir;
 
-            if ($this->isGitIgnored($fullPath)) {
+            if (isset($ignoredSet[$fullPath])) {
                 continue;
             }
 
@@ -290,12 +335,44 @@ final readonly class ProjectMapPrinter
             return $dirs;
         }
 
+        $relativePaths = [];
+        $dirMap = [];
+
+        foreach ($dirs as $dir) {
+            $fullPath = $path . DIRECTORY_SEPARATOR . $dir;
+            $relPath = $this->relativePath($fullPath);
+
+            if ($relPath === '') {
+                continue;
+            }
+
+            $relativePaths[] = $relPath;
+            $dirMap[$relPath] = $dir;
+        }
+
+        if ($relativePaths === []) {
+            return [];
+        }
+
+        $escapedPaths = array_map('escapeshellarg', $relativePaths);
+        $command = sprintf(
+            'git -C %s ls-files %s',
+            escapeshellarg($this->getAppPath()),
+            implode(' ', $escapedPaths),
+        );
+
+        $output = [];
+        $exitCode = 0;
+        exec($command, $output, $exitCode);
+
+        $trackedSet = array_flip($output);
         $filtered = [];
 
         foreach ($dirs as $dir) {
             $fullPath = $path . DIRECTORY_SEPARATOR . $dir;
+            $relPath = $this->relativePath($fullPath);
 
-            if (!$this->isTrackedDirectory($fullPath)) {
+            if (!isset($trackedSet[$relPath])) {
                 continue;
             }
 
@@ -307,12 +384,30 @@ final readonly class ProjectMapPrinter
 
     private function isGitAvailable(): bool
     {
-        $command = sprintf('git -C %s rev-parse --is-inside-work-tree 2>/dev/null', escapeshellarg(Yii::getAlias('@app')));
+        if ($this->isGitAvailable !== null) {
+            return $this->isGitAvailable;
+        }
+
+        if (!function_exists('exec')) {
+            $this->output?->stderr("git недоступен — фильтры отключены\n");
+            $this->isGitAvailable = false;
+            return false;
+        }
+
+        $command = sprintf('git -C %s rev-parse --is-inside-work-tree', escapeshellarg($this->getAppPath()));
         $output = [];
         $exitCode = 0;
-        exec($command, $output, $exitCode);
+        @exec($command, $output, $exitCode);
 
-        return $exitCode === 0;
+        if ($exitCode !== 0) {
+            $this->output?->stderr("git недоступен — фильтры отключены\n");
+            $this->isGitAvailable = false;
+            return false;
+        }
+
+        $this->isGitAvailable = true;
+
+        return true;
     }
 
     private function shouldFilterUntracked(string $path): bool
@@ -324,33 +419,27 @@ final readonly class ProjectMapPrinter
 
     private function isGitIgnored(string $path): bool
     {
-        $command = sprintf('git -C %s check-ignore -q -- %s 2>/dev/null', escapeshellarg(Yii::getAlias('@app')), escapeshellarg($path));
+        $relativePath = $this->relativePath($path);
+        $command = sprintf('git -C %s check-ignore -q -- %s', escapeshellarg($this->getAppPath()), escapeshellarg($relativePath));
         $output = [];
         $exitCode = 0;
-        exec($command, $output, $exitCode);
+        @exec($command, $output, $exitCode);
 
         return $exitCode === 0;
     }
 
-    private function isTrackedDirectory(string $path): bool
+    private function getAppPath(): string
     {
-        $relativePath = $this->relativePath($path);
-
-        if ($relativePath === '') {
-            return false;
+        if ($this->appPath === null) {
+            $this->appPath = Yii::getAlias('@app');
         }
 
-        $command = sprintf('git -C %s ls-files -- %s 2>/dev/null', escapeshellarg(Yii::getAlias('@app')), escapeshellarg($relativePath));
-        $output = [];
-        $exitCode = 0;
-        exec($command, $output, $exitCode);
-
-        return $exitCode === 0 && $output !== [];
+        return $this->appPath;
     }
 
     private function relativePath(string $path): string
     {
-        $root = Yii::getAlias('@app');
+        $root = $this->getAppPath();
         $root = rtrim($root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
         if (str_starts_with($path, $root)) {

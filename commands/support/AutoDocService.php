@@ -6,6 +6,7 @@ namespace app\commands\support;
 
 use stdClass;
 use Symfony\Component\Yaml\Yaml;
+use Throwable;
 use Yii;
 use yii\db\TableSchema;
 use yii\helpers\FileHelper;
@@ -222,6 +223,7 @@ final readonly class AutoDocService
 
         try {
             $dbIndexes = $schema->findUniqueIndexes($tableSchema);
+            $uniqueNames = array_keys($dbIndexes);
 
             foreach ($dbIndexes as $indexName => $columns) {
                 $indexes[] = [
@@ -230,7 +232,27 @@ final readonly class AutoDocService
                     'unique' => true,
                 ];
             }
-        } catch (\Throwable) {
+
+            $allIndexes = $schema->getTableIndexes($tableSchema->name);
+
+            foreach ($allIndexes as $indexConstraint) {
+                if (in_array($indexConstraint->name, $uniqueNames, true) || $indexConstraint->name === null) {
+                    continue;
+                }
+
+                $indexes[] = [
+                    'name' => $indexConstraint->name,
+                    'columns' => $indexConstraint->columnNames,
+                    'unique' => false,
+                ];
+            }
+        } catch (Throwable $exception) {
+            Yii::error([
+                'message' => 'Failed to read table indexes',
+                'table' => $tableSchema->name,
+                'error' => $exception->getMessage(),
+                'exception_class' => $exception::class,
+            ], 'application');
             return [];
         }
 
@@ -252,8 +274,10 @@ final readonly class AutoDocService
 
         $routes = [];
 
+        $controllerId = $this->resolveControllerId($file, $controllerName);
+
         foreach ($actionBodies as $actionName => $body) {
-            $entry = $this->buildRouteEntry($controllerName, $actionName, $verbMap, $body);
+            $entry = $this->buildRouteEntry($controllerId, $controllerName, $actionName, $verbMap, $body);
 
             if ($behaviors !== []) {
                 $entry['guards'] = $behaviors;
@@ -313,9 +337,13 @@ final readonly class AutoDocService
         return $result;
     }
 
-    private function buildRouteEntry(string $controllerName, string $actionName, array $verbMap, string $body): array
-    {
-        $controllerId = Inflector::camel2id($controllerName);
+    private function buildRouteEntry(
+        string $controllerId,
+        string $controllerName,
+        string $actionName,
+        array $verbMap,
+        string $body,
+    ): array {
         $actionId = Inflector::camel2id($actionName);
         $path = $controllerId === 'site' && $actionId === 'index' ? '/' : "/$controllerId/$actionId";
 
@@ -337,6 +365,22 @@ final readonly class AutoDocService
         }
 
         return $entry;
+    }
+
+    private function resolveControllerId(string $file, string $controllerName): string
+    {
+        $controllerDir = Yii::getAlias('@app/presentation/controllers');
+        $dir = dirname($file);
+        $relativeDir = trim(str_replace((string)$controllerDir, '', $dir), DIRECTORY_SEPARATOR);
+        $controllerId = Inflector::camel2id($controllerName);
+
+        if ($relativeDir === '') {
+            return $controllerId;
+        }
+
+        $prefix = str_replace(DIRECTORY_SEPARATOR, '/', $relativeDir);
+
+        return trim($prefix . '/' . $controllerId, '/');
     }
 
     private function extractBehaviorsFromCode(string $content): array

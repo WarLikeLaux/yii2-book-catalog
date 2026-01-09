@@ -89,12 +89,6 @@ layers:
     children:
       container: "Конфигурация контейнера зависимостей"
 
-  db-data:
-    description: "Данные MySQL (volume)"
-
-  db-data-pgsql:
-    description: "Данные PostgreSQL (volume)"
-
   docker:
     description: "Docker конфигурация"
     children:

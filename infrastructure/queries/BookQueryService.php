@@ -72,8 +72,17 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
             ->column($this->db);
 
         return array_map(
-            static fn(string $url): string => pathinfo($url, PATHINFO_FILENAME),
+            $this->extractCoverKeyFromUrl(...),
             $urls,
         );
+    }
+
+    private function extractCoverKeyFromUrl(string $url): string
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+
+        $target = is_string($path) && $path !== '' ? $path : $url;
+
+        return pathinfo($target, PATHINFO_FILENAME);
     }
 }

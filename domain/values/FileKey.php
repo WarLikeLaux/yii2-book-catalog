@@ -37,13 +37,20 @@ final readonly class FileKey implements Stringable
         return new self(hash_final($context));
     }
 
-    public function getExtendedPath(string $extension = ''): string
+    public static function assertValidExtension(string $extension): string
     {
         $normalizedExtension = strtolower(ltrim($extension, '.'));
 
         if ($normalizedExtension !== '' && preg_match('/^[a-z0-9_-]+$/', $normalizedExtension) !== 1) {
             throw new ValidationException(DomainErrorCode::FileKeyInvalidFormat);
         }
+
+        return $normalizedExtension;
+    }
+
+    public function getExtendedPath(string $extension = ''): string
+    {
+        $normalizedExtension = self::assertValidExtension($extension);
 
         $suffix = $normalizedExtension !== '' ? '.' . $normalizedExtension : '';
 

@@ -1,6 +1,6 @@
 meta:
   title: 'Database Schema'
-  updated_at: '2026-01-09T07:06:13+00:00'
+  updated_at: '2026-01-09T11:24:37+00:00'
 tables:
   async_idempotency_log:
     columns:
@@ -28,6 +28,11 @@ tables:
         columns:
           - idempotency_key
         unique: true
+      -
+        name: idx_async_idempotency_log_created_at
+        columns:
+          - created_at
+        unique: false
   authors:
     columns:
       -
@@ -49,6 +54,11 @@ tables:
         columns:
           - fio
         unique: true
+      -
+        name: ft_authors_fio
+        columns:
+          - fio
+        unique: false
   book_authors:
     columns:
       -
@@ -71,7 +81,12 @@ tables:
       -
         column: book_id
         references: books.id
-    indexes: {}
+    indexes:
+      -
+        name: idx_book_authors_author_id
+        columns:
+          - author_id
+        unique: false
   books:
     columns:
       -
@@ -133,6 +148,22 @@ tables:
         columns:
           - isbn
         unique: true
+      -
+        name: ft_books_title_description
+        columns:
+          - title
+          - description
+        unique: false
+      -
+        name: idx_books_title
+        columns:
+          - title
+        unique: false
+      -
+        name: idx_books_year
+        columns:
+          - year
+        unique: false
   idempotency_keys:
     columns:
       -
@@ -179,6 +210,11 @@ tables:
         columns:
           - idempotency_key
         unique: true
+      -
+        name: idx_idempotency_keys_expires_at
+        columns:
+          - expires_at
+        unique: false
   migration:
     columns:
       -
@@ -250,7 +286,22 @@ tables:
     primary_key:
       - id
     foreign_keys: {}
-    indexes: {}
+    indexes:
+      -
+        name: channel
+        columns:
+          - channel
+        unique: false
+      -
+        name: priority
+        columns:
+          - priority
+        unique: false
+      -
+        name: reserved_at
+        columns:
+          - reserved_at
+        unique: false
   subscriptions:
     columns:
       -
@@ -286,3 +337,8 @@ tables:
           - phone
           - author_id
         unique: true
+      -
+        name: fk_subscriptions_author
+        columns:
+          - author_id
+        unique: false

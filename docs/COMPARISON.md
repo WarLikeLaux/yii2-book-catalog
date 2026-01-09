@@ -5,6 +5,7 @@
 Документ сравнивает три стилистики организации кода: классический Yii2 MVC, MVC с сервисным слоем и Clean Architecture, реализованную в этом проекте.
 
 ## 📌 Навигация
+
 - [📊 Три уровня организации кода](#-три-уровня-организации-кода)
 - [🔄 Пример: создание книги](#-пример-создание-книги)
 - [📈 Сравнительная таблица](#-сравнительная-таблица)
@@ -34,11 +35,11 @@
 
 ## 📊 Три уровня организации кода
 
-| Уровень | Подход | Типичный проект |
-|---------|--------|-----------------|
-| **1** | Толстый контроллер | Новичок, быстрый прототип |
-| **2** | Контроллер + сервис | Большинство Yii2/Laravel проектов |
-| **3** | Clean Architecture | Enterprise, сложная бизнес-логика |
+| Уровень | Подход              | Типичный проект                   |
+| ------- | ------------------- | --------------------------------- |
+| **1**   | Толстый контроллер  | Новичок, быстрый прототип         |
+| **2**   | Контроллер + сервис | Большинство Yii2/Laravel проектов |
+| **3**   | Clean Architecture  | Enterprise, сложная бизнес-логика |
 
 [↑ К навигации](#-навигация)
 
@@ -104,11 +105,13 @@ public function actionCreate()
 ```
 
 #### ✅ Плюсы:
+
 - Быстро написать (30 минут)
 - Всё в одном месте - легко найти
 - Не нужно думать об архитектуре
 
 #### ❌ Минусы:
+
 - **60+ строк** в одном методе
 - `actionUpdate` - копипаста с 80% совпадением
 - SMS блокирует ответ страницы (100 подписчиков = 30 сек)
@@ -189,11 +192,13 @@ class BookService
 ```
 
 #### ✅ Плюсы:
+
 - Контроллер тонкий
 - Логика переиспользуется
 - Легче читать
 
 #### ❌ Минусы:
+
 - Сервис всё ещё зависит от `Book` (ActiveRecord)
 - Сервис знает про `UploadedFile`, `Yii::$app`
 - Тестирование всё ещё требует инфраструктуру
@@ -317,6 +322,7 @@ final readonly class Isbn implements \Stringable
 ```
 
 #### ✅ Плюсы:
+
 - Use Case не знает про Yii
 - Тестируется изолированно
 - SMS уходят в очередь
@@ -324,6 +330,7 @@ final readonly class Isbn implements \Stringable
 - Каждый класс имеет одну ответственность
 
 #### ❌ Минусы:
+
 - Больше файлов на операцию
 - Выше порог входа
 - Избыточно для простых CRUD
@@ -334,23 +341,23 @@ final readonly class Isbn implements \Stringable
 
 ## 📈 Сравнительная таблица
 
-| Критерий | Толстый контроллер | +Сервис | Clean Architecture |
-|----------|-------------------|---------|-------------------|
-| **Время разработки** | ⚡ 30 мин | ⚡ 1 час | 🐢 3-4 часа |
-| **Файлов на операцию** | 1 | 2 | 6-8 |
-| **Строк кода** | 60 в одном | 15 + 80 | 15 + 20 + 25 + ... |
-| **Unit-тесты** | ❌ Невозможно | ⚠️ Сложно | ✅ Легко |
-| **Покрытие тестами** | 0-10% | 10-30% | 100% |
-| **SMS блокирует** | ✅ Да | ✅ Да | ❌ Нет (очередь) |
-| **Зависимость от Yii** | 🔴 Везде | 🟡 В сервисе | 🟢 Infrastructure + Presentation |
-| **Изменить провайдера SMS** | Правим контроллер | Правим сервис | Новый адаптер |
-| **Копипаста Create/Update** | 80% | 50% | 10% |
-| **Правила домена** | В контроллере | В сервисе | Entity/Policy |
-| **Поиск/фильтрация** | AR в контроллере | AR в сервисе | Specifications + Query Service |
-| **Маппинг данных** | Ручной | Ручной | AutoMapper (атрибуты) |
-| **Гидрация сущностей** | Свойства AR | ActiveRecord::setAttributes | ActiveRecordHydrator |
-| **Хранилище файлов** | `uploads/` | `uploads/` | CAS (контентно-адресуемое) |
-| **Поддержка через 2 года** | 😱 Ад | 😐 Норм | 😊 Легко |
+| Критерий                    | Толстый контроллер | +Сервис                     | Clean Architecture               |
+| --------------------------- | ------------------ | --------------------------- | -------------------------------- |
+| **Время разработки**        | ⚡ 30 мин          | ⚡ 1 час                    | 🐢 3-4 часа                      |
+| **Файлов на операцию**      | 1                  | 2                           | 6-8                              |
+| **Строк кода**              | 60 в одном         | 15 + 80                     | 15 + 20 + 25 + ...               |
+| **Unit-тесты**              | ❌ Невозможно      | ⚠️ Сложно                   | ✅ Легко                         |
+| **Покрытие тестами**        | 0-10%              | 10-30%                      | 100%                             |
+| **SMS блокирует**           | ✅ Да              | ✅ Да                       | ❌ Нет (очередь)                 |
+| **Зависимость от Yii**      | 🔴 Везде           | 🟡 В сервисе                | 🟢 Infrastructure + Presentation |
+| **Изменить провайдера SMS** | Правим контроллер  | Правим сервис               | Новый адаптер                    |
+| **Копипаста Create/Update** | 80%                | 50%                         | 10%                              |
+| **Правила домена**          | В контроллере      | В сервисе                   | Entity/Policy                    |
+| **Поиск/фильтрация**        | AR в контроллере   | AR в сервисе                | Specifications + Query Service   |
+| **Маппинг данных**          | Ручной             | Ручной                      | AutoMapper (атрибуты)            |
+| **Гидрация сущностей**      | Свойства AR        | ActiveRecord::setAttributes | ActiveRecordHydrator             |
+| **Хранилище файлов**        | `uploads/`         | `uploads/`                  | CAS (контентно-адресуемое)       |
+| **Поддержка через 2 года**  | 😱 Ад              | 😐 Норм                     | 😊 Легко                         |
 
 [↑ К навигации](#-навигация)
 
@@ -361,6 +368,7 @@ final readonly class Isbn implements \Stringable
 ### 1. Form (отдельная валидация)
 
 **Было (в модели Book):**
+
 ```php
 class Book extends ActiveRecord
 {
@@ -377,9 +385,11 @@ class Book extends ActiveRecord
     }
 }
 ```
+
 ❌ **Проблема:** модель смешивает хранение и валидацию ввода.
 
 **Стало (BookForm):**
+
 ```php
 // presentation/books/forms/BookForm.php
 final class BookForm extends RepositoryAwareForm
@@ -406,6 +416,7 @@ final class BookForm extends RepositoryAwareForm
     public $cover;
 }
 ```
+
 ✅ **Результат:** форма отвечает только за ввод, AR - только за persistence.
 
 ---
@@ -413,12 +424,15 @@ final class BookForm extends RepositoryAwareForm
 ### 2. Command (чёткие данные)
 
 **Было:**
+
 ```php
 $service->create($model);  // Book? BookForm? Array?
 ```
+
 ❌ **Проблема:** непонятный контракт.
 
 **Стало:**
+
 ```php
 $command = new CreateBookCommand(
     title: 'Название',
@@ -430,6 +444,7 @@ $command = new CreateBookCommand(
 );
 $useCase->execute($command);
 ```
+
 ✅ **Результат:** строгие типы и явные поля.
 
 ---
@@ -437,6 +452,7 @@ $useCase->execute($command);
 ### 3. Mapper (преобразование)
 
 **Было (в контроллере):**
+
 ```php
 $command = new CreateBookCommand(
     $form->title,
@@ -446,14 +462,17 @@ $command = new CreateBookCommand(
     $coverUrl
 );
 ```
+
 ❌ **Проблема:** копипаста маппинга.
 
 **Стало:**
+
 ```php
 $data = $this->prepareCommandData($form);
 /** @var CreateBookCommand $command */
 $command = $this->autoMapper->map($data, CreateBookCommand::class);
 ```
+
 ✅ **Результат:** единый маппинг и меньше рутины.
 
 ---
@@ -461,15 +480,18 @@ $command = $this->autoMapper->map($data, CreateBookCommand::class);
 ### 4. Use Case (бизнес-логика)
 
 **Было:**
+
 ```php
 public function actionCreate()
 {
     // Внутри контроллера: бизнес-правила, SQL, файлы, SMS
 }
 ```
+
 ❌ **Проблема:** бизнес-логика смешана с инфраструктурой.
 
 **Стало:**
+
 ```php
 // application/books/usecases/CreateBookUseCase.php
 public function execute(object $command): int
@@ -502,6 +524,7 @@ public function execute(object $command): int
     return $bookId;
 }
 ```
+
 ✅ **Результат:** бизнес-логика сосредоточена в Use Case.
 
 ---
@@ -509,12 +532,15 @@ public function execute(object $command): int
 ### 5. Repository (абстракция БД)
 
 **Было:**
+
 ```php
 Book::find()->where(['id' => $id])->one();
 ```
+
 ❌ **Проблема:** зависимость домена от AR.
 
 **Стало:**
+
 ```php
 // application/ports/BookRepositoryInterface.php
 interface BookRepositoryInterface
@@ -546,6 +572,7 @@ public function save(BookEntity $book): void
     $this->persist($ar, DomainErrorCode::BookIsbnExists);
 }
 ```
+
 ✅ **Результат:** домен не знает о БД, инфраструктура скрыта.
 
 ---
@@ -553,6 +580,7 @@ public function save(BookEntity $book): void
 ### 6. Value Object (доменные правила)
 
 **Было:**
+
 ```php
 if (strlen($isbn) !== 13 || !ctype_digit($isbn)) {
     $model->addError('isbn', 'Неверный ISBN');
@@ -560,6 +588,7 @@ if (strlen($isbn) !== 13 || !ctype_digit($isbn)) {
 ```
 
 **Стало:**
+
 ```php
 final readonly class Isbn implements \Stringable
 {
@@ -579,6 +608,7 @@ final readonly class Isbn implements \Stringable
     }
 }
 ```
+
 ✅ **Результат:** невозможно создать невалидный ISBN.
 
 ---
@@ -586,12 +616,15 @@ final readonly class Isbn implements \Stringable
 ### 7. Domain Event (развязка)
 
 **Было:**
+
 ```php
 Yii::$app->queue->push(new NotifyJob($bookId));
 ```
+
 ❌ **Проблема:** бизнес-логика знает про очередь.
 
 **Стало:**
+
 ```php
 // domain/events/BookPublishedEvent.php
 final readonly class BookPublishedEvent implements QueueableEvent
@@ -612,6 +645,7 @@ $this->eventPublisher->publishAfterCommit(
     new BookPublishedEvent($command->bookId, $book->title, $book->year->value),
 );
 ```
+
 ✅ **Результат:** домен публикует событие, инфраструктура решает как обрабатывать.
 
 ---
@@ -619,20 +653,24 @@ $this->eventPublisher->publishAfterCommit(
 ### 8. Event Mapping (очереди)
 
 **Было:**
+
 ```php
 if ($event instanceof BookPublishedEvent) {
     Yii::$app->queue->push(new NotifySubscribersJob(...));
 }
 ```
+
 ❌ **Проблема:** условная логика разрастается.
 
 **Стало:**
+
 ```php
 // config/container/adapters.php
 EventJobMappingRegistry::class => static fn(): EventJobMappingRegistry => new EventJobMappingRegistry([
     BookPublishedEvent::class => NotifySubscribersJob::class,
 ]),
 ```
+
 ✅ **Результат:** маппинг событий централизован в конфигурации.
 
 ---
@@ -640,14 +678,17 @@ EventJobMappingRegistry::class => static fn(): EventJobMappingRegistry => new Ev
 ### 9. Queue (асинхронность)
 
 **Было:**
+
 ```php
 foreach ($subscribers as $sub) {
     $sms->send($sub->phone, ...);
 }
 ```
+
 ❌ **Проблема:** страница ждёт отправку.
 
 **Стало:**
+
 ```php
 // infrastructure/queue/handlers/NotifySubscribersHandler.php
 public function handle(int $bookId, string $title, Queue $queue): void
@@ -663,6 +704,7 @@ public function handle(int $bookId, string $title, Queue $queue): void
     }
 }
 ```
+
 ✅ **Результат:** fan-out в фоне, UI отвечает мгновенно.
 
 ---
@@ -670,6 +712,7 @@ public function handle(int $bookId, string $title, Queue $queue): void
 ### 10. Entity (Rich Domain Model)
 
 **Было:**
+
 ```php
 class Book extends ActiveRecord
 {
@@ -682,6 +725,7 @@ class Book extends ActiveRecord
 ```
 
 **Стало:**
+
 ```php
 // domain/entities/Book.php
 final class Book
@@ -706,6 +750,7 @@ final class Book
     }
 }
 ```
+
 ✅ **Результат:** сущность чистая и тестируемая.
 
 ---
@@ -713,12 +758,14 @@ final class Book
 ### 11. Dependency Isolation (DI vs locator)
 
 **Было:**
+
 ```php
 Yii::$app->db->createCommand(...);
 Yii::$app->queue->push(...);
 ```
 
 **Стало:**
+
 ```php
 final readonly class PublishBookUseCase implements UseCaseInterface
 {
@@ -730,6 +777,7 @@ final readonly class PublishBookUseCase implements UseCaseInterface
     }
 }
 ```
+
 ✅ **Результат:** зависимости передаются через конструкторы, а Use Case не знает про Yii.
 
 ---
@@ -737,11 +785,13 @@ final readonly class PublishBookUseCase implements UseCaseInterface
 ### 12. Optimistic Locking (надежность)
 
 **Было:**
+
 ```php
 // Потеря обновлений при параллельной записи
 ```
 
 **Стало:**
+
 ```php
 // infrastructure/persistence/Book.php
 public function behaviors(): array
@@ -765,6 +815,7 @@ public function optimisticLock(): string
 $ar->version = $book->version;
 $this->persist($ar, DomainErrorCode::BookIsbnExists);
 ```
+
 ✅ **Результат:** конфликт версий ловится и превращается в доменное исключение.
 
 ---
@@ -772,6 +823,7 @@ $this->persist($ar, DomainErrorCode::BookIsbnExists);
 ### 13. Command Pipeline (cross-cutting concerns)
 
 **Было:**
+
 ```php
 public function create(Book $model)
 {
@@ -788,6 +840,7 @@ public function create(Book $model)
 ```
 
 **Стало:**
+
 ```php
 // application/common/pipeline/PipelineFactory.php
 public function createDefault(): PipelineInterface
@@ -803,6 +856,7 @@ public function createDefault(): PipelineInterface
 // presentation/common/services/WebUseCaseRunner.php
 $result = $this->pipelineFactory->createDefault()->execute($command, $useCase);
 ```
+
 ✅ **Результат:** сквозные аспекты вынесены в middleware.
 
 ---
@@ -810,11 +864,13 @@ $result = $this->pipelineFactory->createDefault()->execute($command, $useCase);
 ### 14. Handlers (слой представления)
 
 **Было:**
+
 ```php
 // Контроллер делает всё
 ```
 
 **Стало:**
+
 ```php
 // presentation/books/handlers/BookCommandHandler.php
 public function createBook(BookForm $form): int|null
@@ -838,6 +894,7 @@ public function createBook(BookForm $form): int|null
     );
 }
 ```
+
 ✅ **Результат:** контроллер остаётся координатором, а Handler концентрирует логику команды.
 
 ---
@@ -845,11 +902,13 @@ public function createBook(BookForm $form): int|null
 ### 15. Validation Strategy (pragmatic approach)
 
 **Было (ActiveRecord rules):**
+
 ```php
 [['isbn'], 'unique'],
 ```
 
 **Стало:**
+
 ```php
 // presentation/books/forms/BookForm.php
 public function validateIsbnUnique(string $attribute): void
@@ -892,6 +951,7 @@ protected function persist(ActiveRecord $model, ?DomainErrorCode $duplicateError
     }
 }
 ```
+
 ✅ **Результат:** форма даёт быстрый фидбек, а БД гарантирует целостность.
 
 ---
@@ -899,6 +959,7 @@ protected function persist(ActiveRecord $model, ?DomainErrorCode $duplicateError
 ### 16. Specification (поиск и фильтрация)
 
 **Было:**
+
 ```php
 return Book::find()
     ->where(['year' => $year])
@@ -907,6 +968,7 @@ return Book::find()
 ```
 
 **Стало:**
+
 ```php
 // domain/specifications/BookSearchSpecificationFactory.php
 $specification = $factory->createFromSearchTerm($term);
@@ -915,6 +977,7 @@ $specification = $factory->createFromSearchTerm($term);
 $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->db);
 $specification->accept($visitor);
 ```
+
 ✅ **Результат:** критерии в домене, SQL остаётся в инфраструктуре.
 
 ---
@@ -922,11 +985,13 @@ $specification->accept($visitor);
 ### 17. Observability (tracing)
 
 **Было:**
+
 ```php
 // Логи разбросаны по проекту
 ```
 
 **Стало:**
+
 ```php
 // infrastructure/adapters/decorators/QueueTracingDecorator.php
 final readonly class QueueTracingDecorator implements QueueInterface
@@ -947,6 +1012,7 @@ final readonly class QueueTracingDecorator implements QueueInterface
     }
 }
 ```
+
 ✅ **Результат:** трассировка добавляется без изменения бизнес-кода.
 
 ---
@@ -954,6 +1020,7 @@ final readonly class QueueTracingDecorator implements QueueInterface
 ### 18. Разделение интерфейсов (ISP)
 
 **Было:**
+
 ```php
 interface BookRepositoryInterface {
     public function save(Book $book): void;
@@ -963,6 +1030,7 @@ interface BookRepositoryInterface {
 ```
 
 **Стало:**
+
 ```php
 interface BookRepositoryInterface
 {
@@ -982,6 +1050,7 @@ interface BookSearcherInterface
     public function search(string $term, int $page, int $pageSize): PagedResultInterface;
 }
 ```
+
 ✅ **Результат:** зависимости Use Cases ограничены нужными методами.
 
 ---
@@ -989,19 +1058,23 @@ interface BookSearcherInterface
 ### 19. Бесконечный скролл (HTMX)
 
 **Было:**
+
 - Перезагрузка страницы на `?page=2`
 - Или jQuery-логика с ручным DOM-апдейтом
 
 **Стало:**
+
 ```html
-<div hx-get="/site/index?page=2"
-     hx-target="#book-cards-container"
-     hx-swap="beforeend"
-     hx-trigger="revealed"
-     hx-select="#book-cards-container > .col-md-4, #load-more-container"
-     hx-select-oob="#load-more-container">
-</div>
+<div
+  hx-get="/site/index?page=2"
+  hx-target="#book-cards-container"
+  hx-swap="beforeend"
+  hx-trigger="revealed"
+  hx-select="#book-cards-container > .col-md-4, #load-more-container"
+  hx-select-oob="#load-more-container"
+></div>
 ```
+
 ✅ **Результат:** бесшовная подгрузка без тяжёлого JS.
 
 [↑ К навигации](#-навигация)
@@ -1010,14 +1083,14 @@ interface BookSearcherInterface
 
 ## 🎯 Когда какой подход
 
-| Ситуация | Рекомендация |
-|----------|--------------|
-| Прототип за 2 часа | Толстый контроллер |
-| Типичный проект (1-2 дева) | Контроллер + сервис |
-| Сложная бизнес-логика | Clean Architecture |
-| Нужны тесты | Clean Architecture |
-| Интеграции (SMS, Payment, API) | Clean Architecture |
-| 3+ разработчика | Clean Architecture |
-| Проект на 2+ года | Clean Architecture |
+| Ситуация                       | Рекомендация        |
+| ------------------------------ | ------------------- |
+| Прототип за 2 часа             | Толстый контроллер  |
+| Типичный проект (1-2 дева)     | Контроллер + сервис |
+| Сложная бизнес-логика          | Clean Architecture  |
+| Нужны тесты                    | Clean Architecture  |
+| Интеграции (SMS, Payment, API) | Clean Architecture  |
+| 3+ разработчика                | Clean Architecture  |
+| Проект на 2+ года              | Clean Architecture  |
 
 [↑ К навигации](#-навигация)
