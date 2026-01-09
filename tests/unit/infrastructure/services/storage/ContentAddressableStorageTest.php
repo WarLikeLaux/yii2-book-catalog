@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\services\storage;
 
+use app\domain\exceptions\OperationFailedException;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use app\infrastructure\services\storage\ContentAddressableStorage;
@@ -15,6 +16,14 @@ final class ContentAddressableStorageTest extends Unit
 {
     use RemovesDirectoriesTrait;
 
+    private const string TEST_CONTENT = 'test content';
+    private const string SAME_CONTENT = 'same content';
+    private const string ORIGINAL_CONTENT = 'original content';
+    private const string EXTENSION = 'txt';
+    private const string VALID_HASH = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+    private const string UPLOAD_URL = '/uploads';
+    private const string UPLOAD_PATH = '/non/existing/path';
+
     private string $tempDir;
     private ContentAddressableStorage $storage;
 
@@ -24,7 +33,7 @@ final class ContentAddressableStorageTest extends Unit
         mkdir($this->tempDir, 0777, true);
 
         $this->storage = new ContentAddressableStorage(
-            new StorageConfig($this->tempDir, '/uploads'),
+            new StorageConfig($this->tempDir, self::UPLOAD_URL),
         );
     }
 
@@ -35,24 +44,24 @@ final class ContentAddressableStorageTest extends Unit
 
     public function testSaveCreatesFileWithCorrectPath(): void
     {
-        $content = $this->createFileContent('test content');
+        $content = $this->createFileContent(self::TEST_CONTENT);
         $key = $content->computeKey();
 
         $returnedKey = $this->storage->save($content);
 
         $this->assertTrue($returnedKey->equals($key));
 
-        $expectedPath = $this->tempDir . '/' . $key->getExtendedPath('txt');
+        $expectedPath = $this->tempDir . '/' . $key->getExtendedPath(self::EXTENSION);
         $this->assertFileExists($expectedPath);
-        $this->assertSame('test content', file_get_contents($expectedPath));
+        $this->assertSame(self::TEST_CONTENT, file_get_contents($expectedPath));
 
         unset($content);
     }
 
     public function testSaveIsIdempotent(): void
     {
-        $content1 = $this->createFileContent('same content');
-        $content2 = $this->createFileContent('same content');
+        $content1 = $this->createFileContent(self::SAME_CONTENT);
+        $content2 = $this->createFileContent(self::SAME_CONTENT);
 
         $key1 = $this->storage->save($content1);
         $key2 = $this->storage->save($content2);
@@ -62,15 +71,15 @@ final class ContentAddressableStorageTest extends Unit
 
     public function testSaveDoesNotOverwriteExistingFile(): void
     {
-        $content1 = $this->createFileContent('original content');
+        $content1 = $this->createFileContent(self::ORIGINAL_CONTENT);
         $key = $this->storage->save($content1);
 
-        $path = $this->tempDir . '/' . $key->getExtendedPath('txt');
+        $path = $this->tempDir . '/' . $key->getExtendedPath(self::EXTENSION);
         $pastMtime = time() - 10;
         touch($path, $pastMtime);
         clearstatcache();
 
-        $content2 = $this->createFileContent('original content');
+        $content2 = $this->createFileContent(self::ORIGINAL_CONTENT);
         $this->storage->save($content2);
 
         clearstatcache();
@@ -79,22 +88,22 @@ final class ContentAddressableStorageTest extends Unit
 
     public function testExistsReturnsTrueForExistingFile(): void
     {
-        $content = $this->createFileContent('test content');
+        $content = $this->createFileContent(self::TEST_CONTENT);
         $key = $this->storage->save($content);
 
-        $this->assertTrue($this->storage->exists($key, 'txt'));
+        $this->assertTrue($this->storage->exists($key, self::EXTENSION));
     }
 
     public function testExistsReturnsFalseForNonExistingFile(): void
     {
-        $key = new FileKey('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+        $key = new FileKey(self::VALID_HASH);
 
-        $this->assertFalse($this->storage->exists($key, 'txt'));
+        $this->assertFalse($this->storage->exists($key, self::EXTENSION));
     }
 
     public function testGetUrlReturnsCorrectFormat(): void
     {
-        $key = new FileKey('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+        $key = new FileKey(self::VALID_HASH);
 
         $url = $this->storage->getUrl($key, 'jpg');
 
@@ -106,10 +115,10 @@ final class ContentAddressableStorageTest extends Unit
 
     public function testGetModificationTimeReturnsTimestamp(): void
     {
-        $content = $this->createFileContent('test content');
+        $content = $this->createFileContent(self::TEST_CONTENT);
         $key = $this->storage->save($content);
 
-        $mtime = $this->storage->getModificationTime($key, 'txt');
+        $mtime = $this->storage->getModificationTime($key, self::EXTENSION);
 
         $this->assertIsInt($mtime);
         $this->assertLessThanOrEqual(time(), $mtime);
@@ -120,10 +129,10 @@ final class ContentAddressableStorageTest extends Unit
     {
         $key = new FileKey(str_repeat('f', 64));
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Failed to get modification time');
+        $this->expectException(OperationFailedException::class);
+        $this->expectExceptionMessage('file.error.storage_operation_failed');
 
-        $this->storage->getModificationTime($key, 'txt');
+        $this->storage->getModificationTime($key, self::EXTENSION);
     }
 
     public function testListAllKeysReturnsStoredKeys(): void
@@ -169,28 +178,28 @@ final class ContentAddressableStorageTest extends Unit
 
     public function testDeleteRemovesFile(): void
     {
-        $content = $this->createFileContent('test content');
+        $content = $this->createFileContent(self::TEST_CONTENT);
         $key = $this->storage->save($content);
 
-        $this->assertTrue($this->storage->exists($key, 'txt'));
+        $this->assertTrue($this->storage->exists($key, self::EXTENSION));
 
-        $this->storage->delete($key, 'txt');
+        $this->storage->delete($key, self::EXTENSION);
 
-        $this->assertFalse($this->storage->exists($key, 'txt'));
+        $this->assertFalse($this->storage->exists($key, self::EXTENSION));
     }
 
     public function testDeleteIgnoresNonExistingFile(): void
     {
-        $key = new FileKey('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+        $key = new FileKey(self::VALID_HASH);
 
-        $this->storage->delete($key, 'txt');
+        $this->storage->delete($key, self::EXTENSION);
 
-        $this->assertFalse($this->storage->exists($key, 'txt'));
+        $this->assertFalse($this->storage->exists($key, self::EXTENSION));
     }
 
     public function testDeleteCleansUpEmptyDirectories(): void
     {
-        $content = $this->createFileContent('test content');
+        $content = $this->createFileContent(self::TEST_CONTENT);
         $key = $this->storage->save($content);
 
         $dir1 = $this->tempDir . '/' . substr($key->value, 0, 2);
@@ -198,7 +207,7 @@ final class ContentAddressableStorageTest extends Unit
 
         $this->assertDirectoryExists($dir2);
 
-        $this->storage->delete($key, 'txt');
+        $this->storage->delete($key, self::EXTENSION);
 
         $this->assertDirectoryDoesNotExist($dir2);
         $this->assertDirectoryDoesNotExist($dir1);
@@ -210,6 +219,6 @@ final class ContentAddressableStorageTest extends Unit
         fwrite($stream, $textContent);
         rewind($stream);
 
-        return new FileContent($stream, 'txt', 'text/plain');
+        return new FileContent($stream, self::EXTENSION, 'text/plain');
     }
 }

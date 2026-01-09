@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace app\infrastructure\services\storage;
 
 use app\application\ports\ContentStorageInterface;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\OperationFailedException;
 use app\domain\exceptions\ValidationException;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use Generator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use RuntimeException;
 use yii\helpers\FileHelper;
 
 final readonly class ContentAddressableStorage implements ContentStorageInterface
@@ -38,14 +39,14 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
         $target = fopen($fullPath, 'wb');
 
         if ($target === false) {
-            throw new RuntimeException('Cannot create file: ' . $fullPath); // @codeCoverageIgnore
+            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
         }
 
         $bytesCopied = stream_copy_to_stream($stream, $target);
 
         if ($bytesCopied === false) { // @codeCoverageIgnoreStart
             fclose($target);
-            throw new RuntimeException('Failed to copy stream to file: ' . $fullPath);
+            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed);
         } // @codeCoverageIgnoreEnd
 
         fclose($target);
@@ -73,7 +74,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
         $mtime = @filemtime($fullPath);
 
         if ($mtime === false) {
-             throw new RuntimeException("Failed to get modification time for file: {$fullPath}"); // @codeCoverageIgnore
+             throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
         }
 
         return $mtime;
@@ -103,7 +104,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
         }
 
         if (!@unlink($fullPath)) {
-             throw new RuntimeException("Failed to delete file: {$fullPath}"); // @codeCoverageIgnore
+             throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
         }
 
         $this->cleanupEmptyDirectories(dirname($fullPath));

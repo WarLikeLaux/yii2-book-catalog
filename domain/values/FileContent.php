@@ -25,7 +25,7 @@ final readonly class FileContent
     public static function fromPath(string $path, ?string $extension = null): self
     {
         if (!file_exists($path)) {
-            throw new ValidationException(DomainErrorCode::FileFileNotFound);
+            throw new ValidationException(DomainErrorCode::FileNotFound);
         }
 
         $stream = @fopen($path, 'rb');

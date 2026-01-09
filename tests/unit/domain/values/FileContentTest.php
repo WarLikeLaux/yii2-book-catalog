@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace tests\unit\domain\values;
 
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
+use app\domain\exceptions\ValidationException;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use Codeception\Test\Unit;
-use RuntimeException;
 use tests\_support\RemovesDirectoriesTrait;
 
 final class FileContentTest extends Unit
 {
     use RemovesDirectoriesTrait;
+
+    private const string MEMORY_STREAM = 'php://memory';
+    private const string MIME_TYPE = 'text/plain';
+    private const string EXTENSION = 'txt';
 
     private string $tempDir;
 
@@ -30,14 +35,14 @@ final class FileContentTest extends Unit
 
     public function testCanCreateWithValidStream(): void
     {
-        $stream = fopen('php://memory', 'r+b');
+        $stream = fopen(self::MEMORY_STREAM, 'r+b');
         fwrite($stream, 'test content');
         rewind($stream);
 
-        $content = new FileContent($stream, 'txt', 'text/plain');
+        $content = new FileContent($stream, self::EXTENSION, self::MIME_TYPE);
 
-        $this->assertSame('txt', $content->extension);
-        $this->assertSame('text/plain', $content->mimeType);
+        $this->assertSame(self::EXTENSION, $content->extension);
+        $this->assertSame(self::MIME_TYPE, $content->mimeType);
         $this->assertSame($stream, $content->getStream());
     }
 
@@ -46,20 +51,18 @@ final class FileContentTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('file.error.content_invalid_stream');
 
-        $content = new FileContent('not a stream', 'txt', 'text/plain');
-        $this->assertInstanceOf(FileContent::class, $content);
+        new FileContent('not a stream', self::EXTENSION, self::MIME_TYPE);
     }
 
     public function testThrowsOnClosedStream(): void
     {
-        $stream = fopen('php://memory', 'r+b');
+        $stream = fopen(self::MEMORY_STREAM, 'r+b');
         fclose($stream);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('file.error.content_invalid_stream');
 
-        $content = new FileContent($stream, 'txt', 'text/plain');
-        $this->assertInstanceOf(FileContent::class, $content);
+        new FileContent($stream, self::EXTENSION, self::MIME_TYPE);
     }
 
     public function testFromPathCreatesValidContent(): void
@@ -69,13 +72,14 @@ final class FileContentTest extends Unit
 
         $content = FileContent::fromPath($filePath);
 
-        $this->assertSame('txt', $content->extension);
+        $this->assertSame(self::EXTENSION, $content->extension);
         $this->assertIsResource($content->getStream());
     }
 
     public function testFromPathThrowsOnMissingFile(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage(DomainErrorCode::FileNotFound->value);
 
         FileContent::fromPath($this->tempDir . '/non-existent.txt');
     }
@@ -87,17 +91,17 @@ final class FileContentTest extends Unit
 
         $content = FileContent::fromPath($filePath);
 
-        $this->assertSame('text/plain', $content->mimeType);
+        $this->assertSame(self::MIME_TYPE, $content->mimeType);
     }
 
     public function testComputeKeyReturnsFileKey(): void
     {
         $textContent = 'test content for hashing';
-        $stream = fopen('php://memory', 'r+b');
+        $stream = fopen(self::MEMORY_STREAM, 'r+b');
         fwrite($stream, $textContent);
         rewind($stream);
 
-        $content = new FileContent($stream, 'txt', 'text/plain');
+        $content = new FileContent($stream, self::EXTENSION, self::MIME_TYPE);
         $key = $content->computeKey();
 
         $this->assertInstanceOf(FileKey::class, $key);
@@ -108,16 +112,16 @@ final class FileContentTest extends Unit
     {
         $textContent = 'same content';
 
-        $stream1 = fopen('php://memory', 'r+b');
+        $stream1 = fopen(self::MEMORY_STREAM, 'r+b');
         fwrite($stream1, $textContent);
         rewind($stream1);
 
-        $stream2 = fopen('php://memory', 'r+b');
+        $stream2 = fopen(self::MEMORY_STREAM, 'r+b');
         fwrite($stream2, $textContent);
         rewind($stream2);
 
-        $content1 = new FileContent($stream1, 'txt', 'text/plain');
-        $content2 = new FileContent($stream2, 'txt', 'text/plain');
+        $content1 = new FileContent($stream1, self::EXTENSION, self::MIME_TYPE);
+        $content2 = new FileContent($stream2, self::EXTENSION, self::MIME_TYPE);
 
         $this->assertTrue($content1->computeKey()->equals($content2->computeKey()));
     }

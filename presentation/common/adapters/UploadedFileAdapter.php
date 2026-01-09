@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace app\presentation\common\adapters;
 
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\OperationFailedException;
 use app\domain\values\FileContent;
-use RuntimeException;
 use yii\web\UploadedFile;
 
 final readonly class UploadedFileAdapter
@@ -15,7 +16,7 @@ final readonly class UploadedFileAdapter
         $path = $uploadedFile->tempName;
 
         if (!file_exists($path) || !is_readable($path)) {
-            throw new RuntimeException('Temporary file is not accessible: ' . $path); // @codeCoverageIgnore
+            throw new OperationFailedException(DomainErrorCode::FileOpenFailed); // @codeCoverageIgnore
         }
 
         return FileContent::fromPath($path, $uploadedFile->getExtension());
