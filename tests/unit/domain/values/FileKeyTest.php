@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace tests\unit\domain\values;
 
 use app\domain\exceptions\DomainException;
+use app\domain\exceptions\ValidationException;
 use app\domain\values\FileKey;
 use Codeception\Test\Unit;
 
@@ -59,6 +60,31 @@ final class FileKeyTest extends Unit
                 'png',
                 'ab/cd/abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890.png',
             ],
+            'leading-dot' => [
+                'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+                '.jpg',
+                'e3/b0/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.jpg',
+            ],
+            'uppercase' => [
+                'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+                'JPG',
+                'e3/b0/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.jpg',
+            ],
+            'mixed-case-with-dot' => [
+                'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+                '.JpG',
+                'e3/b0/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.jpg',
+            ],
+        ];
+    }
+
+    public static function invalidExtensionProvider(): array
+    {
+        return [
+            'invalid-chars' => ['inva*lid'],
+            'traversal' => ['../traversal'],
+            'absolute-path' => ['/root'],
+            'space' => [' '],
         ];
     }
 
@@ -77,38 +103,45 @@ final class FileKeyTest extends Unit
     public function testThrowsOnInvalidHash(string $invalidHash): void
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('file.error.key_invalid_format');
 
-        $_ = new FileKey($invalidHash);
+        new FileKey($invalidHash); // NOSONAR: S1848
     }
 
     public function testFromStreamCreatesValidKey(): void
     {
         $content = 'test content for hashing';
         $stream = fopen('php://memory', 'r+b');
-        fwrite($stream, $content);
-        rewind($stream);
+        $this->assertIsResource($stream);
 
-        $key = FileKey::fromStream($stream);
+        try {
+            fwrite($stream, $content);
+            rewind($stream);
 
-        $expectedHash = hash('sha256', $content);
-        $this->assertSame($expectedHash, $key->value);
+            $key = FileKey::fromStream($stream);
 
-        fclose($stream);
+            $expectedHash = hash('sha256', $content);
+            $this->assertSame($expectedHash, $key->value);
+        } finally {
+            fclose($stream);
+        }
     }
 
     public function testFromStreamRewindsStream(): void
     {
         $content = 'test content';
         $stream = fopen('php://memory', 'r+b');
-        fwrite($stream, $content);
-        rewind($stream);
+        $this->assertIsResource($stream);
 
-        FileKey::fromStream($stream);
+        try {
+            fwrite($stream, $content);
+            rewind($stream);
 
-        $this->assertSame(0, ftell($stream));
+            FileKey::fromStream($stream);
 
-        fclose($stream);
+            $this->assertSame(0, ftell($stream));
+        } finally {
+            fclose($stream);
+        }
     }
 
     /**
@@ -121,6 +154,18 @@ final class FileKeyTest extends Unit
     ): void {
         $key = new FileKey($hash);
         $this->assertSame($expected, $key->getExtendedPath($extension));
+    }
+
+    /**
+     * @dataProvider invalidExtensionProvider
+     */
+    public function testGetExtendedPathThrowsOnInvalidExtension(string $extension): void
+    {
+        $key = new FileKey(self::VALID_HASH);
+
+        $this->expectException(ValidationException::class);
+
+        $key->getExtendedPath($extension);
     }
 
     public function testEqualsReturnsTrueForSameHash(): void

@@ -39,7 +39,13 @@ final readonly class FileKey implements Stringable
 
     public function getExtendedPath(string $extension = ''): string
     {
-        $suffix = $extension !== '' ? '.' . $extension : '';
+        $normalizedExtension = strtolower(ltrim($extension, '.'));
+
+        if ($normalizedExtension !== '' && preg_match('/^[a-z0-9_-]+$/', $normalizedExtension) !== 1) {
+            throw new ValidationException(DomainErrorCode::FileKeyInvalidFormat);
+        }
+
+        $suffix = $normalizedExtension !== '' ? '.' . $normalizedExtension : '';
 
         return substr($this->value, 0, 2)
             . '/'

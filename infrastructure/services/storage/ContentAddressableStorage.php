@@ -25,20 +25,21 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
     public function save(FileContent $content): FileKey
     {
         $key = $content->computeKey();
+        $this->validateExtension($content->extension);
         $relativePath = $key->getExtendedPath($content->extension);
         $fullPath = $this->resolvePath($relativePath);
-
-        if (file_exists($fullPath)) {
-            return $key;
-        }
 
         $dir = dirname($fullPath);
         FileHelper::createDirectory($dir);
 
         $stream = $content->getStream();
-        $target = fopen($fullPath, 'wb');
+        $target = @fopen($fullPath, 'xb');
 
         if ($target === false) {
+            if (file_exists($fullPath)) {
+                return $key;
+            }
+
             throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
         }
 
@@ -59,6 +60,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
 
     public function exists(FileKey $key, string $extension = ''): bool
     {
+        $this->validateExtension($extension);
         $relativePath = $key->getExtendedPath($extension);
         $fullPath = $this->resolvePath($relativePath);
 
@@ -67,11 +69,13 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
 
     public function getUrl(FileKey $key, string $extension = ''): string
     {
+        $this->validateExtension($extension);
         return $this->config->baseUrl . '/' . $key->getExtendedPath($extension);
     }
 
     public function getModificationTime(FileKey $key, string $extension = ''): int
     {
+        $this->validateExtension($extension);
         $relativePath = $key->getExtendedPath($extension);
         $fullPath = $this->resolvePath($relativePath);
         $mtime = @filemtime($fullPath);
@@ -99,6 +103,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
 
     public function delete(FileKey $key, string $extension = ''): void
     {
+        $this->validateExtension($extension);
         $relativePath = $key->getExtendedPath($extension);
         $fullPath = $this->resolvePath($relativePath);
 
@@ -115,7 +120,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
 
     private function resolvePath(string $relativePath): string
     {
-        return $this->config->basePath . '/' . $relativePath;
+        return rtrim($this->config->basePath, '/') . '/' . ltrim($relativePath, '/');
     }
 
     /**
@@ -128,6 +133,8 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
             RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
+        $seenKeys = [];
+
         /** @var \SplFileInfo $file */
         foreach ($iterator as $file) {
             if (!$file->isFile()) {
@@ -137,6 +144,11 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
             $filename = pathinfo($file->getFilename(), PATHINFO_FILENAME);
 
             try {
+                if (isset($seenKeys[$filename])) {
+                    continue;
+                }
+
+                $seenKeys[$filename] = true;
                 yield new FileKey($filename);
             } catch (ValidationException) {
                 continue;
@@ -160,6 +172,17 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
             }
 
             $dir = dirname($dir);
+        }
+    }
+
+    private function validateExtension(string $extension): void
+    {
+        if ($extension === '') {
+            return;
+        }
+
+        if (preg_match('#[\\/\\\\\.]|\.\.#', $extension) !== 0) {
+            throw new ValidationException(DomainErrorCode::FileKeyInvalidFormat);
         }
     }
 }

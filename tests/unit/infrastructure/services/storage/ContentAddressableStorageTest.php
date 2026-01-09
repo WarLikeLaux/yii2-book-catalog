@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\services\storage;
 
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
+use app\domain\exceptions\ValidationException;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use app\infrastructure\services\storage\ContentAddressableStorage;
@@ -22,7 +24,7 @@ final class ContentAddressableStorageTest extends Unit
     private const string EXTENSION = 'txt';
     private const string VALID_HASH = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
     private const string UPLOAD_URL = '/uploads';
-    private const string UPLOAD_PATH = '/non/existing/path';
+
 
     private string $tempDir;
     private ContentAddressableStorage $storage;
@@ -183,6 +185,40 @@ final class ContentAddressableStorageTest extends Unit
 
         $this->assertCount(1, $keys);
         $this->assertContains($key->value, $keyValues);
+    }
+
+    public function testListAllKeysFiltersDuplicates(): void
+    {
+        $hash = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+        $dir = $this->tempDir . DIRECTORY_SEPARATOR . 'ab' . DIRECTORY_SEPARATOR . 'cd';
+        mkdir($dir, 0777, true);
+
+        file_put_contents($dir . DIRECTORY_SEPARATOR . $hash . '.txt', 'content');
+        file_put_contents($dir . DIRECTORY_SEPARATOR . $hash . '.json', 'content');
+
+        $keys = iterator_to_array($this->storage->listAllKeys());
+
+        $this->assertCount(1, $keys);
+        $this->assertSame($hash, $keys[0]->value);
+    }
+
+    public function testValidateExtensionAllowEmpty(): void
+    {
+        $content = $this->createFileContent(self::TEST_CONTENT);
+        $key = $this->storage->save($content);
+
+        // Should not throw exception
+        $this->assertFalse($this->storage->exists($key, ''));
+    }
+
+    public function testValidateExtensionThrowsException(): void
+    {
+        $key = new FileKey(self::VALID_HASH);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage(DomainErrorCode::FileKeyInvalidFormat->value);
+
+        $this->storage->exists($key, '../invalid');
     }
 
     public function testDeleteRemovesFile(): void
