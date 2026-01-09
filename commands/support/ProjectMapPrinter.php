@@ -272,12 +272,10 @@ final class ProjectMapPrinter
         }
 
         $fullPaths = [];
-        $dirMap = [];
 
         foreach ($dirs as $dir) {
             $fullPath = $path . DIRECTORY_SEPARATOR . $dir;
             $fullPaths[] = $fullPath;
-            $dirMap[$fullPath] = $dir;
         }
 
         $command = sprintf(
@@ -336,7 +334,6 @@ final class ProjectMapPrinter
         }
 
         $relativePaths = [];
-        $dirMap = [];
 
         foreach ($dirs as $dir) {
             $fullPath = $path . DIRECTORY_SEPARATOR . $dir;
@@ -347,7 +344,6 @@ final class ProjectMapPrinter
             }
 
             $relativePaths[] = $relPath;
-            $dirMap[$relPath] = $dir;
         }
 
         if ($relativePaths === []) {

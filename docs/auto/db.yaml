@@ -1,6 +1,6 @@
 meta:
   title: 'Database Schema'
-  updated_at: '2026-01-09T11:24:37+00:00'
+  updated_at: '2026-01-09T12:40:30+00:00'
 tables:
   async_idempotency_log:
     columns:
@@ -21,7 +21,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {}
+    foreign_keys: {  }
     indexes:
       -
         name: idempotency_key
@@ -47,18 +47,18 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {}
+    foreign_keys: {  }
     indexes:
-      -
-        name: ux_authors_fio
-        columns:
-          - fio
-        unique: true
       -
         name: ft_authors_fio
         columns:
           - fio
         unique: false
+      -
+        name: ux_authors_fio
+        columns:
+          - fio
+        unique: true
   book_authors:
     columns:
       -
@@ -141,18 +141,18 @@ tables:
         default: 1
     primary_key:
       - id
-    foreign_keys: {}
+    foreign_keys: {  }
     indexes:
-      -
-        name: isbn
-        columns:
-          - isbn
-        unique: true
       -
         name: ft_books_title_description
         columns:
           - title
           - description
+        unique: false
+      -
+        name: idx_books_cover_url_not_null
+        columns:
+          - null
         unique: false
       -
         name: idx_books_title
@@ -164,6 +164,11 @@ tables:
         columns:
           - year
         unique: false
+      -
+        name: isbn
+        columns:
+          - isbn
+        unique: true
   idempotency_keys:
     columns:
       -
@@ -173,7 +178,7 @@ tables:
         default: null
       -
         name: idempotency_key
-        type: varchar(36)
+        type: varchar(128)
         nullable: false
         default: null
       -
@@ -203,7 +208,7 @@ tables:
         default: finished
     primary_key:
       - id
-    foreign_keys: {}
+    foreign_keys: {  }
     indexes:
       -
         name: idempotency_key
@@ -229,8 +234,8 @@ tables:
         default: null
     primary_key:
       - version
-    foreign_keys: {}
-    indexes: {}
+    foreign_keys: {  }
+    indexes: {  }
   queue:
     columns:
       -
@@ -285,7 +290,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {}
+    foreign_keys: {  }
     indexes:
       -
         name: channel
@@ -332,13 +337,13 @@ tables:
         references: authors.id
     indexes:
       -
+        name: fk_subscriptions_author
+        columns:
+          - author_id
+        unique: false
+      -
         name: idx_subscriptions_phone_author
         columns:
           - phone
           - author_id
         unique: true
-      -
-        name: fk_subscriptions_author
-        columns:
-          - author_id
-        unique: false

@@ -9,7 +9,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL_/_PgSQL-Multi_DB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-686_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-692_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![AI Governance](https://img.shields.io/badge/AI-Governance-8A2BE2?style=for-the-badge&logo=googlegemini&logoColor=white)](docs/AI_WORKFLOW.md)
@@ -88,7 +88,7 @@
 | 🔹 **CAS (File Storage)**<br>Контентно-адресуемое хранилище           | ⚡ **PJAX**<br>Мгновенная фильтрация                           |
 | 🔹 **Доменные события**<br>Асинхронное взаимодействие                 | 🤖 **AI Governance**<br>Контракты и автоматизация              |
 | **🧪 Качество кода**                                                  | **🐳 DevOps Ready**                                            |
-| ✅ **746 тестов** (1743 assertions)<br>100% покрытие кода тестами     | 🐳 **Docker Compose**<br>Полный стек одной командой            |
+| ✅ **692 теста** (1633 assertions)<br>100% покрытие кода тестами      | 🐳 **Docker Compose**<br>Полный стек одной командой            |
 | ✅ **PHPStan Level 9**<br>Кастомные правила (Custom Rules)            | 🛠 **Makefile**<br>Автоматизация рутины                        |
 | ✅ **Мутационное тестирование**<br>Infection PHP (MSI 100%)           | 📚 **Генерация документации**<br>Yii2 API + OpenAPI            |
 | ✅ **Авто-рефакторинг**<br>Rector                                     | 🏗 **Контроль архитектуры**<br>Deptrac                         |
@@ -236,10 +236,10 @@ make env   # или make configure
 
 <table>
 <tr>
-<td align="center"><b>669</b><br>Tests</td>
-<td align="center"><b>1534</b><br>Assertions</td>
+<td align="center"><b>692</b><br>Tests</td>
+<td align="center"><b>1633</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~20.5s</b><br>Runtime</td>
+<td align="center"><b>~15.5s</b><br>Runtime</td>
 </tr>
 </table>
 
@@ -247,11 +247,11 @@ make env   # или make configure
 
 #### 🏗 Пирамида тестирования
 
-1.  **Unit Tests (510):** тестируют доменные сущности, Value Objects и Use Cases в полной изоляции. Это фундамент стабильности.
+1.  **Unit Tests:** тестируют доменные сущности, Value Objects и Use Cases в полной изоляции. Это фундамент стабильности.
     ```bash
     make test-unit
     ```
-2.  **Integration Tests (85):** проверяют взаимодействие слоев: работу репозиториев с реальной БД (MySQL/PgSQL), маппинг событий в очереди и интеграцию с Yii2 компонентами.
+2.  **Integration Tests:** проверяют взаимодействие слоев: работу репозиториев с реальной БД (MySQL/PgSQL), маппинг событий в очереди и интеграцию с Yii2 компонентами.
     ```bash
     make test-integration
     ```
@@ -360,7 +360,7 @@ web/                    - Web root
 ![Source Code](https://img.shields.io/badge/Source_Code-8.7k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
 ![Test Code](https://img.shields.io/badge/Test_Code-12.6k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
 ![Source Files](https://img.shields.io/badge/Source_Files-250-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-151-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-155-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)

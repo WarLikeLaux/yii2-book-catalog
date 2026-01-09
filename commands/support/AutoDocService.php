@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace app\commands\support;
 
-use stdClass;
 use Symfony\Component\Yaml\Yaml;
 use Throwable;
 use Yii;
@@ -108,11 +107,10 @@ final readonly class AutoDocService
             $name = $matches[1];
             $command = 'void';
 
-            if (preg_match('/@param\s+([A-Za-z0-9_\\\]+)\s+\$command/', $content, $docM)) {
-                $parts = explode('\\', $docM[1]);
-                $command = end($parts);
-            } elseif (preg_match('/execute\(\s*(\w+)\s+\$command\)/', $content, $sigM)) {
-                $command = $sigM[1];
+            if (preg_match('/@param\s+([A-Za-z0-9_|\\\\<>,\[\] ]+)\s+\$command/', $content, $docM)) {
+                $command = $this->normalizeCommandType($docM[1]);
+            } elseif (preg_match('/execute\(\s*([A-Za-z0-9_\\\\]+)\s+\$command\)/', $content, $sigM)) {
+                $command = $this->normalizeCommandType($sigM[1]);
             }
 
             $useCases[$name] = [
@@ -169,8 +167,8 @@ final readonly class AutoDocService
         return [
             'columns' => $this->mapColumns($tableSchema),
             'primary_key' => array_values($tableSchema->primaryKey),
-            'foreign_keys' => $this->mapForeignKeys($tableSchema) ?: new stdClass(),
-            'indexes' => $this->mapIndexes($tableSchema) ?: new stdClass(),
+            'foreign_keys' => $this->mapForeignKeys($tableSchema),
+            'indexes' => $this->mapIndexes($tableSchema),
         ];
     }
 
@@ -222,36 +220,26 @@ final readonly class AutoDocService
         $indexes = [];
 
         try {
-            $dbIndexes = $schema->findUniqueIndexes($tableSchema);
-            $uniqueNames = array_keys($dbIndexes);
-
-            foreach ($dbIndexes as $indexName => $columns) {
-                $indexes[] = [
-                    'name' => $indexName,
-                    'columns' => is_array($columns) ? $columns : [$columns],
-                    'unique' => true,
-                ];
-            }
-
             $allIndexes = $schema->getTableIndexes($tableSchema->name);
 
             foreach ($allIndexes as $indexConstraint) {
-                if (in_array($indexConstraint->name, $uniqueNames, true) || $indexConstraint->name === null) {
+                if ($indexConstraint->isPrimary || $indexConstraint->name === null) {
                     continue;
                 }
 
                 $indexes[] = [
                     'name' => $indexConstraint->name,
-                    'columns' => $indexConstraint->columnNames,
-                    'unique' => false,
+                    'columns' => is_array($indexConstraint->columnNames)
+                        ? $indexConstraint->columnNames
+                        : [$indexConstraint->columnNames],
+                    'unique' => $indexConstraint->isUnique,
                 ];
             }
         } catch (Throwable $exception) {
             Yii::error([
                 'message' => 'Failed to read table indexes',
                 'table' => $tableSchema->name,
-                'error' => $exception->getMessage(),
-                'exception_class' => $exception::class,
+                'exception' => $exception,
             ], 'application');
             return [];
         }
@@ -369,10 +357,15 @@ final readonly class AutoDocService
 
     private function resolveControllerId(string $file, string $controllerName): string
     {
-        $controllerDir = Yii::getAlias('@app/presentation/controllers');
-        $dir = dirname($file);
-        $relativeDir = trim(str_replace((string)$controllerDir, '', $dir), DIRECTORY_SEPARATOR);
+        $controllerDir = (string)realpath((string)Yii::getAlias('@app/presentation/controllers'));
+        $dir = (string)realpath(dirname($file));
         $controllerId = Inflector::camel2id($controllerName);
+
+        if (!str_starts_with($dir, $controllerDir)) {
+            return $controllerId;
+        }
+
+        $relativeDir = trim(substr($dir, strlen($controllerDir)), DIRECTORY_SEPARATOR);
 
         if ($relativeDir === '') {
             return $controllerId;
@@ -416,8 +409,8 @@ final readonly class AutoDocService
             'name' => $name,
             'class' => $ns . chr(92) . $name,
             'table' => $table,
-            'behaviors' => str_contains($content, 'TimestampBehavior::class') ? ['TimestampBehavior'] : new stdClass(),
-            'relations' => $this->extractRelations($content) ?: new stdClass(),
+            'behaviors' => str_contains($content, 'TimestampBehavior::class') ? ['TimestampBehavior'] : [],
+            'relations' => $this->extractRelations($content),
             'validation' => $this->extractRulesSummary($content),
         ];
     }
@@ -438,7 +431,7 @@ final readonly class AutoDocService
             $summary[] = sprintf('%s (%s)', $fields, $m[2]);
         }
 
-        preg_match_all("/\[\s*'(\w+)'\s*,\s*'(\w+)'\s*\]/", $rulesBlock, $simpleMatches, PREG_SET_ORDER);
+        preg_match_all("/(?<!\[)\[\s*'(\w+)'\s*,\s*'(\w+)'\s*(?:,.*?)?\]/", $rulesBlock, $simpleMatches, PREG_SET_ORDER);
 
         foreach ($simpleMatches as $m) {
             $entry = sprintf('%s (%s)', $m[1], $m[2]);
@@ -486,6 +479,17 @@ final readonly class AutoDocService
         return $matches[1] ?? [];
     }
 
+    private function normalizeCommandType(string $type): string
+    {
+        $parts = explode('|', $type);
+        $type = trim($parts[0]);
+        $type = (string)preg_replace('/\[\]$/', '', $type);
+        $type = (string)preg_replace('/<.*>$/', '', $type);
+        $segments = explode('\\', $type);
+
+        return end($segments);
+    }
+
     private function extractNamespace(string $content): string
     {
         return preg_match('/namespace\s+([^;]+);/', $content, $m) ? trim($m[1]) : 'app';
@@ -501,12 +505,7 @@ final readonly class AutoDocService
 
         FileHelper::createDirectory(dirname($path));
         $yaml = Yaml::dump($data, 10, 2);
-        $yaml = str_replace('{  }', '{}', $yaml);
-        $yaml = preg_replace(
-            '/(foreign_keys|indexes|behaviors|relations|validation):\s+null/',
-            '$1: {}',
-            $yaml,
-        );
+        $yaml = str_replace('{ }', '{}', $yaml);
         file_put_contents($path, $yaml);
     }
 }
