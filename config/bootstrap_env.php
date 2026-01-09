@@ -14,7 +14,7 @@ $dotenv->required('YII_DEBUG')->isBoolean();
 $dotenv->required(['DB_NAME', 'DB_USER', 'DB_PASSWORD'])->notEmpty();
 $dotenv->required('SMS_API_KEY');
 
-require __DIR__ . '/env.php';
+require_once __DIR__ . '/env.php';
 
 defined('YII_DEBUG') or define('YII_DEBUG', env('YII_DEBUG', false));
 defined('YII_ENV') or define('YII_ENV', env('YII_ENV', 'prod'));
