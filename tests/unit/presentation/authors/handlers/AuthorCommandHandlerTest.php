@@ -68,13 +68,9 @@ final class AuthorCommandHandlerTest extends Unit
 
     public function testCreateAuthorReturnsNullOnMappingError(): void
     {
-        $form = $this->createMock(AuthorForm::class);
-        $form->method('attributes')->willReturn(['fio']);
-        $form->method('toArray')->willReturn(['fio' => 'Invalid']);
-        $this->autoMapper->method('map')->willThrowException(new \RuntimeException('Mapping failed'));
-
-        $form->expects($this->once())->method('addError');
-
+        $form = $this->createForm(['fio'], ['fio' => 'Invalid']);
+        $this->mockMappingFailure();
+        $this->expectFormError($form);
         $this->assertNull($this->handler->createAuthor($form));
     }
 
@@ -95,32 +91,19 @@ final class AuthorCommandHandlerTest extends Unit
 
     public function testUpdateAuthorReturnsFalseOnMappingError(): void
     {
-        $form = $this->createMock(AuthorForm::class);
-        $form->method('attributes')->willReturn(['fio']);
-        $form->method('toArray')->willReturn([]);
-        $this->autoMapper->method('map')->willThrowException(new \RuntimeException('Mapping failed'));
-
-        $form->expects($this->once())->method('addError');
-
+        $form = $this->createForm(['fio'], []);
+        $this->mockMappingFailure();
+        $this->expectFormError($form);
         $this->assertFalse($this->handler->updateAuthor(1, $form));
     }
 
     public function testCreateAuthorAddsFormErrorOnDomainException(): void
     {
-        $form = $this->createMock(AuthorForm::class);
-        $form->method('attributes')->willReturn(['fio']);
-        $form->method('toArray')->willReturn(['fio' => 'Duplicate']);
+        $form = $this->createForm(['fio'], ['fio' => 'Duplicate']);
         $command = $this->createMock(CreateAuthorCommand::class);
         $this->autoMapper->method('map')->willReturn($command);
 
-        $exception = new ValidationException(DomainErrorCode::AuthorFioExists);
-
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
-                $onDomainError($exception);
-                return null;
-            });
+        $this->mockUseCaseRunnerDomainError(new ValidationException(DomainErrorCode::AuthorFioExists));
 
         $form->expects($this->once())
             ->method('addError')
@@ -131,20 +114,11 @@ final class AuthorCommandHandlerTest extends Unit
 
     public function testCreateAuthorAddsGlobalErrorWhenNoAttributes(): void
     {
-        $form = $this->createMock(AuthorForm::class);
-        $form->method('attributes')->willReturn([]);
-        $form->method('toArray')->willReturn(['fio' => 'Duplicate']);
+        $form = $this->createForm([], ['fio' => 'Duplicate']);
         $command = $this->createMock(CreateAuthorCommand::class);
         $this->autoMapper->method('map')->willReturn($command);
 
-        $exception = new ValidationException(DomainErrorCode::AuthorFioExists);
-
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
-                $onDomainError($exception);
-                return null;
-            });
+        $this->mockUseCaseRunnerDomainError(new ValidationException(DomainErrorCode::AuthorFioExists));
 
         $form->expects($this->once())
             ->method('addError')
@@ -157,5 +131,34 @@ final class AuthorCommandHandlerTest extends Unit
     {
         $this->useCaseRunner->method('execute')->willReturn(true);
         $this->assertTrue($this->handler->deleteAuthor(1));
+    }
+
+    private function createForm(array $attributes, array $data): AuthorForm&MockObject
+    {
+        $form = $this->createMock(AuthorForm::class);
+        $form->method('attributes')->willReturn($attributes);
+        $form->method('toArray')->willReturn($data);
+
+        return $form;
+    }
+
+    private function mockMappingFailure(): void
+    {
+        $this->autoMapper->method('map')->willThrowException(new \RuntimeException('Mapping failed'));
+    }
+
+    private function mockUseCaseRunnerDomainError(ValidationException $exception): void
+    {
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
+                $onDomainError($exception);
+                return null;
+            });
+    }
+
+    private function expectFormError(AuthorForm&MockObject $form): void
+    {
+        $form->expects($this->once())->method('addError');
     }
 }

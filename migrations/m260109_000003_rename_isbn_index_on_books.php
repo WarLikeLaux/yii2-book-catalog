@@ -37,7 +37,7 @@ final class m260109_000003_rename_isbn_index_on_books extends Migration
         }
 
         foreach ($existingIndexNames as $name) {
-            $this->dropIndex($name, 'books');
+            $this->dropUniqueIndex($name);
         }
 
         if ($hasTarget) {
@@ -49,7 +49,7 @@ final class m260109_000003_rename_isbn_index_on_books extends Migration
 
     public function safeDown(): void
     {
-        $this->dropIndex(self::INDEX_NAME, 'books');
+        $this->dropUniqueIndex(self::INDEX_NAME);
         $this->createIndex('isbn', 'books', 'isbn', true);
     }
 
@@ -59,5 +59,15 @@ final class m260109_000003_rename_isbn_index_on_books extends Migration
         $columns = array_values($columns);
 
         return $columns === ['isbn'];
+    }
+
+    private function dropUniqueIndex(string $name): void
+    {
+        if ($this->db->driverName === 'pgsql') {
+            $this->execute('ALTER TABLE books DROP CONSTRAINT IF EXISTS ' . $name);
+            return;
+        }
+
+        $this->dropIndex($name, 'books');
     }
 }

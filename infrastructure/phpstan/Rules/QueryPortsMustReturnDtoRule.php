@@ -157,7 +157,7 @@ final readonly class QueryPortsMustReturnDtoRule implements Rule
             }
         }
 
-        return count($classNames) === 0;
+        return false;
     }
 
     private function isAllowedIterableType(Type $type, bool $allowScalars): bool
