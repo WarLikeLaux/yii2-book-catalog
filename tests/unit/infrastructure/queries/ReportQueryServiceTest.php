@@ -15,6 +15,7 @@ use Yii;
 
 final class ReportQueryServiceTest extends Unit
 {
+    private static int $isbnCounter = 0;
     private ReportQueryService $service;
 
     protected function _before(): void
@@ -161,8 +162,7 @@ final class ReportQueryServiceTest extends Unit
         $book = new Book();
         $book->title = $title;
         $book->year = $year;
-        $uniqueSuffix = (string)(int)(microtime(true) * 10000);
-        $book->isbn = '978' . str_pad(substr($uniqueSuffix, -10), 10, '0', STR_PAD_LEFT);
+        $book->isbn = '978' . str_pad((string)++self::$isbnCounter, 10, '0', STR_PAD_LEFT);
         $book->description = 'Test description';
         $book->is_published = true;
         $book->save(false);

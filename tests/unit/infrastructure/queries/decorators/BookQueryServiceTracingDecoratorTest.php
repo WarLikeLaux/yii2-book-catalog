@@ -62,4 +62,32 @@ final class BookQueryServiceTracingDecoratorTest extends Unit
 
         $this->assertSame($expectedResult, $result);
     }
+
+    public function testExistsByIsbnWithExcludeIdDelegatesToService(): void
+    {
+        $isbn = '978-3-16-148410-0';
+        $excludeId = 42;
+        $expectedResult = false;
+
+        $service = $this->createMock(BookQueryServiceInterface::class);
+        $service->expects($this->once())
+            ->method('existsByIsbn')
+            ->with($isbn, $excludeId)
+            ->willReturn($expectedResult);
+
+        $tracer = $this->createMock(TracerInterface::class);
+        $tracer->expects($this->once())
+            ->method('trace')
+            ->with(
+                'BookQuery::existsByIsbn',
+                $this->isType('callable'),
+            )
+            ->willReturnCallback(static fn($_, $callback) => $callback());
+
+        $decorator = new BookQueryServiceTracingDecorator($service, $tracer);
+
+        $result = $decorator->existsByIsbn($isbn, $excludeId);
+
+        $this->assertSame($expectedResult, $result);
+    }
 }

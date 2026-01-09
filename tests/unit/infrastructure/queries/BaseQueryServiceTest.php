@@ -17,23 +17,8 @@ final class BaseQueryServiceTest extends Unit
 {
     public function testExistsWithActiveQueryAndExcludeId(): void
     {
-        $conn = $this->makeEmpty(Connection::class);
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
-        $service = new class ($conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
-            {
-                return $this->exists($query, $excludeId);
-            }
-        };
-
-        $query = $this->createMock(ActiveQuery::class);
-        $modelClass = new class extends ActiveRecord {
-            public static function primaryKey(): array
-            {
-                return ['id'];
-            }
-        };
-        $query->modelClass = $modelClass::class;
+        $service = $this->createService();
+        $query = $this->createActiveQueryWithPrimaryKey(['id']);
 
         $query->expects($this->once())
             ->method('andWhere')
@@ -47,14 +32,7 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsWithNullExcludeId(): void
     {
-        $conn = $this->makeEmpty(Connection::class);
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
-        $service = new class ($conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
-            {
-                return $this->exists($query, $excludeId);
-            }
-        };
+        $service = $this->createService();
 
         $query = $this->createMock(ActiveQueryInterface::class);
         $query->expects($this->once())
@@ -66,14 +44,7 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsThrowsLogicExceptionForNonActiveQuery(): void
     {
-        $conn = $this->makeEmpty(Connection::class);
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
-        $service = new class ($conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, int $excludeId): void
-            {
-                $this->exists($query, $excludeId);
-            }
-        };
+        $service = $this->createService();
 
         $nonActiveQuery = $this->makeEmpty(ActiveQueryInterface::class);
 
@@ -85,14 +56,7 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsWithNonActiveRecordModelClass(): void
     {
-        $conn = $this->makeEmpty(Connection::class);
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
-        $service = new class ($conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
-            {
-                return $this->exists($query, $excludeId);
-            }
-        };
+        $service = $this->createService();
 
         $query = $this->createMock(ActiveQuery::class);
         $query->modelClass = \stdClass::class;
@@ -103,23 +67,8 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsThrowsLogicExceptionForCompositePkWithScalarExcludeId(): void
     {
-        $conn = $this->makeEmpty(Connection::class);
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
-        $service = new class ($conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
-            {
-                return $this->exists($query, $excludeId);
-            }
-        };
-
-        $query = $this->createMock(ActiveQuery::class);
-        $modelClass = new class extends ActiveRecord {
-            public static function primaryKey(): array
-            {
-                return ['id', 'category_id'];
-            }
-        };
-        $query->modelClass = $modelClass::class;
+        $service = $this->createService();
+        $query = $this->createActiveQueryWithPrimaryKey(['id', 'category_id']);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('excludeId must be an array for composite primary keys');
@@ -129,23 +78,8 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsThrowsLogicExceptionForCompositePkWithMissingPart(): void
     {
-        $conn = $this->makeEmpty(Connection::class);
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
-        $service = new class ($conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
-            {
-                return $this->exists($query, $excludeId);
-            }
-        };
-
-        $query = $this->createMock(ActiveQuery::class);
-        $modelClass = new class extends ActiveRecord {
-            public static function primaryKey(): array
-            {
-                return ['id', 'category_id'];
-            }
-        };
-        $query->modelClass = $modelClass::class;
+        $service = $this->createService();
+        $query = $this->createActiveQueryWithPrimaryKey(['id', 'category_id']);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Missing composite PK part: category_id');
@@ -155,23 +89,8 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsWithSinglePkAndArrayExcludeId(): void
     {
-        $conn = $this->makeEmpty(Connection::class);
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
-        $service = new class ($conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
-            {
-                return $this->exists($query, $excludeId);
-            }
-        };
-
-        $query = $this->createMock(ActiveQuery::class);
-        $modelClass = new class extends ActiveRecord {
-            public static function primaryKey(): array
-            {
-                return ['id'];
-            }
-        };
-        $query->modelClass = $modelClass::class;
+        $service = $this->createService();
+        $query = $this->createActiveQueryWithPrimaryKey(['id']);
 
         $query->expects($this->once())
             ->method('andWhere')
@@ -185,23 +104,8 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsThrowsLogicExceptionWhenArrayExcludeIdMissingSinglePk(): void
     {
-        $conn = $this->makeEmpty(Connection::class);
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
-        $service = new class ($conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
-            {
-                return $this->exists($query, $excludeId);
-            }
-        };
-
-        $query = $this->createMock(ActiveQuery::class);
-        $modelClass = new class extends ActiveRecord {
-            public static function primaryKey(): array
-            {
-                return ['id'];
-            }
-        };
-        $query->modelClass = $modelClass::class;
+        $service = $this->createService();
+        $query = $this->createActiveQueryWithPrimaryKey(['id']);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('excludeId must contain the primary key');
@@ -211,23 +115,8 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsWithCompositePkSucceeds(): void
     {
-        $conn = $this->makeEmpty(Connection::class);
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
-        $service = new class ($conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
-            {
-                return $this->exists($query, $excludeId);
-            }
-        };
-
-        $query = $this->createMock(ActiveQuery::class);
-        $modelClass = new class extends ActiveRecord {
-            public static function primaryKey(): array
-            {
-                return ['id', 'cid'];
-            }
-        };
-        $query->modelClass = $modelClass::class;
+        $service = $this->createService();
+        $query = $this->createActiveQueryWithPrimaryKey(['id', 'cid']);
 
         $query->expects($this->once())
             ->method('andWhere')
@@ -241,29 +130,49 @@ final class BaseQueryServiceTest extends Unit
 
     public function testExistsThrowsLogicExceptionForModelWithoutPrimaryKey(): void
     {
-        $conn = $this->makeEmpty(Connection::class);
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
-        $service = new class ($conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, int $excludeId): void
-            {
-                $this->exists($query, $excludeId);
-            }
-        };
-
-        $query = $this->createMock(ActiveQuery::class);
-
-        $modelClass = new class extends ActiveRecord {
-            public static function primaryKey(): array
-            {
-                return [];
-            }
-        };
-
-        $query->modelClass = $modelClass::class;
+        $service = $this->createService();
+        $query = $this->createActiveQueryWithPrimaryKey([]);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('must have a primary key');
 
         $service->checkExists($query, 123);
+    }
+
+    private function createService(): object
+    {
+        $conn = $this->makeEmpty(Connection::class);
+        $mapper = $this->makeEmpty(AutoMapperInterface::class);
+
+        return new class ($conn, $mapper) extends BaseQueryService {
+            public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
+            {
+                return $this->exists($query, $excludeId);
+            }
+        };
+    }
+
+    private function createActiveQueryWithPrimaryKey(array $primaryKey): ActiveQuery
+    {
+        $query = $this->createMock(ActiveQuery::class);
+        $query->modelClass = $this->createActiveRecordClass($primaryKey);
+
+        return $query;
+    }
+
+    private function createActiveRecordClass(array $primaryKey): string
+    {
+        $record = new class extends ActiveRecord {
+            public static array $primaryKey = [];
+
+            public static function primaryKey(): array
+            {
+                return self::$primaryKey;
+            }
+        };
+
+        $record::$primaryKey = $primaryKey;
+
+        return $record::class;
     }
 }

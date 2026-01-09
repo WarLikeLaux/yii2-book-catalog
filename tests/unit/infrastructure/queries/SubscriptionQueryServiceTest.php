@@ -37,49 +37,37 @@ final class SubscriptionQueryServiceTest extends Unit
 
     public function testExistsReturnsTrueWhenSubscriptionExists(): void
     {
-        $authorId = $this->tester->haveRecord(Author::class, ['fio' => self::TEST_AUTHOR]);
-        $subscription = Subscription::create(self::PHONE_PRIMARY, $authorId);
-        $this->repository->save($subscription);
+        $authorId = $this->createAuthor(self::TEST_AUTHOR);
+        $this->createSubscription(self::PHONE_PRIMARY, $authorId);
 
         $this->assertTrue($this->queryService->exists(self::PHONE_PRIMARY, $authorId));
     }
 
     public function testExistsReturnsFalseWhenSubscriptionMissing(): void
     {
-        $authorId = $this->tester->haveRecord(Author::class, ['fio' => self::TEST_AUTHOR]);
+        $authorId = $this->createAuthor(self::TEST_AUTHOR);
 
         $this->assertFalse($this->queryService->exists(self::PHONE_PRIMARY, $authorId));
     }
 
     public function testExistsReturnsFalseForDifferentAuthor(): void
     {
-        $authorId1 = $this->tester->haveRecord(Author::class, ['fio' => 'Author One']);
-        $authorId2 = $this->tester->haveRecord(Author::class, ['fio' => 'Author Two']);
+        $authorId1 = $this->createAuthor('Author One');
+        $authorId2 = $this->createAuthor('Author Two');
 
-        $subscription = Subscription::create(self::PHONE_PRIMARY, $authorId1);
-        $this->repository->save($subscription);
+        $this->createSubscription(self::PHONE_PRIMARY, $authorId1);
 
         $this->assertFalse($this->queryService->exists(self::PHONE_PRIMARY, $authorId2));
     }
 
     public function testGetSubscriberPhonesForBookReturnsPhones(): void
     {
-        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'Book Author']);
-        $bookId = $this->tester->haveRecord(Book::class, [
-            'title' => 'Test Book',
-            'year' => 2024,
-            'isbn' => '9783161484100',
-        ]);
+        $authorId = $this->createAuthor('Book Author');
+        $bookId = $this->createBook('Test Book', '9783161484100');
+        $this->linkBookAuthor($bookId, $authorId);
+        $this->createSubscription(self::PHONE_PRIMARY, $authorId);
 
-        Yii::$app->db->createCommand()->insert('book_authors', [
-            'book_id' => $bookId,
-            'author_id' => $authorId,
-        ])->execute();
-
-        $subscription = Subscription::create(self::PHONE_PRIMARY, $authorId);
-        $this->repository->save($subscription);
-
-        $phones = iterator_to_array($this->queryService->getSubscriberPhonesForBook($bookId, 100));
+        $phones = $this->getSubscriberPhones($bookId);
 
         $this->assertCount(1, $phones);
         $this->assertSame(self::PHONE_PRIMARY, $phones[0]);
@@ -87,44 +75,25 @@ final class SubscriptionQueryServiceTest extends Unit
 
     public function testGetSubscriberPhonesForBookReturnsEmptyForNoSubscriptions(): void
     {
-        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'Lonely Author']);
-        $bookId = $this->tester->haveRecord(Book::class, [
-            'title' => 'Lonely Book',
-            'year' => 2024,
-            'isbn' => '9783161484101',
-        ]);
+        $authorId = $this->createAuthor('Lonely Author');
+        $bookId = $this->createBook('Lonely Book', '9783161484101');
+        $this->linkBookAuthor($bookId, $authorId);
 
-        Yii::$app->db->createCommand()->insert('book_authors', [
-            'book_id' => $bookId,
-            'author_id' => $authorId,
-        ])->execute();
-
-        $phones = iterator_to_array($this->queryService->getSubscriberPhonesForBook($bookId, 100));
+        $phones = $this->getSubscriberPhones($bookId);
 
         $this->assertEmpty($phones);
     }
 
     public function testGetSubscriberPhonesWorksAcrossMultipleAuthors(): void
     {
-        $author1 = $this->tester->haveRecord(Author::class, ['fio' => 'Author One']);
-        $author2 = $this->tester->haveRecord(Author::class, ['fio' => 'Author Two']);
-        $bookId = $this->tester->haveRecord(Book::class, [
-            'title' => 'Multi Author Book',
-            'year' => 2024,
-            'isbn' => '9783161484102',
-        ]);
+        $author1 = $this->createAuthor('Author One');
+        $author2 = $this->createAuthor('Author Two');
+        $bookId = $this->createBook('Multi Author Book', '9783161484102');
+        $this->linkBookAuthors($bookId, [$author1, $author2]);
+        $this->createSubscription(self::PHONE_ALT1, $author1);
+        $this->createSubscription(self::PHONE_ALT2, $author2);
 
-        Yii::$app->db->createCommand()->batchInsert('book_authors', ['book_id', 'author_id'], [
-            [$bookId, $author1],
-            [$bookId, $author2],
-        ])->execute();
-
-        $sub1 = Subscription::create(self::PHONE_ALT1, $author1);
-        $sub2 = Subscription::create(self::PHONE_ALT2, $author2);
-        $this->repository->save($sub1);
-        $this->repository->save($sub2);
-
-        $phones = iterator_to_array($this->queryService->getSubscriberPhonesForBook($bookId, 100));
+        $phones = $this->getSubscriberPhones($bookId);
 
         $this->assertCount(2, $phones);
         $this->assertContains(self::PHONE_ALT1, $phones);
@@ -133,27 +102,63 @@ final class SubscriptionQueryServiceTest extends Unit
 
     public function testGetSubscriberPhonesReturnsDistinctPhones(): void
     {
-        $author1 = $this->tester->haveRecord(Author::class, ['fio' => 'Author A']);
-        $author2 = $this->tester->haveRecord(Author::class, ['fio' => 'Author B']);
-        $bookId = $this->tester->haveRecord(Book::class, [
-            'title' => 'Shared Subscriber Book',
-            'year' => 2024,
-            'isbn' => '9783161484103',
-        ]);
+        $author1 = $this->createAuthor('Author A');
+        $author2 = $this->createAuthor('Author B');
+        $bookId = $this->createBook('Shared Subscriber Book', '9783161484103');
+        $this->linkBookAuthors($bookId, [$author1, $author2]);
+        $this->createSubscription(self::PHONE_SHARED, $author1);
+        $this->createSubscription(self::PHONE_SHARED, $author2);
 
-        Yii::$app->db->createCommand()->batchInsert('book_authors', ['book_id', 'author_id'], [
-            [$bookId, $author1],
-            [$bookId, $author2],
-        ])->execute();
-
-        $sub1 = Subscription::create(self::PHONE_SHARED, $author1);
-        $sub2 = Subscription::create(self::PHONE_SHARED, $author2);
-        $this->repository->save($sub1);
-        $this->repository->save($sub2);
-
-        $phones = iterator_to_array($this->queryService->getSubscriberPhonesForBook($bookId, 100));
+        $phones = $this->getSubscriberPhones($bookId);
 
         $this->assertCount(1, $phones);
         $this->assertSame(self::PHONE_SHARED, $phones[0]);
+    }
+
+    private function createAuthor(string $fio): int
+    {
+        return $this->tester->haveRecord(Author::class, ['fio' => $fio]);
+    }
+
+    private function createBook(string $title, string $isbn): int
+    {
+        return $this->tester->haveRecord(Book::class, [
+            'title' => $title,
+            'year' => 2024,
+            'isbn' => $isbn,
+        ]);
+    }
+
+    private function linkBookAuthor(int $bookId, int $authorId): void
+    {
+        Yii::$app->db->createCommand()->insert('book_authors', [
+            'book_id' => $bookId,
+            'author_id' => $authorId,
+        ])->execute();
+    }
+
+    /**
+     * @param int[] $authorIds
+     */
+    private function linkBookAuthors(int $bookId, array $authorIds): void
+    {
+        $rows = array_map(static fn(int $authorId): array => [$bookId, $authorId], $authorIds);
+
+        Yii::$app->db->createCommand()->batchInsert('book_authors', ['book_id', 'author_id'], $rows)
+            ->execute();
+    }
+
+    private function createSubscription(string $phone, int $authorId): void
+    {
+        $subscription = Subscription::create($phone, $authorId);
+        $this->repository->save($subscription);
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getSubscriberPhones(int $bookId): array
+    {
+        return iterator_to_array($this->queryService->getSubscriberPhonesForBook($bookId, 100));
     }
 }

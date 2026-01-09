@@ -8,20 +8,21 @@ use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\application\ports\SmsSenderInterface;
 use app\infrastructure\queue\handlers\NotifySingleSubscriberHandler;
 use Codeception\Test\Unit;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 final class NotifySingleSubscriberHandlerTest extends Unit
 {
+    private const string TEST_SECRET = 'test-secret';
+    private const string PHONE = '+7900';
+    private const string MESSAGE = 'message';
+    private const int BOOK_ID = 15;
+
     public function testHandleSendsSmsWhenAcquireSucceeds(): void
     {
-        $secret = 'test-secret';
-        $idempotencyKey = sprintf('sms:%d:%s', 15, hash_hmac('sha256', '+7900', $secret));
-
-        $sender = $this->createMock(SmsSenderInterface::class);
-        $sender->expects($this->once())
-            ->method('send')
-            ->with('+7900', 'message');
+        $idempotencyKey = $this->buildIdempotencyKey(self::BOOK_ID, self::PHONE);
+        $sender = $this->expectSend(self::PHONE, self::MESSAGE);
 
         $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
         $storage->expects($this->once())
@@ -32,22 +33,15 @@ final class NotifySingleSubscriberHandlerTest extends Unit
             ->method('release');
 
         $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects($this->once())
-            ->method('info')
-            ->with('SMS notification sent successfully', $this->callback(function (array $context): bool {
-                $this->assertArrayHasKey('phone', $context);
-                $this->assertArrayHasKey('book_id', $context);
-                return true;
-            }));
+        $this->expectInfoContext($logger, 'SMS notification sent successfully', ['phone', 'book_id']);
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
-        $handler->handle('+7900', 'message', 15);
+        $handler = $this->createHandler($sender, $storage, $logger);
+        $handler->handle(self::PHONE, self::MESSAGE, self::BOOK_ID);
     }
 
     public function testHandleSkipsWhenAcquireFails(): void
     {
-        $secret = 'test-secret';
-        $idempotencyKey = sprintf('sms:%d:%s', 15, hash_hmac('sha256', '+7900', $secret));
+        $idempotencyKey = $this->buildIdempotencyKey(self::BOOK_ID, self::PHONE);
 
         $sender = $this->createMock(SmsSenderInterface::class);
         $sender->expects($this->never())
@@ -62,23 +56,15 @@ final class NotifySingleSubscriberHandlerTest extends Unit
             ->method('release');
 
         $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects($this->once())
-            ->method('info')
-            ->with('Skipping duplicate SMS notification', $this->callback(function (array $context): bool {
-                $this->assertArrayHasKey('phone', $context);
-                $this->assertArrayHasKey('book_id', $context);
-                $this->assertArrayHasKey('idempotency_key', $context);
-                return true;
-            }));
+        $this->expectInfoContext($logger, 'Skipping duplicate SMS notification', ['phone', 'book_id', 'idempotency_key']);
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
-        $handler->handle('+7900', 'message', 15);
+        $handler = $this->createHandler($sender, $storage, $logger);
+        $handler->handle(self::PHONE, self::MESSAGE, self::BOOK_ID);
     }
 
     public function testHandleReleasesOnFailure(): void
     {
-        $secret = 'test-secret';
-        $idempotencyKey = sprintf('sms:%d:%s', 15, hash_hmac('sha256', '+7900', $secret));
+        $idempotencyKey = $this->buildIdempotencyKey(self::BOOK_ID, self::PHONE);
 
         $sender = $this->createMock(SmsSenderInterface::class);
         $sender->expects($this->once())
@@ -99,16 +85,15 @@ final class NotifySingleSubscriberHandlerTest extends Unit
             ->method('error')
             ->with('SMS notification failed', $this->anything());
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
+        $handler = $this->createHandler($sender, $storage, $logger);
 
         $this->expectException(RuntimeException::class);
-        $handler->handle('+7900', 'message', 15);
+        $handler->handle(self::PHONE, self::MESSAGE, self::BOOK_ID);
     }
 
     public function testHandleLogsErrorWhenReleaseFails(): void
     {
-        $secret = 'test-secret';
-        $idempotencyKey = sprintf('sms:%d:%s', 15, hash_hmac('sha256', '+7900', $secret));
+        $idempotencyKey = $this->buildIdempotencyKey(self::BOOK_ID, self::PHONE);
 
         $sender = $this->createMock(SmsSenderInterface::class);
         $sender->method('send')->willThrowException(new RuntimeException('primary fail'));
@@ -131,24 +116,20 @@ final class NotifySingleSubscriberHandlerTest extends Unit
                 };
             });
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
+        $handler = $this->createHandler($sender, $storage, $logger);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('primary fail');
 
-        $handler->handle('+7900', 'message', 15);
+        $handler->handle(self::PHONE, self::MESSAGE, self::BOOK_ID);
     }
 
     public function testHandleMasksShortPhone(): void
     {
-        $secret = 'test-secret';
         $shortPhone = '1234';
-        $idempotencyKey = sprintf('sms:%d:%s', 42, hash_hmac('sha256', $shortPhone, $secret));
+        $idempotencyKey = $this->buildIdempotencyKey(42, $shortPhone);
 
-        $sender = $this->createMock(SmsSenderInterface::class);
-        $sender->expects($this->once())
-            ->method('send')
-            ->with($shortPhone, 'msg');
+        $sender = $this->expectSend($shortPhone, 'msg');
 
         $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
         $storage->method('acquire')->with($idempotencyKey)->willReturn(true);
@@ -160,7 +141,45 @@ final class NotifySingleSubscriberHandlerTest extends Unit
                 static fn (array $ctx): bool => $ctx['phone'] === '****',
             ));
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger, $secret);
+        $handler = $this->createHandler($sender, $storage, $logger);
         $handler->handle($shortPhone, 'msg', 42);
+    }
+
+    private function buildIdempotencyKey(int $bookId, string $phone): string
+    {
+        return sprintf('sms:%d:%s', $bookId, hash_hmac('sha256', $phone, self::TEST_SECRET));
+    }
+
+    private function createHandler(
+        SmsSenderInterface $sender,
+        AsyncIdempotencyStorageInterface $storage,
+        LoggerInterface $logger,
+    ): NotifySingleSubscriberHandler {
+        return new NotifySingleSubscriberHandler($sender, $storage, $logger, self::TEST_SECRET);
+    }
+
+    private function expectSend(string $phone, string $message): SmsSenderInterface&MockObject
+    {
+        $sender = $this->createMock(SmsSenderInterface::class);
+        $sender->expects($this->once())
+            ->method('send')
+            ->with($phone, $message);
+
+        return $sender;
+    }
+
+    private function expectInfoContext(LoggerInterface&MockObject $logger, string $message, array $keys): void
+    {
+        $logger->expects($this->once())
+            ->method('info')
+            ->with($message, $this->callback(static function (array $context) use ($keys): bool {
+                foreach ($keys as $key) {
+                    if (!array_key_exists($key, $context)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }));
     }
 }
