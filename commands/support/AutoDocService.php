@@ -39,10 +39,11 @@ final readonly class AutoDocService
     {
         $controllerDir = Yii::getAlias('@app/presentation/controllers');
         $files = FileHelper::findFiles((string)$controllerDir, ['only' => ['*Controller.php']]);
+        $urlRules = $this->loadUrlRules();
         $routes = [];
 
         foreach ($files as $file) {
-            foreach ($this->parseControllerRoutes($file) as $route) {
+            foreach ($this->parseControllerRoutes($file, $urlRules) as $route) {
                 $routes[] = $route;
             }
         }
@@ -227,11 +228,17 @@ final readonly class AutoDocService
                     continue;
                 }
 
+                $columns = is_array($indexConstraint->columnNames)
+                ? array_filter($indexConstraint->columnNames, static fn($col): bool => $col !== null)
+                : [$indexConstraint->columnNames];
+
+                if ($columns === []) {
+                    continue;
+                }
+
                 $indexes[] = [
                     'name' => $indexConstraint->name,
-                    'columns' => is_array($indexConstraint->columnNames)
-                        ? $indexConstraint->columnNames
-                        : [$indexConstraint->columnNames],
+                    'columns' => array_values($columns),
                     'unique' => $indexConstraint->isUnique,
                 ];
             }
@@ -247,7 +254,11 @@ final readonly class AutoDocService
         return $indexes;
     }
 
-    private function parseControllerRoutes(string $file): array
+    /**
+     * @param array<string, string> $urlRules
+     * @return array<int, array<string, mixed>>
+     */
+    private function parseControllerRoutes(string $file, array $urlRules): array
     {
         $content = (string)file_get_contents($file);
 
@@ -265,10 +276,12 @@ final readonly class AutoDocService
         $controllerId = $this->resolveControllerId($file, $controllerName);
 
         foreach ($actionBodies as $actionName => $body) {
-            $entry = $this->buildRouteEntry($controllerId, $controllerName, $actionName, $verbMap, $body);
+            $entry = $this->buildRouteEntry($controllerId, $controllerName, $actionName, $verbMap, $body, $urlRules);
 
-            if ($behaviors !== []) {
-                $entry['guards'] = $behaviors;
+            $guards = $this->filterGuardsForMethods($behaviors, $entry['methods']);
+
+            if ($guards !== []) {
+                $entry['guards'] = $guards;
             }
 
             $routes[] = $entry;
@@ -325,21 +338,27 @@ final readonly class AutoDocService
         return $result;
     }
 
+    /**
+     * @param array<string, string> $urlRules
+     * @return array<string, mixed>
+     */
     private function buildRouteEntry(
         string $controllerId,
         string $controllerName,
         string $actionName,
         array $verbMap,
         string $body,
+        array $urlRules,
     ): array {
         $actionId = Inflector::camel2id($actionName);
-        $path = $controllerId === 'site' && $actionId === 'index' ? '/' : "/$controllerId/$actionId";
+        $action = "$controllerId/$actionId";
+        $path = $this->resolvePublicPath($action, $urlRules);
 
         $methods = $verbMap[$actionId] ?? (str_contains($body, 'isPost') ? ['GET', 'POST'] : ['GET']);
 
         $entry = [
             'path' => $path,
-            'action' => "$controllerId/$actionId",
+            'action' => $action,
             'controller' => "{$controllerName}Controller",
             'methods' => $methods,
         ];
@@ -355,11 +374,77 @@ final readonly class AutoDocService
         return $entry;
     }
 
+    /**
+     * @param array<string, string> $urlRules
+     */
+    private function resolvePublicPath(string $action, array $urlRules): string
+    {
+        $publicUrl = array_search($action, $urlRules, true);
+
+        if ($publicUrl !== false) {
+            return '/' . ltrim($publicUrl, '/');
+        }
+
+        $actionParts = explode('/', $action);
+
+        if (end($actionParts) === 'index' && $actionParts[0] === 'site') {
+            return '/';
+        }
+
+        return '/' . $action;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function loadUrlRules(): array
+    {
+        $configPath = Yii::getAlias('@app/config/web.php');
+
+        if (!is_string($configPath) || !file_exists($configPath)) {
+            return [];
+        }
+
+        $content = (string)file_get_contents($configPath);
+
+        if (!preg_match("/'rules'\s*=>\s*\[(.*?)\]/s", $content, $match)) {
+            return [];
+        }
+
+        $rules = [];
+        preg_match_all("/'([^']+)'\s*=>\s*'([^']+)'/", $match[1], $ruleMatches, PREG_SET_ORDER);
+
+        foreach ($ruleMatches as $m) {
+            $rules[$m[1]] = $m[2];
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @param array<int, string> $guards
+     * @param array<int, string> $methods
+     * @return array<int, string>
+     */
+    private function filterGuardsForMethods(array $guards, array $methods): array
+    {
+        if ($methods === ['GET'] && in_array('Idempotency', $guards, true)) {
+            return array_values(array_filter($guards, static fn(string $g): bool => $g !== 'Idempotency'));
+        }
+
+        return $guards;
+    }
+
     private function resolveControllerId(string $file, string $controllerName): string
     {
-        $controllerDir = (string)realpath((string)Yii::getAlias('@app/presentation/controllers'));
-        $dir = (string)realpath(dirname($file));
         $controllerId = Inflector::camel2id($controllerName);
+
+        $controllerDir = realpath((string)Yii::getAlias('@app/presentation/controllers'));
+        $dir = realpath(dirname($file));
+
+        if ($controllerDir === false || $dir === false) {
+            return $controllerId;
+        }
 
         if (!str_starts_with($dir, $controllerDir)) {
             return $controllerId;
@@ -505,7 +590,7 @@ final readonly class AutoDocService
 
         FileHelper::createDirectory(dirname($path));
         $yaml = Yaml::dump($data, 10, 2);
-        $yaml = str_replace('{ }', '{}', $yaml);
+        $yaml = preg_replace('/\{\s+\}/', '{}', $yaml);
         file_put_contents($path, $yaml);
     }
 }

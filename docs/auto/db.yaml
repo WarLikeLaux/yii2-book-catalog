@@ -1,6 +1,6 @@
 meta:
   title: 'Database Schema'
-  updated_at: '2026-01-09T12:40:30+00:00'
+  updated_at: '2026-01-09T13:25:18+00:00'
 tables:
   async_idempotency_log:
     columns:
@@ -21,7 +21,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: {}
     indexes:
       -
         name: idempotency_key
@@ -47,7 +47,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: {}
     indexes:
       -
         name: ft_authors_fio
@@ -141,7 +141,7 @@ tables:
         default: 1
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: {}
     indexes:
       -
         name: ft_books_title_description
@@ -150,10 +150,10 @@ tables:
           - description
         unique: false
       -
-        name: idx_books_cover_url_not_null
+        name: idx_books_isbn
         columns:
-          - null
-        unique: false
+          - isbn
+        unique: true
       -
         name: idx_books_title
         columns:
@@ -164,11 +164,6 @@ tables:
         columns:
           - year
         unique: false
-      -
-        name: isbn
-        columns:
-          - isbn
-        unique: true
   idempotency_keys:
     columns:
       -
@@ -208,7 +203,7 @@ tables:
         default: finished
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: {}
     indexes:
       -
         name: idempotency_key
@@ -234,8 +229,8 @@ tables:
         default: null
     primary_key:
       - version
-    foreign_keys: {  }
-    indexes: {  }
+    foreign_keys: {}
+    indexes: {}
   queue:
     columns:
       -
@@ -290,12 +285,19 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: {}
     indexes:
       -
         name: channel
         columns:
           - channel
+        unique: false
+      -
+        name: idx_queue_channel_reserved_at_priority
+        columns:
+          - channel
+          - reserved_at
+          - priority
         unique: false
       -
         name: priority

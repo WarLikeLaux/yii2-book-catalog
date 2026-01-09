@@ -1,6 +1,6 @@
 meta:
   title: 'HTTP Routes'
-  updated_at: '2026-01-09T12:40:30+00:00'
+  updated_at: '2026-01-09T13:25:18+00:00'
 routes:
   -
     path: /
@@ -11,13 +11,12 @@ routes:
     guards:
       - Auth
   -
-    path: /api/v1/book/index
+    path: /api/v1/books
     action: api/v1/book/index
     controller: BookController
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /author/create
@@ -36,7 +35,6 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /author/index
@@ -45,7 +43,6 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /author/search
@@ -54,7 +51,6 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /author/update
@@ -73,7 +69,6 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /book/create
@@ -92,7 +87,6 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /book/index
@@ -101,7 +95,6 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /book/publish
@@ -110,7 +103,6 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /book/update
@@ -129,7 +121,6 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /report/index
@@ -169,7 +160,6 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /subscription/subscribe
@@ -178,5 +168,4 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
