@@ -9,8 +9,9 @@ if (!YII_ENV_DEV && env('COOKIE_VALIDATION_KEY', '') === '') {
     throw new RuntimeException('COOKIE_VALIDATION_KEY must be set in production');
 }
 
-if (!YII_ENV_DEV && YII_ENV !== 'test' && ($params['idempotency']['smsPhoneHashKey'] ?? '') === 'changeme') {
-    throw new RuntimeException('SMS_IDEMPOTENCY_HASH_KEY must be changed in production');
+$smsHashKey = (string)($params['idempotency']['smsPhoneHashKey'] ?? '');
+if (!YII_ENV_DEV && YII_ENV !== 'test' && ($smsHashKey === '' || $smsHashKey === 'changeme')) {
+    throw new RuntimeException('SMS_IDEMPOTENCY_HASH_KEY must be set and changed in production');
 }
 
 $config = [

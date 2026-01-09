@@ -15,6 +15,7 @@ $dotenv->required(['DB_NAME', 'DB_USER', 'DB_PASSWORD'])->notEmpty();
 
 if (env('YII_ENV') === 'prod') {
     $dotenv->required('SMS_API_KEY')->notEmpty();
+    $dotenv->required('SMS_IDEMPOTENCY_HASH_KEY')->notEmpty();
 }
 
 defined('YII_DEBUG') || define('YII_DEBUG', env('YII_DEBUG', false));

@@ -56,18 +56,43 @@ return static fn (array $params) => [
 
         SubscriptionQueryServiceInterface::class => InfraSubscriptionQueryService::class,
 
-        ReportQueryServiceInterface::class => static fn(Container $c): ReportQueryServiceInterface => new ReportQueryServiceCachingDecorator(
-            $c->get(ReportQueryService::class),
-            $c->get(CacheInterface::class),
-            $params['reports']['cacheTtl'] ?? 3600,
-        ),
+        ReportQueryServiceInterface::class => static function (Container $c) use ($params): ReportQueryServiceInterface {
+            $rawTtl = $params['reports']['cacheTtl'] ?? 3600;
+
+            $ttl = filter_var($rawTtl, FILTER_VALIDATE_INT, [
+                'options' => ['min_range' => 1, 'max_range' => 86400],
+            ]);
+
+            return new ReportQueryServiceCachingDecorator(
+                $c->get(ReportQueryService::class),
+                $c->get(CacheInterface::class),
+                $ttl !== false ? $ttl : 3600,
+            );
+        },
 
         ContentStorageInterface::class => static function () use ($params) {
-            $storageParams = $params['storage'];
+            $storageParams = $params['storage'] ?? null;
+
+            if (!is_array($storageParams)) {
+                throw new InvalidArgumentException('Missing storage configuration.');
+            }
+
+            $basePath = $storageParams['basePath'] ?? null;
+            $baseUrl = $storageParams['baseUrl'] ?? null;
+
+            if (!is_string($basePath) || trim($basePath) === '') {
+                throw new InvalidArgumentException('Invalid storage.basePath configuration.');
+            }
+
+            if (!is_string($baseUrl) || trim($baseUrl) === '') {
+                throw new InvalidArgumentException('Invalid storage.baseUrl configuration.');
+            }
+
             $config = new StorageConfig(
-                Yii::getAlias($storageParams['basePath']),
-                $storageParams['baseUrl'],
+                Yii::getAlias($basePath),
+                $baseUrl,
             );
+
             return new ContentAddressableStorage($config);
         },
 
