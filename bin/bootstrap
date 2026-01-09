@@ -43,7 +43,9 @@ ensure_permissions() {
 }
 
 ensure_scripts_executable() {
+    shopt -s nullglob
     chmod +x bin/*
+    shopt -u nullglob
 }
 
 setup_env() {
@@ -70,10 +72,15 @@ setup_env() {
 print_banner() {
     local app_port
     local bug_port
-    app_port=$(grep '^APP_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d ' ')
-    app_port=${app_port:-8000}
-    bug_port=$(grep '^BUGGREGATOR_UI_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d ' ')
-    bug_port=${bug_port:-9913}
+
+    if [ -f .env ]; then
+        set -o allexport
+        source .env
+        set +o allexport
+    fi
+
+    app_port=${APP_PORT:-8000}
+    bug_port=${BUGGREGATOR_UI_PORT:-9913}
 
     echo ""
     echo "======================================================================"
@@ -86,18 +93,18 @@ print_banner() {
 }
 
 cmd_setup() {
+    ensure_scripts_executable
     ensure_permissions
     ./bin/agent-links
     ensure_dirs
-    ensure_scripts_executable
     setup_env
 }
 
 cmd_configure() {
     confirm "⚠️  ПОЛНАЯ ПЕРЕНАСТРОЙКА ОКРУЖЕНИЯ"
+    ensure_scripts_executable
     ensure_permissions
     ensure_dirs
-    ensure_scripts_executable
     ./bin/setup-env
 }
 
@@ -130,7 +137,7 @@ cmd_init_force() {
     RETRIES=30
     until docker compose exec -T db mysqladmin ping -h localhost --silent >/dev/null 2>&1 || \
           docker compose exec -T pgsql pg_isready -U postgres >/dev/null 2>&1; do
-        ((RETRIES--))
+        RETRIES=$((RETRIES-1))
         if [ $RETRIES -le 0 ]; then
              echo "❌ Ошибка: База данных не запустилась вовремя."
              exit 1

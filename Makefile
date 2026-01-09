@@ -6,6 +6,7 @@
         migrate seed db-mysql db-pgsql db-info db-fresh queue-info \
         docs swagger repomix tree comments ai \
         diff d dc ds diff-staged diff-cached tag \
+        gs ga gfp ghr \
         bin-exec
 
 COMPOSE=docker compose
@@ -54,9 +55,15 @@ help:
 	@echo "  dev              🛠️  Полный цикл (CS Fixer + Rector + PHPStan)"
 	@echo "  dev [FILE]       🔍 Быстрая проверка файла (только CS Fixer)"
 	@echo "  comments         📝 Показать TODO и заметки"
-	@echo "  d                🔎 Показать изменения (вкл. новые файлы)"
-	@echo "  dc               📌 Показать изменения в индексе (staged)"
 	@echo "  tree             🌳 Показать структуру проекта"
+	@echo ""
+	@echo "🛰️  GIT SHORTCUTS:"
+	@echo "  diff (d)         🔎 Показать изменения (включая untracked файлы)"
+	@echo "  dc               📌 Показать изменения в индексе (staged)"
+	@echo "  gs               📊 Статус репозитория (git status)"
+	@echo "  ga               ➕ Добавить все изменения (git add .)"
+	@echo "  gfp              🚀 Безопасный форс-пуш (force-with-lease)"
+	@echo "  ghr              🚨 Жесткий сброс изменений (reset --hard)"
 	@echo ""
 	@echo "📦 ПАКЕТЫ (COMPOSER):"
 	@echo "  composer         📥 Установка зависимостей (install)"
@@ -181,12 +188,6 @@ _dev_file:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs $(FILE_ARG) || true
 	@echo "✅ Готово"
 
-diff d:
-	@git diff || true
-	@git ls-files -o --exclude-standard -z | xargs -0 -n1 git diff --no-index /dev/null -- 2>/dev/null || true
-
-diff-staged diff-cached ds dc:
-	@git diff --staged || true
 check: dev arch test
 pr: docs check test-e2e infection
 
@@ -331,7 +332,30 @@ $(TAG):
 endif
 
 tag:
-	@if [ -z "$(TAG)" ]; then echo "Usage: make tag TAG"; exit 1; fi
+	@if [ -z "$(TAG)" ]; then echo "Usage: make tag TAG (где TAG — заголовок раздела в markdown)"; exit 1; fi
 	@if [ ! -d "docs/ai" ]; then echo "❌ Error: docs/ai directory not found."; exit 1; fi
 	@if [ -z "$$(ls -A docs/ai/*.md 2>/dev/null)" ]; then echo "❌ Error: No markdown files found in docs/ai."; exit 1; fi
 	@awk -v tag="$(TAG)" 'BEGIN{p=0} FNR==1{p=0} $$0 ~ "^### "tag"($$|[^[:alnum:]_])"{p=1} p && $$0 ~ "^#" && $$0 !~ "^### "tag"($$|[^[:alnum:]_])"{p=0} p' docs/ai/*.md
+
+# =================================================================================================
+# 🛰️ GIT SHORTCUTS
+# =================================================================================================
+
+diff d:
+	@git diff || true
+	@git ls-files -o --exclude-standard -z | xargs -0 -n1 git diff --no-index /dev/null -- 2>/dev/null || true
+
+diff-staged diff-cached ds dc:
+	@git diff --staged || true
+
+gs:
+	@git status
+
+ga:
+	@git add .
+
+gfp:
+	@git push --force-with-lease
+
+ghr:
+	@git reset --hard HEAD

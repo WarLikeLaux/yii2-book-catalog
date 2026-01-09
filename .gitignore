@@ -4,6 +4,7 @@ nbproject
 .buildpath
 .project
 .settings
+.vscode/settings.json
 
 # Файлы операционных систем
 Thumbs.db
