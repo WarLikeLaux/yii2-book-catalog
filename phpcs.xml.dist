@@ -114,6 +114,18 @@
     <!-- Запрет дублированных пробелов -->
     <rule ref="SlevomatCodingStandard.Whitespaces.DuplicateSpaces"/>
 
+    <!-- Контроль отступов внутри блоков (обнаруживает неправильные отступы) -->
+    <rule ref="Generic.WhiteSpace.ScopeIndent">
+        <properties>
+            <property name="indent" value="4"/>
+            <property name="exact" value="true"/>
+        </properties>
+        <exclude-pattern>views/*</exclude-pattern>
+    </rule>
+
+    <!-- Контроль отступов закрывающих скобок -->
+    <rule ref="Squiz.WhiteSpace.ScopeClosingBrace"/>
+
     <!-- Читаемость и контроль конструкций -->
     <rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
     <rule ref="SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses"/>
@@ -274,6 +286,12 @@
             <property name="absoluteComplexity" value="20"/>
         </properties>
         <exclude-pattern>migrations/*</exclude-pattern>
+    </rule>
+
+    <!-- ПЕРЕОПРЕДЕЛЕНИЕ: контроль пустых строк внутри функций -->
+    <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace.EmptyLines">
+        <severity>5</severity>
+        <exclude-pattern>views/*</exclude-pattern>
     </rule>
 
 </ruleset>
