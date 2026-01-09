@@ -8,6 +8,7 @@ use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\application\ports\SmsSenderInterface;
 use app\infrastructure\queue\handlers\NotifySingleSubscriberHandler;
 use Codeception\Test\Unit;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 final class NotifySingleSubscriberHandlerTest extends Unit
@@ -26,7 +27,12 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $storage->expects($this->never())
             ->method('release');
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('info')
+            ->with('SMS notification sent successfully', $this->anything());
+
+        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger);
         $handler->handle('+7900', 'message', 15);
     }
 
@@ -43,7 +49,12 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $storage->expects($this->never())
             ->method('release');
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('info')
+            ->with('Skipping duplicate SMS notification', $this->anything());
+
+        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger);
         $handler->handle('+7900', 'message', 15);
     }
 
@@ -61,7 +72,12 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $storage->expects($this->once())
             ->method('release');
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('error')
+            ->with('SMS notification failed', $this->anything());
+
+        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger);
 
         $this->expectException(RuntimeException::class);
         $handler->handle('+7900', 'message', 15);
@@ -76,7 +92,20 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $storage->method('acquire')->willReturn(true);
         $storage->method('release')->willThrowException(new RuntimeException('release fail'));
 
-        $handler = new NotifySingleSubscriberHandler($sender, $storage);
+        $logger = $this->createMock(LoggerInterface::class);
+
+        $matcher = $this->exactly(2);
+        $logger->expects($matcher)
+            ->method('error')
+            ->willReturnCallback(function (string $message) use ($matcher): void {
+                match ($matcher->numberOfInvocations()) {
+                    1 => $this->assertSame('Failed to release idempotency key', $message),
+                    2 => $this->assertSame('SMS notification failed', $message),
+                    default => null,
+                };
+            });
+
+        $handler = new NotifySingleSubscriberHandler($sender, $storage, $logger);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('primary fail');
