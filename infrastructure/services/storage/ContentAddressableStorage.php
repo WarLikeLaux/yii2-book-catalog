@@ -44,10 +44,13 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
 
         $bytesCopied = stream_copy_to_stream($stream, $target);
 
-        if ($bytesCopied === false) { // @codeCoverageIgnoreStart
+        // @codeCoverageIgnoreStart
+        if ($bytesCopied === false) {
             fclose($target);
             throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed);
-        } // @codeCoverageIgnoreEnd
+        }
+
+        // @codeCoverageIgnoreEnd
 
         fclose($target);
 
@@ -153,8 +156,6 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
             }
 
             if (!@rmdir($dir)) {
-                 // Directory might have been re-populated or permission issue; just usage log or ignore if non-critical
-                 // For now, consistent with previous behavior, we just stop bubbling up
                  break; // @codeCoverageIgnore
             }
 
