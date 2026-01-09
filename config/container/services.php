@@ -7,6 +7,7 @@ use app\application\common\IdempotencyServiceInterface;
 use app\application\common\RateLimitService;
 use app\application\common\RateLimitServiceInterface;
 use app\application\common\services\TransactionalEventPublisher;
+use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookFinderInterface;
 use app\application\ports\BookQueryServiceInterface;
@@ -18,6 +19,7 @@ use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
 use app\application\ports\RateLimitInterface;
 use app\application\ports\ReportQueryServiceInterface;
+use app\application\ports\SmsSenderInterface;
 use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
@@ -28,6 +30,7 @@ use app\infrastructure\queries\decorators\BookQueryServiceTracingDecorator;
 use app\infrastructure\queries\decorators\ReportQueryServiceCachingDecorator;
 use app\infrastructure\queries\ReportQueryService;
 use app\infrastructure\queries\SubscriptionQueryService as InfraSubscriptionQueryService;
+use app\infrastructure\queue\handlers\NotifySingleSubscriberHandler;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use app\infrastructure\services\LogCategory;
 use app\infrastructure\services\storage\ContentAddressableStorage;
@@ -73,6 +76,12 @@ return static fn (array $params) => [
             $c->get(SubscriptionQueryServiceInterface::class),
             $c->get(TranslatorInterface::class),
             new YiiPsrLogger(LogCategory::SMS),
+        ),
+        NotifySingleSubscriberHandler::class => static fn(Container $c) => new NotifySingleSubscriberHandler(
+            $c->get(SmsSenderInterface::class),
+            $c->get(AsyncIdempotencyStorageInterface::class),
+            new YiiPsrLogger(LogCategory::SMS),
+            (string)($params['idempotency']['smsPhoneHashKey'] ?? ''),
         ),
 
         FileUrlResolver::class => static function () use ($params) {

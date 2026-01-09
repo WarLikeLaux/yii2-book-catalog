@@ -4,14 +4,14 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a620e89a49fc7659d91243ad7254c3e7",
+    "content-hash": "1049ad7b7c9804499cae17c68bcdfb03",
     "packages": [
         {
             "name": "bower-asset/inputmask",
             "version": "5.0.9",
             "source": {
                 "type": "git",
-                "url": "git@github.com:RobinHerbots/Inputmask.git",
+                "url": "https://github.com/RobinHerbots/Inputmask.git",
                 "reference": "310a33557e2944daf86d5946a5e8c82b9118f8f7"
             },
             "dist": {
@@ -32,7 +32,7 @@
             "version": "3.7.1",
             "source": {
                 "type": "git",
-                "url": "git@github.com:jquery/jquery-dist.git",
+                "url": "https://github.com/jquery/jquery-dist.git",
                 "reference": "fde1f76e2799dd877c176abde0ec836553246991"
             },
             "dist": {
@@ -8272,6 +8272,18 @@
                 }
             ],
             "time": "2025-08-01T08:46:24+00:00"
+        },
+        {
+            "name": "npm-asset/prettier",
+            "version": "3.7.4",
+            "dist": {
+                "type": "tar",
+                "url": "https://registry.npmjs.org/prettier/-/prettier-3.7.4.tgz"
+            },
+            "type": "npm-asset",
+            "license": [
+                "MIT"
+            ]
         },
         {
             "name": "nyholm/psr7",
