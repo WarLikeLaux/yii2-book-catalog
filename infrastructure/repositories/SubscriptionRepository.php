@@ -6,6 +6,7 @@ namespace app\infrastructure\repositories;
 
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\domain\entities\Subscription as SubscriptionEntity;
+use app\domain\exceptions\DomainErrorCode;
 use app\infrastructure\persistence\Subscription;
 
 final readonly class SubscriptionRepository extends BaseActiveRecordRepository implements SubscriptionRepositoryInterface
@@ -18,7 +19,7 @@ final readonly class SubscriptionRepository extends BaseActiveRecordRepository i
         $ar->phone = $subscription->phone;
         $ar->author_id = $subscription->authorId;
 
-        $this->persist($ar);
+        $this->persist($ar, DomainErrorCode::SubscriptionAlreadySubscribed);
 
         $this->assignId($subscription, $ar->id);
     }

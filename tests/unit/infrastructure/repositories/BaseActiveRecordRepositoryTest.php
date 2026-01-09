@@ -16,7 +16,6 @@ use yii\db\StaleObjectException;
 
 final class BaseActiveRecordRepositoryTest extends Unit
 {
-    private const string DEFAULT_ERROR_MESSAGE = 'entity.error.save_failed';
     private const string SAVE_FAILED_MESSAGE = 'save failed';
     private const string DUPLICATE_ENTRY = 'Duplicate entry';
     private const string DUPLICATE_SQLSTATE = 'SQLSTATE[23000]';

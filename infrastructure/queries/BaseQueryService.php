@@ -90,28 +90,65 @@ abstract readonly class BaseQueryService
         return $dto;
     }
 
-    protected function exists(ActiveQueryInterface $query, ?int $excludeId = null): bool
+    protected function exists(ActiveQueryInterface $query, mixed $excludeId = null): bool
     {
-        if ($excludeId !== null) {
-            if (!$query instanceof ActiveQuery) {
-                throw new LogicException('Query must be an instance of ActiveQuery to support dynamic primary key exclusion');
+        if ($excludeId === null) {
+            return $query->exists($this->db);
+        }
+
+        if (!$query instanceof ActiveQuery) {
+            throw new LogicException('Query must be an instance of ActiveQuery to support dynamic primary key exclusion');
+        }
+
+        /** @phpstan-ignore-next-line */
+        $modelClass = (string)$query->modelClass;
+
+        if (is_a($modelClass, ActiveRecord::class, true)) {
+            $primaryKeys = $modelClass::primaryKey();
+
+            if ($primaryKeys === []) {
+                throw new LogicException(sprintf('Model %s must have a primary key', get_debug_type($modelClass)));
             }
 
-            /** @var string $modelClass */
-            $modelClass = $query->modelClass; // @phpstan-ignore-line
+                    $q = clone $query;
 
-            if (is_a($modelClass, ActiveRecord::class, true)) {
-                $primaryKeys = $modelClass::primaryKey();
+                    $this->applyExcludeCondition($q, $primaryKeys, $excludeId);
 
-                if ($primaryKeys === []) {
-                    throw new LogicException(sprintf('Model %s must have a primary key', get_debug_type($modelClass)));
-                }
 
-                $primaryKey = $primaryKeys[0];
-                $query->andWhere(['<>', $primaryKey, $excludeId]);
-            }
+
+                    return $q->exists($this->db);
         }
 
         return $query->exists($this->db);
+    }
+
+    /**
+     * @param string[] $primaryKeys
+     */
+    private function applyExcludeCondition(ActiveQuery $query, array $primaryKeys, mixed $excludeId): void
+    {
+        if (count($primaryKeys) === 1) {
+            $value = is_array($excludeId) ? ($excludeId[$primaryKeys[0]] ?? null) : $excludeId;
+
+            if ($value === null) {
+                throw new LogicException('excludeId must contain the primary key');
+            }
+
+            $query->andWhere(['<>', $primaryKeys[0], $value]);
+
+            return;
+        }
+
+        if (!is_array($excludeId)) {
+            throw new LogicException('excludeId must be an array for composite primary keys');
+        }
+
+        $condition = ['and'];
+
+        foreach ($primaryKeys as $pk) {
+            $condition[] = ['=', $pk, $excludeId[$pk] ?? throw new LogicException("Missing composite PK part: $pk")];
+        }
+
+        $query->andWhere(['not', $condition]);
     }
 }

@@ -35,10 +35,11 @@ final class ReportQueryServiceTest extends Unit
 
     public function testGetTopAuthorsReportUsesCurrentYearByDefault(): void
     {
+        $currentYear = (int)date('Y');
         $criteria = new ReportCriteria(null);
         $result = $this->service->getTopAuthorsReport($criteria);
 
-        $this->assertSame((int)date('Y'), $result->year);
+        $this->assertSame($currentYear, $result->year);
     }
 
     public function testGetTopAuthorsReportReturnsSortedByBookCount(): void
@@ -54,8 +55,15 @@ final class ReportQueryServiceTest extends Unit
         $result = $this->service->getTopAuthorsReport($criteria);
 
         $this->assertCount(2, $result->topAuthors);
-        $this->assertSame('Author One', $result->topAuthors[0]['fio']);
-        $this->assertSame(2, (int)$result->topAuthors[0]['books_count']);
+
+        $firstAuthor = $result->topAuthors[0];
+        $this->assertSame('Author One', $firstAuthor['fio']);
+        $this->assertSame(2, (int)$firstAuthor['books_count']);
+        $this->assertArrayHasKey('id', $firstAuthor);
+
+        $secondAuthor = $result->topAuthors[1];
+        $this->assertSame('Author Two', $secondAuthor['fio']);
+        $this->assertSame(1, (int)$secondAuthor['books_count']);
     }
 
     public function testGetTopAuthorsReportLimitsToTen(): void
@@ -79,12 +87,12 @@ final class ReportQueryServiceTest extends Unit
         $book = new Book();
         $book->title = 'Unpublished';
         $book->year = 2024;
-        $book->isbn = '9783161484199';
+        $book->isbn = '9783161484999';
         $book->is_published = false;
         $book->save(false);
 
         Yii::$app->db->createCommand()
-            ->insert('book_authors', ['book_id' => $book->id, 'author_id' => $authorId])
+            ->insert('{{%book_authors}}', ['book_id' => $book->id, 'author_id' => $authorId])
             ->execute();
 
         $criteria = new ReportCriteria(2024);
@@ -105,9 +113,10 @@ final class ReportQueryServiceTest extends Unit
 
     public function testGetEmptyTopAuthorsReportUsesCurrentYearByDefault(): void
     {
+        $currentYear = (int)date('Y');
         $result = $this->service->getEmptyTopAuthorsReport();
 
-        $this->assertSame((int)date('Y'), $result->year);
+        $this->assertSame($currentYear, $result->year);
     }
 
     private function createAuthor(string $fio): int
@@ -121,16 +130,19 @@ final class ReportQueryServiceTest extends Unit
 
     private function createPublishedBookForAuthor(int $authorId, string $title, int $year): int
     {
+        static $isbnCounter = 100;
+        $isbnCounter++;
+
         $book = new Book();
         $book->title = $title;
         $book->year = $year;
-        $book->isbn = '9783161484' . str_pad((string)abs(crc32($title . $year . uniqid())), 3, '0', STR_PAD_LEFT);
+        $book->isbn = '9783161484' . $isbnCounter;
         $book->description = 'Test description';
         $book->is_published = true;
         $book->save(false);
 
         Yii::$app->db->createCommand()
-            ->insert('book_authors', ['book_id' => $book->id, 'author_id' => $authorId])
+            ->insert('{{%book_authors}}', ['book_id' => $book->id, 'author_id' => $authorId])
             ->execute();
 
         return $book->id;

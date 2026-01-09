@@ -15,7 +15,11 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 
     public function save(AuthorEntity $author): void
     {
-        $ar = $author->id === null ? new Author() : $this->getArForEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
+        if ($author->id === null) {
+            $ar = new Author();
+        } else {
+            $ar = $this->getArForEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
+        }
 
         $ar->fio = $author->fio;
 
