@@ -29,8 +29,7 @@ final readonly class AuthorViewDataFactory
 
     public function getAuthorForUpdate(int $id): AuthorForm
     {
-        $dto = $this->queryService->findById($id)
-            ?? throw new NotFoundHttpException();
+        $dto = $this->queryService->findById($id) ?? throw new NotFoundHttpException();
 
         /** @var AuthorForm */
         return $this->autoMapper->map($dto, AuthorForm::class);
@@ -39,6 +38,6 @@ final readonly class AuthorViewDataFactory
     public function getAuthorView(int $id): AuthorReadDto
     {
         return $this->queryService->findById($id)
-            ?? throw new NotFoundHttpException();
+        ?? throw new NotFoundHttpException();
     }
 }

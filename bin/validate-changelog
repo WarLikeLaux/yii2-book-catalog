@@ -121,7 +121,7 @@ final class ChangelogValidator
         }
 
         if (!empty($missingCommits)) {
-            $this->warnings[] = "Найдены недавние коммиты, которых НЕТ в CHANGELOG (последние 100):\n   - " . implode("\n   - ", $missingCommits);
+            $this->warnings[] = "Найдены недавние коммиты, которых НЕТ в CHANGELOG (последние 500):\n   - " . implode("\n   - ", $missingCommits);
         }
     }
 

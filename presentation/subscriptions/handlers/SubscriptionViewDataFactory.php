@@ -17,7 +17,6 @@ final readonly class SubscriptionViewDataFactory
 
     public function getAuthor(int $authorId): AuthorReadDto
     {
-        return $this->queryService->findById($authorId)
-            ?? throw new NotFoundHttpException();
+        return $this->queryService->findById($authorId) ?? throw new NotFoundHttpException();
     }
 }

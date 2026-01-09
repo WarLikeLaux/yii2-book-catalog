@@ -53,7 +53,7 @@ final readonly class BookViewDataFactory
         $dto = $this->finder->findById($id);
 
         if (!$dto instanceof BookReadDto) {
-             throw new NotFoundHttpException();
+            throw new NotFoundHttpException();
         }
 
         /** @var BookForm */
@@ -65,7 +65,7 @@ final readonly class BookViewDataFactory
         $dto = $this->finder->findById($id);
 
         if (!$dto instanceof BookReadDto) {
-             throw new NotFoundHttpException();
+            throw new NotFoundHttpException();
         }
 
         return $this->withResolvedUrl($dto);

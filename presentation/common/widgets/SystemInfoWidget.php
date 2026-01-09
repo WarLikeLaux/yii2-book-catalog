@@ -27,9 +27,7 @@ final class SystemInfoWidget extends Widget
     {
         $info = $this->provider->getInfo();
 
-        $dbLink = str_contains(strtolower($info->dbDriver), 'mysql')
-            ? 'https://www.mysql.com/'
-            : 'https://www.postgresql.org/';
+        $dbLink = str_contains(strtolower($info->dbDriver), 'mysql') ? 'https://www.mysql.com/' : 'https://www.postgresql.org/';
 
         $dbKey = str_contains(strtolower($info->dbDriver), 'mysql') ? 'mysql' : 'postgresql';
 
