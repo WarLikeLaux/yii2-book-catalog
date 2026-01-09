@@ -71,7 +71,7 @@ final class IdempotencyRepositoryTest extends Unit
             ->method('error');
 
         $repository = new IdempotencyRepository($logger);
-        $key = str_repeat('a', 100);
+        $key = str_repeat('a', 129);
 
         $this->assertFalse($repository->saveStarted($key, 3600));
     }
@@ -96,7 +96,7 @@ final class IdempotencyRepositoryTest extends Unit
             ->method('error');
 
         $repository = new IdempotencyRepository($logger);
-        $key = str_repeat('b', 100);
+        $key = str_repeat('b', 129);
 
         $repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
     }
