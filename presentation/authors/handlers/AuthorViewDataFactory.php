@@ -35,7 +35,11 @@ final readonly class AuthorViewDataFactory
         $form = $this->autoMapper->map($dto, AuthorForm::class);
 
         if (!$form instanceof AuthorForm) {
-            throw new LogicException('getAuthorForUpdate expects AuthorForm.');
+            throw new LogicException(sprintf(
+                'AutoMapper returned unexpected type: expected %s, got %s',
+                AuthorForm::class,
+                get_debug_type($form),
+            ));
         }
 
         return $form;
@@ -43,7 +47,6 @@ final readonly class AuthorViewDataFactory
 
     public function getAuthorView(int $id): AuthorReadDto
     {
-        return $this->queryService->findById($id)
-        ?? throw new NotFoundHttpException();
+        return $this->queryService->findById($id) ?? throw new NotFoundHttpException();
     }
 }

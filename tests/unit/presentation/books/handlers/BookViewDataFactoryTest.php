@@ -118,7 +118,7 @@ final class BookViewDataFactoryTest extends Unit
             ->willReturn(new \stdClass());
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('AutoMapper returned unexpected type: expected');
+        $this->expectExceptionMessage('getBookForUpdate expects BookForm.');
 
         $this->factory->getBookForUpdate(1);
     }

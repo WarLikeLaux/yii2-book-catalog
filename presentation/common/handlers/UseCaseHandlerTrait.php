@@ -44,8 +44,9 @@ trait UseCaseHandlerTrait
 
     protected function addFormError(Model $form, DomainException $e): void
     {
+        $errorCode = $e->errorCode->value;
         $errorToFieldMap = $this->getErrorFieldMap();
-        $field = $errorToFieldMap[$e->getMessage()] ?? null;
+        $field = $errorToFieldMap[$errorCode] ?? null;
         $attributes = $form->attributes();
 
         if ($field === null || !in_array($field, $attributes, true)) {
@@ -54,6 +55,6 @@ trait UseCaseHandlerTrait
             $field = $firstAttribute !== false ? $firstAttribute : null;
         }
 
-        $form->addError($field ?? '', Yii::t('app', $e->getMessage()));
+        $form->addError($field ?? '', Yii::t('app', $errorCode));
     }
 }

@@ -104,7 +104,7 @@ final class AuthorViewDataFactoryTest extends Unit
             ->willReturn(new \stdClass());
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('getAuthorForUpdate expects AuthorForm.');
+        $this->expectExceptionMessage('AutoMapper returned unexpected type: expected');
 
         $this->factory->getAuthorForUpdate(1);
     }

@@ -55,11 +55,7 @@ final readonly class BookViewDataFactory
         $form = $this->autoMapper->map($dto, BookForm::class);
 
         if (!$form instanceof BookForm) {
-            throw new LogicException(sprintf(
-                'AutoMapper returned unexpected type: expected %s, got %s',
-                BookForm::class,
-                get_debug_type($form),
-            ));
+            throw new LogicException('getBookForUpdate expects BookForm.');
         }
 
         return $form;
