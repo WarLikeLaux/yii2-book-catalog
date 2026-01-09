@@ -66,4 +66,21 @@ final class NotifySingleSubscriberHandlerTest extends Unit
         $this->expectException(RuntimeException::class);
         $handler->handle('+7900', 'message', 15);
     }
+
+    public function testHandleLogsErrorWhenReleaseFails(): void
+    {
+        $sender = $this->createMock(SmsSenderInterface::class);
+        $sender->method('send')->willThrowException(new RuntimeException('primary fail'));
+
+        $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
+        $storage->method('acquire')->willReturn(true);
+        $storage->method('release')->willThrowException(new RuntimeException('release fail'));
+
+        $handler = new NotifySingleSubscriberHandler($sender, $storage);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('primary fail');
+
+        $handler->handle('+7900', 'message', 15);
+    }
 }
