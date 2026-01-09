@@ -94,6 +94,27 @@ final class FileContentTest extends Unit
         $this->assertSame(self::MIME_TYPE, $content->mimeType);
     }
 
+    public function testFromPathThrowsOnUnreadableFile(): void
+    {
+        $filePath = $this->tempDir . '/unreadable.txt';
+        file_put_contents($filePath, 'content');
+        chmod($filePath, 0000);
+
+        if (is_readable($filePath)) {
+            chmod($filePath, 0644);
+            $this->markTestSkipped('Файл остался читаемым после chmod.');
+        }
+
+        try {
+            $this->expectException(ValidationException::class);
+            $this->expectExceptionMessage(DomainErrorCode::FileNotFound->value);
+
+            FileContent::fromPath($filePath);
+        } finally {
+            chmod($filePath, 0644);
+        }
+    }
+
     public function testFromPathDetectsMimeTypeWithFinfo(): void
     {
         $filePath = $this->tempDir . '/test.bin';

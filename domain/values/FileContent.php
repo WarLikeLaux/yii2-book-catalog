@@ -6,6 +6,7 @@ namespace app\domain\values;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
+use app\domain\services\NativeMimeTypeDetector;
 
 final readonly class FileContent
 {
@@ -35,20 +36,8 @@ final readonly class FileContent
         }
 
         $extension ??= pathinfo($path, PATHINFO_EXTENSION);
-        $mimeType = 'application/octet-stream';
-
-        if (function_exists('mime_content_type')) {
-            $mimeValue = mime_content_type($path);
-            $mimeType = $mimeValue !== false ? $mimeValue : $mimeType;
-        } elseif (function_exists('finfo_open')) { // @codeCoverageIgnoreStart
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-
-            if ($finfo !== false) {
-                $mimeValue = finfo_file($finfo, $path);
-                $mimeType = $mimeValue !== false ? $mimeValue : $mimeType;
-                finfo_close($finfo);
-            }
-        } // @codeCoverageIgnoreEnd
+        $mimeTypeDetector = new NativeMimeTypeDetector();
+        $mimeType = $mimeTypeDetector->detect($path);
 
         return new self($stream, $extension, $mimeType);
     }
