@@ -85,6 +85,8 @@ abstract readonly class BaseActiveRecordRepository
         if ($ar->delete() === false) {
             throw new OperationFailedException(DomainErrorCode::EntityDeleteFailed); // @codeCoverageIgnore
         }
+
+        $this->removeIdentityById($id);
     }
 
     /**
@@ -132,5 +134,18 @@ abstract readonly class BaseActiveRecordRepository
         }
 
         return $entity->id;
+    }
+
+    private function removeIdentityById(int $id): void
+    {
+        foreach ($this->identityMap as $entity => $activeRecord) {
+            unset($activeRecord);
+
+            if ($entity->id !== $id) {
+                continue;
+            }
+
+            unset($this->identityMap[$entity]);
+        }
     }
 }

@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\repositories;
 
+use app\domain\entities\Book;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
 use app\domain\exceptions\StaleDataException;
+use app\domain\values\BookYear;
+use app\domain\values\Isbn;
+use app\domain\values\StoredFileReference;
 use Codeception\Test\Unit;
-use tests\support\StubActiveRecordRepository;
+use tests\_support\StubActiveRecord;
+use tests\_support\StubActiveRecordRepository;
 use yii\db\ActiveRecord;
 use yii\db\IntegrityException;
 use yii\db\StaleObjectException;
@@ -119,5 +124,63 @@ final class BaseActiveRecordRepositoryTest extends Unit
         $this->expectExceptionMessage('error.entity_persist_failed');
 
         $this->repository->testPersist($model);
+    }
+
+    public function testDeleteEntityRemovesIdentity(): void
+    {
+        $entityToRemove = $this->createBookEntity(1);
+        $otherEntity = $this->createBookEntity(2);
+        $storedRecord = new StubActiveRecord();
+        $otherRecord = new StubActiveRecord();
+
+        $this->repository->testRegisterIdentity($entityToRemove, $storedRecord);
+        $this->repository->testRegisterIdentity($otherEntity, $otherRecord);
+
+        StubActiveRecord::$next = new StubActiveRecord();
+
+        $this->repository->testDeleteEntity(
+            $entityToRemove,
+            StubActiveRecord::class,
+            DomainErrorCode::BookNotFound,
+        );
+
+        $this->assertFalse($this->repository->hasIdentity($entityToRemove));
+        $this->assertTrue($this->repository->hasIdentity($otherEntity));
+    }
+
+    public function testDeleteEntityKeepsUnmatchedIdentities(): void
+    {
+        $firstEntity = $this->createBookEntity(1);
+        $secondEntity = $this->createBookEntity(2);
+        $targetEntity = $this->createBookEntity(3);
+
+        $this->repository->testRegisterIdentity($firstEntity, new StubActiveRecord());
+        $this->repository->testRegisterIdentity($secondEntity, new StubActiveRecord());
+
+        StubActiveRecord::$next = new StubActiveRecord();
+
+        $this->repository->testDeleteEntity(
+            $targetEntity,
+            StubActiveRecord::class,
+            DomainErrorCode::BookNotFound,
+        );
+
+        $this->assertTrue($this->repository->hasIdentity($firstEntity));
+        $this->assertTrue($this->repository->hasIdentity($secondEntity));
+    }
+
+    private function createBookEntity(int $id): Book
+    {
+        return Book::reconstitute(
+            $id,
+            'Test Book',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            'Valid description',
+            new StoredFileReference('covers/test.jpg'),
+            [],
+            false,
+            1,
+        );
     }
 }
