@@ -20,7 +20,8 @@ final readonly class NotifySingleSubscriberHandler
 
     public function handle(string $phone, string $message, int $bookId): void
     {
-        $idempotencyKey = sprintf('sms:%d:%s', $bookId, md5($phone));
+        $phoneHash = substr(hash('sha256', $phone), 0, 16);
+        $idempotencyKey = sprintf('sms:%d:%s', $bookId, $phoneHash);
 
         if (!$this->idempotencyStorage->acquire($idempotencyKey)) {
             return;
