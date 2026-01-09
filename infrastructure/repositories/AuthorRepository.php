@@ -19,7 +19,7 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 
         $ar->fio = $author->fio;
 
-        $this->persist($ar, DomainErrorCode::AuthorFioExists, 'author.error.save_failed');
+        $this->persist($ar, DomainErrorCode::AuthorFioExists);
 
         if ($author->id !== null) {
             return;
@@ -41,6 +41,6 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 
     public function delete(AuthorEntity $author): void
     {
-        $this->deleteEntity($author, Author::class, DomainErrorCode::AuthorNotFound, 'author.error.delete_failed');
+        $this->deleteEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
     }
 }

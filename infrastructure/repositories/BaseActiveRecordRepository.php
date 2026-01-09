@@ -8,9 +8,9 @@ use app\domain\common\IdentifiableEntityInterface;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\exceptions\OperationFailedException;
 use app\domain\exceptions\StaleDataException;
 use app\infrastructure\persistence\DatabaseErrorCode;
-use RuntimeException;
 use WeakMap;
 use yii\db\ActiveRecord;
 use yii\db\IntegrityException;
@@ -77,19 +77,18 @@ abstract readonly class BaseActiveRecordRepository
         IdentifiableEntityInterface $entity,
         string $arClass,
         DomainErrorCode $notFoundCode,
-        string $errorMessage = 'entity.error.delete_failed',
     ): void {
         $id = $this->getEntityId($entity);
 
         $ar = $this->getArById($id, $arClass, $notFoundCode);
 
         if ($ar->delete() === false) {
-            throw new RuntimeException($errorMessage); // @codeCoverageIgnore
+            throw new OperationFailedException(DomainErrorCode::EntityDeleteFailed); // @codeCoverageIgnore
         }
     }
 
     /**
-     * @throws RuntimeException
+     * @throws OperationFailedException
      * @throws StaleDataException
      * @throws AlreadyExistsException
      * @throws IntegrityException
@@ -97,13 +96,10 @@ abstract readonly class BaseActiveRecordRepository
     protected function persist(
         ActiveRecord $model,
         ?DomainErrorCode $duplicateError = null,
-        string $errorMessage = 'entity.error.save_failed',
     ): void {
         try {
             if (!$model->save(false)) {
-                $errors = $model->getFirstErrors();
-                $message = $errors !== [] ? array_shift($errors) : $errorMessage;
-                throw new RuntimeException($message);
+                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
             }
         } catch (StaleObjectException) {
             throw new StaleDataException();
@@ -132,7 +128,7 @@ abstract readonly class BaseActiveRecordRepository
     protected function getEntityId(IdentifiableEntityInterface $entity): int
     {
         if ($entity->id === null) {
-            throw new RuntimeException('Entity has no ID.'); // @codeCoverageIgnore
+            throw new OperationFailedException(DomainErrorCode::EntityIdMissing); // @codeCoverageIgnore
         }
 
         return $entity->id;

@@ -6,16 +6,24 @@ namespace tests\unit\infrastructure\repositories;
 
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\OperationFailedException;
 use app\domain\exceptions\StaleDataException;
 use app\infrastructure\repositories\BaseActiveRecordRepository;
 use Codeception\Test\Unit;
-use RuntimeException;
 use yii\db\ActiveRecord;
 use yii\db\IntegrityException;
 use yii\db\StaleObjectException;
 
 final class BaseActiveRecordRepositoryTest extends Unit
 {
+    private const string DEFAULT_ERROR_MESSAGE = 'entity.error.save_failed';
+    private const string SAVE_FAILED_MESSAGE = 'save failed';
+    private const string DUPLICATE_ENTRY = 'Duplicate entry';
+    private const string DUPLICATE_SQLSTATE = 'SQLSTATE[23000]';
+    private const int DUPLICATE_CODE = 1062;
+    private const string OTHER_ERROR = 'Other error';
+    private const int OTHER_ERROR_CODE = 1234;
+
     private object $repository;
 
     protected function _before(): void
@@ -24,9 +32,8 @@ final class BaseActiveRecordRepositoryTest extends Unit
             public function testPersist(
                 ActiveRecord $model,
                 ?DomainErrorCode $duplicateError = null,
-                string $errorMessage = 'entity.error.save_failed',
             ): void {
-                $this->persist($model, $duplicateError, $errorMessage);
+                $this->persist($model, $duplicateError);
             }
         };
     }
@@ -44,11 +51,11 @@ final class BaseActiveRecordRepositoryTest extends Unit
     {
         $model = $this->makeEmpty(ActiveRecord::class, [
             'save' => false,
-            'getFirstErrors' => ['error' => 'save failed'],
+            'getFirstErrors' => ['error' => self::SAVE_FAILED_MESSAGE],
         ]);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('save failed');
+        $this->expectException(OperationFailedException::class);
+        $this->expectExceptionMessage('error.entity_persist_failed');
 
         $this->repository->testPersist($model);
     }
@@ -68,7 +75,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
     public function testPersistThrowsAlreadyExistsExceptionOnDuplicate(): void
     {
-        $exception = new IntegrityException('Duplicate entry', ['SQLSTATE[23000]', 1062, 'Duplicate entry']);
+        $exception = new IntegrityException(self::DUPLICATE_ENTRY, [self::DUPLICATE_SQLSTATE, self::DUPLICATE_CODE, self::DUPLICATE_ENTRY]);
         $model = $this->makeEmpty(ActiveRecord::class, [
             'save' => static function () use ($exception) {
                 throw $exception;
@@ -83,7 +90,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
     public function testPersistThrowsGenericAlreadyExistsExceptionOnDuplicateWithoutCode(): void
     {
-        $exception = new IntegrityException('Duplicate entry', ['SQLSTATE[23000]', 1062, 'Duplicate entry']);
+        $exception = new IntegrityException(self::DUPLICATE_ENTRY, [self::DUPLICATE_SQLSTATE, self::DUPLICATE_CODE, self::DUPLICATE_ENTRY]);
         $model = $this->makeEmpty(ActiveRecord::class, [
             'save' => static function () use ($exception) {
                 throw $exception;
@@ -97,7 +104,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
     public function testPersistRethrowsGenericIntegrityException(): void
     {
-        $exception = new IntegrityException('Other error', ['SQLSTATE[23000]', 1234, 'Other error']);
+        $exception = new IntegrityException(self::OTHER_ERROR, [self::DUPLICATE_SQLSTATE, 1234, self::OTHER_ERROR]);
         $model = $this->makeEmpty(ActiveRecord::class, [
             'save' => static function () use ($exception) {
                 throw $exception;
@@ -116,8 +123,8 @@ final class BaseActiveRecordRepositoryTest extends Unit
             'getFirstErrors' => [],
         ]);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('entity.error.save_failed');
+        $this->expectException(OperationFailedException::class);
+        $this->expectExceptionMessage('error.entity_persist_failed');
 
         $this->repository->testPersist($model);
     }

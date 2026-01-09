@@ -101,7 +101,13 @@ abstract readonly class BaseQueryService
             $modelClass = $query->modelClass; // @phpstan-ignore-line
 
             if (is_a($modelClass, ActiveRecord::class, true)) {
-                $primaryKey = $modelClass::primaryKey()[0];
+                $primaryKeys = $modelClass::primaryKey();
+
+                if ($primaryKeys === []) {
+                    throw new LogicException(sprintf('Model %s must have a primary key', get_debug_type($modelClass)));
+                }
+
+                $primaryKey = $primaryKeys[0];
                 $query->andWhere(['<>', $primaryKey, $excludeId]);
             }
         }

@@ -13,6 +13,8 @@ use Yii;
 
 final class AuthorQueryServiceTest extends Unit
 {
+    private const string EXCLUDE_FIO = 'Exclude FIO';
+
     private AuthorQueryServiceInterface $queryService;
     private AuthorRepositoryInterface $repository;
 
@@ -149,10 +151,10 @@ final class AuthorQueryServiceTest extends Unit
 
     public function testExistsByFioWithExcludeId(): void
     {
-        $author = AuthorEntity::create('Exclude FIO');
+        $author = AuthorEntity::create(self::EXCLUDE_FIO);
         $this->repository->save($author);
 
-        $this->assertFalse($this->queryService->existsByFio('Exclude FIO', $author->id));
-        $this->assertTrue($this->queryService->existsByFio('Exclude FIO', 99999));
+        $this->assertFalse($this->queryService->existsByFio(self::EXCLUDE_FIO, $author->id));
+        $this->assertTrue($this->queryService->existsByFio(self::EXCLUDE_FIO, 99999));
     }
 }

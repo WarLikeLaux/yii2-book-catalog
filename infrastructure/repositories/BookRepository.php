@@ -48,7 +48,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             'is_published' => static fn(BookEntity $e): int => $e->published ? 1 : 0,
         ]);
 
-        $this->persist($ar, DomainErrorCode::BookIsbnExists, 'book.error.save_failed');
+        $this->persist($ar, DomainErrorCode::BookIsbnExists);
 
         if ($isNew) {
             $this->assignId($book, $ar->id); // @phpstan-ignore property.notFound
@@ -106,7 +106,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
      */
     public function delete(BookEntity $book): void
     {
-        $this->deleteEntity($book, Book::class, DomainErrorCode::BookNotFound, 'book.error.delete_failed');
+        $this->deleteEntity($book, Book::class, DomainErrorCode::BookNotFound);
     }
 
     private function mapToEntity(Book $ar): BookEntity

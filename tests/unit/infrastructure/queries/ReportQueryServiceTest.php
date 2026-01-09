@@ -58,6 +58,42 @@ final class ReportQueryServiceTest extends Unit
         $this->assertSame(2, (int)$result->topAuthors[0]['books_count']);
     }
 
+    public function testGetTopAuthorsReportLimitsToTen(): void
+    {
+        for ($i = 1; $i <= 15; $i++) {
+            $authorId = $this->createAuthor("Author $i");
+            $this->createPublishedBookForAuthor($authorId, "Book $i", 2024);
+        }
+
+        $criteria = new ReportCriteria(2024);
+        $result = $this->service->getTopAuthorsReport($criteria);
+
+        $this->assertCount(10, $result->topAuthors);
+    }
+
+    public function testGetTopAuthorsReportExcludesUnpublishedBooks(): void
+    {
+        $authorId = $this->createAuthor('Author');
+        $this->createPublishedBookForAuthor($authorId, 'Published', 2024);
+
+        $book = new Book();
+        $book->title = 'Unpublished';
+        $book->year = 2024;
+        $book->isbn = '9783161484199';
+        $book->is_published = false;
+        $book->save(false);
+
+        Yii::$app->db->createCommand()
+            ->insert('book_authors', ['book_id' => $book->id, 'author_id' => $authorId])
+            ->execute();
+
+        $criteria = new ReportCriteria(2024);
+        $result = $this->service->getTopAuthorsReport($criteria);
+
+        $this->assertCount(1, $result->topAuthors);
+        $this->assertSame(1, (int)$result->topAuthors[0]['books_count']);
+    }
+
     public function testGetEmptyTopAuthorsReport(): void
     {
         $result = $this->service->getEmptyTopAuthorsReport(2020);
@@ -88,7 +124,7 @@ final class ReportQueryServiceTest extends Unit
         $book = new Book();
         $book->title = $title;
         $book->year = $year;
-        $book->isbn = '978316148410' . (abs(crc32($title . $year)) % 10);
+        $book->isbn = '9783161484' . str_pad((string)abs(crc32($title . $year . uniqid())), 3, '0', STR_PAD_LEFT);
         $book->description = 'Test description';
         $book->is_published = true;
         $book->save(false);
