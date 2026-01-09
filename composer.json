@@ -75,6 +75,7 @@
             "Tools\\": "tools/"
         },
         "files": [
+            "functions.php",
             "tools/PHPUnit/Framework/Attributes/CodeCoverageIgnore.php"
         ]
     },

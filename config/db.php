@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/env.php';
-
 $driver = env('DB_DRIVER', 'mysql');
 
 [$host, $port] = match ($driver) {

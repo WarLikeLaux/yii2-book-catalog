@@ -13,8 +13,6 @@ $dotenv->required('YII_ENV')->allowedValues(['dev', 'prod', 'test']);
 $dotenv->required('YII_DEBUG')->isBoolean();
 $dotenv->required(['DB_NAME', 'DB_USER', 'DB_PASSWORD'])->notEmpty();
 
-require_once __DIR__ . '/env.php';
-
 if (env('YII_ENV') === 'prod') {
     $dotenv->required('SMS_API_KEY')->notEmpty();
 }
