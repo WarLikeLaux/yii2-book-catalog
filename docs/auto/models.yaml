@@ -1,13 +1,13 @@
 meta:
   title: 'ActiveRecord Models'
-  updated_at: '2026-01-09T03:22:43+00:00'
+  updated_at: '2026-01-09T07:06:13+00:00'
 models:
   AsyncIdempotencyLog:
     name: AsyncIdempotencyLog
     class: app\infrastructure\persistence\AsyncIdempotencyLog
     table: '{{%async_idempotency_log}}'
-    behaviors: null
-    relations: null
+    behaviors: {}
+    relations: {}
     validation:
       - 'idempotency_key,created_at (required)'
       - 'created_at (integer)'
@@ -18,7 +18,7 @@ models:
     name: Author
     class: app\infrastructure\persistence\Author
     table: authors
-    behaviors: null
+    behaviors: {}
     relations:
       -
         method: getBooks()
@@ -48,13 +48,12 @@ models:
       - 'isbn (string)'
       - 'cover_url (string)'
       - 'is_published (boolean)'
-      - 'title (year)'
   IdempotencyKey:
     name: IdempotencyKey
     class: app\infrastructure\persistence\IdempotencyKey
     table: '{{%idempotency_keys}}'
-    behaviors: null
-    relations: null
+    behaviors: {}
+    relations: {}
     validation:
       - 'idempotency_key,status,created_at,expires_at (required)'
       - 'status_code,created_at,expires_at (integer)'
@@ -62,8 +61,6 @@ models:
       - 'idempotency_key (string)'
       - 'idempotency_key (unique)'
       - 'status (string)'
-      - 'idempotency_key (status)'
-      - 'status_code (created_at)'
   Subscription:
     name: Subscription
     class: app\infrastructure\persistence\Subscription

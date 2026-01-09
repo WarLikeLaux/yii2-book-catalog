@@ -1,6 +1,6 @@
 meta:
   title: 'Database Schema'
-  updated_at: '2026-01-09T03:22:43+00:00'
+  updated_at: '2026-01-09T07:06:13+00:00'
 tables:
   async_idempotency_log:
     columns:
@@ -21,7 +21,13 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: null
+    foreign_keys: {}
+    indexes:
+      -
+        name: idempotency_key
+        columns:
+          - idempotency_key
+        unique: true
   authors:
     columns:
       -
@@ -36,7 +42,13 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: null
+    foreign_keys: {}
+    indexes:
+      -
+        name: ux_authors_fio
+        columns:
+          - fio
+        unique: true
   book_authors:
     columns:
       -
@@ -59,6 +71,7 @@ tables:
       -
         column: book_id
         references: books.id
+    indexes: {}
   books:
     columns:
       -
@@ -113,7 +126,13 @@ tables:
         default: 1
     primary_key:
       - id
-    foreign_keys: null
+    foreign_keys: {}
+    indexes:
+      -
+        name: isbn
+        columns:
+          - isbn
+        unique: true
   idempotency_keys:
     columns:
       -
@@ -153,7 +172,13 @@ tables:
         default: finished
     primary_key:
       - id
-    foreign_keys: null
+    foreign_keys: {}
+    indexes:
+      -
+        name: idempotency_key
+        columns:
+          - idempotency_key
+        unique: true
   migration:
     columns:
       -
@@ -168,7 +193,8 @@ tables:
         default: null
     primary_key:
       - version
-    foreign_keys: null
+    foreign_keys: {}
+    indexes: {}
   queue:
     columns:
       -
@@ -223,7 +249,8 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: null
+    foreign_keys: {}
+    indexes: {}
   subscriptions:
     columns:
       -
@@ -252,3 +279,10 @@ tables:
       -
         column: author_id
         references: authors.id
+    indexes:
+      -
+        name: idx_subscriptions_phone_author
+        columns:
+          - phone
+          - author_id
+        unique: true
