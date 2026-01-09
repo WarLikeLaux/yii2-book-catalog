@@ -84,6 +84,17 @@ final class FileContentTest extends Unit
         FileContent::fromPath($this->tempDir . '/non-existent.txt');
     }
 
+    public function testFromPathThrowsOnDirectory(): void
+    {
+        $dirPath = $this->tempDir . '/dir';
+        mkdir($dirPath, 0777, true);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage(DomainErrorCode::FileNotFound->value);
+
+        FileContent::fromPath($dirPath);
+    }
+
     public function testFromPathDetectsMimeType(): void
     {
         $filePath = $this->tempDir . '/test.txt';
