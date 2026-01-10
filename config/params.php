@@ -19,7 +19,7 @@ return [
         'ttl' => (int)env('IDEMPOTENCY_TTL', 86400),
         'lockTimeout' => (int)env('IDEMPOTENCY_LOCK_TIMEOUT', 1),
         'waitSeconds' => (int)env('IDEMPOTENCY_WAIT_SECONDS', 1),
-        'smsPhoneHashKey' => (string)env('SMS_IDEMPOTENCY_HASH_KEY', 'changeme'),
+        'smsPhoneHashKey' => env('SMS_IDEMPOTENCY_HASH_KEY', 'changeme'),
     ],
     'rateLimit' => [
         'limit' => (int)env('RATE_LIMIT_REQUESTS', 60),

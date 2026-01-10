@@ -19,5 +19,5 @@ if (env('YII_ENV') === 'prod') {
     $dotenv->required('SMS_IDEMPOTENCY_HASH_KEY')->notEmpty();
 }
 
-defined('YII_DEBUG') || define('YII_DEBUG', env('YII_DEBUG', false));
-defined('YII_ENV') || define('YII_ENV', env('YII_ENV', 'prod'));
+defined('YII_DEBUG') || define('YII_DEBUG', env('YII_DEBUG'));
+defined('YII_ENV') || define('YII_ENV', env('YII_ENV'));

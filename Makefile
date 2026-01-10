@@ -88,6 +88,7 @@ help:
 	@echo "  db-mysql         🐬 Переключить на MySQL"
 	@echo "  db-pgsql         🐘 Переключить на PostgreSQL"
 	@echo "  db-fresh         🚨 Полный сброс БД (fresh + seed)"
+	@echo "  test-db-fresh    🧪 Полный сброс тестовой БД (fresh + migrations)"
 	@echo "  queue-info       📥 Статус очереди задач"
 	@echo ""
 	@echo "📚 ДОКУМЕНТАЦИЯ:"
@@ -186,16 +187,24 @@ ci: lint analyze
 fix: prettier-fix lint-fix rector-fix
 dev:
 	@lockdir="$(CURDIR)/.dev.lock"; \
+	pidfile="$$lockdir/pid"; \
+	cleanup() { rm -rf "$$lockdir"; }; \
+	trap cleanup EXIT; \
 	if mkdir "$$lockdir" 2>/dev/null; then \
-		trap 'rmdir "$$lockdir"' EXIT; \
-		if [ -z "$(FILE_ARG)" ]; then \
-			$(MAKE) _dev_full; \
-		else \
-			$(MAKE) _dev_file; \
-		fi; \
+		echo $$BASHPID > "$$pidfile"; \
+	elif [ -f "$$pidfile" ] && ! kill -0 $$(cat "$$pidfile" 2>/dev/null) 2>/dev/null; then \
+		echo "⚠️  Найден mёртвый lock. Очищаю..."; \
+		rm -rf "$$lockdir"; \
+		mkdir "$$lockdir" || { echo "⛔ Не удалось создать lock"; exit 1; }; \
+		echo $$BASHPID > "$$pidfile"; \
 	else \
-		echo "⛔ dev уже запущен в другом процессе."; \
+		echo "⛔ dev уже запущен (PID: $$(cat "$$pidfile" 2>/dev/null || echo '???'))"; \
 		exit 1; \
+	fi; \
+	if [ -z "$(FILE_ARG)" ]; then \
+		$(MAKE) _dev_full; \
+	else \
+		$(MAKE) _dev_file; \
 	fi
 _dev_full: fix ci
 _dev_file:
@@ -249,20 +258,29 @@ _test-init:
 
 test:
 	@lockdir="$(CURDIR)/.test.lock"; \
+	pidfile="$$lockdir/pid"; \
+	cleanup() { rm -rf "$$lockdir"; }; \
+	trap cleanup EXIT; \
 	if mkdir "$$lockdir" 2>/dev/null; then \
-		trap 'rmdir "$$lockdir"' EXIT; \
-		$(MAKE) _test-init; \
-		echo "🚀 Запуск всех тестов с генерацией отчетов..."; \
-		$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app ./vendor/bin/codecept run integration,unit \
-			--ext DotReporter \
-			--coverage-text --coverage-xml --coverage-html \
-			--coverage-phpunit --xml=junit.xml --no-colors; \
-		sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml; \
-		$(MAKE) cov; \
+		echo $$BASHPID > "$$pidfile"; \
+	elif [ -f "$$pidfile" ] && ! kill -0 $$(cat "$$pidfile" 2>/dev/null) 2>/dev/null; then \
+		echo "⚠️  Найден мёртвый lock для тестов. Очищаю..."; \
+		rm -rf "$$lockdir"; \
+		mkdir "$$lockdir" || { echo "⛔ Не удалось создать lock"; exit 1; }; \
+		echo $$BASHPID > "$$pidfile"; \
 	else \
-		echo "⛔ Тесты уже запущены в другом процессе."; \
+		echo "⛔ Тесты уже запущены (PID: $$(cat "$$pidfile" 2>/dev/null || echo '???'))"; \
 		exit 1; \
-	fi
+	fi; \
+	$(MAKE) _test-init; \
+	echo "🚀 Запуск всех тестов с генерацией отчетов..."; \
+	$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app ./vendor/bin/codecept run integration,unit \
+		--ext DotReporter \
+		--skip-group migration \
+		--coverage-text --coverage-xml --coverage-html \
+		--coverage-phpunit --xml=junit.xml --no-colors; \
+	sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml; \
+	$(MAKE) cov
 
 test-unit:
 	@echo "🚀 Запуск Unit тестов..."
@@ -270,7 +288,7 @@ test-unit:
 
 test-integration: _test-init
 	@echo "🚀 Запуск Integration тестов..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration --ext DotReporter --no-colors
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration --ext DotReporter --skip-group migration --no-colors
 
 test-e2e: _test-init
 	@echo "🚀 Запуск E2E тестов..."
@@ -283,7 +301,7 @@ test-coverage coverage cov:
 test-infection infection inf:
 	@if [ ! -f tests/_output/coverage-phpunit.xml ]; then $(MAKE) test; fi
 	@echo "🧟 Запуск мутационного тестирования..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=tests/_output --threads=max --test-framework-options="integration,unit"
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=tests/_output --threads=max --test-framework-options="integration,unit --skip-group migration"
 
 test-load:
 	@echo "🚀 Load Testing (K6)..."
@@ -328,6 +346,9 @@ db-fresh:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii migrate/fresh --interactive=0
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii seed --interactive=0
 	@echo "✅ База данных очищена и заполнена заново."
+
+test-db-fresh:
+	@DB_DRIVER=$(DB_DRIVER) DB_TEST_NAME=$(DB_TEST_NAME) COMPOSE="$(COMPOSE)" ./bin/test-db-fresh
 
 # =================================================================================================
 # 📚 ДОКУМЕНТАЦИЯ И УТИЛИТЫ

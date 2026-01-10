@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use app\application\common\config\BuggregatorConfig;
+use app\application\common\config\IdempotencyConfig;
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
@@ -9,8 +12,9 @@ if (!YII_ENV_DEV && env('COOKIE_VALIDATION_KEY', '') === '') {
     throw new RuntimeException('COOKIE_VALIDATION_KEY must be set in production');
 }
 
-$smsHashKey = (string)($params['idempotency']['smsPhoneHashKey'] ?? '');
-if (!YII_ENV_DEV && YII_ENV !== 'test' && ($smsHashKey === '' || $smsHashKey === 'changeme')) {
+$idempotencyConfig = IdempotencyConfig::fromParams($params);
+$buggregatorConfig = BuggregatorConfig::fromParams($params);
+if (!YII_ENV_DEV && YII_ENV !== 'test' && $idempotencyConfig->smsPhoneHashKey === 'changeme') {
     throw new RuntimeException('SMS_IDEMPOTENCY_HASH_KEY must be set and changed in production');
 }
 
@@ -95,16 +99,16 @@ $config = [
                 ],
                 YII_ENV_DEV ? [
                     'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => $params['buggregator']['log']['host'],
-                    'port' => $params['buggregator']['log']['port'],
+                    'host' => $buggregatorConfig->log->host,
+                    'port' => $buggregatorConfig->log->port,
                     'levels' => ['error', 'warning'],
                     'except' => ['yii\web\HttpException:404'],
                     'logVars' => [],
                 ] : null,
                 YII_ENV_DEV ? [
                     'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => $params['buggregator']['log']['host'],
-                    'port' => $params['buggregator']['log']['port'],
+                    'host' => $buggregatorConfig->log->host,
+                    'port' => $buggregatorConfig->log->port,
                     'levels' => ['info'],
                     'categories' => ['sms', 'application'],
                     'logVars' => [],
@@ -134,8 +138,8 @@ $config = [
         'tracer' => [
             'class' => \app\infrastructure\services\observability\TracerBootstrap::class,
             'enabled' => YII_ENV_DEV,
-            'endpoint' => $params['buggregator']['inspector']['url'],
-            'ingestionKey' => $params['buggregator']['inspector']['ingestionKey'],
+            'endpoint' => $buggregatorConfig->inspector->url,
+            'ingestionKey' => $buggregatorConfig->inspector->ingestionKey,
             'serviceName' => 'yii2-book-catalog',
         ],
     ],

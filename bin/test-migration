@@ -23,22 +23,33 @@ if [ -z "$DB_MIGRATION_TEST_NAME" ]; then
     exit 1
 fi
 
+if ! echo "$DB_MIGRATION_TEST_NAME" | grep -qE '^[a-zA-Z0-9_]+$'; then
+    echo "❌ Ошибка: DB_MIGRATION_TEST_NAME содержит недопустимые символы. Допускаются только [a-zA-Z0-9_]"
+    exit 1
+fi
+
 export DB_MIGRATION_TEST_NAME
 
 if [ "$DB_DRIVER" = "pgsql" ]; then
-    $COMPOSE exec -T pgsql sh -c '
-        psql -U "$POSTGRES_USER" -d postgres -c "DROP DATABASE IF EXISTS '"$DB_MIGRATION_TEST_NAME"'" 
-        psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE '"$DB_MIGRATION_TEST_NAME"'" 
-    ' 2>/dev/null || true
+    if ! $COMPOSE exec -T pgsql psql -U "$POSTGRES_USER" -d postgres <<EOF
+DROP DATABASE IF EXISTS "$DB_MIGRATION_TEST_NAME";
+CREATE DATABASE "$DB_MIGRATION_TEST_NAME";
+EOF
+    then
+        echo "❌ Ошибка при создании тестовой БД PostgreSQL"
+        exit 1
+    fi
 else
-    $COMPOSE exec -T db sh -c '
-        mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -h127.0.0.1 -e "
-            DROP DATABASE IF EXISTS '"$DB_MIGRATION_TEST_NAME"';
-            CREATE DATABASE '"$DB_MIGRATION_TEST_NAME"';
-            GRANT ALL PRIVILEGES ON '"$DB_MIGRATION_TEST_NAME"'.* TO \"$MYSQL_USER\"@\"%\";
-            FLUSH PRIVILEGES;
-        "
-    ' 2>&1 | grep -v "Using a password" || true
+    if ! MYSQL_PWD="$MYSQL_ROOT_PASSWORD" $COMPOSE exec -T db mysql -uroot -h127.0.0.1 <<EOF
+DROP DATABASE IF EXISTS \`$DB_MIGRATION_TEST_NAME\`;
+CREATE DATABASE \`$DB_MIGRATION_TEST_NAME\`;
+GRANT ALL PRIVILEGES ON \`$DB_MIGRATION_TEST_NAME\`.* TO '$MYSQL_USER'@'%';
+FLUSH PRIVILEGES;
+EOF
+    then
+        echo "❌ Ошибка при создании тестовой БД MySQL"
+        exit 1
+    fi
 fi
 
 bin/test-db-prepare

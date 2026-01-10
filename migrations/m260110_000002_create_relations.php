@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use yii\db\Migration;
 
-final class m251202_000003_create_book_authors_table extends Migration
+final class m260110_000002_create_relations extends Migration
 {
-    public function safeUp(): void
+    public function up(): void
     {
         $this->createTable('book_authors', [
             'book_id' => $this->integer()->notNull(),
@@ -14,6 +14,9 @@ final class m251202_000003_create_book_authors_table extends Migration
         ]);
 
         $this->addPrimaryKey('pk_book_authors', 'book_authors', ['book_id', 'author_id']);
+
+        $this->createIndex('idx_book_authors_author_id', 'book_authors', 'author_id');
+
         $this->addForeignKey(
             'fk_book_authors_book',
             'book_authors',
@@ -23,6 +26,7 @@ final class m251202_000003_create_book_authors_table extends Migration
             'CASCADE',
             'CASCADE',
         );
+
         $this->addForeignKey(
             'fk_book_authors_author',
             'book_authors',
@@ -34,7 +38,7 @@ final class m251202_000003_create_book_authors_table extends Migration
         );
     }
 
-    public function safeDown(): void
+    public function down(): void
     {
         $this->dropTable('book_authors');
     }

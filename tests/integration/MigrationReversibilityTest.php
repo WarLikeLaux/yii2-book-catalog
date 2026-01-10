@@ -28,6 +28,7 @@ final class MigrationReversibilityTest extends Unit
     }
 
     /**
+     * @group migration
      * @runInSeparateProcess
      */
     public function testAllMigrationsAreReversible(): void
