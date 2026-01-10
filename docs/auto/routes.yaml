@@ -18,6 +18,14 @@ routes:
     guards:
       - Auth
   -
+    path: /author
+    action: author/index
+    controller: AuthorController
+    methods:
+      - GET
+    guards:
+      - Auth
+  -
     path: /author/create
     action: author/create
     controller: AuthorController
@@ -30,14 +38,6 @@ routes:
   -
     path: /author/delete
     action: author/delete
-    controller: AuthorController
-    methods:
-      - GET
-    guards:
-      - Auth
-  -
-    path: /author/index
-    action: author/index
     controller: AuthorController
     methods:
       - GET
@@ -70,6 +70,14 @@ routes:
     guards:
       - Auth
   -
+    path: /book
+    action: book/index
+    controller: BookController
+    methods:
+      - GET
+    guards:
+      - Auth
+  -
     path: /book/create
     action: book/create
     controller: BookController
@@ -82,14 +90,6 @@ routes:
   -
     path: /book/delete
     action: book/delete
-    controller: BookController
-    methods:
-      - GET
-    guards:
-      - Auth
-  -
-    path: /book/index
-    action: book/index
     controller: BookController
     methods:
       - GET
@@ -122,7 +122,7 @@ routes:
     guards:
       - Auth
   -
-    path: /report/index
+    path: /report
     action: report/index
     controller: ReportController
     methods:

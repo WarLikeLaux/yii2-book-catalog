@@ -3,10 +3,10 @@ meta:
 events:
   BookDeletedEvent:
     type: book.deleted
-    payload: {}
+    payload: []
   BookPublishedEvent:
     type: book.published
-    payload: {}
+    payload: []
   BookUpdatedEvent:
     type: book.updated
-    payload: {}
+    payload: []

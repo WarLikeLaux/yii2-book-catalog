@@ -25,7 +25,6 @@ final class m260110_000001_create_core_tables extends Migration
             'fio' => $this->string(255)->notNull()->comment('ФИО автора'),
         ]);
 
-        $this->createIndex('idx_authors_fio', 'authors', 'fio');
         $this->createIndex('idx_authors_fio_unique', 'authors', 'fio', true);
 
         if ($this->db->driverName !== 'mysql') {

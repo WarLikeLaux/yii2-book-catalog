@@ -5,8 +5,8 @@ models:
     name: AsyncIdempotencyLog
     class: app\infrastructure\persistence\AsyncIdempotencyLog
     table: '{{%async_idempotency_log}}'
-    behaviors: {}
-    relations: {}
+    behaviors: []
+    relations: []
     validation:
       - 'idempotency_key,created_at (required)'
       - 'created_at (integer)'
@@ -16,7 +16,7 @@ models:
     name: Author
     class: app\infrastructure\persistence\Author
     table: authors
-    behaviors: {}
+    behaviors: []
     relations:
       -
         method: getBooks()
@@ -50,8 +50,8 @@ models:
     name: IdempotencyKey
     class: app\infrastructure\persistence\IdempotencyKey
     table: '{{%idempotency_keys}}'
-    behaviors: {}
-    relations: {}
+    behaviors: []
+    relations: []
     validation:
       - 'idempotency_key,status,created_at,expires_at (required)'
       - 'status_code,created_at,expires_at (integer)'

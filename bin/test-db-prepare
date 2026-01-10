@@ -2,26 +2,15 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/env-parser"
+
 readonly DB_TEST_NAME="${DB_TEST_NAME:-yii2basic_test}"
 readonly DB_MIGRATION_TEST_NAME="${DB_MIGRATION_TEST_NAME:-}"
 readonly DB_DRIVER="${DB_DRIVER:-mysql}"
 readonly COMPOSE="${COMPOSE:-docker compose}"
 
-DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-}"
-DB_USER="${DB_USER:-}"
-DB_PASSWORD="${DB_PASSWORD:-}"
-POSTGRES_USER="${POSTGRES_USER:-}"
-
-if [ -f .env ]; then
-    DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-$(grep -E '^DB_ROOT_PASSWORD=' .env | cut -d= -f2- || true)}"
-    DB_USER="${DB_USER:-$(grep -E '^DB_USER=' .env | cut -d= -f2- || true)}"
-    DB_PASSWORD="${DB_PASSWORD:-$(grep -E '^DB_PASSWORD=' .env | cut -d= -f2- || true)}"
-    POSTGRES_USER="${POSTGRES_USER:-$(grep -E '^POSTGRES_USER=' .env | cut -d= -f2- || true)}"
-fi
-
-DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-root}"
-DB_USER="${DB_USER:-yii2}"
-DB_PASSWORD="${DB_PASSWORD:-secret}"
+load_db_env
 
 if [ -z "$POSTGRES_USER" ] && [ "$DB_DRIVER" = "pgsql" ]; then
     echo "❌ POSTGRES_USER не задан (в .env или окружении)"
@@ -76,7 +65,12 @@ prepare_pgsql() {
     validate_db_name "$DB_TEST_NAME"
 
     if ! $COMPOSE exec -T pgsql psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres <<EOF
-CREATE DATABASE IF NOT EXISTS "$DB_TEST_NAME";
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = '$DB_TEST_NAME' AND pid <> pg_backend_pid();
+
+DROP DATABASE IF EXISTS "$DB_TEST_NAME";
+CREATE DATABASE "$DB_TEST_NAME";
 EOF
     then
         echo "❌ Ошибка при создании БД $DB_TEST_NAME"
@@ -86,7 +80,12 @@ EOF
     if [ -n "$DB_MIGRATION_TEST_NAME" ]; then
         validate_db_name "$DB_MIGRATION_TEST_NAME"
         if ! $COMPOSE exec -T pgsql psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres <<EOF
-CREATE DATABASE IF NOT EXISTS "$DB_MIGRATION_TEST_NAME";
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = '$DB_MIGRATION_TEST_NAME' AND pid <> pg_backend_pid();
+
+DROP DATABASE IF EXISTS "$DB_MIGRATION_TEST_NAME";
+CREATE DATABASE "$DB_MIGRATION_TEST_NAME";
 EOF
         then
             echo "❌ Ошибка при создании БД $DB_MIGRATION_TEST_NAME"

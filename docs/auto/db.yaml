@@ -20,7 +20,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {}
+    foreign_keys: []
     indexes:
       -
         name: idx_async_idempotency_log_created_at
@@ -46,7 +46,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {}
+    foreign_keys: []
     indexes:
       -
         name: idx_authors_fio
@@ -145,7 +145,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {}
+    foreign_keys: []
     indexes:
       -
         name: idx_books_cover_url_partial
@@ -212,7 +212,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {}
+    foreign_keys: []
     indexes:
       -
         name: idx_idempotency_keys_expires_at
@@ -238,8 +238,8 @@ tables:
         default: null
     primary_key:
       - version
-    foreign_keys: {}
-    indexes: {}
+    foreign_keys: []
+    indexes: []
   queue:
     columns:
       -
@@ -294,7 +294,7 @@ tables:
         default: null
     primary_key:
       - id
-    foreign_keys: {}
+    foreign_keys: []
     indexes:
       -
         name: idx_queue_channel_reserved_at_priority
