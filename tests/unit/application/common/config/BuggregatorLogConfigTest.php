@@ -15,7 +15,8 @@ final class BuggregatorLogConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: buggregator.log.host');
 
-        new BuggregatorLogConfig('   ', 9913);
+        $create = static fn() => new BuggregatorLogConfig('   ', 9913);
+        $create();
     }
 
     public function testConstructorThrowsWhenPortTooSmall(): void
@@ -23,6 +24,7 @@ final class BuggregatorLogConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: buggregator.log.port');
 
-        new BuggregatorLogConfig('buggregator', 0);
+        $create = static fn() => new BuggregatorLogConfig('buggregator', 0);
+        $create();
     }
 }

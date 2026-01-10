@@ -70,7 +70,8 @@ final class IdempotencyConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: idempotency.ttl');
 
-        new IdempotencyConfig(0, 1, 1, 'hash');
+        $create = static fn() => new IdempotencyConfig(0, 1, 1, 'hash');
+        $create();
     }
 
     public function testConstructorThrowsOnInvalidLockTimeout(): void
@@ -78,7 +79,8 @@ final class IdempotencyConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: idempotency.lockTimeout');
 
-        new IdempotencyConfig(1, -1, 1, 'hash');
+        $create = static fn() => new IdempotencyConfig(1, -1, 1, 'hash');
+        $create();
     }
 
     public function testConstructorThrowsOnInvalidWaitSeconds(): void
@@ -86,14 +88,16 @@ final class IdempotencyConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: idempotency.waitSeconds');
 
-        new IdempotencyConfig(1, 1, -1, 'hash');
+        $create = static fn() => new IdempotencyConfig(1, 1, -1, 'hash');
+        $create();
     }
 
     public function testConstructorThrowsOnEmptySmsHashKey(): void
     {
         $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage('Missing required config: smsPhoneHashKey');
+        $this->expectExceptionMessage('Missing required config: idempotency.smsPhoneHashKey');
 
-        new IdempotencyConfig(1, 1, 1, '');
+        $create = static fn() => new IdempotencyConfig(1, 1, 1, '');
+        $create();
     }
 }

@@ -31,7 +31,7 @@ final class NativeMimeTypeDetectorTest extends Unit
             static fn(string $path): string|false => $path === '' ? '' : 'application/x-mime',
             static fn(): bool => true,
             new FinfoFunctions(
-                static fn(int $option): mixed => $option === 0 ? false : 'handle',
+                static fn(int $option): mixed => $option === FILEINFO_MIME_TYPE ? 'handle' : false,
                 static fn(mixed $finfo, string $path): string|false => $finfo === 'handle' && $path !== '' ? 'application/x-finfo' : false,
                 static fn(mixed $finfo): bool => $finfo === 'handle',
             ),
@@ -124,7 +124,7 @@ final class NativeMimeTypeDetectorTest extends Unit
         $fileCalled = false;
         $closeCalled = false;
         $finfoFunctions = new FinfoFunctions(
-            static fn(int $option): mixed => $option === 0 ? false : 'handle',
+            static fn(int $option): mixed => $option === FILEINFO_MIME_TYPE ? 'handle' : false,
             static function (mixed $finfo, string $path) use (&$fileCalled): string|false {
                 $fileCalled = true;
                 return $finfo === 'handle' && $path !== '' ? 'application/x-finfo' : false;

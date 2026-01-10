@@ -49,7 +49,8 @@ final class RateLimitConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: rateLimit.limit');
 
-        new RateLimitConfig(0, 1);
+        $create = static fn() => new RateLimitConfig(0, 1);
+        $create();
     }
 
     public function testConstructorThrowsWhenWindowTooSmall(): void
@@ -57,6 +58,7 @@ final class RateLimitConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: rateLimit.window');
 
-        new RateLimitConfig(1, 0);
+        $create = static fn() => new RateLimitConfig(1, 0);
+        $create();
     }
 }

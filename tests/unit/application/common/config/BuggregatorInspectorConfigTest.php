@@ -15,7 +15,8 @@ final class BuggregatorInspectorConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: buggregator.inspector.url');
 
-        new BuggregatorInspectorConfig(' ', 'key');
+        $create = static fn() => new BuggregatorInspectorConfig(' ', 'key');
+        $create();
     }
 
     public function testConstructorThrowsWhenIngestionKeyEmpty(): void
@@ -23,6 +24,7 @@ final class BuggregatorInspectorConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: buggregator.inspector.ingestionKey');
 
-        new BuggregatorInspectorConfig('http://buggregator:8000', '');
+        $create = static fn() => new BuggregatorInspectorConfig('http://buggregator:8000', '');
+        $create();
     }
 }

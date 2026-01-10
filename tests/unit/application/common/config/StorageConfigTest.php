@@ -38,7 +38,8 @@ final class StorageConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: storage.basePath');
 
-        new StorageConfig('', '/uploads', '');
+        $create = static fn() => new StorageConfig('', '/uploads', '');
+        $create();
     }
 
     public function testConstructorThrowsWhenBaseUrlEmpty(): void
@@ -46,6 +47,7 @@ final class StorageConfigTest extends Unit
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: storage.baseUrl');
 
-        new StorageConfig('/uploads', ' ', '');
+        $create = static fn() => new StorageConfig('/uploads', ' ', '');
+        $create();
     }
 }
