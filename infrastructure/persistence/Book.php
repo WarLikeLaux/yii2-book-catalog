@@ -92,7 +92,8 @@ final class Book extends ActiveRecord
                 throw new UnexpectedValueException("Author '{$author->fio}' has no ID");
             }
 
-            $ids[] = $author->id;
+            /** @phpstan-ignore cast.useless */
+            $ids[] = (int)$author->id;
         }
 
         return $ids;
@@ -110,7 +111,8 @@ final class Book extends ActiveRecord
                 throw new UnexpectedValueException("Author '{$author->fio}' has no ID");
             }
 
-            $names[$author->id] = $author->fio;
+            /** @phpstan-ignore cast.useless */
+            $names[(int)$author->id] = $author->fio;
         }
 
         return $names;
