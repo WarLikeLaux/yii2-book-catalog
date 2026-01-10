@@ -15,13 +15,13 @@ final readonly class SubscriptionRepository extends BaseActiveRecordRepository i
 
     public function save(SubscriptionEntity $subscription): void
     {
-        $ar = new Subscription();
-        $ar->phone = $subscription->phone;
-        $ar->author_id = $subscription->authorId;
+        $model = new Subscription();
+        $model->phone = $subscription->phone;
+        $model->author_id = $subscription->authorId;
 
-        $this->persist($ar, DomainErrorCode::SubscriptionStaleData, DomainErrorCode::SubscriptionAlreadySubscribed);
+        $this->persist($model, null, DomainErrorCode::SubscriptionAlreadySubscribed);
 
-        $this->assignId($subscription, $ar->id);
-        $this->registerIdentity($subscription, $ar);
+        $this->assignId($subscription, $model->id);
+        $this->registerIdentity($subscription, $model);
     }
 }

@@ -12,7 +12,7 @@ use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
 /**
- * @property int $id
+ * @property int|null $id
  * @property string $title
  * @property int $year
  * @property string $isbn
@@ -84,7 +84,7 @@ final class Book extends ActiveRecord
     public function getAuthorIds(): array
     {
         return array_map(
-            static fn(Author $author): int => $author->id,
+            static fn(Author $author): int => (int)$author->id,
             $this->authors,
         );
     }
@@ -96,7 +96,7 @@ final class Book extends ActiveRecord
         $names = [];
 
         foreach ($this->authors as $author) {
-            $names[$author->id] = $author->fio;
+            $names[(int)$author->id] = $author->fio;
         }
 
         return $names;

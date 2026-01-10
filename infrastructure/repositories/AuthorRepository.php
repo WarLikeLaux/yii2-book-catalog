@@ -15,28 +15,32 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 
     public function save(AuthorEntity $author): void
     {
-        if ($author->id === null) {
-            $ar = new Author();
+        if ($author->getId() === null) {
+            $model = new Author();
         } else {
-            $ar = $this->getArForEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
+            $model = $this->getArForEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
         }
 
-        $ar->fio = $author->fio;
+        $model->fio = $author->fio;
 
-        $this->persist($ar, DomainErrorCode::AuthorStaleData, DomainErrorCode::AuthorFioExists);
+        $this->persist($model, DomainErrorCode::AuthorStaleData, DomainErrorCode::AuthorFioExists);
 
-        if ($author->id === null) {
-            $this->assignId($author, $ar->id); // @phpstan-ignore property.notFound
+        if ($author->getId() === null) {
+            if ($model->id === null) {
+                throw new \RuntimeException('Failed to get ID for new author');
+            }
+
+            $this->assignId($author, $model->id);
         }
 
-        $this->registerIdentity($author, $ar);
+        $this->registerIdentity($author, $model);
     }
 
     public function get(int $id): AuthorEntity
     {
         $ar = $this->getArById($id, Author::class, DomainErrorCode::AuthorNotFound);
 
-        $entity = new AuthorEntity($ar->id, $ar->fio);
+        $entity = new AuthorEntity((int)$ar->id, $ar->fio);
         $this->registerIdentity($entity, $ar);
 
         return $entity;

@@ -96,7 +96,7 @@ abstract readonly class BaseActiveRecordRepository
      */
     protected function persist(
         ActiveRecord $model,
-        DomainErrorCode $staleError,
+        ?DomainErrorCode $staleError,
         ?DomainErrorCode $duplicateError = null,
     ): void {
         try {
@@ -104,6 +104,10 @@ abstract readonly class BaseActiveRecordRepository
                 throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
             }
         } catch (StaleObjectException) {
+            if (!$staleError instanceof DomainErrorCode) {
+                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
+            }
+
             throw new StaleDataException($staleError);
         } catch (IntegrityException $e) {
             if ($this->isDuplicateError($e)) {
