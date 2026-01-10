@@ -291,6 +291,8 @@ test-integration: _test-init
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run integration --ext DotReporter --skip-group migration --no-colors
 
 test-e2e: _test-init
+	@echo "🌱 Заполнение тестовых данных для E2E..."
+	@DB_NAME=$(DB_TEST_NAME) $(COMPOSE) exec $(PHP_CONTAINER) ./yii seed --interactive=0
 	@echo "🚀 Запуск E2E тестов..."
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run e2e --ext DotReporter --no-colors
 

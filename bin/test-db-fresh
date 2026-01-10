@@ -6,6 +6,32 @@ readonly DB_TEST_NAME="${DB_TEST_NAME:-yii2basic_test}"
 readonly DB_DRIVER="${DB_DRIVER:-mysql}"
 readonly COMPOSE="${COMPOSE:-docker compose}"
 
+DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-}"
+DB_USER="${DB_USER:-}"
+DB_PASSWORD="${DB_PASSWORD:-}"
+POSTGRES_USER="${POSTGRES_USER:-}"
+
+if [ -f .env ]; then
+    DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-$(grep -E '^DB_ROOT_PASSWORD=' .env | cut -d= -f2- || true)}"
+    DB_USER="${DB_USER:-$(grep -E '^DB_USER=' .env | cut -d= -f2- || true)}"
+    DB_PASSWORD="${DB_PASSWORD:-$(grep -E '^DB_PASSWORD=' .env | cut -d= -f2- || true)}"
+    POSTGRES_USER="${POSTGRES_USER:-$(grep -E '^POSTGRES_USER=' .env | cut -d= -f2- || true)}"
+fi
+
+DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-root}"
+DB_USER="${DB_USER:-yii2}"
+DB_PASSWORD="${DB_PASSWORD:-secret}"
+
+if [ -z "$POSTGRES_USER" ] && [ "$DB_DRIVER" = "pgsql" ]; then
+    echo "❌ POSTGRES_USER не задан (в .env или окружении)"
+    exit 1
+fi
+
+readonly DB_ROOT_PASSWORD
+readonly DB_USER
+readonly DB_PASSWORD
+readonly POSTGRES_USER
+
 validate_db_name() {
     local name="$1"
     if ! echo "$name" | grep -qE '^[a-zA-Z0-9_]+$'; then
@@ -18,10 +44,11 @@ reset_mysql() {
     echo "🚨 Полный сброс тестовой базы MySQL..."
     validate_db_name "$DB_TEST_NAME"
 
-    if ! MYSQL_PWD="$MYSQL_ROOT_PASSWORD" $COMPOSE exec -T db mysql -uroot -h127.0.0.1 <<EOF
+    if ! $COMPOSE exec -T -e MYSQL_PWD="$DB_ROOT_PASSWORD" db mysql -uroot -h127.0.0.1 <<EOF
 DROP DATABASE IF EXISTS \`$DB_TEST_NAME\`;
 CREATE DATABASE \`$DB_TEST_NAME\`;
-GRANT ALL PRIVILEGES ON \`$DB_TEST_NAME\`.* TO '$MYSQL_USER'@'%';
+CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';
+GRANT ALL PRIVILEGES ON \`$DB_TEST_NAME\`.* TO '$DB_USER'@'%';
 FLUSH PRIVILEGES;
 EOF
     then
@@ -40,7 +67,7 @@ FROM pg_stat_activity
 WHERE datname = '$DB_TEST_NAME' AND pid <> pg_backend_pid();
 
 DROP DATABASE IF EXISTS "$DB_TEST_NAME";
-CREATE DATABASE "$DB_TEST_NAME";
+CREATE DATABASE IF NOT EXISTS "$DB_TEST_NAME";
 EOF
     then
         echo "❌ Ошибка при сбросе БД $DB_TEST_NAME"
