@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\commands\support;
 
+use RuntimeException;
 use Symfony\Component\Yaml\Yaml;
 use Throwable;
 use Yii;
@@ -445,7 +446,7 @@ final readonly class AutoDocService
         }
 
         $actionParts = explode('/', $action);
-        $lastPart = $actionParts[count($actionParts) - 1];
+        $lastPart = end($actionParts);
 
         if ($lastPart === 'index') {
             if ($actionParts[0] === 'site') {
@@ -694,10 +695,10 @@ final readonly class AutoDocService
     private function normalizeCommandType(string $type): string
     {
         $parts = explode('|', $type);
-        $type = trim($parts[0]);
-        $type = (string)preg_replace('/\[\]$/', '', $type);
-        $type = (string)preg_replace('/<.*>$/', '', $type);
-        $segments = explode('\\', $type);
+        $primaryType = trim($parts[0]);
+        $baseType = (string)preg_replace('/\[\]$/', '', $primaryType);
+        $cleanType = (string)preg_replace('/<.*>$/', '', $baseType);
+        $segments = explode('\\', $cleanType);
         $last = end($segments);
 
         return is_string($last) && $last !== '' ? $last : 'mixed';
@@ -720,7 +721,7 @@ final readonly class AutoDocService
         $yaml = Yaml::dump($data, 10, 2, Yaml::DUMP_EMPTY_ARRAY_AS_SEQUENCE);
 
         if (file_put_contents($path, $yaml) === false) {
-            throw new \RuntimeException(sprintf('Failed to write %d bytes to file: %s', strlen($yaml), $path));
+            throw new RuntimeException(sprintf('Failed to write %d bytes to file: %s', strlen($yaml), $path));
         }
     }
 }
