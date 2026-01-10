@@ -20,8 +20,7 @@ final readonly class UploadedFileAdapter
     public function toFileContent(UploadedFile $uploadedFile): FileContent
     {
         try {
-            $extension = $uploadedFile->getExtension();
-            $extension = $extension !== '' ? $extension : null;
+            $extension = $uploadedFile->getExtension() !== '' ? $uploadedFile->getExtension() : null;
 
             return FileContent::fromPath(
                 $uploadedFile->tempName,
