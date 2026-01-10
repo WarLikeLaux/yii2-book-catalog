@@ -48,13 +48,10 @@ final class IdempotencyFilter extends ActionFilter
             return true;
         }
 
-        // @codeCoverageIgnoreStart
         if (!$this->service->acquireLock($key, $this->lockTimeout)) {
-            sleep($this->waitSeconds);
-            return $this->returnCachedResponseIfExists($key);
+            $this->applyInProgressResponse();
+            return false;
         }
-
-        // @codeCoverageIgnoreEnd
 
         $this->lockedKey = $key;
 
@@ -108,19 +105,6 @@ final class IdempotencyFilter extends ActionFilter
         }
 
         return $result;
-    }
-
-    /** @codeCoverageIgnore */
-    private function returnCachedResponseIfExists(string $key): bool
-    {
-        $record = $this->service->getRecord($key);
-
-        if (!$record instanceof IdempotencyRecordDto) {
-            $this->applyInProgressResponse();
-            return false;
-        }
-
-        return $this->handleExistingRecord($record);
     }
 
     private function handleExistingRecord(IdempotencyRecordDto $record): bool
@@ -180,6 +164,7 @@ final class IdempotencyFilter extends ActionFilter
         $response->statusCode = 409;
         $response->content = 'Idempotency key is in progress.';
         $response->getHeaders()->set('X-Idempotency-Status', 'IN_PROGRESS');
+        $response->getHeaders()->set('Retry-After', (string)$this->waitSeconds);
     }
 
     private function applyUnavailableResponse(): void
