@@ -397,8 +397,12 @@ final readonly class AutoDocService
         $actionParts = explode('/', $action);
         $lastPart = $actionParts[count($actionParts) - 1];
 
-        if ($lastPart === 'index' && $actionParts[0] === 'site') {
-            return '/';
+        if ($lastPart === 'index') {
+            if ($actionParts[0] === 'site') {
+                return '/';
+            }
+
+            return '/' . implode('/', array_slice($actionParts, 0, -1));
         }
 
         return '/' . $action;
@@ -442,13 +446,13 @@ final readonly class AutoDocService
                 continue;
             }
 
-            $name = $rule->name ?? $rule->pattern;
+            $pattern = $rule->pattern;
 
-            if (!is_string($name) || $name === '' || !is_string($rule->route) || $rule->route === '') {
+            if (!is_string($pattern) || $pattern === '' || !is_string($rule->route) || $rule->route === '') {
                 continue;
             }
 
-            $rules[$name] = $rule->route;
+            $rules[$pattern] = $rule->route;
         }
 
         return $rules;
@@ -644,8 +648,9 @@ final readonly class AutoDocService
         $type = (string)preg_replace('/\[\]$/', '', $type);
         $type = (string)preg_replace('/<.*>$/', '', $type);
         $segments = explode('\\', $type);
+        $last = end($segments);
 
-        return end($segments);
+        return is_string($last) && $last !== '' ? $last : 'mixed';
     }
 
     private function extractNamespace(string $content): string
@@ -662,8 +667,7 @@ final readonly class AutoDocService
         }
 
         FileHelper::createDirectory(dirname($path));
-        $yaml = Yaml::dump($data, 10, 2);
-        $yaml = preg_replace('/\{\s+\}/', '{}', $yaml);
+        $yaml = Yaml::dump($data, 10, 2, Yaml::DUMP_EMPTY_ARRAY_AS_SEQUENCE);
         file_put_contents($path, $yaml);
     }
 }
