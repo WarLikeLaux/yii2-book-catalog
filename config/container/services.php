@@ -23,6 +23,8 @@ use app\application\ports\SmsSenderInterface;
 use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
+use app\domain\services\MimeTypeDetectorInterface;
+use app\domain\services\NativeMimeTypeDetector;
 use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\queries\AuthorQueryService;
 use app\infrastructure\queries\BookQueryService;
@@ -95,6 +97,8 @@ return static fn (array $params) => [
 
             return new ContentAddressableStorage($config);
         },
+
+        MimeTypeDetectorInterface::class => NativeMimeTypeDetector::class,
 
         UploadedFileAdapter::class => UploadedFileAdapter::class,
 

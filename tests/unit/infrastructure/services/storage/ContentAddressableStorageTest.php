@@ -201,12 +201,21 @@ final class ContentAddressableStorageTest extends Unit
         $this->assertSame($hash, $keys[0]->value);
     }
 
-    public function testValidateExtensionAllowsEmpty(): void
+    public function testExistsReturnsFalseForEmptyExtension(): void
     {
         $content = $this->createFileContent(self::TEST_CONTENT);
         $key = $this->storage->save($content);
 
         $this->assertFalse($this->storage->exists($key, ''));
+    }
+
+    public function testValidateExtensionAllowsEmpty(): void
+    {
+        $key = new FileKey(self::VALID_HASH);
+
+        // Verification that no exception is thrown
+        $this->storage->exists($key, '');
+        $this->assertTrue(true);
     }
 
     public function testValidateExtensionThrowsException(): void

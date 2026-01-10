@@ -128,8 +128,7 @@ abstract readonly class BaseActiveRecordRepository
         /** @var int|string|null $sqlState */
         $sqlState = $info[0] ?? null;
 
-        return DatabaseErrorCode::isDuplicate($driverCode)
-        || DatabaseErrorCode::isDuplicate($sqlState);
+        return DatabaseErrorCode::isDuplicate($driverCode) || DatabaseErrorCode::isDuplicate($sqlState);
     }
 
     protected function getEntityId(IdentifiableEntityInterface $entity): int

@@ -7,6 +7,7 @@ namespace app\infrastructure\persistence;
 use yii\db\ActiveQuery;
 
 /**
+ * @extends ActiveQuery<Book>
  * @method Book[] all($db = null)
  * @method Book|null one($db = null)
  */

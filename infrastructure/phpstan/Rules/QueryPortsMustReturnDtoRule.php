@@ -144,20 +144,21 @@ final readonly class QueryPortsMustReturnDtoRule implements Rule
     {
         $classNames = $type->getObjectClassNames();
 
-        foreach ($classNames as $className) {
-            if ($className === self::PAGED_RESULT_INTERFACE) {
-                return true;
-            }
+        if ($classNames === []) {
+            return false;
+        }
 
-            if (
-                str_starts_with($className, self::APPLICATION_NAMESPACE)
-                && str_ends_with($className, self::DTO_SUFFIX)
-            ) {
-                return true;
+        foreach ($classNames as $className) {
+            $isPagedResult = $className === self::PAGED_RESULT_INTERFACE;
+            $isDto = str_starts_with($className, self::APPLICATION_NAMESPACE)
+            && str_ends_with($className, self::DTO_SUFFIX);
+
+            if (!$isPagedResult && !$isDto) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     private function isAllowedIterableType(Type $type, bool $allowScalars): bool

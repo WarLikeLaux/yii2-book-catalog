@@ -62,6 +62,15 @@ final class IdempotencyRepositoryTest extends Unit
         $this->assertNull($response['body']);
     }
 
+    public function testSaveStartedAllowsMaxKeyLength(): void
+    {
+        $key = str_repeat('m', 128);
+        $this->assertTrue($this->repository->saveStarted($key, 3600));
+
+        $response = $this->repository->getRecord($key);
+        $this->assertNotNull($response);
+    }
+
     public function testSaveStartedLogsErrorOnValidationFailure(): void
     {
         IdempotencyKey::deleteAll();
@@ -99,6 +108,16 @@ final class IdempotencyRepositoryTest extends Unit
         $key = str_repeat('b', 129);
 
         $repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
+    }
+
+    public function testSaveResponseAllowsMaxKeyLength(): void
+    {
+        $key = str_repeat('n', 128);
+        $this->repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
+
+        $response = $this->repository->getRecord($key);
+        $this->assertNotNull($response);
+        $this->assertSame('{"result": "ok"}', $response['body']);
     }
 
     public function testNormalizeResponseBodyReturnsNullForNonResource(): void
