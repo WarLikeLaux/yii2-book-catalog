@@ -5,7 +5,8 @@ declare(strict_types=1);
 
 use Dotenv\Dotenv;
 
-$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$baseDir = dirname(__DIR__);
+$dotenv = Dotenv::createImmutable($baseDir);
 $dotenv->safeLoad();
 
 $dotenv->required('DB_DRIVER')->allowedValues(['mysql', 'pgsql']);

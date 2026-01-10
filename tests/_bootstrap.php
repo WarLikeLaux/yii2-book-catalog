@@ -13,7 +13,7 @@ if (class_exists(BypassFinals::class)) {
     BypassFinals::enable();
 }
 
-require_once __DIR__ . '/../config/bootstrap_env.php';
+require_once __DIR__ . '/../config/env.php';
 require_once __DIR__ . '/../vendor/yiisoft/yii2/Yii.php';
 require_once __DIR__ . '/_support/DbCleaner.php';
 require_once __DIR__ . '/_support/IdempotencyStreamStub.php';
