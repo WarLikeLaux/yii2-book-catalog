@@ -68,6 +68,24 @@ final class IdempotencyFilterTest extends Unit
         $this->assertSame('UNAVAILABLE', Yii::$app->response->getHeaders()->get('X-Idempotency-Status'));
     }
 
+    public function testBeforeActionReturnsInProgressWhenLockAcquisitionFails(): void
+    {
+        $service = $this->createMock(IdempotencyServiceInterface::class);
+        $service->expects($this->once())
+            ->method('acquireLock')
+            ->with('key-fail', 1)
+            ->willReturn(false);
+
+        Yii::$app->request->getHeaders()->set('Idempotency-Key', 'key-fail');
+
+        $filter = new IdempotencyFilter($service, $this->createConfig());
+        $result = $filter->beforeAction($this->createAction());
+
+        $this->assertFalse($result);
+        $this->assertSame(409, Yii::$app->response->statusCode);
+        $this->assertSame('IN_PROGRESS', Yii::$app->response->getHeaders()->get('X-Idempotency-Status'));
+    }
+
     public function testBeforeActionReturnsInProgressWhenRecordStarted(): void
     {
         $service = $this->createMock(IdempotencyServiceInterface::class);
