@@ -95,7 +95,7 @@ final class IdempotencyConfigTest extends Unit
     public function testConstructorThrowsOnEmptySmsHashKey(): void
     {
         $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage('Missing required config: idempotency.smsPhoneHashKey');
+        $this->expectExceptionMessage('Invalid config: idempotency.smsPhoneHashKey');
 
         $create = static fn() => new IdempotencyConfig(1, 1, 1, '');
         $create();

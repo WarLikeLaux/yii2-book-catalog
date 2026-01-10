@@ -13,10 +13,10 @@ final readonly class StubActiveRecordRepository extends BaseActiveRecordReposito
 {
     public function testPersist(
         ActiveRecord $model,
+        DomainErrorCode $staleError,
         ?DomainErrorCode $duplicateError = null,
-        ?DomainErrorCode $staleError = null,
     ): void {
-        $this->persist($model, $duplicateError, $staleError);
+        $this->persist($model, $staleError, $duplicateError);
     }
 
     public function testRegisterIdentity(IdentifiableEntityInterface $entity, ActiveRecord $ar): void

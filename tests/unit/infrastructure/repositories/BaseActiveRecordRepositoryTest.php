@@ -41,7 +41,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
             'save' => true,
         ]);
 
-        $this->repository->testPersist($model);
+        $this->repository->testPersist($model, DomainErrorCode::BookStaleData);
     }
 
     public function testPersistThrowsRuntimeExceptionOnSaveFailure(): void
@@ -54,7 +54,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
         $this->expectException(OperationFailedException::class);
         $this->expectExceptionMessage('error.entity_persist_failed');
 
-        $this->repository->testPersist($model);
+        $this->repository->testPersist($model, DomainErrorCode::BookStaleData);
     }
 
     public function testPersistThrowsStaleDataExceptionOnStaleObject(): void
@@ -67,7 +67,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
         $this->expectException(StaleDataException::class);
 
-        $this->repository->testPersist($model);
+        $this->repository->testPersist($model, DomainErrorCode::BookStaleData);
     }
 
     public function testPersistThrowsAlreadyExistsExceptionOnDuplicate(): void
@@ -82,7 +82,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
         $this->expectException(AlreadyExistsException::class);
         $this->expectExceptionCode(409);
 
-        $this->repository->testPersist($model, DomainErrorCode::AuthorFioExists);
+        $this->repository->testPersist($model, DomainErrorCode::BookStaleData, DomainErrorCode::AuthorFioExists);
     }
 
     public function testPersistThrowsGenericAlreadyExistsExceptionOnDuplicateWithoutCode(): void
@@ -96,7 +96,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
         $this->expectException(AlreadyExistsException::class);
 
-        $this->repository->testPersist($model);
+        $this->repository->testPersist($model, DomainErrorCode::BookStaleData);
     }
 
     public function testPersistRethrowsGenericIntegrityException(): void
@@ -110,7 +110,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
         $this->expectException(IntegrityException::class);
 
-        $this->repository->testPersist($model);
+        $this->repository->testPersist($model, DomainErrorCode::BookStaleData);
     }
 
     public function testPersistRethrowsIntegrityExceptionWhenErrorInfoIsNull(): void
@@ -125,7 +125,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
         $this->expectException(IntegrityException::class);
         $this->expectExceptionMessage(self::OTHER_ERROR);
 
-        $this->repository->testPersist($model);
+        $this->repository->testPersist($model, DomainErrorCode::BookStaleData);
     }
 
     public function testPersistThrowsRuntimeExceptionWithDefaultMessageOnSaveFailureWithoutErrors(): void
@@ -138,7 +138,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
         $this->expectException(OperationFailedException::class);
         $this->expectExceptionMessage('error.entity_persist_failed');
 
-        $this->repository->testPersist($model);
+        $this->repository->testPersist($model, DomainErrorCode::BookStaleData);
     }
 
     public function testDeleteEntityRemovesIdentity(): void
