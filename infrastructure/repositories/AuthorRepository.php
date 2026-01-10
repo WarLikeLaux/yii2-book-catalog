@@ -7,6 +7,7 @@ namespace app\infrastructure\repositories;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author as AuthorEntity;
 use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\OperationFailedException;
 use app\infrastructure\persistence\Author;
 
 final readonly class AuthorRepository extends BaseActiveRecordRepository implements AuthorRepositoryInterface
@@ -27,7 +28,7 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 
         if ($author->getId() === null) {
             if ($model->id === null) {
-                throw new \RuntimeException('Failed to get ID for new author');
+                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
             }
 
             $this->assignId($author, $model->id);

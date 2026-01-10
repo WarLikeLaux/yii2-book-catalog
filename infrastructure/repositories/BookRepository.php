@@ -15,6 +15,7 @@ use app\domain\values\StoredFileReference;
 use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
+use RuntimeException;
 use WeakMap;
 use yii\db\Connection;
 
@@ -53,13 +54,15 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
 
             if ($isNew) {
                 if ($model->id === null) {
-                    throw new \RuntimeException('Failed to get ID for new book');
+                    throw new RuntimeException('Failed to get ID for new book');
                 }
 
                 $this->assignId($book, $model->id);
-            } else {
-                $book->incrementVersion();
+
+                return;
             }
+
+            $book->incrementVersion();
 
             $this->registerIdentity($book, $model);
 

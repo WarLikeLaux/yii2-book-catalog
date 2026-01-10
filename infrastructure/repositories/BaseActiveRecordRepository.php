@@ -101,7 +101,9 @@ abstract readonly class BaseActiveRecordRepository
     ): void {
         try {
             if (!$model->save(false)) {
-                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
+                $errors = $model->getFirstErrors();
+                $message = $errors !== [] ? json_encode($errors, JSON_UNESCAPED_UNICODE) : 'Unknown error';
+                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed, 0, new \RuntimeException((string)$message));
             }
         } catch (StaleObjectException) {
             if (!$staleError instanceof DomainErrorCode) {

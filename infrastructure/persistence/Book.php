@@ -6,6 +6,7 @@ namespace app\infrastructure\persistence;
 
 use app\application\books\queries\BookReadDto;
 use AutoMapper\Attribute\MapTo;
+use UnexpectedValueException;
 use yii\behaviors\OptimisticLockBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveQuery;
@@ -83,10 +84,18 @@ final class Book extends ActiveRecord
     #[MapTo(target: BookReadDto::class, property: 'authorIds')]
     public function getAuthorIds(): array
     {
-        return array_map(
-            static fn(Author $author): int => (int)$author->id,
-            $this->authors,
-        );
+        $ids = [];
+
+        foreach ($this->authors as $author) {
+            /** @phpstan-ignore identical.alwaysFalse */
+            if ($author->id === null) {
+                throw new UnexpectedValueException("Author '{$author->fio}' has no ID");
+            }
+
+            $ids[] = $author->id;
+        }
+
+        return $ids;
     }
 
     /** @return array<int, string> */
@@ -96,7 +105,12 @@ final class Book extends ActiveRecord
         $names = [];
 
         foreach ($this->authors as $author) {
-            $names[(int)$author->id] = $author->fio;
+            /** @phpstan-ignore identical.alwaysFalse */
+            if ($author->id === null) {
+                throw new UnexpectedValueException("Author '{$author->fio}' has no ID");
+            }
+
+            $names[$author->id] = $author->fio;
         }
 
         return $names;
