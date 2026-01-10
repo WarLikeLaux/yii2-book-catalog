@@ -64,7 +64,7 @@ return [
     'idempotency.error.key_in_progress' => 'Операция уже выполняется. Подождите завершения.',
     'idempotency.error.storage_unavailable' => 'Хранилище идемпотентности недоступно. Попробуйте позже.',
     'file.error.key_invalid_format' => 'Неверный формат ключа файла',
-    'file.error.content_invalid_stream' => 'Содержимое файла повреждено',
+    'file.error.content_invalid_stream' => 'Недопустимый поток данных файла',
     'file.error.not_found' => 'Файл не найден',
     'file.error.open_failed' => 'Не удалось открыть файл',
     'file.error.storage_operation_failed' => 'Ошибка работы с хранилищем файлов',

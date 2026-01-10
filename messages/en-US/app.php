@@ -64,7 +64,7 @@ return [
     'idempotency.error.key_in_progress' => 'Operation is already in progress. Please wait.',
     'idempotency.error.storage_unavailable' => 'Idempotency storage unavailable. Please try again later.',
     'file.error.key_invalid_format' => 'Invalid file key format',
-    'file.error.content_invalid_stream' => 'File content is corrupted',
+    'file.error.content_invalid_stream' => 'Invalid file content stream',
     'file.error.not_found' => 'File not found',
     'file.error.open_failed' => 'Failed to open file',
     'file.error.storage_operation_failed' => 'File storage operation failed',
