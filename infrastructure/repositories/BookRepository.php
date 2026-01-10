@@ -54,15 +54,13 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
 
             if ($isNew) {
                 if ($model->id === null) {
-                    throw new RuntimeException('Failed to get ID for new book');
+                    throw new RuntimeException('Failed to get ID for new book'); // @codeCoverageIgnore
                 }
 
                 $this->assignId($book, $model->id);
-
-                return;
+            } else {
+                $book->incrementVersion();
             }
-
-            $book->incrementVersion();
 
             $this->registerIdentity($book, $model);
 
