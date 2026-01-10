@@ -42,7 +42,7 @@ final class StorageConfigTest extends Unit
         $create();
     }
 
-    public function testConstructorThrowsWhenBaseUrlEmpty(): void
+    public function testConstructorThrowsWhenBaseUrlWhitespaceOnly(): void
     {
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: storage.baseUrl');
