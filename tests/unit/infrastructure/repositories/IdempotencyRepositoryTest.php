@@ -69,6 +69,9 @@ final class IdempotencyRepositoryTest extends Unit
 
         $response = $this->repository->getRecord($key);
         $this->assertNotNull($response);
+        $this->assertSame('started', $response['status']);
+        $this->assertNull($response['status_code']);
+        $this->assertNull($response['body']);
     }
 
     public function testSaveStartedLogsErrorOnValidationFailure(): void
@@ -83,6 +86,7 @@ final class IdempotencyRepositoryTest extends Unit
         $key = str_repeat('a', 129);
 
         $this->assertFalse($repository->saveStarted($key, 3600));
+        $this->assertNull($repository->getRecord($key));
     }
 
     public function testSaveDuplicateKeyDoesNotCrash(): void
@@ -108,6 +112,8 @@ final class IdempotencyRepositoryTest extends Unit
         $key = str_repeat('b', 129);
 
         $repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
+
+        $this->assertNull($repository->getRecord($key));
     }
 
     public function testSaveResponseAllowsMaxKeyLength(): void
@@ -117,6 +123,8 @@ final class IdempotencyRepositoryTest extends Unit
 
         $response = $this->repository->getRecord($key);
         $this->assertNotNull($response);
+        $this->assertSame('finished', $response['status']);
+        $this->assertSame(200, $response['status_code']);
         $this->assertSame('{"result": "ok"}', $response['body']);
     }
 

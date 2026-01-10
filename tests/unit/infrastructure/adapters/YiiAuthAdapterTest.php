@@ -51,9 +51,11 @@ final class YiiAuthAdapterTest extends Unit
 
     private function setConsoleApp(): ConsoleApplication
     {
-        return new ConsoleApplication([
+        Yii::$app = new ConsoleApplication([
             'id' => 'test-console-auth',
             'basePath' => dirname(__DIR__, 4),
         ]);
+
+        return Yii::$app;
     }
 }

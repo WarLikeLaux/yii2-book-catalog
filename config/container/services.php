@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+use app\application\common\config\BuggregatorConfig;
+use app\application\common\config\ConfigFactory;
+use app\application\common\config\IdempotencyConfig;
+use app\application\common\config\RateLimitConfig;
+use app\application\common\config\ReportsConfig;
+use app\application\common\config\StorageConfig as AppStorageConfig;
 use app\application\common\IdempotencyService;
 use app\application\common\IdempotencyServiceInterface;
 use app\application\common\RateLimitService;
@@ -36,111 +42,97 @@ use app\infrastructure\queue\handlers\NotifySingleSubscriberHandler;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use app\infrastructure\services\LogCategory;
 use app\infrastructure\services\storage\ContentAddressableStorage;
-use app\infrastructure\services\storage\StorageConfig;
+use app\infrastructure\services\storage\StorageConfig as InfraStorageConfig;
 use app\infrastructure\services\YiiPsrLogger;
 use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\services\FileUrlResolver;
-use yii\base\InvalidConfigException;
 use yii\di\Container;
 
-return static fn (array $params) => [
-    'definitions' => [
-        BookQueryServiceInterface::class => static fn(Container $c): BookQueryServiceInterface => TracingFactory::create(
-            $c,
-            BookQueryService::class,
-            BookQueryServiceTracingDecorator::class,
-        ),
+return static function (array $params): array {
+    $configFactory = new ConfigFactory($params);
 
-        BookFinderInterface::class => BookQueryServiceInterface::class,
-        BookSearcherInterface::class => BookQueryServiceInterface::class,
+    return [
+        'definitions' => [
+            BookQueryServiceInterface::class => static fn(Container $c): BookQueryServiceInterface => TracingFactory::create(
+                $c,
+                BookQueryService::class,
+                BookQueryServiceTracingDecorator::class,
+            ),
 
-        AuthorQueryServiceInterface::class => AuthorQueryService::class,
+            BookFinderInterface::class => BookQueryServiceInterface::class,
+            BookSearcherInterface::class => BookQueryServiceInterface::class,
 
-        SubscriptionQueryServiceInterface::class => InfraSubscriptionQueryService::class,
+            AuthorQueryServiceInterface::class => AuthorQueryService::class,
 
-        ReportQueryServiceInterface::class => static function (Container $c) use ($params): ReportQueryServiceInterface {
-            $rawTtl = $params['reports']['cacheTtl'] ?? 3600;
+            SubscriptionQueryServiceInterface::class => InfraSubscriptionQueryService::class,
 
-            $ttl = filter_var($rawTtl, FILTER_VALIDATE_INT, [
-                'options' => ['min_range' => 1, 'max_range' => 86400],
-            ]);
+            ReportQueryServiceInterface::class => static function (Container $c): ReportQueryServiceInterface {
+                $reportsConfig = $c->get(ReportsConfig::class);
 
-            return new ReportQueryServiceCachingDecorator(
-                $c->get(ReportQueryService::class),
-                $c->get(CacheInterface::class),
-                $ttl !== false ? $ttl : 3600,
-            );
-        },
+                return new ReportQueryServiceCachingDecorator(
+                    $c->get(ReportQueryService::class),
+                    $c->get(CacheInterface::class),
+                    $reportsConfig->cacheTtl,
+                );
+            },
 
-        ContentStorageInterface::class => static function () use ($params) {
-            $storageParams = $params['storage'] ?? null;
+            ContentStorageInterface::class => static function (Container $c): ContentStorageInterface {
+                $storageConfig = $c->get(AppStorageConfig::class);
 
-            if (!is_array($storageParams)) {
-                throw new InvalidArgumentException('Missing storage configuration.');
-            }
+                $config = new InfraStorageConfig(
+                    Yii::getAlias($storageConfig->basePath),
+                    $storageConfig->baseUrl,
+                );
 
-            $basePath = $storageParams['basePath'] ?? null;
-            $baseUrl = $storageParams['baseUrl'] ?? null;
+                return new ContentAddressableStorage($config);
+            },
 
-            if (!is_string($basePath) || trim($basePath) === '') {
-                throw new InvalidArgumentException('Invalid storage.basePath configuration.');
-            }
+            MimeTypeDetectorInterface::class => NativeMimeTypeDetector::class,
 
-            if (!is_string($baseUrl) || trim($baseUrl) === '') {
-                throw new InvalidArgumentException('Invalid storage.baseUrl configuration.');
-            }
+            UploadedFileAdapter::class => UploadedFileAdapter::class,
 
-            $config = new StorageConfig(
-                Yii::getAlias($basePath),
-                $baseUrl,
-            );
-
-            return new ContentAddressableStorage($config);
-        },
-
-        MimeTypeDetectorInterface::class => NativeMimeTypeDetector::class,
-
-        UploadedFileAdapter::class => UploadedFileAdapter::class,
-
-        NotifySubscribersHandler::class => static fn(Container $c): NotifySubscribersHandler => new NotifySubscribersHandler(
-            $c->get(SubscriptionQueryServiceInterface::class),
-            $c->get(TranslatorInterface::class),
-            new YiiPsrLogger(LogCategory::SMS),
-        ),
-        NotifySingleSubscriberHandler::class => static function (Container $c) use ($params): NotifySingleSubscriberHandler {
-            $hashKey = (string)($params['idempotency']['smsPhoneHashKey'] ?? '');
-
-            if ($hashKey === '') {
-                throw new InvalidConfigException('Missing required config: smsPhoneHashKey');
-            }
-
-            return new NotifySingleSubscriberHandler(
-                $c->get(SmsSenderInterface::class),
-                $c->get(AsyncIdempotencyStorageInterface::class),
+            NotifySubscribersHandler::class => static fn(Container $c): NotifySubscribersHandler => new NotifySubscribersHandler(
+                $c->get(SubscriptionQueryServiceInterface::class),
+                $c->get(TranslatorInterface::class),
                 new YiiPsrLogger(LogCategory::SMS),
-                $hashKey,
-            );
-        },
+            ),
+            ConfigFactory::class => static fn(): ConfigFactory => $configFactory,
+            IdempotencyConfig::class => static fn(): IdempotencyConfig => $configFactory->idempotency(),
+            RateLimitConfig::class => static fn(): RateLimitConfig => $configFactory->rateLimit(),
+            ReportsConfig::class => static fn(): ReportsConfig => $configFactory->reports(),
+            AppStorageConfig::class => static fn(): AppStorageConfig => $configFactory->storage(),
+            BuggregatorConfig::class => static fn(): BuggregatorConfig => $configFactory->buggregator(),
 
-        FileUrlResolver::class => static function () use ($params) {
-            $storageParams = $params['storage'];
-            return new FileUrlResolver(
-                $storageParams['baseUrl'],
-                $storageParams['placeholderUrl'] ?? '',
-            );
-        },
-    ],
-    'singletons' => [
-        IdempotencyServiceInterface::class => static fn(Container $c): IdempotencyServiceInterface => new IdempotencyService(
-            $c->get(IdempotencyInterface::class),
-            $c->get(MutexInterface::class),
-        ),
-        RateLimitServiceInterface::class => static fn(Container $c): RateLimitServiceInterface => new RateLimitService(
-            $c->get(RateLimitInterface::class),
-        ),
-        TransactionalEventPublisher::class => static fn(Container $c): TransactionalEventPublisher => new TransactionalEventPublisher(
-            $c->get(TransactionInterface::class),
-            $c->get(EventPublisherInterface::class),
-        ),
-    ],
-];
+            NotifySingleSubscriberHandler::class => static function (Container $c): NotifySingleSubscriberHandler {
+                $idempotencyConfig = $c->get(IdempotencyConfig::class);
+                return new NotifySingleSubscriberHandler(
+                    $c->get(SmsSenderInterface::class),
+                    $c->get(AsyncIdempotencyStorageInterface::class),
+                    new YiiPsrLogger(LogCategory::SMS),
+                    $idempotencyConfig->smsPhoneHashKey,
+                );
+            },
+
+            FileUrlResolver::class => static function (Container $c): FileUrlResolver {
+                $storageConfig = $c->get(AppStorageConfig::class);
+                return new FileUrlResolver(
+                    $storageConfig->baseUrl,
+                    $storageConfig->placeholderUrl,
+                );
+            },
+        ],
+        'singletons' => [
+            IdempotencyServiceInterface::class => static fn(Container $c): IdempotencyServiceInterface => new IdempotencyService(
+                $c->get(IdempotencyInterface::class),
+                $c->get(MutexInterface::class),
+            ),
+            RateLimitServiceInterface::class => static fn(Container $c): RateLimitServiceInterface => new RateLimitService(
+                $c->get(RateLimitInterface::class),
+            ),
+            TransactionalEventPublisher::class => static fn(Container $c): TransactionalEventPublisher => new TransactionalEventPublisher(
+                $c->get(TransactionInterface::class),
+                $c->get(EventPublisherInterface::class),
+            ),
+        ],
+    ];
+};

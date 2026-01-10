@@ -23,7 +23,7 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 
         $ar->fio = $author->fio;
 
-        $this->persist($ar, DomainErrorCode::AuthorFioExists);
+        $this->persist($ar, DomainErrorCode::AuthorFioExists, DomainErrorCode::AuthorStaleData);
 
         if ($author->id !== null) {
             return;

@@ -23,10 +23,12 @@ enum DomainErrorCode: string
     case AuthorNotFound = 'author.error.not_found';
     case AuthorCreateFailed = 'author.error.create_failed';
     case AuthorUpdateFailed = 'author.error.update_failed';
+    case AuthorStaleData = 'author.error.stale_data';
     case AuthorFioExists = 'author.error.fio_exists';
 
     case SubscriptionAlreadySubscribed = 'subscription.error.already_subscribed';
     case SubscriptionCreateFailed = 'subscription.error.create_failed';
+    case SubscriptionStaleData = 'subscription.error.stale_data';
 
     case IsbnInvalidFormat = 'isbn.error.invalid_format';
 

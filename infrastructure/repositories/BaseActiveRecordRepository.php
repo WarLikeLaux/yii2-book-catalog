@@ -78,14 +78,13 @@ abstract readonly class BaseActiveRecordRepository
         string $arClass,
         DomainErrorCode $notFoundCode,
     ): void {
-        $id = $this->getEntityId($entity);
-
-        $ar = $this->getArById($id, $arClass, $notFoundCode);
+        $ar = $this->getArForEntity($entity, $arClass, $notFoundCode);
 
         if ($ar->delete() === false) {
             throw new OperationFailedException(DomainErrorCode::EntityDeleteFailed); // @codeCoverageIgnore
         }
 
+        $id = $this->getEntityId($entity);
         $this->removeIdentityById($id);
     }
 
@@ -98,13 +97,15 @@ abstract readonly class BaseActiveRecordRepository
     protected function persist(
         ActiveRecord $model,
         ?DomainErrorCode $duplicateError = null,
+        ?DomainErrorCode $staleError = null,
     ): void {
         try {
             if (!$model->save(false)) {
                 throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
             }
         } catch (StaleObjectException) {
-            throw new StaleDataException();
+            $staleErrorCode = $staleError ?? DomainErrorCode::BookStaleData;
+            throw new StaleDataException($staleErrorCode);
         } catch (IntegrityException $e) {
             if ($this->isDuplicateError($e)) {
                 if ($duplicateError instanceof DomainErrorCode) {

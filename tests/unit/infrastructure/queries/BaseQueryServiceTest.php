@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\queries;
 
-use app\infrastructure\queries\BaseQueryService;
 use AutoMapper\AutoMapperInterface;
 use Codeception\Test\Unit;
 use LogicException;
+use tests\_support\TestableBaseQueryService;
 use yii\db\ActiveQuery;
 use yii\db\ActiveQueryInterface;
 use yii\db\ActiveRecord;
@@ -25,19 +25,16 @@ final class BaseQueryServiceTest extends Unit
     public function testExistsWithActiveQueryAndExcludeId(): void
     {
         $service = $this->createService();
-        $query = $this->createActiveQueryWithPrimaryKey(['id']);
-
-        $query->expects($this->once())
-            ->method('andWhere')
-            ->with(['<>', 'id', 123])
-            ->willReturnSelf();
-
-        $query->expects($this->once())
-            ->method('exists')
-            ->with($this->identicalTo($this->conn))
-            ->willReturn(true);
+        $calls = [];
+        $modelClass = $this->createActiveRecordClass(['id']);
+        $query = $this->createRecordingActiveQuery($modelClass, true, $calls);
 
         $this->assertTrue($service->checkExists($query, 123));
+
+        $this->assertSame([
+            ['andWhere', ['<>', 'id', 123]],
+            ['exists', $this->conn],
+        ], $calls);
     }
 
     public function testExistsWithNullExcludeId(): void
@@ -104,19 +101,16 @@ final class BaseQueryServiceTest extends Unit
     public function testExistsWithSinglePkAndArrayExcludeId(): void
     {
         $service = $this->createService();
-        $query = $this->createActiveQueryWithPrimaryKey(['id']);
-
-        $query->expects($this->once())
-            ->method('andWhere')
-            ->with(['<>', 'id', 123])
-            ->willReturnSelf();
-
-        $query->expects($this->once())
-            ->method('exists')
-            ->with($this->identicalTo($this->conn))
-            ->willReturn(true);
+        $calls = [];
+        $modelClass = $this->createActiveRecordClass(['id']);
+        $query = $this->createRecordingActiveQuery($modelClass, true, $calls);
 
         $this->assertTrue($service->checkExists($query, ['id' => 123]));
+
+        $this->assertSame([
+            ['andWhere', ['<>', 'id', 123]],
+            ['exists', $this->conn],
+        ], $calls);
     }
 
     public function testExistsThrowsLogicExceptionWhenArrayExcludeIdMissingSinglePk(): void
@@ -133,19 +127,16 @@ final class BaseQueryServiceTest extends Unit
     public function testExistsWithCompositePkSucceeds(): void
     {
         $service = $this->createService();
-        $query = $this->createActiveQueryWithPrimaryKey(['id', 'cid']);
-
-        $query->expects($this->once())
-            ->method('andWhere')
-            ->with(['not', ['and', ['=', 'id', 1], ['=', 'cid', 2]]])
-            ->willReturnSelf();
-
-        $query->expects($this->once())
-            ->method('exists')
-            ->with($this->identicalTo($this->conn))
-            ->willReturn(true);
+        $calls = [];
+        $modelClass = $this->createActiveRecordClass(['id', 'cid']);
+        $query = $this->createRecordingActiveQuery($modelClass, true, $calls);
 
         $this->assertTrue($service->checkExists($query, ['id' => 1, 'cid' => 2]));
+
+        $this->assertSame([
+            ['andWhere', ['not', ['and', ['=', 'id', 1], ['=', 'cid', 2]]]],
+            ['exists', $this->conn],
+        ], $calls);
     }
 
     public function testExistsThrowsLogicExceptionForModelWithoutPrimaryKey(): void
@@ -163,12 +154,7 @@ final class BaseQueryServiceTest extends Unit
     {
         $mapper = $this->makeEmpty(AutoMapperInterface::class);
 
-        return new class ($this->conn, $mapper) extends BaseQueryService {
-            public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
-            {
-                return $this->exists($query, $excludeId);
-            }
-        };
+        return new TestableBaseQueryService($this->conn, $mapper);
     }
 
     private function createActiveQueryWithPrimaryKey(array $primaryKey): ActiveQuery
@@ -190,8 +176,45 @@ final class BaseQueryServiceTest extends Unit
             }
         };
 
-        $record::$primaryKey = $primaryKey;
+        $className = $record::class;
+        $className::$primaryKey = $primaryKey;
 
-        return $record::class;
+        return $className;
+    }
+
+    /**
+     * @param array<int, array<int, mixed>> $calls
+     */
+    private function createRecordingActiveQuery(string $modelClass, bool $existsResult, array &$calls): ActiveQuery
+    {
+        return new class ($modelClass, $existsResult, $calls) extends ActiveQuery {
+            private bool $existsResult;
+
+            /** @var array<int, array<int, mixed>> */
+            private array $calls;
+
+            /**
+             * @param array<int, array<int, mixed>> $calls
+             */
+            public function __construct(string $modelClass, bool $existsResult, array &$calls)
+            {
+                $this->existsResult = $existsResult;
+                $this->calls =& $calls;
+                parent::__construct($modelClass);
+            }
+
+            public function andWhere($condition, $params = []): static
+            {
+                unset($params);
+                $this->calls[] = ['andWhere', $condition];
+                return $this;
+            }
+
+            public function exists($db = null): bool
+            {
+                $this->calls[] = ['exists', $db];
+                return $this->existsResult;
+            }
+        };
     }
 }
