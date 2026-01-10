@@ -96,16 +96,15 @@ abstract readonly class BaseActiveRecordRepository
      */
     protected function persist(
         ActiveRecord $model,
+        DomainErrorCode $staleError,
         ?DomainErrorCode $duplicateError = null,
-        ?DomainErrorCode $staleError = null,
     ): void {
         try {
             if (!$model->save(false)) {
                 throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
             }
         } catch (StaleObjectException) {
-            $staleErrorCode = $staleError ?? DomainErrorCode::BookStaleData;
-            throw new StaleDataException($staleErrorCode);
+            throw new StaleDataException($staleError);
         } catch (IntegrityException $e) {
             if ($this->isDuplicateError($e)) {
                 if ($duplicateError instanceof DomainErrorCode) {

@@ -17,6 +17,8 @@ use yii\db\ActiveRecord;
  */
 final class IdempotencyKey extends ActiveRecord
 {
+    public const int MAX_KEY_LENGTH = 128;
+
     public static function tableName(): string
     {
         return '{{%idempotency_keys}}';
@@ -28,7 +30,7 @@ final class IdempotencyKey extends ActiveRecord
             [['idempotency_key', 'status', 'created_at', 'expires_at'], 'required'],
             [['status_code', 'created_at', 'expires_at'], 'integer'],
             [['response_body'], 'string'],
-            [['idempotency_key'], 'string', 'max' => 128],
+            [['idempotency_key'], 'string', 'max' => self::MAX_KEY_LENGTH],
             [['idempotency_key'], 'unique'],
             [['status'], 'string', 'max' => 20],
         ];

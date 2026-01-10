@@ -64,7 +64,7 @@ final class IdempotencyRepositoryTest extends Unit
 
     public function testSaveStartedAllowsMaxKeyLength(): void
     {
-        $key = str_repeat('m', 128);
+        $key = str_repeat('m', IdempotencyKey::MAX_KEY_LENGTH);
         $this->assertTrue($this->repository->saveStarted($key, 3600));
 
         $response = $this->repository->getRecord($key);
@@ -83,7 +83,7 @@ final class IdempotencyRepositoryTest extends Unit
             ->method('error');
 
         $repository = new IdempotencyRepository($logger);
-        $key = str_repeat('a', 129);
+        $key = str_repeat('a', IdempotencyKey::MAX_KEY_LENGTH + 1);
 
         $this->assertFalse($repository->saveStarted($key, 3600));
         $this->assertNull($repository->getRecord($key));
@@ -109,7 +109,7 @@ final class IdempotencyRepositoryTest extends Unit
             ->method('error');
 
         $repository = new IdempotencyRepository($logger);
-        $key = str_repeat('b', 129);
+        $key = str_repeat('b', IdempotencyKey::MAX_KEY_LENGTH + 1);
 
         $repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
 
@@ -118,7 +118,7 @@ final class IdempotencyRepositoryTest extends Unit
 
     public function testSaveResponseAllowsMaxKeyLength(): void
     {
-        $key = str_repeat('n', 128);
+        $key = str_repeat('n', IdempotencyKey::MAX_KEY_LENGTH);
         $this->repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
 
         $response = $this->repository->getRecord($key);

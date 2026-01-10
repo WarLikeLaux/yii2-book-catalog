@@ -19,7 +19,7 @@ final readonly class SubscriptionRepository extends BaseActiveRecordRepository i
         $ar->phone = $subscription->phone;
         $ar->author_id = $subscription->authorId;
 
-        $this->persist($ar, DomainErrorCode::SubscriptionAlreadySubscribed, DomainErrorCode::SubscriptionStaleData);
+        $this->persist($ar, DomainErrorCode::SubscriptionStaleData, DomainErrorCode::SubscriptionAlreadySubscribed);
 
         $this->assignId($subscription, $ar->id);
     }

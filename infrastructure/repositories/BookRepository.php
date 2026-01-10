@@ -48,7 +48,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             'is_published' => static fn(BookEntity $e): int => $e->published ? 1 : 0,
         ]);
 
-        $this->persist($ar, DomainErrorCode::BookIsbnExists, DomainErrorCode::BookStaleData);
+        $this->persist($ar, DomainErrorCode::BookStaleData, DomainErrorCode::BookIsbnExists);
 
         if ($isNew) {
             $this->assignId($book, $ar->id); // @phpstan-ignore property.notFound
