@@ -160,6 +160,7 @@ abstract readonly class BaseActiveRecordRepository
             }
 
             $toRemove[] = $entity;
+            break;
         }
 
         foreach ($toRemove as $entity) {
