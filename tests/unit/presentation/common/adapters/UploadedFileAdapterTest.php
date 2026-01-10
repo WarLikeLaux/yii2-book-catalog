@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\common\adapters;
 
+use app\domain\services\NativeMimeTypeDetector;
 use app\domain\values\FileContent;
 use app\presentation\common\adapters\UploadedFileAdapter;
 use Codeception\Test\Unit;
@@ -21,7 +22,7 @@ final class UploadedFileAdapterTest extends Unit
     {
         $this->tempDir = sys_get_temp_dir() . '/adapter-test-' . uniqid();
         mkdir($this->tempDir, 0777, true);
-        $this->adapter = new UploadedFileAdapter();
+        $this->adapter = new UploadedFileAdapter(new NativeMimeTypeDetector());
     }
 
     protected function _after(): void

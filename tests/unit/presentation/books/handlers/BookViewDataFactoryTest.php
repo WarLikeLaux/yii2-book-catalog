@@ -118,7 +118,12 @@ final class BookViewDataFactoryTest extends Unit
             ->willReturn(new \stdClass());
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('getBookForUpdate expects BookForm.');
+        $this->expectExceptionMessage(sprintf(
+            'AutoMapper не смог преобразовать %s в %s в getBookForUpdate: получен %s. Проверьте конфигурацию маппера.',
+            BookReadDto::class,
+            BookForm::class,
+            'stdClass',
+        ));
 
         $this->factory->getBookForUpdate(1);
     }

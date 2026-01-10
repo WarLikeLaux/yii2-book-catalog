@@ -55,7 +55,12 @@ final readonly class BookViewDataFactory
         $form = $this->autoMapper->map($dto, BookForm::class);
 
         if (!$form instanceof BookForm) {
-            throw new LogicException('getBookForUpdate expects BookForm.');
+            throw new LogicException(sprintf(
+                'AutoMapper не смог преобразовать %s в %s в getBookForUpdate: получен %s. Проверьте конфигурацию маппера.',
+                BookReadDto::class,
+                BookForm::class,
+                get_debug_type($form),
+            ));
         }
 
         return $form;

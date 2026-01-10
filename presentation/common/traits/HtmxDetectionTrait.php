@@ -15,20 +15,16 @@ trait HtmxDetectionTrait
 
     protected function getHtmxTrigger(): ?string
     {
-        $value = $this->getRequestObject()->getHeaders()->get('HX-Trigger');
-        return is_array($value) ? ($value[0] ?? null) : $value;
+        return $this->getRequestObject()->getHeaders()->get('HX-Trigger');
     }
 
     protected function getHtmxTarget(): ?string
     {
-        $value = $this->getRequestObject()->getHeaders()->get('HX-Target');
-        return is_array($value) ? ($value[0] ?? null) : $value;
+        return $this->getRequestObject()->getHeaders()->get('HX-Target');
     }
 
     private function getRequestObject(): Request
     {
-        /** @var Request $request */
-        $request = $this->request;
-        return $request;
+        return $this->request;
     }
 }

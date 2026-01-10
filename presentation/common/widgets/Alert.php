@@ -7,6 +7,7 @@ namespace app\presentation\common\widgets;
 use Yii;
 use yii\bootstrap5\Alert as BootstrapAlert;
 use yii\bootstrap5\Widget;
+use yii\web\Application;
 
 final class Alert extends Widget
 {
@@ -29,7 +30,13 @@ final class Alert extends Widget
      */
     public function run(): void
     {
-        $session = Yii::$app->session;
+        $app = Yii::$app;
+
+        if (!$app instanceof Application) {
+            return;
+        }
+
+        $session = $app->session;
         $appendClass = isset($this->options['class']) ? ' ' . $this->options['class'] : '';
 
         foreach (array_keys($this->alertTypes) as $type) {

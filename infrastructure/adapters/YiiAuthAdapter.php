@@ -7,6 +7,7 @@ namespace app\infrastructure\adapters;
 use app\application\ports\AuthServiceInterface;
 use app\infrastructure\persistence\User;
 use Yii;
+use yii\web\Application;
 
 final class YiiAuthAdapter implements AuthServiceInterface
 {
@@ -14,7 +15,13 @@ final class YiiAuthAdapter implements AuthServiceInterface
 
     public function isGuest(): bool
     {
-        return Yii::$app->user->isGuest;
+        $app = Yii::$app;
+
+        if (!$app instanceof Application) {
+            return true;
+        }
+
+        return $app->user->isGuest;
     }
 
     public function login(string $username, string $password, bool $rememberMe): bool
@@ -27,11 +34,23 @@ final class YiiAuthAdapter implements AuthServiceInterface
 
         $duration = $rememberMe ? self::REMEMBER_ME_DURATION : 0;
 
-        return Yii::$app->user->login($user, $duration);
+        $app = Yii::$app;
+
+        if (!$app instanceof Application) {
+            return false;
+        }
+
+        return $app->user->login($user, $duration);
     }
 
     public function logout(): void
     {
-        Yii::$app->user->logout();
+        $app = Yii::$app;
+
+        if (!($app instanceof Application)) {
+            return;
+        }
+
+        $app->user->logout();
     }
 }
