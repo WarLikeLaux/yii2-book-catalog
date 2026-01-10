@@ -7,17 +7,14 @@ tables:
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: idempotency_key
         type: varchar(128)
         nullable: false
-        default: null
       -
         name: created_at
         type: int
         nullable: false
-        default: null
     primary_key:
       - id
     foreign_keys: []
@@ -38,21 +35,14 @@ tables:
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: fio
         type: varchar(255)
         nullable: false
-        default: null
     primary_key:
       - id
     foreign_keys: []
     indexes:
-      -
-        name: idx_authors_fio
-        columns:
-          - fio
-        unique: false
       -
         name: idx_authors_fio_fulltext
         columns:
@@ -69,12 +59,10 @@ tables:
         name: book_id
         type: int
         nullable: false
-        default: null
       -
         name: author_id
         type: int
         nullable: false
-        default: null
     primary_key:
       - book_id
       - author_id
@@ -97,32 +85,26 @@ tables:
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: title
         type: varchar(255)
         nullable: false
-        default: null
       -
         name: year
         type: int
         nullable: false
-        default: null
       -
         name: description
         type: text
         nullable: true
-        default: null
       -
         name: isbn
         type: varchar(20)
         nullable: false
-        default: null
       -
         name: cover_url
         type: varchar(500)
         nullable: true
-        default: null
       -
         name: is_published
         type: tinyint(1)
@@ -137,12 +119,10 @@ tables:
         name: created_at
         type: int
         nullable: false
-        default: null
       -
         name: updated_at
         type: int
         nullable: false
-        default: null
     primary_key:
       - id
     foreign_keys: []
@@ -179,12 +159,10 @@ tables:
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: idempotency_key
         type: varchar(128)
         nullable: false
-        default: null
       -
         name: status
         type: varchar(20)
@@ -194,22 +172,18 @@ tables:
         name: status_code
         type: int
         nullable: true
-        default: null
       -
         name: response_body
         type: blob
         nullable: true
-        default: null
       -
         name: created_at
         type: int
         nullable: false
-        default: null
       -
         name: expires_at
         type: int
         nullable: false
-        default: null
     primary_key:
       - id
     foreign_keys: []
@@ -230,12 +204,10 @@ tables:
         name: version
         type: varchar(180)
         nullable: false
-        default: null
       -
         name: apply_time
         type: int
         nullable: true
-        default: null
     primary_key:
       - version
     foreign_keys: []
@@ -246,27 +218,22 @@ tables:
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: channel
         type: varchar(255)
         nullable: false
-        default: null
       -
         name: job
         type: blob
         nullable: false
-        default: null
       -
         name: pushed_at
         type: int
         nullable: false
-        default: null
       -
         name: ttr
         type: int
         nullable: false
-        default: null
       -
         name: delay
         type: int
@@ -281,17 +248,14 @@ tables:
         name: reserved_at
         type: int
         nullable: true
-        default: null
       -
         name: attempt
         type: int
         nullable: true
-        default: null
       -
         name: done_at
         type: int
         nullable: true
-        default: null
     primary_key:
       - id
     foreign_keys: []
@@ -314,22 +278,18 @@ tables:
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: phone
         type: varchar(20)
         nullable: false
-        default: null
       -
         name: author_id
         type: int
         nullable: false
-        default: null
       -
         name: created_at
         type: int
         nullable: false
-        default: null
     primary_key:
       - id
     foreign_keys:

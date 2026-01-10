@@ -175,12 +175,17 @@ final readonly class AutoDocService
         $columns = [];
 
         foreach ($tableSchema->columns as $column) {
-            $columns[] = [
+            $columnData = [
                 'name' => $column->name,
                 'type' => $column->dbType,
                 'nullable' => $column->allowNull,
-                'default' => $column->defaultValue,
             ];
+
+            if ($column->defaultValue !== null) {
+                $columnData['default'] = $column->defaultValue;
+            }
+
+            $columns[] = $columnData;
         }
 
         return $columns;
@@ -301,12 +306,34 @@ final readonly class AutoDocService
     private function extractVerbMap(string $content): array
     {
         $actions = [];
+        $pos = strpos($content, 'VerbFilter::class');
 
-        if (!preg_match("/'actions'\s*=>\s*\[(.*?)]/s", $content, $matches)) {
-            return $actions;
+        if ($pos === false) {
+            return [];
         }
 
-        $block = $matches[1];
+        $actionsPos = strpos($content, "'actions'", $pos);
+
+        if ($actionsPos === false) {
+            $actionsPos = strpos($content, '"actions"', $pos);
+        }
+
+        if ($actionsPos === false) {
+            return [];
+        }
+
+        $openBracket = strpos($content, '[', $actionsPos);
+
+        if ($openBracket === false) {
+            return [];
+        }
+
+        $block = $this->extractBalancedBracket($content, $openBracket);
+
+        if ($block === null) {
+            return [];
+        }
+
         preg_match_all("/'([a-zA-Z0-9_-]+)'\s*=>\s*\[(.*?)]/s", $block, $actionMatches, PREG_SET_ORDER);
 
         foreach ($actionMatches as $match) {
@@ -322,6 +349,28 @@ final readonly class AutoDocService
         }
 
         return $actions;
+    }
+
+    private function extractBalancedBracket(string $content, int $start): ?string
+    {
+        $len = strlen($content);
+        $depth = 0;
+
+        for ($i = $start; $i < $len; $i++) {
+            $char = $content[$i];
+
+            if ($char === '[') {
+                $depth++;
+            } elseif ($char === ']') {
+                $depth--;
+            }
+
+            if ($depth === 0) {
+                return substr($content, $start + 1, $i - $start - 1);
+            }
+        }
+
+        return null;
     }
 
     private function extractActionBodies(string $content): array
@@ -391,7 +440,7 @@ final readonly class AutoDocService
         $publicUrl = array_search($action, $urlRules, true);
 
         if ($publicUrl !== false) {
-            return '/' . ltrim($publicUrl, '/');
+            return '/' . ltrim((string)$publicUrl, '/');
         }
 
         $actionParts = explode('/', $action);

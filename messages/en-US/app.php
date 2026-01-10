@@ -70,7 +70,7 @@ return [
     'file.error.storage_operation_failed' => 'File storage operation failed',
     'error.entity_delete_failed' => 'Failed to delete data',
     'error.entity_persist_failed' => 'Failed to save data',
-    'error.entity_id_missing' => 'Required information is missing',
+    'error.entity_id_missing' => 'Entity ID is missing',
     'error.mapper_failed' => 'Data mapping failed',
     'storage.gc.starting' => 'Starting storage garbage collection...',
     'storage.gc.ttl' => 'TTL: {hours} hours',

@@ -41,3 +41,20 @@ load_db_env() {
 
     export DB_ROOT_PASSWORD DB_USER DB_PASSWORD POSTGRES_USER
 }
+
+validate_db_name() {
+    local name="$1"
+    if ! echo "$name" | grep -qE '^[a-zA-Z0-9_]+$'; then
+        echo "❌ Ошибка: имя БД содержит недопустимые символы. Допускаются только [a-zA-Z0-9_]"
+        exit 1
+    fi
+}
+
+validate_credentials() {
+    local value="$1"
+    local name="$2"
+    if echo "$value" | grep -qE "['\"\`\\]"; then
+        echo "❌ Ошибка: $name содержит недопустимые символы"
+        exit 1
+    fi
+}

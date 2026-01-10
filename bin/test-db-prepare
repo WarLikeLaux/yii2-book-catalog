@@ -12,27 +12,21 @@ readonly COMPOSE="${COMPOSE:-docker compose}"
 
 load_db_env
 
-if [ -z "$POSTGRES_USER" ] && [ "$DB_DRIVER" = "pgsql" ]; then
-    echo "❌ POSTGRES_USER не задан (в .env или окружении)"
-    exit 1
-fi
-
 readonly DB_ROOT_PASSWORD
 readonly DB_USER
 readonly DB_PASSWORD
 readonly POSTGRES_USER
 
-validate_db_name() {
-    local name="$1"
-    if ! echo "$name" | grep -qE '^[a-zA-Z0-9_]+$'; then
-        echo "❌ Ошибка: имя БД содержит недопустимые символы. Допускаются только [a-zA-Z0-9_]"
-        exit 1
-    fi
-}
+if [ -z "$POSTGRES_USER" ] && [ "$DB_DRIVER" = "pgsql" ]; then
+    echo "❌ POSTGRES_USER не задан (в .env или окружении)"
+    exit 1
+fi
 
 prepare_mysql() {
     echo "🔧 Подготовка тестовой базы MySQL..."
     validate_db_name "$DB_TEST_NAME"
+    validate_credentials "$DB_USER" "DB_USER"
+    validate_credentials "$DB_PASSWORD" "DB_PASSWORD"
 
     if ! $COMPOSE exec -T -e MYSQL_PWD="$DB_ROOT_PASSWORD" db mysql -uroot -h127.0.0.1 <<EOF
 CREATE DATABASE IF NOT EXISTS \`$DB_TEST_NAME\`;
@@ -63,6 +57,7 @@ EOF
 prepare_pgsql() {
     echo "🔧 Подготовка тестовой базы PostgreSQL..."
     validate_db_name "$DB_TEST_NAME"
+    validate_credentials "$POSTGRES_USER" "POSTGRES_USER"
 
     if ! $COMPOSE exec -T pgsql psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres <<EOF
 SELECT pg_terminate_backend(pid)

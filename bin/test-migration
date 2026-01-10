@@ -24,44 +24,24 @@ if [ -z "$DB_MIGRATION_TEST_NAME" ]; then
     exit 1
 fi
 
-if ! echo "$DB_MIGRATION_TEST_NAME" | grep -qE '^[a-zA-Z0-9_]+$'; then
-    echo "❌ Ошибка: DB_MIGRATION_TEST_NAME содержит недопустимые символы. Допускаются только [a-zA-Z0-9_]"
-    exit 1
-fi
+validate_db_name "$DB_MIGRATION_TEST_NAME"
+validate_credentials "$DB_USER" "DB_USER"
+validate_credentials "$DB_PASSWORD" "DB_PASSWORD"
 
 if [ -z "$POSTGRES_USER" ] && [ "$DB_DRIVER" = "pgsql" ]; then
     echo "❌ POSTGRES_USER не задан (в .env или окружении)"
     exit 1
 fi
 
-export DB_MIGRATION_TEST_NAME
-
-if [ "$DB_DRIVER" = "pgsql" ]; then
-    if ! $COMPOSE exec -T pgsql psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres <<EOF
-SELECT pg_terminate_backend(pid)
-FROM pg_stat_activity
-WHERE datname = '$DB_MIGRATION_TEST_NAME' AND pid <> pg_backend_pid();
-
-DROP DATABASE IF EXISTS "$DB_MIGRATION_TEST_NAME";
-CREATE DATABASE "$DB_MIGRATION_TEST_NAME";
-EOF
-    then
-        echo "❌ Ошибка при создании тестовой БД PostgreSQL"
-        exit 1
-    fi
-else
-    if ! $COMPOSE exec -T -e MYSQL_PWD="$DB_ROOT_PASSWORD" db mysql -uroot -h127.0.0.1 <<EOF
-DROP DATABASE IF EXISTS \`$DB_MIGRATION_TEST_NAME\`;
-CREATE DATABASE \`$DB_MIGRATION_TEST_NAME\`;
-CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';
-GRANT ALL PRIVILEGES ON \`$DB_MIGRATION_TEST_NAME\`.* TO '$DB_USER'@'%';
-FLUSH PRIVILEGES;
-EOF
-    then
-        echo "❌ Ошибка при создании тестовой БД MySQL"
-        exit 1
-    fi
+if [ -n "$POSTGRES_USER" ]; then
+    validate_credentials "$POSTGRES_USER" "POSTGRES_USER"
 fi
 
-./bin/test-db-prepare
+export DB_MIGRATION_TEST_NAME
+
+if ! ./bin/test-db-prepare; then
+    echo "❌ Ошибка при подготовке тестовой БД"
+    exit 1
+fi
+
 $COMPOSE exec -T php sh -c "DB_MIGRATION_TEST_NAME=$DB_MIGRATION_TEST_NAME ./vendor/bin/codecept run integration MigrationReversibilityTest"

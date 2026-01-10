@@ -23,11 +23,12 @@ final readonly class BuggregatorInspectorConfig
 
     /**
      * @return array{url: string, ingestionKey: string}
+     * @codeCoverageIgnore
      */
     public function __debugInfo(): array
     {
         $keyLength = strlen($this->ingestionKey);
-        $maskedKey = $keyLength > 8
+        $maskedKey = $keyLength >= 12
         ? substr($this->ingestionKey, 0, 4) . '****' . substr($this->ingestionKey, -4)
         : '****';
 
