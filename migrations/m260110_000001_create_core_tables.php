@@ -50,7 +50,7 @@ final class m260110_000001_create_core_tables extends Migration
             'isbn' => $this->string(20)->notNull()->comment('ISBN'),
             'cover_url' => $this->string(500)->comment('URL обложки'),
             'is_published' => $this->boolean()->notNull()->defaultValue(false)->comment('Опубликована'),
-            'version' => $this->integer()->notNull()->defaultValue(0)->comment('Версия для оптимистичной блокировки'),
+            'version' => $this->integer()->notNull()->defaultValue(1)->comment('Версия для оптимистичной блокировки'),
             'created_at' => $this->integer()->notNull(),
             'updated_at' => $this->integer()->notNull(),
         ], $tableOptions);
