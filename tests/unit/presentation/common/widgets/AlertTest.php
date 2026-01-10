@@ -22,8 +22,11 @@ final class AlertTest extends TestCase
 
     protected function tearDown(): void
     {
-        Yii::$app = $this->appBackup;
-        parent::tearDown();
+        try {
+            parent::tearDown();
+        } finally {
+            Yii::$app = $this->appBackup;
+        }
     }
 
     public function testRunReturnsEarlyWhenNoWebApplication(): void
@@ -32,8 +35,14 @@ final class AlertTest extends TestCase
         $widget = new Alert();
 
         ob_start();
-        $widget->run();
-        $output = ob_get_clean();
+
+        try {
+            $widget->run();
+            $output = ob_get_clean();
+        } catch (\Throwable $e) {
+            ob_end_clean();
+            throw $e;
+        }
 
         $this->assertSame('', $output);
         $this->assertSame($app, Yii::$app);

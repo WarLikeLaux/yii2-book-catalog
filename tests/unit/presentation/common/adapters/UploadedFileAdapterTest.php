@@ -21,8 +21,12 @@ final class UploadedFileAdapterTest extends Unit
 
     protected function _before(): void
     {
-        $this->tempDir = sys_get_temp_dir() . '/adapter-test-' . uniqid();
-        mkdir($this->tempDir, 0777, true);
+        $this->tempDir = sys_get_temp_dir() . '/adapter-test-' . uniqid('', true);
+
+        if (!mkdir($this->tempDir, 0777, true) && !is_dir($this->tempDir)) {
+            $this->fail('Failed to create temp dir: ' . $this->tempDir);
+        }
+
         $this->adapter = new UploadedFileAdapter(new NativeMimeTypeDetector());
     }
 
@@ -55,6 +59,7 @@ final class UploadedFileAdapterTest extends Unit
         $content = $this->adapter->toFileContent($uploadedFile);
         $stream = $content->getStream();
 
+        rewind($stream);
         $this->assertSame($originalContent, stream_get_contents($stream));
     }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace app\presentation\common\adapters;
 
-use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
 use app\domain\exceptions\ValidationException;
 use app\domain\services\MimeTypeDetectorInterface;
@@ -26,8 +25,8 @@ final readonly class UploadedFileAdapter
                 $uploadedFile->getExtension(),
                 $this->mimeTypeDetector,
             );
-        } catch (ValidationException) {
-            throw new OperationFailedException(DomainErrorCode::FileOpenFailed);
+        } catch (ValidationException $exception) {
+            throw new OperationFailedException($exception->errorCode);
         }
     }
 }
