@@ -20,4 +20,20 @@ final readonly class BuggregatorInspectorConfig
             throw new ConfigurationException('Invalid config: buggregator.inspector.ingestionKey');
         }
     }
+
+    /**
+     * @return array{url: string, ingestionKey: string}
+     */
+    public function __debugInfo(): array
+    {
+        $keyLength = strlen($this->ingestionKey);
+        $maskedKey = $keyLength > 8
+        ? substr($this->ingestionKey, 0, 4) . '****' . substr($this->ingestionKey, -4)
+        : '****';
+
+        return [
+            'url' => $this->url,
+            'ingestionKey' => $maskedKey,
+        ];
+    }
 }

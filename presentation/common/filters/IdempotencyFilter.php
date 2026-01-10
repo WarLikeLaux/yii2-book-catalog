@@ -26,10 +26,10 @@ final class IdempotencyFilter extends ActionFilter
         IdempotencyConfig $idempotencyConfig,
         array $config = [],
     ) {
+        parent::__construct($config);
         $this->ttl = $idempotencyConfig->ttl;
         $this->lockTimeout = $idempotencyConfig->lockTimeout;
         $this->waitSeconds = $idempotencyConfig->waitSeconds;
-        parent::__construct($config);
     }
 
     #[\Override]

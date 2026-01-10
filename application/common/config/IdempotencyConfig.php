@@ -27,7 +27,7 @@ final readonly class IdempotencyConfig
         }
 
         if ($this->smsPhoneHashKey === '') {
-            throw new ConfigurationException('Missing required config: smsPhoneHashKey');
+            throw new ConfigurationException('Missing required config: idempotency.smsPhoneHashKey');
         }
     }
 
