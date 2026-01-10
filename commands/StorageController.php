@@ -7,6 +7,7 @@ namespace app\commands;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\ContentStorageInterface;
 use app\domain\values\FileKey;
+use RuntimeException;
 use Yii;
 use yii\console\Controller;
 use yii\console\ExitCode;
@@ -88,7 +89,7 @@ final class StorageController extends Controller
         foreach (self::SUPPORTED_EXTENSIONS as $ext) {
             try {
                 $mtime = $this->storage->getModificationTime($key, $ext);
-            } catch (\RuntimeException) {
+            } catch (RuntimeException) {
                 continue;
             }
 

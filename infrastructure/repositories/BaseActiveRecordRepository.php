@@ -11,6 +11,7 @@ use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\OperationFailedException;
 use app\domain\exceptions\StaleDataException;
 use app\infrastructure\persistence\DatabaseErrorCode;
+use RuntimeException;
 use WeakMap;
 use yii\db\ActiveRecord;
 use yii\db\IntegrityException;
@@ -103,7 +104,7 @@ abstract readonly class BaseActiveRecordRepository
             if (!$model->save(false)) {
                 $errors = $model->getFirstErrors();
                 $message = $errors !== [] ? json_encode($errors, JSON_UNESCAPED_UNICODE) : 'Unknown error';
-                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed, 0, new \RuntimeException((string)$message));
+                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed, 0, new RuntimeException((string)$message));
             }
         } catch (StaleObjectException) {
             if (!$staleError instanceof DomainErrorCode) {
