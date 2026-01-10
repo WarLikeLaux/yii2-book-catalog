@@ -6,7 +6,7 @@ namespace app\domain\values;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
-use app\domain\services\NativeMimeTypeDetector;
+use app\domain\services\MimeTypeDetectorInterface;
 
 final readonly class FileContent
 {
@@ -23,8 +23,11 @@ final readonly class FileContent
         }
     }
 
-    public static function fromPath(string $path, ?string $extension = null): self
-    {
+    public static function fromPath(
+        string $path,
+        ?string $extension,
+        MimeTypeDetectorInterface $mimeTypeDetector,
+    ): self {
         if (!is_file($path) || !is_readable($path)) {
             throw new ValidationException(DomainErrorCode::FileNotFound);
         }
@@ -36,7 +39,6 @@ final readonly class FileContent
         }
 
         $extension ??= pathinfo($path, PATHINFO_EXTENSION);
-        $mimeTypeDetector = new NativeMimeTypeDetector();
         $mimeType = $mimeTypeDetector->detect($path);
 
         return new self($stream, $extension, $mimeType);

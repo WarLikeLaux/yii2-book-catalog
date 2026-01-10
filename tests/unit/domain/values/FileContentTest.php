@@ -7,6 +7,7 @@ namespace tests\unit\domain\values;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\ValidationException;
+use app\domain\services\NativeMimeTypeDetector;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use Codeception\Test\Unit;
@@ -70,7 +71,7 @@ final class FileContentTest extends Unit
         $filePath = $this->tempDir . '/test.txt';
         file_put_contents($filePath, 'test content');
 
-        $content = FileContent::fromPath($filePath);
+        $content = FileContent::fromPath($filePath, null, $this->createDetector());
 
         $this->assertSame(self::EXTENSION, $content->extension);
         $this->assertIsResource($content->getStream());
@@ -81,7 +82,7 @@ final class FileContentTest extends Unit
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::FileNotFound->value);
 
-        FileContent::fromPath($this->tempDir . '/non-existent.txt');
+        FileContent::fromPath($this->tempDir . '/non-existent.txt', null, $this->createDetector());
     }
 
     public function testFromPathThrowsOnDirectory(): void
@@ -92,7 +93,7 @@ final class FileContentTest extends Unit
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::FileNotFound->value);
 
-        FileContent::fromPath($dirPath);
+        FileContent::fromPath($dirPath, null, $this->createDetector());
     }
 
     public function testFromPathDetectsMimeType(): void
@@ -100,7 +101,7 @@ final class FileContentTest extends Unit
         $filePath = $this->tempDir . '/test.txt';
         file_put_contents($filePath, 'plain text content');
 
-        $content = FileContent::fromPath($filePath);
+        $content = FileContent::fromPath($filePath, null, $this->createDetector());
 
         $this->assertSame(self::MIME_TYPE, $content->mimeType);
     }
@@ -120,7 +121,7 @@ final class FileContentTest extends Unit
             $this->expectException(ValidationException::class);
             $this->expectExceptionMessage(DomainErrorCode::FileNotFound->value);
 
-            FileContent::fromPath($filePath);
+            FileContent::fromPath($filePath, null, $this->createDetector());
         } finally {
             chmod($filePath, 0644);
         }
@@ -130,7 +131,7 @@ final class FileContentTest extends Unit
     {
         $filePath = $this->tempDir . '/test.bin';
         file_put_contents($filePath, 'binary content');
-        $content = FileContent::fromPath($filePath);
+        $content = FileContent::fromPath($filePath, null, $this->createDetector());
         $this->assertNotEmpty($content->mimeType);
     }
 
@@ -164,5 +165,10 @@ final class FileContentTest extends Unit
         $content2 = new FileContent($stream2, self::EXTENSION, self::MIME_TYPE);
 
         $this->assertTrue($content1->computeKey()->equals($content2->computeKey()));
+    }
+
+    private function createDetector(): NativeMimeTypeDetector
+    {
+        return new NativeMimeTypeDetector();
     }
 }

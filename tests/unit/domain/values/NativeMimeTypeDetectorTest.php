@@ -91,7 +91,7 @@ final class NativeMimeTypeDetectorTest extends Unit
         $fileCalled = false;
         $closeCalled = false;
         $finfoFunctions = new FinfoFunctions(
-            static fn(int $option): mixed => $option === 0 ? false : false,
+            static fn(int $option): mixed => $option === 0 && false,
             static function (mixed $finfo, string $path) use (&$fileCalled): string|false {
                 $fileCalled = true;
                 return $finfo === null ? false : ($path === '' ? '' : 'application/x-finfo');
