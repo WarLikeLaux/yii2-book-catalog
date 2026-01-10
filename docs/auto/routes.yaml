@@ -1,6 +1,6 @@
 meta:
   title: 'HTTP Routes'
-  updated_at: '2026-01-09T13:25:18+00:00'
+  updated_at: '2026-01-10T00:39:15+00:00'
 routes:
   -
     path: /
@@ -13,7 +13,7 @@ routes:
   -
     path: /api/v1/books
     action: api/v1/book/index
-    controller: BookController
+    controller: api/v1/BookController
     methods:
       - GET
     guards:

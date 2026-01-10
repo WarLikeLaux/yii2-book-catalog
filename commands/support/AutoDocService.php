@@ -10,6 +10,8 @@ use Yii;
 use yii\db\TableSchema;
 use yii\helpers\FileHelper;
 use yii\helpers\Inflector;
+use yii\web\UrlManager;
+use yii\web\UrlRule;
 
 final readonly class AutoDocService
 {
@@ -274,9 +276,19 @@ final readonly class AutoDocService
         $routes = [];
 
         $controllerId = $this->resolveControllerId($file, $controllerName);
+        $relativeDir = $this->getRelativeControllerDir($file);
+        $prefix = $relativeDir !== '' ? str_replace(DIRECTORY_SEPARATOR, '/', $relativeDir) . '/' : '';
 
         foreach ($actionBodies as $actionName => $body) {
-            $entry = $this->buildRouteEntry($controllerId, $controllerName, $actionName, $verbMap, $body, $urlRules);
+            $entry = $this->buildRouteEntry(
+                $controllerId,
+                $controllerName,
+                $prefix,
+                $actionName,
+                $verbMap,
+                $body,
+                $urlRules,
+            );
 
             $guards = $this->filterGuardsForMethods($behaviors, $entry['methods']);
 
@@ -345,6 +357,7 @@ final readonly class AutoDocService
     private function buildRouteEntry(
         string $controllerId,
         string $controllerName,
+        string $prefix,
         string $actionName,
         array $verbMap,
         string $body,
@@ -359,7 +372,7 @@ final readonly class AutoDocService
         $entry = [
             'path' => $path,
             'action' => $action,
-            'controller' => "{$controllerName}Controller",
+            'controller' => "{$prefix}{$controllerName}Controller",
             'methods' => $methods,
         ];
 
@@ -399,23 +412,82 @@ final readonly class AutoDocService
      */
     private function loadUrlRules(): array
     {
+        $rules = $this->loadUrlRulesFromApp();
+
+        if ($rules !== []) {
+            return $rules;
+        }
+
+        return $this->loadUrlRulesFromConfig();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function loadUrlRulesFromApp(): array
+    {
+        $app = Yii::$app;
+
+        if ($app === null || !$app->has('urlManager', true)) {
+            return [];
+        }
+
+        $urlManager = $app->get('urlManager');
+
+        if (!$urlManager instanceof UrlManager) {
+            return [];
+        }
+
+        $rules = [];
+
+        foreach ($urlManager->rules as $rule) {
+            if (!($rule instanceof UrlRule)) {
+                continue;
+            }
+
+            $name = $rule->name ?? $rule->pattern;
+
+            if (!is_string($name) || $name === '' || !is_string($rule->route) || $rule->route === '') {
+                continue;
+            }
+
+            $rules[$name] = $rule->route;
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function loadUrlRulesFromConfig(): array
+    {
         $configPath = Yii::getAlias('@app/config/web.php');
 
         if (!is_string($configPath) || !file_exists($configPath)) {
             return [];
         }
 
-        $content = (string)file_get_contents($configPath);
+        $config = require $configPath;
 
-        if (!preg_match("/'rules'\s*=>\s*\[(.*?)\]/s", $content, $match)) {
+        if (!is_array($config)) {
+            return [];
+        }
+
+        $configRules = $config['components']['urlManager']['rules'] ?? null;
+
+        if (!is_array($configRules)) {
             return [];
         }
 
         $rules = [];
-        preg_match_all("/'([^']+)'\s*=>\s*'([^']+)'/", $match[1], $ruleMatches, PREG_SET_ORDER);
 
-        foreach ($ruleMatches as $m) {
-            $rules[$m[1]] = $m[2];
+        foreach ($configRules as $pattern => $route) {
+            if (!is_string($pattern) || !is_string($route)) {
+                continue;
+            }
+
+            $rules[$pattern] = $route;
         }
 
         return $rules;
@@ -429,7 +501,7 @@ final readonly class AutoDocService
     private function filterGuardsForMethods(array $guards, array $methods): array
     {
         if ($methods === ['GET'] && in_array('Idempotency', $guards, true)) {
-            return array_values(array_filter($guards, static fn(string $g): bool => $g !== 'Idempotency'));
+            return array_values(array_filter($guards, static fn(string $guard): bool => $guard !== 'Idempotency'));
         }
 
         return $guards;
@@ -438,19 +510,7 @@ final readonly class AutoDocService
     private function resolveControllerId(string $file, string $controllerName): string
     {
         $controllerId = Inflector::camel2id($controllerName);
-
-        $controllerDir = realpath((string)Yii::getAlias('@app/presentation/controllers'));
-        $dir = realpath(dirname($file));
-
-        if ($controllerDir === false || $dir === false) {
-            return $controllerId;
-        }
-
-        if (!str_starts_with($dir, $controllerDir)) {
-            return $controllerId;
-        }
-
-        $relativeDir = trim(substr($dir, strlen($controllerDir)), DIRECTORY_SEPARATOR);
+        $relativeDir = $this->getRelativeControllerDir($file);
 
         if ($relativeDir === '') {
             return $controllerId;
@@ -459,6 +519,22 @@ final readonly class AutoDocService
         $prefix = str_replace(DIRECTORY_SEPARATOR, '/', $relativeDir);
 
         return trim($prefix . '/' . $controllerId, '/');
+    }
+
+    private function getRelativeControllerDir(string $file): string
+    {
+        $controllerDir = realpath((string)Yii::getAlias('@app/presentation/controllers'));
+        $dir = realpath(dirname($file));
+
+        if ($controllerDir === false || $dir === false) {
+            return '';
+        }
+
+        if (!str_starts_with($dir, $controllerDir)) {
+            return '';
+        }
+
+        return trim(substr($dir, strlen($controllerDir)), DIRECTORY_SEPARATOR);
     }
 
     private function extractBehaviorsFromCode(string $content): array

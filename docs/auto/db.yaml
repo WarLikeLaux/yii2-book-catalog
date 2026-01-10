@@ -1,6 +1,6 @@
 meta:
   title: 'Database Schema'
-  updated_at: '2026-01-09T13:25:18+00:00'
+  updated_at: '2026-01-10T00:39:15+00:00'
 tables:
   async_idempotency_log:
     columns:
