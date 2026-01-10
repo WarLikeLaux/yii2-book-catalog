@@ -27,4 +27,13 @@ final class BuggregatorInspectorConfigTest extends Unit
         $create = static fn() => new BuggregatorInspectorConfig('http://buggregator:8000', '');
         $create();
     }
+
+    public function testConstructorThrowsWhenIngestionKeyWhitespaceOnly(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('Invalid config: buggregator.inspector.ingestionKey');
+
+        $create = static fn() => new BuggregatorInspectorConfig('http://buggregator:8000', '   ');
+        $create();
+    }
 }

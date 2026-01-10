@@ -61,4 +61,11 @@ final class RateLimitConfigTest extends Unit
         $create = static fn() => new RateLimitConfig(1, 0);
         $create();
     }
+
+    public function testConstructorAllowsWindowOne(): void
+    {
+        $config = new RateLimitConfig(10, 1);
+
+        $this->assertSame(1, $config->window);
+    }
 }

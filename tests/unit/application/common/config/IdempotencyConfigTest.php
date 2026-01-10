@@ -100,4 +100,11 @@ final class IdempotencyConfigTest extends Unit
         $create = static fn() => new IdempotencyConfig(1, 1, 1, '');
         $create();
     }
+
+    public function testConstructorAllowsWaitSecondsZero(): void
+    {
+        $config = new IdempotencyConfig(60, 1, 0, 'hash');
+
+        $this->assertSame(0, $config->waitSeconds);
+    }
 }

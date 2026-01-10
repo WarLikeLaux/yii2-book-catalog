@@ -39,4 +39,13 @@ final class ReportsConfigTest extends Unit
 
         ReportsConfig::fromParams([]);
     }
+
+    public function testFromParamsValidatesBoundaryCacheTtl(): void
+    {
+        $configMin = ReportsConfig::fromParams(['reports' => ['cacheTtl' => 1]]);
+        $this->assertSame(1, $configMin->cacheTtl);
+
+        $configMax = ReportsConfig::fromParams(['reports' => ['cacheTtl' => 86400]]);
+        $this->assertSame(86400, $configMax->cacheTtl);
+    }
 }

@@ -27,4 +27,11 @@ final class BuggregatorLogConfigTest extends Unit
         $create = static fn() => new BuggregatorLogConfig('buggregator', 0);
         $create();
     }
+
+    public function testConstructorAllowsPortOne(): void
+    {
+        $config = new BuggregatorLogConfig('buggregator', 1);
+
+        $this->assertSame(1, $config->port);
+    }
 }

@@ -60,7 +60,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
     public function testPersistThrowsStaleDataExceptionOnStaleObject(): void
     {
         $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static function () {
+            'save' => static function (...$_args) {
                 throw new StaleObjectException('Stale object');
             },
         ]);
@@ -74,7 +74,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
     {
         $exception = new IntegrityException(self::DUPLICATE_ENTRY, [self::DUPLICATE_SQLSTATE, self::DUPLICATE_CODE, self::DUPLICATE_ENTRY]);
         $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static function () use ($exception) {
+            'save' => static function (...$_args) use ($exception) {
                 throw $exception;
             },
         ]);
@@ -89,7 +89,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
     {
         $exception = new IntegrityException(self::DUPLICATE_ENTRY, [self::DUPLICATE_SQLSTATE, self::DUPLICATE_CODE, self::DUPLICATE_ENTRY]);
         $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static function () use ($exception) {
+            'save' => static function (...$_args) use ($exception) {
                 throw $exception;
             },
         ]);
@@ -103,7 +103,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
     {
         $exception = new IntegrityException(self::OTHER_ERROR, [self::DUPLICATE_SQLSTATE, self::OTHER_ERROR_CODE, self::OTHER_ERROR]);
         $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static function () use ($exception) {
+            'save' => static function (...$_args) use ($exception) {
                 throw $exception;
             },
         ]);
@@ -117,7 +117,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
     {
         $exception = new IntegrityException(self::OTHER_ERROR);
         $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static function () use ($exception) {
+            'save' => static function (...$_args) use ($exception) {
                 throw $exception;
             },
         ]);
