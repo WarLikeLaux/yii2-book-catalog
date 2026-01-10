@@ -57,7 +57,7 @@ final class m260110_000001_create_core_tables extends Migration
             $tableName = $this->db->quoteTableName('books');
 
             $this->execute("ALTER TABLE {$tableName} ADD FULLTEXT INDEX idx_books_title_desc_fulltext (title, description)");
-            $this->execute("CREATE INDEX idx_books_cover_url_partial ON {$tableName} ((cover_url IS NOT NULL))");
+            $this->execute("CREATE INDEX idx_books_cover_url_partial ON {$tableName} (cover_url(50))");
         } elseif ($this->db->driverName === 'pgsql') {
             $this->execute('CREATE INDEX idx_books_cover_url_partial ON ' . $this->db->quoteTableName('books') . ' (cover_url) WHERE cover_url IS NOT NULL');
         }
