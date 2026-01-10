@@ -22,5 +22,6 @@ final readonly class SubscriptionRepository extends BaseActiveRecordRepository i
         $this->persist($ar, DomainErrorCode::SubscriptionStaleData, DomainErrorCode::SubscriptionAlreadySubscribed);
 
         $this->assignId($subscription, $ar->id);
+        $this->registerIdentity($subscription, $ar);
     }
 }

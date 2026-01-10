@@ -13,17 +13,20 @@ use yii\web\Response;
 
 final class RateLimitFilter extends ActionFilter
 {
-    private int $limit = 60;
-    private int $window = 60;
+    public int $limit;
+    public int $window;
 
     public function __construct(
         private readonly RateLimitServiceInterface $service,
         RateLimitConfig $rateLimitConfig,
         array $config = [],
     ) {
+        $config = array_merge([
+            'limit' => $rateLimitConfig->limit,
+            'window' => $rateLimitConfig->window,
+        ], $config);
+
         parent::__construct($config);
-        $this->limit = $rateLimitConfig->limit;
-        $this->window = $rateLimitConfig->window;
     }
 
     #[\Override]

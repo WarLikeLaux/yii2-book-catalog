@@ -20,13 +20,16 @@ final readonly class UploadedFileAdapter
     public function toFileContent(UploadedFile $uploadedFile): FileContent
     {
         try {
+            $extension = $uploadedFile->getExtension();
+            $extension = $extension !== '' ? $extension : null;
+
             return FileContent::fromPath(
                 $uploadedFile->tempName,
-                $uploadedFile->getExtension(),
+                $extension,
                 $this->mimeTypeDetector,
             );
         } catch (ValidationException $exception) {
-            throw new OperationFailedException($exception->errorCode);
+            throw new OperationFailedException($exception->errorCode, $exception->getCode(), $exception);
         }
     }
 }

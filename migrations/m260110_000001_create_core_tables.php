@@ -54,8 +54,10 @@ final class m260110_000001_create_core_tables extends Migration
         $this->createIndex('idx_books_isbn', 'books', 'isbn', true);
 
         if ($this->db->driverName === 'mysql') {
-            $this->execute('ALTER TABLE ' . $this->db->quoteTableName('books') . ' ADD FULLTEXT INDEX idx_books_title_desc_fulltext (title, description)');
-            $this->execute('CREATE INDEX idx_books_cover_url_partial ON ' . $this->db->quoteTableName('books') . ' (cover_url(255))');
+            $tableName = $this->db->quoteTableName('books');
+
+            $this->execute("ALTER TABLE {$tableName} ADD FULLTEXT INDEX idx_books_title_desc_fulltext (title, description)");
+            $this->execute("CREATE INDEX idx_books_cover_url_partial ON {$tableName} ((cover_url IS NOT NULL))");
         } elseif ($this->db->driverName === 'pgsql') {
             $this->execute('CREATE INDEX idx_books_cover_url_partial ON ' . $this->db->quoteTableName('books') . ' (cover_url) WHERE cover_url IS NOT NULL');
         }

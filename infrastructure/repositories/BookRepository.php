@@ -52,20 +52,20 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
 
         if ($isNew) {
             $this->assignId($book, $ar->id); // @phpstan-ignore property.notFound
-            $this->registerIdentity($book, $ar);
         } else {
             $book->incrementVersion();
         }
+
+        $this->registerIdentity($book, $ar);
 
         $this->syncAuthors($book);
     }
 
     public function get(int $id): BookEntity
     {
-        /** @var Book|null $ar */
-        $ar = Book::find()->where(['id' => $id])->with('authors')->one();
+        $ar = $this->getArWithAuthors($id);
 
-        if ($ar === null) {
+        if (!$ar instanceof Book) {
             throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
 
@@ -82,10 +82,9 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
      */
     public function getByIdAndVersion(int $id, int $expectedVersion): BookEntity
     {
-        /** @var Book|null $ar */
-        $ar = Book::find()->where(['id' => $id])->with('authors')->one();
+        $ar = $this->getArWithAuthors($id);
 
-        if ($ar === null) {
+        if (!$ar instanceof Book) {
             throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
 
@@ -107,6 +106,14 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     public function delete(BookEntity $book): void
     {
         $this->deleteEntity($book, Book::class, DomainErrorCode::BookNotFound);
+    }
+
+    private function getArWithAuthors(int $id): ?Book
+    {
+        /** @var Book|null $ar */
+        $ar = Book::find()->where(['id' => $id])->with('authors')->one();
+
+        return $ar;
     }
 
     private function mapToEntity(Book $ar): BookEntity
@@ -157,6 +164,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         }
 
         if ($toAdd === []) {
+            $this->authorSnapshots[$book] = $book->authorIds;
+
             return;
         }
 
@@ -169,6 +178,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             ['book_id', 'author_id'],
             $rows,
         )->execute();
+
+        $this->authorSnapshots[$book] = $book->authorIds;
     }
 
     /**

@@ -25,11 +25,10 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 
         $this->persist($ar, DomainErrorCode::AuthorStaleData, DomainErrorCode::AuthorFioExists);
 
-        if ($author->id !== null) {
-            return;
+        if ($author->id === null) {
+            $this->assignId($author, $ar->id); // @phpstan-ignore property.notFound
         }
 
-        $this->assignId($author, $ar->id); // @phpstan-ignore property.notFound
         $this->registerIdentity($author, $ar);
     }
 

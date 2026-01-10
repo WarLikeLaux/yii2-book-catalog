@@ -17,19 +17,22 @@ final class IdempotencyFilter extends ActionFilter
     private const string HEADER_KEY = 'Idempotency-Key';
 
     private string|null $lockedKey = null;
-    public int $ttl = 86400;
-    public int $lockTimeout = 1;
-    public int $waitSeconds = 1;
+    public int $ttl;
+    public int $lockTimeout;
+    public int $waitSeconds;
 
     public function __construct(
         private readonly IdempotencyServiceInterface $service,
         IdempotencyConfig $idempotencyConfig,
         array $config = [],
     ) {
+        $config = array_merge([
+            'ttl' => $idempotencyConfig->ttl,
+            'lockTimeout' => $idempotencyConfig->lockTimeout,
+            'waitSeconds' => $idempotencyConfig->waitSeconds,
+        ], $config);
+
         parent::__construct($config);
-        $this->ttl = $idempotencyConfig->ttl;
-        $this->lockTimeout = $idempotencyConfig->lockTimeout;
-        $this->waitSeconds = $idempotencyConfig->waitSeconds;
     }
 
     #[\Override]
