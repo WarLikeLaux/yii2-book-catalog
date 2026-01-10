@@ -73,6 +73,7 @@
 - **#32** - рефакторинг персистентности репозиториев и внедрены константы IdempotencyKey ([b18cda4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b18cda4))
 - **#32** - рефакторинг логики персистентности инфраструктуры и моделей ([d114a21](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d114a21))
 - **#32** - оптимизирован поиск сущности при удалении из идентичности репозитория ([01794c9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/01794c9))
+- **#32** - упрощено удаление сущности из карты идентичностей репозитория ([9dc828b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9dc828b))
 - **#32** - исправлена логика сохранения для корректной синхронизации авторов новых книг ([cf7fded](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cf7fded))
 - **#32** - рефакторинг геттеров ActiveRecord в книгах для предотвращения неявного приведения к null ([f1edb24](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f1edb24))
 - **#32** - консолидирован метод `findById` в `BookQueryService` ([af6b466](https://github.com/WarLikeLaux/yii2-book-catalog/commit/af6b466))
