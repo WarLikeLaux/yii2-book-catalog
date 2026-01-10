@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+DB_MIGRATION_TEST_NAME="${DB_MIGRATION_TEST_NAME:-}"
+DB_DRIVER="${DB_DRIVER:-}"
+COMPOSE="${COMPOSE:-docker compose}"
+
+if [ -z "$DB_MIGRATION_TEST_NAME" ] && [ -f .env ]; then
+    DB_MIGRATION_TEST_NAME="$(grep -E '^DB_MIGRATION_TEST_NAME=' .env | head -n1 | cut -d= -f2- || true)"
+fi
+
+if [ -z "$DB_DRIVER" ] && [ -f .env ]; then
+    DB_DRIVER="$(grep -E '^DB_DRIVER=' .env | head -n1 | cut -d= -f2- || true)"
+fi
+
+if [ -z "$DB_DRIVER" ]; then
+    DB_DRIVER="mysql"
+fi
+
+if [ -z "$DB_MIGRATION_TEST_NAME" ]; then
+    echo "DB_MIGRATION_TEST_NAME не задан (в .env или окружении)."
+    exit 1
+fi
+
+export DB_MIGRATION_TEST_NAME
+
+if [ "$DB_DRIVER" = "pgsql" ]; then
+    $COMPOSE exec -T pgsql sh -c '
+        psql -U "$POSTGRES_USER" -d postgres -c "DROP DATABASE IF EXISTS '"$DB_MIGRATION_TEST_NAME"'" 
+        psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE '"$DB_MIGRATION_TEST_NAME"'" 
+    ' 2>/dev/null || true
+else
+    $COMPOSE exec -T db sh -c '
+        mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -h127.0.0.1 -e "
+            DROP DATABASE IF EXISTS '"$DB_MIGRATION_TEST_NAME"';
+            CREATE DATABASE '"$DB_MIGRATION_TEST_NAME"';
+            GRANT ALL PRIVILEGES ON '"$DB_MIGRATION_TEST_NAME"'.* TO \"$MYSQL_USER\"@\"%\";
+            FLUSH PRIVILEGES;
+        "
+    ' 2>&1 | grep -v "Using a password" || true
+fi
+
+bin/test-db-prepare
+$COMPOSE exec -T php sh -c "DB_MIGRATION_TEST_NAME=$DB_MIGRATION_TEST_NAME ./vendor/bin/codecept run integration MigrationReversibilityTest"

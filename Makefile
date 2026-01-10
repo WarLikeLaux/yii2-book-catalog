@@ -67,6 +67,8 @@ help:
 	@echo ""
 	@echo "📦 ПАКЕТЫ (COMPOSER):"
 	@echo "  composer         📥 Установка зависимостей (install)"
+	@echo "  update           🔝 Обновление пакетов (update)"
+	@echo "  outdated         🔍 Проверка доступных обновлений пакетов"
 	@echo "  req [package]    ➕ Добавить пакет (алиас: require)"
 	@echo "  req-dev [pkg]    ➕ Добавить dev-пакет (алиас: require-dev)"
 	@echo ""
@@ -160,6 +162,14 @@ composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer install
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
+
+update:
+	$(COMPOSE) exec $(PHP_CONTAINER) composer update
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
+
+outdated:
+	$(COMPOSE) exec $(PHP_CONTAINER) composer outdated
 
 req require:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer require $(COMPOSER_ARGS)
@@ -386,3 +396,7 @@ ghr:
 		exit 1; \
 	fi
 	@git reset --hard HEAD
+
+.PHONY: test-migration
+test-migration:
+	bin/test-migration
