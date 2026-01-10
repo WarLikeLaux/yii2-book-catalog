@@ -6,24 +6,30 @@ use yii\db\Migration;
 
 final class m260110_000001_create_core_tables extends Migration
 {
-    public function up(): void
+    public function safeUp(): void
     {
-        $this->createAuthorsTable();
-        $this->createBooksTable();
+        $tableOptions = null;
+
+        if ($this->db->driverName === 'mysql') {
+            $tableOptions = 'CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE=InnoDB';
+        }
+
+        $this->createAuthorsTable($tableOptions);
+        $this->createBooksTable($tableOptions);
     }
 
-    public function down(): void
+    public function safeDown(): void
     {
         $this->dropTable('books');
         $this->dropTable('authors');
     }
 
-    private function createAuthorsTable(): void
+    private function createAuthorsTable(?string $tableOptions): void
     {
         $this->createTable('authors', [
             'id' => $this->primaryKey(),
             'fio' => $this->string(255)->notNull()->comment('ФИО автора'),
-        ]);
+        ], $tableOptions);
 
         $this->createIndex('idx_authors_fio_unique', 'authors', 'fio', true);
 
@@ -34,7 +40,7 @@ final class m260110_000001_create_core_tables extends Migration
         $this->execute('ALTER TABLE ' . $this->db->quoteTableName('authors') . ' ADD FULLTEXT INDEX idx_authors_fio_fulltext (fio)');
     }
 
-    private function createBooksTable(): void
+    private function createBooksTable(?string $tableOptions): void
     {
         $this->createTable('books', [
             'id' => $this->primaryKey(),
@@ -47,7 +53,7 @@ final class m260110_000001_create_core_tables extends Migration
             'version' => $this->integer()->notNull()->defaultValue(0)->comment('Версия для оптимистичной блокировки'),
             'created_at' => $this->integer()->notNull(),
             'updated_at' => $this->integer()->notNull(),
-        ]);
+        ], $tableOptions);
 
         $this->createIndex('idx_books_year', 'books', 'year');
         $this->createIndex('idx_books_title', 'books', 'title');
