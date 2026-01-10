@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\common\filters;
 
+use app\application\common\config\RateLimitConfig;
 use app\application\common\dto\RateLimitResult;
 use app\application\common\RateLimitServiceInterface;
 use app\presentation\common\filters\RateLimitFilter;
@@ -36,7 +37,7 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service);
+        $filter = new RateLimitFilter($service, $this->createConfig());
         $result = $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertTrue($result);
@@ -57,7 +58,7 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service);
+        $filter = new RateLimitFilter($service, $this->createConfig());
         $result = $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertFalse($result);
@@ -78,7 +79,7 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service);
+        $filter = new RateLimitFilter($service, $this->createConfig());
         $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertSame('100', Yii::$app->response->getHeaders()->get('X-RateLimit-Limit'));
@@ -99,7 +100,7 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service);
+        $filter = new RateLimitFilter($service, $this->createConfig());
         $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertSame(429, Yii::$app->response->statusCode);
@@ -120,7 +121,7 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service);
+        $filter = new RateLimitFilter($service, $this->createConfig());
         $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertSame(429, Yii::$app->response->statusCode);
@@ -136,7 +137,7 @@ final class RateLimitFilterTest extends Unit
             ->method('isAllowed');
 
         unset($_SERVER['REMOTE_ADDR']);
-        $filter = new RateLimitFilter($service);
+        $filter = new RateLimitFilter($service, $this->createConfig());
         $result = $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertTrue($result);
@@ -156,10 +157,15 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service);
+        $filter = new RateLimitFilter($service, $this->createConfig());
         $filter->beforeAction($this->createMock(Action::class));
 
         $remaining = (int)Yii::$app->response->getHeaders()->get('X-RateLimit-Remaining');
         $this->assertSame(0, $remaining);
+    }
+
+    private function createConfig(): RateLimitConfig
+    {
+        return new RateLimitConfig(60, 60);
     }
 }

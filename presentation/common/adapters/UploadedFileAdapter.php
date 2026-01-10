@@ -6,6 +6,7 @@ namespace app\presentation\common\adapters;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
+use app\domain\exceptions\ValidationException;
 use app\domain\services\MimeTypeDetectorInterface;
 use app\domain\values\FileContent;
 use yii\web\UploadedFile;
@@ -19,16 +20,14 @@ final readonly class UploadedFileAdapter
 
     public function toFileContent(UploadedFile $uploadedFile): FileContent
     {
-        $path = $uploadedFile->tempName;
-
-        if (!file_exists($path) || !is_readable($path)) {
-            throw new OperationFailedException(DomainErrorCode::FileOpenFailed); // @codeCoverageIgnore
+        try {
+            return FileContent::fromPath(
+                $uploadedFile->tempName,
+                $uploadedFile->getExtension(),
+                $this->mimeTypeDetector,
+            );
+        } catch (ValidationException) {
+            throw new OperationFailedException(DomainErrorCode::FileOpenFailed);
         }
-
-        return FileContent::fromPath(
-            $path,
-            $uploadedFile->getExtension(),
-            $this->mimeTypeDetector,
-        );
     }
 }

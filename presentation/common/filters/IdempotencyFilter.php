@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\common\filters;
 
+use app\application\common\config\IdempotencyConfig;
 use app\application\common\dto\IdempotencyRecordDto;
 use app\application\common\IdempotencyServiceInterface;
 use Yii;
@@ -22,19 +23,13 @@ final class IdempotencyFilter extends ActionFilter
 
     public function __construct(
         private readonly IdempotencyServiceInterface $service,
+        IdempotencyConfig $idempotencyConfig,
         array $config = [],
     ) {
+        $this->ttl = $idempotencyConfig->ttl;
+        $this->lockTimeout = $idempotencyConfig->lockTimeout;
+        $this->waitSeconds = $idempotencyConfig->waitSeconds;
         parent::__construct($config);
-    }
-
-    public function init(): void
-    {
-        parent::init();
-
-        $params = Yii::$app->params['idempotency'] ?? [];
-        $this->ttl = (int)($params['ttl'] ?? $this->ttl);
-        $this->lockTimeout = (int)($params['lockTimeout'] ?? $this->lockTimeout);
-        $this->waitSeconds = (int)($params['waitSeconds'] ?? $this->waitSeconds);
     }
 
     #[\Override]

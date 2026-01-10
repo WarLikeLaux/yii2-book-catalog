@@ -31,7 +31,6 @@ final readonly class AutoDocService
         $this->saveYaml('db.yaml', [
             'meta' => [
                 'title' => 'Database Schema',
-                'updated_at' => gmdate('c'),
             ],
             'tables' => $tables,
         ]);
@@ -55,7 +54,6 @@ final readonly class AutoDocService
         $this->saveYaml('routes.yaml', [
             'meta' => [
                 'title' => 'HTTP Routes',
-                'updated_at' => gmdate('c'),
             ],
             'routes' => $routes,
         ]);
@@ -88,7 +86,6 @@ final readonly class AutoDocService
         $this->saveYaml('models.yaml', [
             'meta' => [
                 'title' => 'ActiveRecord Models',
-                'updated_at' => gmdate('c'),
             ],
             'models' => $models,
         ]);
@@ -127,7 +124,6 @@ final readonly class AutoDocService
         $this->saveYaml('usecases.yaml', [
             'meta' => [
                 'title' => 'Application Use Cases',
-                'updated_at' => gmdate('c'),
             ],
             'usecases' => $useCases,
         ]);
@@ -159,7 +155,6 @@ final readonly class AutoDocService
         $this->saveYaml('events.yaml', [
             'meta' => [
                 'title' => 'Domain Events',
-                'updated_at' => gmdate('c'),
             ],
             'events' => $events,
         ]);
@@ -230,9 +225,10 @@ final readonly class AutoDocService
                     continue;
                 }
 
-                $columns = is_array($indexConstraint->columnNames)
-                ? array_filter($indexConstraint->columnNames, static fn($col): bool => $col !== null)
-                : [$indexConstraint->columnNames];
+                $columns = array_filter(
+                    (array)$indexConstraint->columnNames,
+                    static fn($col): bool => $col !== null,
+                );
 
                 if ($columns === []) {
                     continue;
@@ -399,8 +395,9 @@ final readonly class AutoDocService
         }
 
         $actionParts = explode('/', $action);
+        $lastPart = $actionParts[count($actionParts) - 1];
 
-        if (end($actionParts) === 'index' && $actionParts[0] === 'site') {
+        if ($lastPart === 'index' && $actionParts[0] === 'site') {
             return '/';
         }
 

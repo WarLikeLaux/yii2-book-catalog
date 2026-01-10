@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\common\adapters;
 
+use app\domain\exceptions\OperationFailedException;
 use app\domain\services\NativeMimeTypeDetector;
 use app\domain\values\FileContent;
 use app\presentation\common\adapters\UploadedFileAdapter;
@@ -67,6 +68,23 @@ final class UploadedFileAdapterTest extends Unit
         $content = $this->adapter->toFileContent($uploadedFile);
 
         $this->assertSame('pdf', $content->extension);
+    }
+
+    public function testToFileContentThrowsOperationFailedWhenTempFileNotFound(): void
+    {
+        $nonExistentPath = $this->tempDir . '/non-existent-file.tmp';
+
+        $uploadedFile = new UploadedFile([
+            'name' => 'test.txt',
+            'tempName' => $nonExistentPath,
+            'type' => 'text/plain',
+            'size' => 0,
+            'error' => UPLOAD_ERR_OK,
+        ]);
+
+        $this->expectException(OperationFailedException::class);
+
+        $this->adapter->toFileContent($uploadedFile);
     }
 
     private function createUploadedFile(string $tempPath, string $originalName): UploadedFile

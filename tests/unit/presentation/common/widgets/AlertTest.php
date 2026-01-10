@@ -41,9 +41,11 @@ final class AlertTest extends TestCase
 
     private function setConsoleApp(): ConsoleApplication
     {
-        return new ConsoleApplication([
+        Yii::$app = new ConsoleApplication([
             'id' => 'test-console-alert',
             'basePath' => dirname(__DIR__, 5),
         ]);
+
+        return Yii::$app;
     }
 }

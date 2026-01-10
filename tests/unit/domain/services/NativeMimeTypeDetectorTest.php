@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\domain\values;
+namespace tests\unit\domain\services;
 
 use app\domain\services\FinfoFunctions;
 use app\domain\services\NativeMimeTypeDetector;
@@ -91,7 +91,7 @@ final class NativeMimeTypeDetectorTest extends Unit
         $fileCalled = false;
         $closeCalled = false;
         $finfoFunctions = new FinfoFunctions(
-            static fn(int $option): mixed => $option === 0 && false,
+            static fn(int $option): mixed => $option < 0,
             static function (mixed $finfo, string $path) use (&$fileCalled): string|false {
                 $fileCalled = true;
                 return $finfo === null ? false : ($path === '' ? '' : 'application/x-finfo');

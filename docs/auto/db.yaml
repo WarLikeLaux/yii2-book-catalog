@@ -1,6 +1,5 @@
 meta:
   title: 'Database Schema'
-  updated_at: '2026-01-10T00:39:15+00:00'
 tables:
   async_idempotency_log:
     columns:
@@ -24,15 +23,15 @@ tables:
     foreign_keys: {}
     indexes:
       -
-        name: idempotency_key
-        columns:
-          - idempotency_key
-        unique: true
-      -
         name: idx_async_idempotency_log_created_at
         columns:
           - created_at
         unique: false
+      -
+        name: idx_async_idempotency_log_key
+        columns:
+          - idempotency_key
+        unique: true
   authors:
     columns:
       -
@@ -50,12 +49,17 @@ tables:
     foreign_keys: {}
     indexes:
       -
-        name: ft_authors_fio
+        name: idx_authors_fio
         columns:
           - fio
         unique: false
       -
-        name: ux_authors_fio
+        name: idx_authors_fio_fulltext
+        columns:
+          - fio
+        unique: false
+      -
+        name: idx_authors_fio_unique
         columns:
           - fio
         unique: true
@@ -125,6 +129,11 @@ tables:
         nullable: false
         default: 0
       -
+        name: version
+        type: int
+        nullable: false
+        default: 0
+      -
         name: created_at
         type: int
         nullable: false
@@ -134,20 +143,14 @@ tables:
         type: int
         nullable: false
         default: null
-      -
-        name: version
-        type: int
-        nullable: false
-        default: 1
     primary_key:
       - id
     foreign_keys: {}
     indexes:
       -
-        name: ft_books_title_description
+        name: idx_books_cover_url_partial
         columns:
-          - title
-          - description
+          - cover_url
         unique: false
       -
         name: idx_books_isbn
@@ -158,6 +161,12 @@ tables:
         name: idx_books_title
         columns:
           - title
+        unique: false
+      -
+        name: idx_books_title_desc_fulltext
+        columns:
+          - title
+          - description
         unique: false
       -
         name: idx_books_year
@@ -176,6 +185,11 @@ tables:
         type: varchar(128)
         nullable: false
         default: null
+      -
+        name: status
+        type: varchar(20)
+        nullable: false
+        default: finished
       -
         name: status_code
         type: int
@@ -196,25 +210,20 @@ tables:
         type: int
         nullable: false
         default: null
-      -
-        name: status
-        type: varchar(20)
-        nullable: false
-        default: finished
     primary_key:
       - id
     foreign_keys: {}
     indexes:
       -
-        name: idempotency_key
-        columns:
-          - idempotency_key
-        unique: true
-      -
         name: idx_idempotency_keys_expires_at
         columns:
           - expires_at
         unique: false
+      -
+        name: idx_idempotency_keys_key
+        columns:
+          - idempotency_key
+        unique: true
   migration:
     columns:
       -
@@ -288,11 +297,6 @@ tables:
     foreign_keys: {}
     indexes:
       -
-        name: channel
-        columns:
-          - channel
-        unique: false
-      -
         name: idx_queue_channel_reserved_at_priority
         columns:
           - channel
@@ -300,12 +304,7 @@ tables:
           - priority
         unique: false
       -
-        name: priority
-        columns:
-          - priority
-        unique: false
-      -
-        name: reserved_at
+        name: idx_queue_reserved_at
         columns:
           - reserved_at
         unique: false

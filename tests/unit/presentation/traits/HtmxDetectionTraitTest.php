@@ -59,6 +59,36 @@ final class HtmxDetectionTraitTest extends Unit
         $this->assertSame('first', $trait->callGetHtmxTarget());
     }
 
+    public function testGetHtmxTriggerReturnsNullWhenArrayEmpty(): void
+    {
+        $trait = $this->createTraitInstanceWithHeaderValue('HX-Trigger', []);
+        $this->assertNull($trait->callGetHtmxTrigger());
+    }
+
+    public function testGetHtmxTriggerReturnsFirstValueWhenMockedArray(): void
+    {
+        $trait = $this->createTraitInstanceWithHeaderValue('HX-Trigger', ['first', 'second']);
+        $this->assertSame('first', $trait->callGetHtmxTrigger());
+    }
+
+    public function testGetHtmxTriggerReturnsScalarWhenArrayFirstIsScalar(): void
+    {
+        $trait = $this->createTraitInstanceWithHeaderValue('HX-Trigger', [123, 'second']);
+        $this->assertSame('123', $trait->callGetHtmxTrigger());
+    }
+
+    public function testGetHtmxTriggerReturnsScalarWhenNonStringValue(): void
+    {
+        $trait = $this->createTraitInstanceWithHeaderValue('HX-Trigger', 456);
+        $this->assertSame('456', $trait->callGetHtmxTrigger());
+    }
+
+    public function testGetHtmxTriggerReturnsNullWhenNonScalarValue(): void
+    {
+        $trait = $this->createTraitInstanceWithHeaderValue('HX-Trigger', new \stdClass());
+        $this->assertNull($trait->callGetHtmxTrigger());
+    }
+
     /**
      * @param array<string, string|string[]> $headers
      */
@@ -84,6 +114,30 @@ final class HtmxDetectionTraitTest extends Unit
                 isHtmxRequest as public callIsHtmxRequest;
                 getHtmxTrigger as public callGetHtmxTrigger;
                 getHtmxTarget as public callGetHtmxTarget;
+            }
+
+            public Request $request;
+
+            public function __construct(Request $request)
+            {
+                $this->request = $request;
+            }
+        };
+    }
+
+    private function createTraitInstanceWithHeaderValue(string $headerName, mixed $value): object
+    {
+        $headers = $this->createMock(HeaderCollection::class);
+        $headers->method('get')
+            ->with($headerName)
+            ->willReturn($value);
+
+        $request = $this->createMock(Request::class);
+        $request->method('getHeaders')->willReturn($headers);
+
+        return new class ($request) {
+            use HtmxDetectionTrait {
+                getHtmxTrigger as public callGetHtmxTrigger;
             }
 
             public Request $request;

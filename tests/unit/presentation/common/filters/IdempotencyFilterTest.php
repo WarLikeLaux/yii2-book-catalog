@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\tests\unit\presentation\common\filters;
 
+use app\application\common\config\IdempotencyConfig;
 use app\application\common\dto\IdempotencyRecordDto;
 use app\application\common\IdempotencyKeyStatus;
 use app\application\common\IdempotencyServiceInterface;
@@ -59,7 +60,7 @@ final class IdempotencyFilterTest extends Unit
 
         Yii::$app->request->getHeaders()->set('Idempotency-Key', 'key-1');
 
-        $filter = new IdempotencyFilter($service);
+        $filter = new IdempotencyFilter($service, $this->createConfig());
         $result = $filter->beforeAction($this->createAction());
 
         $this->assertFalse($result);
@@ -91,7 +92,7 @@ final class IdempotencyFilterTest extends Unit
 
         Yii::$app->request->getHeaders()->set('Idempotency-Key', 'key-2');
 
-        $filter = new IdempotencyFilter($service);
+        $filter = new IdempotencyFilter($service, $this->createConfig());
         $result = $filter->beforeAction($this->createAction());
 
         $this->assertFalse($result);
@@ -123,7 +124,7 @@ final class IdempotencyFilterTest extends Unit
 
         Yii::$app->request->getHeaders()->set('Idempotency-Key', 'key-3');
 
-        $filter = new IdempotencyFilter($service);
+        $filter = new IdempotencyFilter($service, $this->createConfig());
         $result = $filter->beforeAction($this->createAction());
 
         $this->assertFalse($result);
@@ -135,5 +136,10 @@ final class IdempotencyFilterTest extends Unit
     private function createAction(): Action
     {
         return new Action('test', new Controller('test', Yii::$app));
+    }
+
+    private function createConfig(): IdempotencyConfig
+    {
+        return new IdempotencyConfig(86400, 1, 1, 'hash-key');
     }
 }
