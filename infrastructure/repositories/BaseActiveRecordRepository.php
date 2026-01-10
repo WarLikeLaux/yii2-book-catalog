@@ -151,20 +151,12 @@ abstract readonly class BaseActiveRecordRepository
 
     private function removeIdentityById(int $id): void
     {
-        $toRemove = [];
-
         // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
         foreach ($this->identityMap as $entity => $activeRecord) {
-            if ($entity->getId() !== $id) {
-                continue;
+            if ($entity->getId() === $id) {
+                unset($this->identityMap[$entity]);
+                break;
             }
-
-            $toRemove[] = $entity;
-            break;
-        }
-
-        foreach ($toRemove as $entity) {
-            unset($this->identityMap[$entity]);
         }
     }
 }
