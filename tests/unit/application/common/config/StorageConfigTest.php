@@ -50,4 +50,13 @@ final class StorageConfigTest extends Unit
         $create = static fn() => new StorageConfig('/uploads', ' ', '');
         $create();
     }
+
+    public function testConstructorThrowsWhenBasePathWhitespaceOnly(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('Invalid config: storage.basePath');
+
+        $create = static fn() => new StorageConfig('   ', '/uploads', '');
+        $create();
+    }
 }

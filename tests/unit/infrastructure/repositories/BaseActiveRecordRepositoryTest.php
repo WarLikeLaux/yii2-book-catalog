@@ -38,7 +38,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
     public function testPersistSuccess(): void
     {
         $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => true,
+            'save' => static fn(bool $_runValidation = true) => true,
         ]);
 
         $this->repository->testPersist($model, DomainErrorCode::BookStaleData);
@@ -47,7 +47,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
     public function testPersistThrowsRuntimeExceptionOnSaveFailure(): void
     {
         $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => false,
+            'save' => static fn(bool $_runValidation = true) => false,
             'getFirstErrors' => ['error' => self::SAVE_FAILED_MESSAGE],
         ]);
 
@@ -131,7 +131,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
     public function testPersistThrowsRuntimeExceptionWithDefaultMessageOnSaveFailureWithoutErrors(): void
     {
         $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => false,
+            'save' => static fn(bool $_runValidation = true) => false,
             'getFirstErrors' => [],
         ]);
 
