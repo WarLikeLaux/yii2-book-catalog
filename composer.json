@@ -20,7 +20,7 @@
     "minimum-stability": "stable",
     "require": {
         "php": ">=8.4.0",
-        "yiisoft/yii2": "~2.0.45",
+        "yiisoft/yii2": "~2.0.54",
         "yiisoft/yii2-bootstrap5": "~2.0.2",
         "yiisoft/yii2-symfonymailer": "~2.0.3",
         "yiisoft/yii2-queue": "^2.3",
@@ -34,9 +34,11 @@
         "npm-asset/faker": "5.5.3",
         "twbs/bootstrap-icons": "^1.13",
         "npm-asset/glightbox": "^3.3",
-        "npm-asset/htmx.org": "^2.0"
+        "npm-asset/htmx.org": "^2.0",
+        "jolicode/automapper": "^9.5"
     },
     "require-dev": {
+        "npm-asset/prettier": "^3.7.4",
         "symfony/var-dumper": "^5.4 || ^6.0 || ^7.0",
         "yiisoft/yii2-debug": "~2.1.0",
         "yiisoft/yii2-gii": "~2.2.0",
@@ -74,6 +76,7 @@
             "Tools\\": "tools/"
         },
         "files": [
+            "functions.php",
             "tools/PHPUnit/Framework/Attributes/CodeCoverageIgnore.php"
         ]
     },

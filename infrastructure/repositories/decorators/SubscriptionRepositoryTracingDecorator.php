@@ -21,22 +21,4 @@ final readonly class SubscriptionRepositoryTracingDecorator implements Subscript
     {
         $this->tracer->trace('SubRepo::' . __FUNCTION__, fn() => $this->repository->save($subscription));
     }
-
-    #[\Override]
-    public function exists(string $phone, int $authorId): bool
-    {
-        return $this->tracer->trace('SubRepo::' . __FUNCTION__, fn(): bool => $this->repository->exists($phone, $authorId));
-    }
-
-    /**
-     * @return iterable<string>
-     */
-    #[\Override]
-    public function getSubscriberPhonesForBook(int $bookId, int $batchSize): iterable
-    {
-        return $this->tracer->trace(
-            'SubRepo::' . __FUNCTION__,
-            fn(): iterable => $this->repository->getSubscriberPhonesForBook($bookId, $batchSize),
-        );
-    }
 }

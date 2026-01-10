@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SITEMAP_FILE="$ROOT_DIR/docs/sitemap.xml"
+DATE=$(date +%Y-%m-%d)
+
+if [[ -f "$SITEMAP_FILE" ]]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s|<lastmod>[^<]*</lastmod>|<lastmod>$DATE</lastmod>|g" "$SITEMAP_FILE"
+    else
+        sed -i "s|<lastmod>[^<]*</lastmod>|<lastmod>$DATE</lastmod>|g" "$SITEMAP_FILE"
+    fi
+    echo "✅ sitemap.xml обновлен до $DATE"
+else
+    echo "⚠️ sitemap.xml не найден по пути $SITEMAP_FILE"
+fi

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\domain\entities;
 
-final class Subscription
+use app\domain\common\IdentifiableEntityInterface;
+
+final class Subscription implements IdentifiableEntityInterface
 {
     public function __construct(
         public private(set) ?int $id,
@@ -16,5 +18,10 @@ final class Subscription
     public static function create(string $phone, int $authorId): self
     {
         return new self(null, $phone, $authorId);
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 }

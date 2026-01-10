@@ -1,11 +1,26 @@
 meta:
   title: 'HTTP Routes'
-  updated_at: '2026-01-03T02:11:24+00:00'
 routes:
   -
     path: /
     action: site/index
     controller: SiteController
+    methods:
+      - GET
+    guards:
+      - Auth
+  -
+    path: /api/v1/books
+    action: api/v1/book/index
+    controller: api/v1/BookController
+    methods:
+      - GET
+    guards:
+      - Auth
+  -
+    path: /author
+    action: author/index
+    controller: AuthorController
     methods:
       - GET
     guards:
@@ -25,16 +40,7 @@ routes:
     action: author/delete
     controller: AuthorController
     methods:
-      - GET
-    guards:
-      - Idempotency
-      - Auth
-  -
-    path: /author/index
-    action: author/index
-    controller: AuthorController
-    methods:
-      - GET
+      - POST
     guards:
       - Idempotency
       - Auth
@@ -45,7 +51,6 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /author/update
@@ -64,7 +69,14 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
+      - Auth
+  -
+    path: /book
+    action: book/index
+    controller: BookController
+    methods:
+      - GET
+    guards:
       - Auth
   -
     path: /book/create
@@ -81,25 +93,7 @@ routes:
     action: book/delete
     controller: BookController
     methods:
-      - GET
-    guards:
-      - Idempotency
-      - Auth
-  -
-    path: /book/index
-    action: book/index
-    controller: BookController
-    methods:
-      - GET
-    guards:
-      - Idempotency
-      - Auth
-  -
-    path: /book/index
-    action: book/index
-    controller: BookController
-    methods:
-      - GET
+      - POST
     guards:
       - Idempotency
       - Auth
@@ -108,7 +102,7 @@ routes:
     action: book/publish
     controller: BookController
     methods:
-      - GET
+      - POST
     guards:
       - Idempotency
       - Auth
@@ -129,10 +123,9 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
-    path: /report/index
+    path: /report
     action: report/index
     controller: ReportController
     methods:
@@ -159,7 +152,7 @@ routes:
     action: site/logout
     controller: SiteController
     methods:
-      - GET
+      - POST
     guards:
       - Auth
   -
@@ -169,14 +162,13 @@ routes:
     methods:
       - GET
     guards:
-      - Idempotency
       - Auth
   -
     path: /subscription/subscribe
     action: subscription/subscribe
     controller: SubscriptionController
     methods:
-      - GET
+      - POST
     guards:
       - Idempotency
       - Auth

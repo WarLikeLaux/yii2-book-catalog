@@ -42,13 +42,4 @@ final readonly class BookRepositoryTracingDecorator implements BookRepositoryInt
     {
         $this->tracer->trace('BookRepo::' . __FUNCTION__, fn() => $this->repository->delete($book));
     }
-
-    #[\Override]
-    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
-    {
-        return $this->tracer->trace(
-            'BookRepo::' . __FUNCTION__,
-            fn(): bool => $this->repository->existsByIsbn($isbn, $excludeId),
-        );
-    }
 }

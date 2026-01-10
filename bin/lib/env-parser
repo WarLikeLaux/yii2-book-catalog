@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+# Shared .env parser for infrastructure scripts
+# Usage: source bin/lib/env-parser && read_env_var VAR_NAME [default]
+
+read_env_var() {
+    local var_name="$1"
+    local default_value="${2:-}"
+    local value=""
+
+    if [ -f .env ]; then
+        value=$(grep -E "^${var_name}=" .env 2>/dev/null | head -n1 | cut -d= -f2-)
+        value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        value=$(echo "$value" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+        value=$(echo "$value" | sed -e 's/[[:space:]]*#.*//')
+    fi
+
+    if [ -z "$value" ]; then
+        echo "$default_value"
+    else
+        echo "$value"
+    fi
+}
+
+load_db_env() {
+    if [ -z "${DB_ROOT_PASSWORD:-}" ]; then
+        DB_ROOT_PASSWORD=$(read_env_var DB_ROOT_PASSWORD "root")
+    fi
+
+    if [ -z "${DB_USER:-}" ]; then
+        DB_USER=$(read_env_var DB_USER "yii2")
+    fi
+
+    if [ -z "${DB_PASSWORD:-}" ]; then
+        DB_PASSWORD=$(read_env_var DB_PASSWORD "secret")
+    fi
+
+    if [ -z "${POSTGRES_USER:-}" ]; then
+        POSTGRES_USER=$(read_env_var POSTGRES_USER "")
+    fi
+
+    export DB_ROOT_PASSWORD DB_USER DB_PASSWORD POSTGRES_USER
+}
+
+validate_db_name() {
+    local name="$1"
+    if ! echo "$name" | grep -qE '^[a-zA-Z0-9_]+$'; then
+        echo "❌ Ошибка: имя БД содержит недопустимые символы. Допускаются только [a-zA-Z0-9_]"
+        exit 1
+    fi
+}
+
+validate_credentials() {
+    local value="$1"
+    local name="$2"
+    if echo "$value" | grep -qE "['\"\`\\]"; then
+        echo "❌ Ошибка: $name содержит недопустимые символы"
+        exit 1
+    fi
+}

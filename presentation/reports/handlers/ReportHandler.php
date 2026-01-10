@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\presentation\reports\handlers;
 
+use app\application\ports\ReportQueryServiceInterface;
 use app\application\reports\queries\ReportDto;
-use app\application\reports\queries\ReportQueryService;
 use app\presentation\common\services\WebUseCaseRunner;
 use app\presentation\reports\mappers\ReportCriteriaMapper;
 use Yii;
@@ -14,7 +14,7 @@ final readonly class ReportHandler
 {
     public function __construct(
         private ReportCriteriaMapper $reportCriteriaMapper,
-        private ReportQueryService $reportQueryService,
+        private ReportQueryServiceInterface $reportQueryService,
         private WebUseCaseRunner $useCaseRunner,
     ) {
     }

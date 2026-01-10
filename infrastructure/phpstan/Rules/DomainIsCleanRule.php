@@ -7,53 +7,56 @@ namespace app\infrastructure\phpstan\Rules;
 use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\StaticPropertyFetch;
+use PhpParser\NodeFinder;
 use PHPStan\Analyser\Scope;
+use PHPStan\Node\InClassNode;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * @implements Rule<Node>
+ * @implements Rule<InClassNode>
  * @codeCoverageIgnore Логика статического анализа проверяется тестами PHPStan
  */
 final readonly class DomainIsCleanRule implements Rule
 {
     public function getNodeType(): string
     {
-        return Node::class;
+        return InClassNode::class;
     }
 
     public function processNode(Node $node, Scope $scope): array
     {
-        if (
-            $node instanceof StaticPropertyFetch
-            && $node->class instanceof Node\Name
-            && $node->class->toString() === 'Yii'
-        ) {
-            return $this->buildError($scope);
-        }
-
-        if ($node instanceof StaticCall && ($node->class instanceof Node\Name && $node->class->toString() === 'Yii')) {
-            return $this->buildError($scope);
-        }
-
-        return [];
-    }
-
-    /**
-     * @return list<\PHPStan\Rules\IdentifierRuleError>
-     */
-    private function buildError(Scope $scope): array
-    {
         $namespace = $scope->getNamespace();
 
-        if ($namespace !== null && str_starts_with($namespace, 'app\domain')) {
-            return [
-                RuleErrorBuilder::message('Domain layer must be clean. Do not use Yii::$app or other static Yii calls.')
-                    ->identifier('architecture.domainClean')
-                    ->build(),
-            ];
+        if ($namespace === null || !str_starts_with($namespace, 'app\domain')) {
+            return [];
         }
 
-        return [];
+        $nodeFinder = new NodeFinder();
+        $originalNode = $node->getOriginalNode();
+
+        /** @var array<StaticCall|StaticPropertyFetch> $usages */
+        $usages = $nodeFinder->find($originalNode->stmts, static function (Node $n): bool {
+            if ($n instanceof StaticPropertyFetch && $n->class instanceof Node\Name) {
+                return $n->class->toString() === 'Yii';
+            }
+
+            if ($n instanceof StaticCall && $n->class instanceof Node\Name) {
+                return $n->class->toString() === 'Yii';
+            }
+
+            return false;
+        });
+
+        $errors = [];
+
+        foreach ($usages as $usage) {
+            $errors[] = RuleErrorBuilder::message('Domain layer must be clean. Do not use Yii::$app or other static Yii calls.')
+                ->identifier('architecture.domainClean')
+                ->line($usage->getStartLine())
+                ->build();
+        }
+
+        return $errors;
     }
 }

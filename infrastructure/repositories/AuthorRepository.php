@@ -6,94 +6,47 @@ namespace app\infrastructure\repositories;
 
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author as AuthorEntity;
-use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\EntityNotFoundException;
+use app\domain\exceptions\OperationFailedException;
 use app\infrastructure\persistence\Author;
-use RuntimeException;
-use yii\db\IntegrityException;
 
-final readonly class AuthorRepository implements AuthorRepositoryInterface
+final readonly class AuthorRepository extends BaseActiveRecordRepository implements AuthorRepositoryInterface
 {
-    use DatabaseExceptionHandlerTrait;
     use IdentityAssignmentTrait;
 
     public function save(AuthorEntity $author): void
     {
-        if ($author->id === null) {
-            $ar = new Author();
-        } else {
-            $ar = Author::findOne($author->id);
+        $isNew = $author->getId() === null;
 
-            if ($ar === null) {
-                throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
+        $model = $isNew ? new Author() : $this->getArForEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
+
+        $model->fio = $author->fio;
+
+        $this->persist($model, DomainErrorCode::AuthorStaleData, DomainErrorCode::AuthorFioExists);
+
+        if ($isNew) {
+            if ($model->id === null) {
+                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed); // @codeCoverageIgnore
             }
+
+            $this->assignId($author, $model->id);
         }
 
-        $ar->fio = $author->fio;
-
-        $this->persistAuthor($ar);
-
-        if ($author->id !== null) {
-            return;
-        }
-
-        $this->assignId($author, $ar->id);
+        $this->registerIdentity($author, $model);
     }
 
     public function get(int $id): AuthorEntity
     {
-        $ar = Author::findOne($id);
+        $ar = $this->getArById($id, Author::class, DomainErrorCode::AuthorNotFound);
 
-        if ($ar === null) {
-            throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
-        }
+        $entity = new AuthorEntity((int)$ar->id, $ar->fio);
+        $this->registerIdentity($entity, $ar);
 
-        return new AuthorEntity(
-            $ar->id,
-            $ar->fio,
-        );
+        return $entity;
     }
 
     public function delete(AuthorEntity $author): void
     {
-        $ar = Author::findOne($author->id);
-
-        if ($ar === null) {
-            throw new EntityNotFoundException(DomainErrorCode::AuthorNotFound);
-        }
-
-        if ($ar->delete() === false) {
-            throw new RuntimeException('author.error.delete_failed'); // @codeCoverageIgnore
-        }
-    }
-
-    public function existsByFio(string $fio, ?int $excludeId = null): bool
-    {
-        $query = Author::find()->where(['fio' => $fio]);
-
-        if ($excludeId !== null) {
-            $query->andWhere(['<>', 'id', $excludeId]);
-        }
-
-        return $query->exists();
-    }
-
-    /** @codeCoverageIgnore */
-    private function persistAuthor(Author $ar): void
-    {
-        try {
-            if (!$ar->save(false)) {
-                $errors = $ar->getFirstErrors();
-                $message = $errors !== [] ? array_shift($errors) : 'author.error.save_failed';
-                throw new RuntimeException($message);
-            }
-        } catch (IntegrityException $e) {
-            if ($this->isDuplicateError($e)) {
-                throw new AlreadyExistsException(DomainErrorCode::AuthorFioExists, 409, $e);
-            }
-
-            throw $e;
-        }
+        $this->deleteEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
     }
 }

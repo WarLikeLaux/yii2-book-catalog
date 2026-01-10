@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\domain\entities;
 
+use app\domain\common\IdentifiableEntityInterface;
 use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
@@ -12,19 +13,33 @@ use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
 
-final class Book
+final class Book implements IdentifiableEntityInterface
 {
     private const int MAX_TITLE_LENGTH = 255;
 
+    // phpcs:disable PSR2.Classes.PropertyDeclaration,Generic.WhiteSpace.ScopeIndent,SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing
     /** @var int[] */
     public private(set) array $authorIds = [];
+    public private(set) string $title {
+        set {
+            $trimmed = trim($value);
+            if ($trimmed === '') {
+        throw new ValidationException(DomainErrorCode::BookTitleEmpty);
+            }
+            if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
+        throw new ValidationException(DomainErrorCode::BookTitleTooLong);
+            }
+            $this->title = $trimmed;
+        }
+    }
+    // phpcs:enable
 
     /**
      * @param int[] $authorIds
      */
     private function __construct(
         public private(set) ?int $id,
-        public private(set) string $title,
+        string $title,
         public private(set) BookYear $year,
         public private(set) Isbn $isbn,
         public private(set) ?string $description,
@@ -33,7 +48,7 @@ final class Book
         public private(set) bool $published,
         public private(set) int $version,
     ) {
-        $this->validateTitle($title);
+        $this->title = $title;
         $this->authorIds = array_map(intval(...), $authorIds);
     }
 
@@ -84,23 +99,14 @@ final class Book
         );
     }
 
-    private function validateTitle(string $title): void
-    {
-        $trimmed = trim($title);
-
-        if ($trimmed === '') {
-            throw new ValidationException(DomainErrorCode::BookTitleEmpty);
-        }
-
-        if (mb_strlen($trimmed) > self::MAX_TITLE_LENGTH) {
-            throw new ValidationException(DomainErrorCode::BookTitleTooLong);
-        }
-    }
-
     public function rename(string $title): void
     {
-        $this->validateTitle($title);
         $this->title = $title;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function changeYear(BookYear $year): void

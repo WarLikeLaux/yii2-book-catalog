@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace app\tests\unit\infrastructure\repositories;
 
+use app\domain\common\IdentifiableEntityInterface;
 use app\infrastructure\repositories\IdentityAssignmentTrait;
 use Codeception\Test\Unit;
 use RuntimeException;
 
 final class IdentityAssignmentTraitTest extends Unit
 {
-    private object $entity;
+    private IdentifiableEntityInterface $entity;
     private ?object $traitObject = null;
 
     protected function _before(): void
     {
-        $this->entity = new class {
+        $this->entity = new class implements IdentifiableEntityInterface {
             public ?int $id = null;
 
             public function getId(): ?int
@@ -54,25 +55,5 @@ final class IdentityAssignmentTraitTest extends Unit
         $this->expectExceptionMessage('current: 42, new: 99');
 
         $this->traitObject->assignId($this->entity, 99);
-    }
-
-    public function testAssignIdHandlesNonScalarCurrentValueInException(): void
-    {
-        $entityWithObject = new class {
-            /**
-             * @var \stdClass
-             */
-            public $id;
-
-            public function __construct()
-            {
-                $this->id = new \stdClass();
-            }
-        };
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('current: object');
-
-        $this->traitObject->assignId($entityWithObject, 42);
     }
 }

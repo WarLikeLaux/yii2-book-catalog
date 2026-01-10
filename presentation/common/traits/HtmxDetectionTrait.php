@@ -16,19 +16,46 @@ trait HtmxDetectionTrait
     protected function getHtmxTrigger(): ?string
     {
         $value = $this->getRequestObject()->getHeaders()->get('HX-Trigger');
-        return is_array($value) ? ($value[0] ?? null) : $value;
+
+        return $this->normalizeHeaderValue($value);
     }
 
     protected function getHtmxTarget(): ?string
     {
         $value = $this->getRequestObject()->getHeaders()->get('HX-Target');
-        return is_array($value) ? ($value[0] ?? null) : $value;
+
+        return $this->normalizeHeaderValue($value);
     }
 
     private function getRequestObject(): Request
     {
-        /** @var Request $request */
-        $request = $this->request;
-        return $request;
+        return $this->request;
+    }
+
+    private function normalizeHeaderValue(mixed $value): ?string
+    {
+        if (is_array($value)) {
+            if ($value === []) {
+                return null;
+            }
+
+            $first = $value[0];
+
+            if (is_string($first)) {
+                return $first;
+            }
+
+            return is_scalar($first) ? (string)$first : null;
+        }
+
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return is_scalar($value) ? (string)$value : null;
     }
 }

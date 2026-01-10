@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace app\presentation\books\handlers;
 
-use app\application\authors\queries\AuthorQueryService;
 use app\application\books\queries\BookReadDto;
 use app\application\common\dto\QueryResult;
+use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookFinderInterface;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\forms\BookForm;
-use app\presentation\books\mappers\BookFormMapper;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
+use AutoMapper\AutoMapperInterface;
+use LogicException;
 use yii\data\DataProviderInterface;
 use yii\web\NotFoundHttpException;
 
@@ -21,8 +22,8 @@ final readonly class BookViewDataFactory
     public function __construct(
         private BookFinderInterface $finder,
         private BookSearcherInterface $searcher,
-        private AuthorQueryService $authorQueryService,
-        private BookFormMapper $mapper,
+        private AuthorQueryServiceInterface $authorQueryService,
+        private AutoMapperInterface $autoMapper,
         private PagedResultDataProviderFactory $dataProviderFactory,
         private FileUrlResolver $resolver,
     ) {
@@ -50,22 +51,24 @@ final readonly class BookViewDataFactory
 
     public function getBookForUpdate(int $id): BookForm
     {
-        $dto = $this->finder->findById($id);
+        $dto = $this->getBookById($id);
+        $form = $this->autoMapper->map($dto, BookForm::class);
 
-        if (!$dto instanceof BookReadDto) {
-             throw new NotFoundHttpException();
+        if (!$form instanceof BookForm) {
+            throw new LogicException(sprintf(
+                'AutoMapper не смог преобразовать %s в %s в getBookForUpdate: получен %s. Проверьте конфигурацию маппера.',
+                BookReadDto::class,
+                BookForm::class,
+                get_debug_type($form),
+            ));
         }
 
-        return $this->mapper->toForm($dto);
+        return $form;
     }
 
     public function getBookView(int $id): BookReadDto
     {
-        $dto = $this->finder->findById($id);
-
-        if (!$dto instanceof BookReadDto) {
-             throw new NotFoundHttpException();
-        }
+        $dto = $this->getBookById($id);
 
         return $this->withResolvedUrl($dto);
     }
@@ -75,7 +78,14 @@ final readonly class BookViewDataFactory
      */
     public function getAuthorsList(): array
     {
-        return $this->authorQueryService->getAuthorsMap();
+        $authors = $this->authorQueryService->findAllOrderedByFio();
+        $map = [];
+
+        foreach ($authors as $author) {
+            $map[$author->id] = $author->fio;
+        }
+
+        return $map;
     }
 
     private function withResolvedUrl(BookReadDto $dto): BookReadDto
@@ -92,5 +102,16 @@ final readonly class BookViewDataFactory
             $dto->isPublished,
             $dto->version,
         );
+    }
+
+    private function getBookById(int $id): BookReadDto
+    {
+        $dto = $this->finder->findById($id);
+
+        if (!$dto instanceof BookReadDto) {
+            throw new NotFoundHttpException();
+        }
+
+        return $dto;
     }
 }

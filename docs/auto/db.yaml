@@ -1,34 +1,68 @@
 meta:
   title: 'Database Schema'
-  updated_at: '2026-01-03T02:11:24+00:00'
 tables:
+  async_idempotency_log:
+    columns:
+      -
+        name: id
+        type: int
+        nullable: false
+      -
+        name: idempotency_key
+        type: varchar(128)
+        nullable: false
+      -
+        name: created_at
+        type: int
+        nullable: false
+    primary_key:
+      - id
+    foreign_keys: []
+    indexes:
+      -
+        name: idx_async_idempotency_log_created_at
+        columns:
+          - created_at
+        unique: false
+      -
+        name: idx_async_idempotency_log_key
+        columns:
+          - idempotency_key
+        unique: true
   authors:
     columns:
       -
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: fio
         type: varchar(255)
         nullable: false
-        default: null
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: []
+    indexes:
+      -
+        name: idx_authors_fio_fulltext
+        columns:
+          - fio
+        unique: false
+      -
+        name: idx_authors_fio_unique
+        columns:
+          - fio
+        unique: true
   book_authors:
     columns:
       -
         name: book_id
         type: int
         nullable: false
-        default: null
       -
         name: author_id
         type: int
         nullable: false
-        default: null
     primary_key:
       - book_id
       - author_id
@@ -39,143 +73,167 @@ tables:
       -
         column: book_id
         references: books.id
+    indexes:
+      -
+        name: idx_book_authors_author_id
+        columns:
+          - author_id
+        unique: false
   books:
     columns:
       -
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: title
         type: varchar(255)
         nullable: false
-        default: null
       -
         name: year
         type: int
         nullable: false
-        default: null
       -
         name: description
         type: text
         nullable: true
-        default: null
       -
         name: isbn
         type: varchar(20)
         nullable: false
-        default: null
       -
         name: cover_url
         type: varchar(500)
         nullable: true
-        default: null
       -
         name: is_published
         type: tinyint(1)
         nullable: false
         default: 0
       -
+        name: version
+        type: int
+        nullable: false
+        default: 0
+      -
         name: created_at
         type: int
         nullable: false
-        default: null
       -
         name: updated_at
         type: int
         nullable: false
-        default: null
-      -
-        name: version
-        type: int
-        nullable: false
-        default: 1
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: []
+    indexes:
+      -
+        name: idx_books_cover_url_partial
+        columns:
+          - cover_url
+        unique: false
+      -
+        name: idx_books_isbn
+        columns:
+          - isbn
+        unique: true
+      -
+        name: idx_books_title
+        columns:
+          - title
+        unique: false
+      -
+        name: idx_books_title_desc_fulltext
+        columns:
+          - title
+          - description
+        unique: false
+      -
+        name: idx_books_year
+        columns:
+          - year
+        unique: false
   idempotency_keys:
     columns:
       -
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: idempotency_key
-        type: varchar(36)
+        type: varchar(128)
         nullable: false
-        default: null
-      -
-        name: status_code
-        type: int
-        nullable: true
-        default: null
-      -
-        name: response_body
-        type: blob
-        nullable: true
-        default: null
-      -
-        name: created_at
-        type: int
-        nullable: false
-        default: null
-      -
-        name: expires_at
-        type: int
-        nullable: false
-        default: null
       -
         name: status
         type: varchar(20)
         nullable: false
         default: finished
+      -
+        name: status_code
+        type: int
+        nullable: true
+      -
+        name: response_body
+        type: blob
+        nullable: true
+      -
+        name: created_at
+        type: int
+        nullable: false
+      -
+        name: expires_at
+        type: int
+        nullable: false
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: []
+    indexes:
+      -
+        name: idx_idempotency_keys_expires_at
+        columns:
+          - expires_at
+        unique: false
+      -
+        name: idx_idempotency_keys_key
+        columns:
+          - idempotency_key
+        unique: true
   migration:
     columns:
       -
         name: version
         type: varchar(180)
         nullable: false
-        default: null
       -
         name: apply_time
         type: int
         nullable: true
-        default: null
     primary_key:
       - version
-    foreign_keys: {  }
+    foreign_keys: []
+    indexes: []
   queue:
     columns:
       -
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: channel
         type: varchar(255)
         nullable: false
-        default: null
       -
         name: job
         type: blob
         nullable: false
-        default: null
       -
         name: pushed_at
         type: int
         nullable: false
-        default: null
       -
         name: ttr
         type: int
         nullable: false
-        default: null
       -
         name: delay
         type: int
@@ -190,45 +248,63 @@ tables:
         name: reserved_at
         type: int
         nullable: true
-        default: null
       -
         name: attempt
         type: int
         nullable: true
-        default: null
       -
         name: done_at
         type: int
         nullable: true
-        default: null
     primary_key:
       - id
-    foreign_keys: {  }
+    foreign_keys: []
+    indexes:
+      -
+        name: idx_queue_channel_reserved_at_priority
+        columns:
+          - channel
+          - reserved_at
+          - priority
+        unique: false
+      -
+        name: idx_queue_reserved_at
+        columns:
+          - reserved_at
+        unique: false
   subscriptions:
     columns:
       -
         name: id
         type: int
         nullable: false
-        default: null
       -
         name: phone
         type: varchar(20)
         nullable: false
-        default: null
       -
         name: author_id
         type: int
         nullable: false
-        default: null
       -
         name: created_at
         type: int
         nullable: false
-        default: null
     primary_key:
       - id
     foreign_keys:
       -
         column: author_id
         references: authors.id
+    indexes:
+      -
+        name: fk_subscriptions_author
+        columns:
+          - author_id
+        unique: false
+      -
+        name: idx_subscriptions_phone_author
+        columns:
+          - phone
+          - author_id
+        unique: true

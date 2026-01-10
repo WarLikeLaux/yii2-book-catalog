@@ -6,74 +6,81 @@ namespace app\infrastructure\repositories;
 
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
-use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
+use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use RuntimeException;
+use WeakMap;
 use yii\db\Connection;
-use yii\db\IntegrityException;
-use yii\db\StaleObjectException;
 
-final readonly class BookRepository implements BookRepositoryInterface
+final readonly class BookRepository extends BaseActiveRecordRepository implements BookRepositoryInterface
 {
-    use DatabaseExceptionHandlerTrait;
     use IdentityAssignmentTrait;
+
+    /** @var WeakMap<BookEntity, array<int>> */
+    private WeakMap $authorSnapshots;
 
     public function __construct(
         private Connection $db,
+        private ActiveRecordHydrator $hydrator,
     ) {
+        parent::__construct();
+        $this->authorSnapshots = new WeakMap();
     }
 
     public function save(BookEntity $book): void
     {
-        $isNew = $book->id === null;
+        $this->db->transaction(function () use ($book): void {
+            $isNew = $book->getId() === null;
+            $model = $isNew ? new Book() : $this->getArForEntity($book, Book::class, DomainErrorCode::BookNotFound);
+            $model->version = $book->version;
 
-        if ($isNew) {
-            $ar = new Book();
-            $ar->version = $book->version;
-        } else {
-            $ar = Book::findOne($book->id);
+            $this->hydrator->hydrate($model, $book, [
+                'title',
+                'year',
+                'isbn',
+                'description',
+                'cover_url' => static fn(BookEntity $e): ?string => $e->coverImage?->getPath(),
+                'is_published' => static fn(BookEntity $e): int => $e->published ? 1 : 0,
+            ]);
 
-            if ($ar === null) {
-                throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
+            $this->persist($model, DomainErrorCode::BookStaleData, DomainErrorCode::BookIsbnExists);
+
+            if ($isNew) {
+                if ($model->id === null) {
+                    throw new RuntimeException('Failed to get ID for new book'); // @codeCoverageIgnore
+                }
+
+                $this->assignId($book, $model->id);
+            } else {
+                $book->incrementVersion();
             }
 
-            $ar->version = $book->version;
-        }
+            $this->registerIdentity($book, $model);
 
-        $ar->title = $book->title;
-        $ar->year = $book->year->value;
-        $ar->isbn = $book->isbn->value;
-        $ar->description = $book->description;
-        $ar->cover_url = $book->coverImage?->getPath();
-        $ar->is_published = (int)$book->published;
-
-        $this->persistBook($ar);
-
-        if ($isNew) {
-            $this->assignId($book, $ar->id);
-        } else {
-            $book->incrementVersion();
-        }
-
-        $this->syncAuthors($book);
+            $this->syncAuthors($book);
+        });
     }
 
     public function get(int $id): BookEntity
     {
-        $ar = Book::find()->where(['id' => $id])->with('authors')->one();
+        $ar = $this->getArWithAuthors($id);
 
-        if ($ar === null) {
+        if (!$ar instanceof Book) {
             throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
 
-        return $this->mapToEntity($ar);
+        $entity = $this->mapToEntity($ar);
+        $this->registerIdentity($entity, $ar);
+        $this->updateAuthorSnapshot($entity);
+
+        return $entity;
     }
 
     /**
@@ -82,9 +89,9 @@ final readonly class BookRepository implements BookRepositoryInterface
      */
     public function getByIdAndVersion(int $id, int $expectedVersion): BookEntity
     {
-        $ar = Book::find()->where(['id' => $id])->with('authors')->one();
+        $ar = $this->getArWithAuthors($id);
 
-        if ($ar === null) {
+        if (!$ar instanceof Book) {
             throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
         }
 
@@ -92,7 +99,11 @@ final readonly class BookRepository implements BookRepositoryInterface
             throw new StaleDataException();
         }
 
-        return $this->mapToEntity($ar);
+        $entity = $this->mapToEntity($ar);
+        $this->registerIdentity($entity, $ar);
+        $this->updateAuthorSnapshot($entity);
+
+        return $entity;
     }
 
     /**
@@ -101,38 +112,26 @@ final readonly class BookRepository implements BookRepositoryInterface
      */
     public function delete(BookEntity $book): void
     {
-        $ar = Book::findOne($book->id);
-
-        if ($ar === null) {
-            throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
-        }
-
-        if ($ar->delete() === false) {
-            throw new RuntimeException('book.error.delete_failed'); // @codeCoverageIgnore
-        }
+        $this->deleteEntity($book, Book::class, DomainErrorCode::BookNotFound);
     }
 
-    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
+    private function getArWithAuthors(int $id): ?Book
     {
-        $query = Book::find()->andWhere(['isbn' => $isbn]);
+        /** @var Book|null $ar */
+        $ar = Book::find()->where(['id' => $id])->with('authors')->one();
 
-        if ($excludeId !== null) {
-            $query->andWhere(['<>', 'id', $excludeId]);
-        }
-
-        return $query->exists();
+        return $ar;
     }
 
     private function mapToEntity(Book $ar): BookEntity
     {
         /** @var Author[] $authors */
         $authors = $ar->authors;
-        $authorIds = array_map(static fn(Author $a) => $a->id, $authors);
+        $authorIds = array_map(static fn(Author $a): int => (int)$a->id, $authors);
 
         return BookEntity::reconstitute(
-            id: $ar->id,
+            id: (int)$ar->id,
             title: $ar->title,
-            /** @reconstitution Доверяем данным из БД, обходим валидацию текущего года */
             year: new BookYear($ar->year),
             isbn: new Isbn($ar->isbn),
             description: $ar->description,
@@ -143,32 +142,16 @@ final readonly class BookRepository implements BookRepositoryInterface
         );
     }
 
-    /** @codeCoverageIgnore */
-    private function persistBook(Book $ar): void
-    {
-        try {
-            if (!$ar->save(false)) {
-                $errors = $ar->getFirstErrors();
-                $message = $errors !== [] ? array_shift($errors) : 'book.error.save_failed';
-                throw new RuntimeException($message);
-            }
-        } catch (StaleObjectException) {
-            throw new StaleDataException();
-        } catch (IntegrityException $e) {
-            if ($this->isDuplicateError($e)) {
-                throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists, 409, $e);
-            }
-
-            throw $e;
-        }
-    }
-
     private function syncAuthors(BookEntity $book): void
     {
-        $bookId = $book->id;
+        $bookId = $book->getId();
 
         if ($bookId === null) {
             return; // @codeCoverageIgnore
+        }
+
+        if (!$this->hasAuthorsChanged($book)) {
+            return;
         }
 
         $storedAuthorIds = $this->getStoredAuthorIds($bookId);
@@ -188,6 +171,8 @@ final readonly class BookRepository implements BookRepositoryInterface
         }
 
         if ($toAdd === []) {
+            $this->updateAuthorSnapshot($book);
+
             return;
         }
 
@@ -200,6 +185,8 @@ final readonly class BookRepository implements BookRepositoryInterface
             ['book_id', 'author_id'],
             $rows,
         )->execute();
+
+        $this->updateAuthorSnapshot($book);
     }
 
     /**
@@ -212,5 +199,27 @@ final readonly class BookRepository implements BookRepositoryInterface
         )->bindValue(':bookId', $bookId)->queryColumn();
 
         return array_map(intval(...), $ids);
+    }
+
+    private function hasAuthorsChanged(BookEntity $book): bool
+    {
+        if (!isset($this->authorSnapshots[$book])) {
+            return true;
+        }
+
+        $current = $book->authorIds;
+        $snapshotSorted = $this->authorSnapshots[$book];
+
+        $currentSorted = [...$current];
+        sort($currentSorted);
+
+        return $currentSorted !== $snapshotSorted;
+    }
+
+    private function updateAuthorSnapshot(BookEntity $book): void
+    {
+        $ids = $book->authorIds;
+        sort($ids);
+        $this->authorSnapshots[$book] = $ids;
     }
 }

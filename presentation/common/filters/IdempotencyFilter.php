@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\common\filters;
 
+use app\application\common\config\IdempotencyConfig;
 use app\application\common\dto\IdempotencyRecordDto;
 use app\application\common\IdempotencyServiceInterface;
 use Yii;
@@ -16,25 +17,20 @@ final class IdempotencyFilter extends ActionFilter
     private const string HEADER_KEY = 'Idempotency-Key';
 
     private string|null $lockedKey = null;
-    public int $ttl = 86400;
-    public int $lockTimeout = 1;
-    public int $waitSeconds = 1;
+    private readonly int $ttl;
+    private readonly int $lockTimeout;
+    private readonly int $waitSeconds;
 
     public function __construct(
         private readonly IdempotencyServiceInterface $service,
+        IdempotencyConfig $idempotencyConfig,
         array $config = [],
     ) {
+        $this->ttl = $idempotencyConfig->ttl;
+        $this->lockTimeout = $idempotencyConfig->lockTimeout;
+        $this->waitSeconds = $idempotencyConfig->waitSeconds;
+
         parent::__construct($config);
-    }
-
-    public function init(): void
-    {
-        parent::init();
-
-        $params = Yii::$app->params['idempotency'] ?? [];
-        $this->ttl = (int)($params['ttl'] ?? $this->ttl);
-        $this->lockTimeout = (int)($params['lockTimeout'] ?? $this->lockTimeout);
-        $this->waitSeconds = (int)($params['waitSeconds'] ?? $this->waitSeconds);
     }
 
     #[\Override]
@@ -52,13 +48,10 @@ final class IdempotencyFilter extends ActionFilter
             return true;
         }
 
-        // @codeCoverageIgnoreStart
         if (!$this->service->acquireLock($key, $this->lockTimeout)) {
-            sleep($this->waitSeconds);
-            return $this->returnCachedResponseIfExists($key);
+            $this->applyInProgressResponse();
+            return false;
         }
-
-        // @codeCoverageIgnoreEnd
 
         $this->lockedKey = $key;
 
@@ -112,19 +105,6 @@ final class IdempotencyFilter extends ActionFilter
         }
 
         return $result;
-    }
-
-    /** @codeCoverageIgnore */
-    private function returnCachedResponseIfExists(string $key): bool
-    {
-        $record = $this->service->getRecord($key);
-
-        if (!$record instanceof IdempotencyRecordDto) {
-            $this->applyInProgressResponse();
-            return false;
-        }
-
-        return $this->handleExistingRecord($record);
     }
 
     private function handleExistingRecord(IdempotencyRecordDto $record): bool
@@ -184,6 +164,7 @@ final class IdempotencyFilter extends ActionFilter
         $response->statusCode = 409;
         $response->content = 'Idempotency key is in progress.';
         $response->getHeaders()->set('X-Idempotency-Status', 'IN_PROGRESS');
+        $response->getHeaders()->set('Retry-After', (string)$this->waitSeconds);
     }
 
     private function applyUnavailableResponse(): void

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/env-parser"
+
+COMPOSE="${COMPOSE:-docker compose}"
+
+DB_MIGRATION_TEST_NAME="${DB_MIGRATION_TEST_NAME:-}"
+if [ -z "$DB_MIGRATION_TEST_NAME" ]; then
+    DB_MIGRATION_TEST_NAME=$(read_env_var DB_MIGRATION_TEST_NAME "")
+fi
+
+DB_DRIVER="${DB_DRIVER:-}"
+if [ -z "$DB_DRIVER" ]; then
+    DB_DRIVER=$(read_env_var DB_DRIVER "mysql")
+fi
+
+load_db_env
+
+if [ -z "$DB_MIGRATION_TEST_NAME" ]; then
+    echo "DB_MIGRATION_TEST_NAME не задан (в .env или окружении)."
+    exit 1
+fi
+
+validate_db_name "$DB_MIGRATION_TEST_NAME"
+validate_credentials "$DB_USER" "DB_USER"
+validate_credentials "$DB_PASSWORD" "DB_PASSWORD"
+
+if [ -z "$POSTGRES_USER" ] && [ "$DB_DRIVER" = "pgsql" ]; then
+    echo "❌ POSTGRES_USER не задан (в .env или окружении)"
+    exit 1
+fi
+
+if [ -n "$POSTGRES_USER" ]; then
+    validate_credentials "$POSTGRES_USER" "POSTGRES_USER"
+fi
+
+export DB_MIGRATION_TEST_NAME
+
+if ! ./bin/test-db-prepare; then
+    echo "❌ Ошибка при подготовке тестовой БД"
+    exit 1
+fi
+
+if ! $COMPOSE exec -T php sh -c "DB_MIGRATION_TEST_NAME=$DB_MIGRATION_TEST_NAME ./vendor/bin/codecept run integration MigrationReversibilityTest"; then
+    echo "❌ Ошибка при выполнении теста миграций (MigrationReversibilityTest)"
+    exit 1
+fi

@@ -49,7 +49,6 @@ final class InspectorTracer implements TracerInterface
 
         $item->markAsRequest();
 
-        // http может быть null, но если он есть, request гарантированно существует
         if ($item->http instanceof Http) {
             $item->http->request->cookies = [];
         }

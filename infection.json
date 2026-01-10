@@ -9,6 +9,7 @@
 	"logs": {
 		"text": "runtime/logs/infection.log"
 	},
+	"timeout": 30,
 	"minMsi": 95,
 	"minCoveredMsi": 95,
 	"mutators": {

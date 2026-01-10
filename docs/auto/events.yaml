@@ -1,13 +1,12 @@
 meta:
   title: 'Domain Events'
-  updated_at: '2026-01-03T02:11:24+00:00'
 events:
   BookDeletedEvent:
     type: book.deleted
-    payload: {  }
+    payload: []
   BookPublishedEvent:
     type: book.published
-    payload: {  }
+    payload: []
   BookUpdatedEvent:
     type: book.updated
-    payload: {  }
+    payload: []

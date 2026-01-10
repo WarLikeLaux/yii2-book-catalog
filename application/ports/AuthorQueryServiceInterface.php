@@ -22,4 +22,6 @@ interface AuthorQueryServiceInterface
      * @return array<int>
      */
     public function findMissingIds(array $ids): array;
+
+    public function existsByFio(string $fio, ?int $excludeId = null): bool;
 }

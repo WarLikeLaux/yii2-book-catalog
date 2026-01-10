@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\books\forms;
 
 use app\application\ports\AuthorQueryServiceInterface;
-use app\application\ports\BookRepositoryInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\validators\IsbnValidator;
 use app\presentation\common\forms\RepositoryAwareForm;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
@@ -35,6 +35,12 @@ final class BookForm extends RepositoryAwareForm
 
     /** @var \yii\web\UploadedFile|string|null */
     public $cover;
+
+    /** @var array<int, string> */
+    public array $authorNames = [];
+    public ?string $coverUrl = null;
+    public bool $isPublished = false;
+    public ?string $fullTitle = null;
     public int $version = 1;
 
     #[CodeCoverageIgnore]
@@ -94,9 +100,9 @@ final class BookForm extends RepositoryAwareForm
         }
 
         $excludeId = $this->id !== null ? (int)$this->id : null;
-        $repository = $this->resolve(BookRepositoryInterface::class);
+        $queryService = $this->resolve(BookQueryServiceInterface::class);
 
-        if (!$repository->existsByIsbn($value, $excludeId)) {
+        if (!$queryService->existsByIsbn($value, $excludeId)) {
             return;
         }
 

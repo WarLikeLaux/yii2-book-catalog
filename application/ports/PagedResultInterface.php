@@ -6,10 +6,13 @@ namespace app\application\ports;
 
 use app\application\common\dto\PaginationDto;
 
+/**
+ * @template T of object
+ */
 interface PagedResultInterface
 {
     /**
-     * @return array<int, object>
+     * @return array<int, T>
      */
     public function getModels(): array;
 

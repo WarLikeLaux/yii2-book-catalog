@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace app\infrastructure\persistence;
 
+use app\application\books\queries\BookReadDto;
+use AutoMapper\Attribute\MapTo;
 use yii\behaviors\OptimisticLockBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
 /**
- * @property int $id
+ * @property int|null $id
  * @property string $title
  * @property int $year
  * @property string $isbn
@@ -77,9 +79,47 @@ final class Book extends ActiveRecord
         ];
     }
 
+    /** @return int[] */
+    #[MapTo(target: BookReadDto::class, property: 'authorIds')]
+    public function getAuthorIds(): array
+    {
+        $ids = [];
+
+        foreach ($this->authors as $author) {
+            $ids[] = (int)$author->id;
+        }
+
+        return $ids;
+    }
+
+    /** @return array<int, string> */
+    #[MapTo(target: BookReadDto::class, property: 'authorNames')]
+    public function getAuthorNames(): array
+    {
+        $names = [];
+
+        foreach ($this->authors as $author) {
+            $names[(int)$author->id] = $author->fio;
+        }
+
+        return $names;
+    }
+
     public function getAuthors(): ActiveQuery
     {
         return $this->hasMany(Author::class, ['id' => 'author_id'])
             ->viaTable('book_authors', ['book_id' => 'id']);
+    }
+
+    #[MapTo(target: BookReadDto::class, property: 'coverUrl')]
+    public function getCoverUrl(): ?string
+    {
+        return $this->cover_url;
+    }
+
+    #[MapTo(target: BookReadDto::class, property: 'isPublished')]
+    public function getIsPublished(): bool
+    {
+        return (bool)$this->is_published;
     }
 }

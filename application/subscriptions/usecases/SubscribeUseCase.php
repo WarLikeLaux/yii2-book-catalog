@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\application\subscriptions\usecases;
 
+use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
@@ -21,6 +22,7 @@ final readonly class SubscribeUseCase implements UseCaseInterface
 {
     public function __construct(
         private SubscriptionRepositoryInterface $subscriptionRepository,
+        private SubscriptionQueryServiceInterface $subscriptionQueryService,
     ) {
     }
 
@@ -32,7 +34,7 @@ final readonly class SubscribeUseCase implements UseCaseInterface
         /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
         assert($command instanceof SubscribeCommand);
 
-        if ($this->subscriptionRepository->exists($command->phone, $command->authorId)) {
+        if ($this->subscriptionQueryService->exists($command->phone, $command->authorId)) {
             throw new BusinessRuleException(DomainErrorCode::SubscriptionAlreadySubscribed);
         }
 

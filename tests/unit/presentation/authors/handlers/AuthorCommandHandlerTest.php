@@ -1,0 +1,164 @@
+<?php
+
+declare(strict_types=1);
+
+namespace tests\unit\presentation\authors\handlers;
+
+use app\application\authors\commands\CreateAuthorCommand;
+use app\application\authors\commands\UpdateAuthorCommand;
+use app\application\authors\usecases\CreateAuthorUseCase;
+use app\application\authors\usecases\DeleteAuthorUseCase;
+use app\application\authors\usecases\UpdateAuthorUseCase;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ValidationException;
+use app\presentation\authors\forms\AuthorForm;
+use app\presentation\authors\handlers\AuthorCommandHandler;
+use app\presentation\common\services\WebUseCaseRunner;
+use AutoMapper\AutoMapperInterface;
+use Codeception\Test\Unit;
+use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
+
+final class AuthorCommandHandlerTest extends Unit
+{
+    private AutoMapperInterface&MockObject $autoMapper;
+    private CreateAuthorUseCase&MockObject $createAuthorUseCase;
+    private UpdateAuthorUseCase&MockObject $updateAuthorUseCase;
+    private DeleteAuthorUseCase&MockObject $deleteAuthorUseCase;
+    private WebUseCaseRunner&MockObject $useCaseRunner;
+    private LoggerInterface&MockObject $logger;
+    private AuthorCommandHandler $handler;
+
+    protected function _before(): void
+    {
+        $this->autoMapper = $this->createMock(AutoMapperInterface::class);
+        $this->createAuthorUseCase = $this->createMock(CreateAuthorUseCase::class);
+        $this->updateAuthorUseCase = $this->createMock(UpdateAuthorUseCase::class);
+        $this->deleteAuthorUseCase = $this->createMock(DeleteAuthorUseCase::class);
+        $this->useCaseRunner = $this->createMock(WebUseCaseRunner::class);
+
+        $this->logger = $this->createMock(LoggerInterface::class);
+
+        $this->handler = new AuthorCommandHandler(
+            $this->autoMapper,
+            $this->createAuthorUseCase,
+            $this->updateAuthorUseCase,
+            $this->deleteAuthorUseCase,
+            $this->useCaseRunner,
+            $this->logger,
+        );
+    }
+
+    public function testCreateAuthorReturnsIdOnSuccess(): void
+    {
+        $form = $this->createMock(AuthorForm::class);
+        $formData = ['fio' => 'Test Author'];
+        $form->method('toArray')->willReturn($formData);
+        $command = $this->createMock(CreateAuthorCommand::class);
+
+        $this->autoMapper->expects($this->once())
+            ->method('map')
+            ->with($formData, CreateAuthorCommand::class)
+            ->willReturn($command);
+
+        $this->useCaseRunner->method('executeWithFormErrors')->willReturn(123);
+
+        $this->assertSame(123, $this->handler->createAuthor($form));
+    }
+
+    public function testCreateAuthorReturnsNullOnMappingError(): void
+    {
+        $form = $this->createForm(['fio'], ['fio' => 'Invalid']);
+        $this->mockMappingFailure();
+        $this->expectFormError($form);
+        $this->assertNull($this->handler->createAuthor($form));
+    }
+
+    public function testUpdateAuthorReturnsTrueOnSuccess(): void
+    {
+        $form = $this->createMock(AuthorForm::class);
+        $form->method('toArray')->willReturn(['fio' => 'New Name']);
+        $command = $this->createMock(UpdateAuthorCommand::class);
+
+        $this->autoMapper->expects($this->once())
+            ->method('map')
+            ->willReturn($command);
+
+        $this->useCaseRunner->method('executeWithFormErrors')->willReturn(true);
+
+        $this->assertTrue($this->handler->updateAuthor(1, $form));
+    }
+
+    public function testUpdateAuthorReturnsFalseOnMappingError(): void
+    {
+        $form = $this->createForm(['fio'], []);
+        $this->mockMappingFailure();
+        $this->expectFormError($form);
+        $this->assertFalse($this->handler->updateAuthor(1, $form));
+    }
+
+    public function testCreateAuthorAddsFormErrorOnDomainException(): void
+    {
+        $form = $this->createForm(['fio'], ['fio' => 'Duplicate']);
+        $command = $this->createMock(CreateAuthorCommand::class);
+        $this->autoMapper->method('map')->willReturn($command);
+
+        $this->mockUseCaseRunnerDomainError(new ValidationException(DomainErrorCode::AuthorFioExists));
+
+        $form->expects($this->once())
+            ->method('addError')
+            ->with('fio', $this->anything());
+
+        $this->handler->createAuthor($form);
+    }
+
+    public function testCreateAuthorAddsGlobalErrorWhenNoAttributes(): void
+    {
+        $form = $this->createForm([], ['fio' => 'Duplicate']);
+        $command = $this->createMock(CreateAuthorCommand::class);
+        $this->autoMapper->method('map')->willReturn($command);
+
+        $this->mockUseCaseRunnerDomainError(new ValidationException(DomainErrorCode::AuthorFioExists));
+
+        $form->expects($this->once())
+            ->method('addError')
+            ->with('', $this->anything());
+
+        $this->handler->createAuthor($form);
+    }
+
+    public function testDeleteAuthorReturnsTrueOnSuccess(): void
+    {
+        $this->useCaseRunner->method('execute')->willReturn(true);
+        $this->assertTrue($this->handler->deleteAuthor(1));
+    }
+
+    private function createForm(array $attributes, array $data): AuthorForm&MockObject
+    {
+        $form = $this->createMock(AuthorForm::class);
+        $form->method('attributes')->willReturn($attributes);
+        $form->method('toArray')->willReturn($data);
+
+        return $form;
+    }
+
+    private function mockMappingFailure(): void
+    {
+        $this->autoMapper->method('map')->willThrowException(new \RuntimeException('Mapping failed'));
+    }
+
+    private function mockUseCaseRunnerDomainError(ValidationException $exception): void
+    {
+        $this->useCaseRunner->expects($this->once())
+            ->method('executeWithFormErrors')
+            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
+                $onDomainError($exception);
+                return null;
+            });
+    }
+
+    private function expectFormError(AuthorForm&MockObject $form): void
+    {
+        $form->expects($this->once())->method('addError');
+    }
+}

@@ -23,10 +23,12 @@ enum DomainErrorCode: string
     case AuthorNotFound = 'author.error.not_found';
     case AuthorCreateFailed = 'author.error.create_failed';
     case AuthorUpdateFailed = 'author.error.update_failed';
+    case AuthorStaleData = 'author.error.stale_data';
     case AuthorFioExists = 'author.error.fio_exists';
 
     case SubscriptionAlreadySubscribed = 'subscription.error.already_subscribed';
     case SubscriptionCreateFailed = 'subscription.error.create_failed';
+    case SubscriptionStaleData = 'subscription.error.stale_data';
 
     case IsbnInvalidFormat = 'isbn.error.invalid_format';
 
@@ -37,4 +39,15 @@ enum DomainErrorCode: string
 
     case IdempotencyKeyInProgress = 'idempotency.error.key_in_progress';
     case IdempotencyStorageUnavailable = 'idempotency.error.storage_unavailable';
+
+    case FileKeyInvalidFormat = 'file.error.key_invalid_format';
+    case FileContentInvalidStream = 'file.error.content_invalid_stream';
+    case FileNotFound = 'file.error.not_found';
+    case FileOpenFailed = 'file.error.open_failed';
+    case FileStorageOperationFailed = 'file.error.storage_operation_failed';
+
+    case EntityDeleteFailed = 'error.entity_delete_failed';
+    case EntityPersistFailed = 'error.entity_persist_failed';
+    case EntityIdMissing = 'error.entity_id_missing';
+    case MapperFailed = 'error.mapper_failed';
 }

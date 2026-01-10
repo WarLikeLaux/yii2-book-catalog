@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/env-parser"
+
+readonly DB_TEST_NAME="${DB_TEST_NAME:-yii2basic_test}"
+readonly DB_MIGRATION_TEST_NAME="${DB_MIGRATION_TEST_NAME:-}"
+readonly DB_DRIVER="${DB_DRIVER:-mysql}"
+readonly COMPOSE="${COMPOSE:-docker compose}"
+
+load_db_env
+
+readonly DB_ROOT_PASSWORD
+readonly DB_USER
+readonly DB_PASSWORD
+readonly POSTGRES_USER
+
+if [ -z "$POSTGRES_USER" ] && [ "$DB_DRIVER" = "pgsql" ]; then
+    echo "❌ POSTGRES_USER не задан (в .env или окружении)"
+    exit 1
+fi
+
+prepare_mysql() {
+    echo "🔧 Подготовка тестовой базы MySQL..."
+    validate_db_name "$DB_TEST_NAME"
+    validate_credentials "$DB_USER" "DB_USER"
+    validate_credentials "$DB_PASSWORD" "DB_PASSWORD"
+    validate_credentials "$DB_ROOT_PASSWORD" "DB_ROOT_PASSWORD"
+
+    if ! $COMPOSE exec -T -e MYSQL_PWD="$DB_ROOT_PASSWORD" db mysql -uroot -h127.0.0.1 <<EOF
+CREATE DATABASE IF NOT EXISTS \`$DB_TEST_NAME\`;
+CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';
+GRANT ALL PRIVILEGES ON \`$DB_TEST_NAME\`.* TO '$DB_USER'@'%';
+FLUSH PRIVILEGES;
+EOF
+    then
+        echo "❌ Ошибка при создании БД $DB_TEST_NAME"
+        exit 1
+    fi
+
+    if [ -n "$DB_MIGRATION_TEST_NAME" ]; then
+        validate_db_name "$DB_MIGRATION_TEST_NAME"
+        if ! $COMPOSE exec -T -e MYSQL_PWD="$DB_ROOT_PASSWORD" db mysql -uroot -h127.0.0.1 <<EOF
+CREATE DATABASE IF NOT EXISTS \`$DB_MIGRATION_TEST_NAME\`;
+CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';
+GRANT ALL PRIVILEGES ON \`$DB_MIGRATION_TEST_NAME\`.* TO '$DB_USER'@'%';
+FLUSH PRIVILEGES;
+EOF
+        then
+            echo "❌ Ошибка при создании БД $DB_MIGRATION_TEST_NAME"
+            exit 1
+        fi
+    fi
+}
+
+prepare_pgsql() {
+    echo "🔧 Подготовка тестовой базы PostgreSQL..."
+    validate_db_name "$DB_TEST_NAME"
+    validate_credentials "$POSTGRES_USER" "POSTGRES_USER"
+
+    if ! $COMPOSE exec -T pgsql psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres <<EOF
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = '$DB_TEST_NAME' AND pid <> pg_backend_pid();
+
+DROP DATABASE IF EXISTS "$DB_TEST_NAME";
+CREATE DATABASE "$DB_TEST_NAME";
+EOF
+    then
+        echo "❌ Ошибка при создании БД $DB_TEST_NAME"
+        exit 1
+    fi
+
+    if [ -n "$DB_MIGRATION_TEST_NAME" ]; then
+        validate_db_name "$DB_MIGRATION_TEST_NAME"
+        if ! $COMPOSE exec -T pgsql psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres <<EOF
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = '$DB_MIGRATION_TEST_NAME' AND pid <> pg_backend_pid();
+
+DROP DATABASE IF EXISTS "$DB_MIGRATION_TEST_NAME";
+CREATE DATABASE "$DB_MIGRATION_TEST_NAME";
+EOF
+        then
+            echo "❌ Ошибка при создании БД $DB_MIGRATION_TEST_NAME"
+            exit 1
+        fi
+    fi
+}
+
+run_migrations() {
+    echo "🔄 Применение миграций..."
+    if ! $COMPOSE exec -T php sh -c "DB_DRIVER=$DB_DRIVER DB_NAME=$DB_TEST_NAME ./yii migrate --interactive=0 --migrationPath=@app/migrations"; then
+        echo "❌ Ошибка при применении миграций"
+        exit 1
+    fi
+}
+
+case "$DB_DRIVER" in
+    pgsql)
+        prepare_pgsql
+        ;;
+    mysql|*)
+        prepare_mysql
+        ;;
+esac
+
+run_migrations
+
+echo "✅ Тестовая база готова ($DB_DRIVER: $DB_TEST_NAME)"

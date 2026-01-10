@@ -14,6 +14,7 @@ use app\domain\specifications\IsbnPrefixSpecification;
 use app\domain\specifications\YearSpecification;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
+use app\domain\values\StoredFileReference;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use Codeception\Test\Unit;
@@ -50,7 +51,7 @@ final class BookQueryServiceTest extends Unit
             'Test Book',
             new BookYear(2025),
             new Isbn('9783161484100'),
-            'Desc',
+            'Test Description',
             null,
         );
 
@@ -59,6 +60,8 @@ final class BookQueryServiceTest extends Unit
         $dto = $this->queryService->findById($book->id);
         $this->assertNotNull($dto);
         $this->assertSame('Test Book', $dto->title);
+        $this->assertSame(2025, $dto->year);
+        $this->assertSame('Test Description', $dto->description);
     }
 
     public function testFindByIdReturnsNullOnNotFound(): void
@@ -321,5 +324,81 @@ final class BookQueryServiceTest extends Unit
         $result = $this->queryService->searchBySpecification($composite, 1, 10);
 
         $this->assertGreaterThanOrEqual(1, $result->getTotalCount());
+    }
+
+    public function testExistsByIsbnReturnsTrue(): void
+    {
+        $book = BookEntity::create(
+            'ISBN Test',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null,
+        );
+        $this->repository->save($book);
+
+        $this->assertTrue($this->queryService->existsByIsbn('9783161484100'));
+    }
+
+    public function testExistsByIsbnReturnsFalse(): void
+    {
+        $this->assertFalse($this->queryService->existsByIsbn('9783161484100'));
+    }
+
+    public function testExistsByIsbnWithExcludeId(): void
+    {
+        $book = BookEntity::create(
+            'ISBN Exclude Test',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null,
+        );
+        $this->repository->save($book);
+
+        $this->assertFalse($this->queryService->existsByIsbn('9783161484100', $book->id));
+        $this->assertTrue($this->queryService->existsByIsbn('9783161484100', 99999));
+    }
+
+    public function testGetReferencedCoverKeysReturnsKeys(): void
+    {
+        $book1 = BookEntity::create(
+            'Book With Cover 1',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            new StoredFileReference('/uploads/abc123.jpg'),
+        );
+        $this->repository->save($book1);
+
+        $book2 = BookEntity::create(
+            'Book With Cover 2',
+            new BookYear(2024),
+            new Isbn('9780132350884'),
+            null,
+            new StoredFileReference('/uploads/def456.png'),
+        );
+        $this->repository->save($book2);
+
+        $keys = $this->queryService->getReferencedCoverKeys();
+
+        $this->assertContains('abc123', $keys);
+        $this->assertContains('def456', $keys);
+    }
+
+    public function testGetReferencedCoverKeysReturnsEmptyForNullCovers(): void
+    {
+        $book = BookEntity::create(
+            'Book Without Cover',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null,
+        );
+        $this->repository->save($book);
+
+        $keys = $this->queryService->getReferencedCoverKeys();
+
+        $this->assertSame([], $keys);
     }
 }

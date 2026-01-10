@@ -4,50 +4,56 @@ declare(strict_types=1);
 
 namespace app\infrastructure\queue\handlers;
 
-use app\application\ports\CacheInterface;
+use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\application\ports\SmsSenderInterface;
-use app\infrastructure\services\LogCategory;
-use app\infrastructure\services\YiiPsrLogger;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 final readonly class NotifySingleSubscriberHandler
 {
-    private const int IDEMPOTENCY_TTL = 86400;
+    private const string HASH_ALGORITHM = 'sha256';
 
     public function __construct(
         private SmsSenderInterface $sender,
-        private CacheInterface $cache,
+        private AsyncIdempotencyStorageInterface $idempotencyStorage,
+        private LoggerInterface $logger,
+        private string $phoneHashKey,
     ) {
     }
 
     public function handle(string $phone, string $message, int $bookId): void
     {
-        $idempotencyKey = sprintf('sms_handled:%d:%s', $bookId, md5($phone));
-        $token = bin2hex(random_bytes(8));
-        $storedToken = $this->cache->getOrSet(
-            $idempotencyKey,
-            static fn(): string => $token,
-            self::IDEMPOTENCY_TTL,
-        );
+        $phoneHash = hash_hmac(self::HASH_ALGORITHM, $phone, $this->phoneHashKey);
+        $idempotencyKey = sprintf('sms:%d:%s', $bookId, $phoneHash);
 
-        if ($storedToken !== $token) {
+        if (!$this->idempotencyStorage->acquire($idempotencyKey)) {
+            $this->logger->info('Skipping duplicate SMS notification', [
+                'phone' => $this->maskPhone($phone),
+                'book_id' => $bookId,
+                'idempotency_key' => $idempotencyKey,
+            ]);
             return;
         }
-
-        $logger = new YiiPsrLogger(LogCategory::SMS);
 
         try {
             $this->sender->send($phone, $message);
 
-            $logger->info('SMS notification sent successfully', [
-                'phone' => $phone,
+            $this->logger->info('SMS notification sent successfully', [
+                'phone' => $this->maskPhone($phone),
                 'book_id' => $bookId,
             ]);
         } catch (Throwable $exception) {
-            $this->cache->delete($idempotencyKey);
+            try {
+                $this->idempotencyStorage->release($idempotencyKey);
+            } catch (Throwable $releaseException) {
+                $this->logger->error('Failed to release idempotency key', [
+                    'key' => $idempotencyKey,
+                    'error' => $releaseException->getMessage(),
+                ]);
+            }
 
-            $logger->error('SMS notification failed', [
-                'phone' => $phone,
+            $this->logger->error('SMS notification failed', [
+                'phone' => $this->maskPhone($phone),
                 'book_id' => $bookId,
                 'error' => $exception->getMessage(),
                 'exception_class' => $exception::class,
@@ -55,5 +61,16 @@ final readonly class NotifySingleSubscriberHandler
 
             throw $exception;
         }
+    }
+
+    private function maskPhone(string $phone): string
+    {
+        $len = strlen($phone);
+
+        if ($len <= 4) {
+            return str_repeat('*', $len);
+        }
+
+        return substr($phone, 0, 2) . str_repeat('*', $len - 4) . substr($phone, -2);
     }
 }

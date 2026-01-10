@@ -9,7 +9,7 @@ use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
 /**
- * @property int $id
+ * @property int|null $id
  * @property string $phone
  * @property int $author_id
  * @property int $created_at

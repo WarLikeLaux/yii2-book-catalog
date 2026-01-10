@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\infrastructure\queue\handlers;
 
+use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\TranslatorInterface;
-use app\application\subscriptions\queries\SubscriptionQueryService;
 use app\infrastructure\queue\NotifySingleSubscriberJob;
 use Psr\Log\LoggerInterface;
 use yii\queue\Queue;
@@ -13,7 +13,7 @@ use yii\queue\Queue;
 final readonly class NotifySubscribersHandler
 {
     public function __construct(
-        private SubscriptionQueryService $queryService,
+        private SubscriptionQueryServiceInterface $queryService,
         private TranslatorInterface $translator,
         private LoggerInterface $logger,
     ) {

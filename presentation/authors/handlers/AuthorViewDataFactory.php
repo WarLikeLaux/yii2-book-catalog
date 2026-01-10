@@ -4,36 +4,49 @@ declare(strict_types=1);
 
 namespace app\presentation\authors\handlers;
 
-use app\application\authors\queries\AuthorQueryService;
 use app\application\authors\queries\AuthorReadDto;
+use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\authors\forms\AuthorForm;
-use app\presentation\authors\mappers\AuthorFormMapper;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use AutoMapper\AutoMapperInterface;
+use LogicException;
 use yii\data\DataProviderInterface;
+use yii\web\NotFoundHttpException;
 
 final readonly class AuthorViewDataFactory
 {
     public function __construct(
-        private AuthorQueryService $authorQueryService,
-        private AuthorFormMapper $mapper,
+        private AuthorQueryServiceInterface $queryService,
+        private AutoMapperInterface $autoMapper,
         private PagedResultDataProviderFactory $dataProviderFactory,
     ) {
     }
 
     public function getIndexDataProvider(int $page, int $pageSize): DataProviderInterface
     {
-        $queryResult = $this->authorQueryService->getIndexProvider($page, $pageSize);
+        $queryResult = $this->queryService->search('', $page, $pageSize);
         return $this->dataProviderFactory->create($queryResult);
     }
 
     public function getAuthorForUpdate(int $id): AuthorForm
     {
-        $dto = $this->authorQueryService->getById($id);
-        return $this->mapper->toForm($dto);
+        $dto = $this->queryService->findById($id) ?? throw new NotFoundHttpException();
+
+        $form = $this->autoMapper->map($dto, AuthorForm::class);
+
+        if (!$form instanceof AuthorForm) {
+            throw new LogicException(sprintf(
+                'AutoMapper returned unexpected type: expected %s, got %s',
+                AuthorForm::class,
+                get_debug_type($form),
+            ));
+        }
+
+        return $form;
     }
 
     public function getAuthorView(int $id): AuthorReadDto
     {
-        return $this->authorQueryService->getById($id);
+        return $this->queryService->findById($id) ?? throw new NotFoundHttpException();
     }
 }

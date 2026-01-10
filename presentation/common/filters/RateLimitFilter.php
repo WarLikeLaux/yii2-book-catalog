@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\common\filters;
 
+use app\application\common\config\RateLimitConfig;
 use app\application\common\RateLimitServiceInterface;
 use Yii;
 use yii\base\ActionFilter;
@@ -12,22 +13,18 @@ use yii\web\Response;
 
 final class RateLimitFilter extends ActionFilter
 {
-    public int $limit = 60;
-    public int $window = 60;
+    private readonly int $limit;
+    private readonly int $window;
 
     public function __construct(
         private readonly RateLimitServiceInterface $service,
+        RateLimitConfig $rateLimitConfig,
         array $config = [],
     ) {
-        parent::__construct($config);
-    }
+        $this->limit = $rateLimitConfig->limit;
+        $this->window = $rateLimitConfig->window;
 
-    public function init(): void
-    {
-        parent::init();
-        $params = Yii::$app->params['rateLimit'] ?? [];
-        $this->limit = (int)($params['limit'] ?? $this->limit);
-        $this->window = (int)($params['window'] ?? $this->window);
+        parent::__construct($config);
     }
 
     #[\Override]

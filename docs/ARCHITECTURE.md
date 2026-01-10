@@ -2,17 +2,30 @@
 
 [← Назад в README](../README.md)
 
-В данном документе описаны ключевые архитектурные решения. Это **Clean-ish** архитектура: не строго Clean, но максимально близко к идеалу с учетом практических ограничений Yii2.
-
+В данном документе описаны ключевые архитектурные решения и диаграммы проекта. Сравнение подходов вынесено в [docs/COMPARISON.md](COMPARISON.md). Осознанные компромиссы описаны в [docs/DECISIONS.md](DECISIONS.md).
 
 ## 📌 Навигация
+
 - [🎯 Главное правило Clean Architecture](#-главное-правило-clean-architecture)
-- [📊 Три уровня организации кода](#-три-уровня-организации-кода)
-- [🔄 Пример: Создание книги](#-пример-создание-книги)
-- [📈 Сравнительная таблица](#-сравнительная-таблица)
-- [🧩 Разбор паттернов (Было → Стало)](#-каждый-паттерн-было--стало)
-- [🎯 Когда какой подход](#-когда-какой-подход)
-- [📁 Структура проекта](#-структура-этого-проекта)
+- [🏗 Архитектура C4 model](#-архитектура-c4-model)
+- [🧭 Архитектурные решения](#-архитектурные-решения)
+  - [1. Слой приложения (Use Cases, CQS, Ports)](#1-слой-приложения-use-cases-cqs-ports)
+  - [2. Слой домена (Rich Domain Model)](#2-слой-домена-rich-domain-model)
+  - [3. Слой представления (Yii2)](#3-слой-представления-yii2)
+  - [4. Разделение ответственности: Use Cases vs сервисы представления](#4-разделение-ответственности-use-cases-vs-сервисы-представления)
+  - [5. Инфраструктура и окружение](#5-инфраструктура-и-окружение)
+  - [6. DTO и формы для валидации](#6-dto-и-формы-для-валидации)
+  - [7. Инфраструктурный слой](#7-инфраструктурный-слой)
+  - [8. Качество кода и стандарты](#8-качество-кода-и-стандарты)
+  - [9. Гибридный поиск (Specification)](#9-гибридный-поиск-specification)
+  - [10. Асинхронные операции (fan-out)](#10-асинхронные-операции-fan-out)
+  - [11. Пагинация и кеширование](#11-пагинация-и-кеширование)
+  - [12. Внедрение зависимостей](#12-внедрение-зависимостей)
+  - [13. Наблюдаемость и трассировка](#13-наблюдаемость-и-трассировка)
+  - [14. Хранилище файлов (CAS)](#14-хранилище-файлов-cas)
+  - [15. Инфраструктурное ядро](#15-инфраструктурное-ядро)
+  - [16. Маппинг данных (AutoMapper и Hydrator)](#16-маппинг-данных-automapper-и-hydrator)
+- [📁 Структура проекта](#-структура-проекта)
 
 ---
 
@@ -36,11 +49,18 @@
 └────────────────────────────────────────────────────────────┘
 ```
 
-### 🏗 Архитектура C4 Model
+`application/` и `domain/` не используют Yii2 (в этих слоях нет ссылок на `Yii`), а `presentation/` и `infrastructure/` содержат интеграцию с фреймворком.
+
+[↑ К навигации](#-навигация)
+
+---
+
+## 🏗 Архитектура C4 model
 
 Для визуализации архитектуры на разных уровнях абстракции используется модель C4.
 
-#### Level 1: System Context
+### Level 1: system context
+
 **Схема взаимодействия системы с внешним миром.**
 
 ```mermaid
@@ -53,19 +73,20 @@ graph TD
     User -- "Browses & Manages Books" --> System
     System -- "Sends Notifications" --> SMS
     System -- "Sends Logs/Emails" --> Buggregator
-    
+
     style System fill:#1168bd,stroke:#0b4884,color:#ffffff
     style SMS fill:#999999,stroke:#666666,color:#ffffff
     style Buggregator fill:#999999,stroke:#666666,color:#ffffff
 ```
 
-#### Level 2: Containers
+### Level 2: containers
+
 **Инфраструктура и контейнеры (Docker).**
 
 ```mermaid
 graph TD
     User((User))
-    
+
     subgraph DockerHost ["Docker Host"]
         Nginx["Nginx (Web Server)"]
         PHP["PHP-FPM (Application)"]
@@ -73,52 +94,53 @@ graph TD
         DB[("Database (MySQL / PgSQL)")]
         Redis[("Redis (Cache)")]
     end
-    
+
     SMS["SMS Provider"]
 
     User -- HTTPS --> Nginx
     Nginx -- FastCGI --> PHP
-    
+
     PHP -- Read/Write --> DB
     PHP -- Push Jobs --> DB
     PHP -- Cache --> Redis
-    
+
     Worker -- Pop Jobs --> DB
     Worker -- Read/Write --> DB
     Worker -- API Calls --> SMS
-    
+
     style PHP fill:#1168bd,stroke:#0b4884,color:#ffffff
     style Worker fill:#1168bd,stroke:#0b4884,color:#ffffff
     style DB fill:#2f95c4,stroke:#206a8c,color:#ffffff
     style Redis fill:#2f95c4,stroke:#206a8c,color:#ffffff
 ```
 
-Очередь работает через DB-драйвер (`yii\queue\db\Queue`): задания лежат в MySQL. Redis используется только как кэш.
+Очередь работает через `yii\queue\db\Queue` (задания хранятся в базе данных MySQL или PostgreSQL). Redis используется как кэш.
 
-#### Level 3: Components (Application Layer)
-**Внутреннее устройство Application Layer (Clean Architecture).**
+### Level 3: components (слой приложения)
+
+**Внутреннее устройство слоя приложения (Clean Architecture).**
 
 ```mermaid
 graph TD
-    subgraph Presentation ["Presentation Layer (Yii2)"]
+    subgraph Presentation ["Слой представления (Yii2)"]
         Controller[Web Controller]
         Handler[Command Handler]
         Mapper[Mapper]
         Filter[Idempotency Filter]
     end
 
-    subgraph Application ["Application Layer (Pure PHP)"]
+    subgraph Application ["Слой приложения (Pure PHP)"]
         UseCase[Use Case]
         Port["Outbound Port (Interface)"]
     end
 
-    subgraph Domain ["Domain Layer (Pure PHP)"]
+    subgraph Domain ["Слой домена (Pure PHP)"]
         Entity[Domain Entity]
         VO[Value Object]
         Event[Domain Event]
     end
 
-    subgraph Infrastructure ["Infrastructure Layer"]
+    subgraph Infrastructure ["Инфраструктурный слой"]
         RepoImpl[Repository/QueryService Impl]
         Adapter[Adapter Impl]
         AR[ActiveRecord]
@@ -132,231 +154,91 @@ graph TD
     Handler -- "2. Map to Command" --> Mapper
     Handler -- "3. Execute Command" --> UseCase
     Filter -- "Mutex Lock" --> Handler
-    
+
     %% Logic Flow
     UseCase -- "4. Business Logic" --> Entity
     Entity -- "5. Rules" --> VO
     UseCase -- "6. Publish Event" --> Port
     UseCase -- "7. Save" --> Port
-    
+
     %% Infra Implementation
     RepoImpl -.->|"Implements"| Port
     Adapter -.->|"Implements"| Port
-    
+
     RepoImpl -- "8. Map to AR" --> AR
     AR -- "9. SQL" --> DB
-    
+
     Adapter -- "Async" --> Job
-    
+
     style UseCase fill:#1168bd,stroke:#0b4884,color:#ffffff
     style Entity fill:#1168bd,stroke:#0b4884,color:#ffffff
     style VO fill:#1168bd,stroke:#0b4884,color:#ffffff
 ```
 
-### 🎯 Основные принципы реализации
-
-1. **Инверсия зависимостей (DIP)**: слой Application не зависит от Infrastructure. Вместо этого он определяет интерфейсы (Ports), которые Infrastructure реализует. Это позволяет легко заменить MySQL на PostgreSQL или SMS-провайдера без изменения бизнес-логики.
-2. **Тонкие контроллеры и AR**: Yii2 ActiveRecord используется **только** в слое Infrastructure как детали хранения. В контроллерах нет прямого обращения к моделям для записи или сложной выборки.
-3. **Предсказуемость (Value Objects)**: данные всегда валидны. Если объект `Isbn` или `BookYear` создан — значит данные в нем корректны. Это избавляет от тысяч проверок `if` в коде.
-
-### Что это значит?
-
-**UseCase (`CreateBookUseCase`) не знает:**
-- Это HTTP-запрос или CLI-команда?
-- Данные из HTML-формы или из REST API?
-- Сохраняем в MySQL, PostgreSQL или MongoDB?
-- SMS шлём через Twilio или пишем в файл?
-
-**Почему Presentation и Infrastructure зависят от Yii2 — это нормально:**
-- Presentation = интерфейс с пользователем. Контроллеры, формы, виджеты — это Yii2.
-- Infrastructure = реализация хранения. ActiveRecord, Queue — это тоже Yii2.
-- Это **внешние слои** — они по определению зависят от технологий.
-
-**Почему Application и Domain чистые — это критично:**
-- Можно перенести в Symfony/Laravel без изменений.
-- Можно тестировать без базы данных и HTTP.
-- Бизнес-правила не меняются при смене фреймворка.
-
 [↑ К навигации](#-навигация)
 
 ---
 
-## 📊 Три уровня организации кода
+## 🧭 Архитектурные решения
 
-| Уровень | Подход | Типичный проект |
-|---------|--------|-----------------|
-| **1** | Толстый контроллер | Новичок, быстрый прототип |
-| **2** | Контроллер + Сервис | Большинство Yii2/Laravel проектов |
-| **3** | Clean Architecture | Enterprise, сложная бизнес-логика |
+### 1. Слой приложения (Use Cases, CQS, Ports)
+
+Чтение и запись разделены по CQS, а внешние зависимости вынесены в порты:
+
+- **Запись (команды):** любое изменение в системе (создание книги, подписка) - это отдельный **Use Case**. Данные поступают через строго типизированные **Command DTO**.
+- **Чтение (запросы):** read-side реализован через Query Services и DTO (`application/*/queries`).
+- **Порты:** интерфейсы в `application/ports` позволяют менять реализацию без изменений бизнес-логики.
 
 [↑ К навигации](#-навигация)
 
----
+### 2. Слой домена (Rich Domain Model)
 
-## 🔄 Пример: Создание книги
+Здесь находится бизнес-суть приложения без привязки к вебу и базе данных:
 
-### Уровень 1: Толстый контроллер
+- **Rich Entities:** сущность `Book` управляет статусом и авторами, соблюдая бизнес-правила.
+- **Контроль изменяемости:** доменные сущности используют `private(set)` и меняются через методы.
+- **Value Objects:** `Isbn`, `BookYear` гарантируют валидность данных при создании.
+- **Domain Events:** `BookPublishedEvent`, `BookUpdatedEvent` связывают части системы без прямых зависимостей.
+- **Specifications:** поиск формализован через `domain/specifications`.
 
-```php
-// controllers/BookController.php
-public function actionCreate()
-{
-    $model = new Book();
-    
-    if ($model->load(Yii::$app->request->post())) {
-        // Загрузка файла
-        $file = UploadedFile::getInstance($model, 'coverFile');
-        if ($file) {
-            $path = 'uploads/' . uniqid() . '.' . $file->extension;
-            $file->saveAs(Yii::getAlias('@webroot/' . $path));
-            $model->cover_url = '/' . $path;
-        }
-        
-        // Валидация ISBN (копипаста из интернета)
-        $isbn = str_replace(['-', ' '], '', $model->isbn);
-        if (strlen($isbn) !== 13 || !ctype_digit($isbn)) {
-            $model->addError('isbn', 'Неверный ISBN');
-        }
-        
-        if (!$model->hasErrors() && $model->save()) {
-            // Синхронизация авторов
-            Yii::$app->db->createCommand()
-                ->delete('book_authors', ['book_id' => $model->id])
-                ->execute();
-            foreach ($model->authorIds as $authorId) {
-                Yii::$app->db->createCommand()->insert('book_authors', [
-                    'book_id' => $model->id,
-                    'author_id' => $authorId,
-                ])->execute();
-            }
-            
-            // Уведомления подписчикам
-            $phones = Subscription::find()
-                ->select('phone')
-                ->where(['author_id' => $model->authorIds])
-                ->column();
-            foreach ($phones as $phone) {
-                $sms = new SmsClient(Yii::$app->params['smsApiKey']);
-                $sms->send($phone, "Новая книга: {$model->title}");
-            }
-            
-            Yii::$app->session->setFlash('success', 'Книга создана');
-            return $this->redirect(['view', 'id' => $model->id]);
-        }
-    }
-    
-    return $this->render('create', [
-        'model' => $model,
-        'authors' => ArrayHelper::map(Author::find()->all(), 'id', 'fio'),
-    ]);
-}
-```
+[↑ К навигации](#-навигация)
 
-#### ✅ Плюсы:
-- Быстро написать (30 минут)
-- Всё в одном месте — легко найти
-- Не нужно думать об архитектуре
+### 3. Слой представления (Yii2)
 
-#### ❌ Минусы:
-- **60+ строк** в одном методе
-- `actionUpdate` — копипаста с 80% совпадением
-- SMS блокирует ответ страницы (100 подписчиков = 30 сек)
-- Тесты? Нужен Yii + база + файловая система + SMS API
-- Поменял валидацию ISBN — трогаешь контроллер
-- Поменял отправку SMS — трогаешь контроллер
+Слой отвечает за UI, HTTP и сценарии пользователя:
 
----
+- **Контроллеры:** максимально тонкие.
+- **Формы:** валидация HTTP-ввода в `presentation/*/forms`.
+- **Handlers & view factories:** обработка команд и подготовка данных для UI.
+- **Read DTO:** чтение отделено от отображения через `BookReadDto`.
+- **Фильтры:** идемпотентность и rate limit оформлены отдельными фильтрами.
+- **WebUseCaseRunner:** централизованный запуск Use Cases и обработка ошибок.
+- **Command Pipeline:** транзакции, идемпотентность и трассировка вынесены в middleware.
+- **HTMX:** фронт использует HTMX для бесшовной подгрузки и фильтрации.
 
-### Уровень 2: Контроллер + Сервис
+[↑ К навигации](#-навигация)
 
-```php
-// controllers/BookController.php
-public function actionCreate()
-{
-    $model = new Book();
-    
-    if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-        $service = new BookService();
-        $bookId = $service->create($model);
-        
-        if ($bookId) {
-            Yii::$app->session->setFlash('success', 'Книга создана');
-            return $this->redirect(['view', 'id' => $bookId]);
-        }
-    }
-    
-    return $this->render('create', [
-        'model' => $model,
-        'authors' => ArrayHelper::map(Author::find()->all(), 'id', 'fio'),
-    ]);
-}
-```
+### 4. Разделение ответственности: Use Cases vs сервисы представления
 
-```php
-// services/BookService.php
-class BookService
-{
-    public function create(Book $model): ?int
-    {
-        $transaction = Yii::$app->db->beginTransaction();
-        
-        try {
-            // Загрузка файла
-            $file = UploadedFile::getInstance($model, 'coverFile');
-            if ($file) {
-                $path = 'uploads/' . uniqid() . '.' . $file->extension;
-                $file->saveAs(Yii::getAlias('@webroot/' . $path));
-                $model->cover_url = '/' . $path;
-            }
-            
-            if (!$model->save()) {
-                throw new \Exception('Ошибка сохранения');
-            }
-            
-            $this->syncAuthors($model->id, $model->authorIds);
-            $transaction->commit();
-            
-            $this->notifySubscribers($model);
-            
-            return $model->id;
-        } catch (\Exception $e) {
-            $transaction->rollBack();
-            Yii::error($e->getMessage());
-            return null;
-        }
-    }
-    
-    private function syncAuthors(int $bookId, array $authorIds): void
-    {
-        // ... синхронизация
-    }
-    
-    private function notifySubscribers(Book $model): void
-    {
-        // ... SMS
-    }
-}
-```
+**Use Cases (слой приложения)** - бизнес-логика:
 
-#### ✅ Плюсы:
-- Контроллер тонкий (15 строк)
-- Логика переиспользуется (Create/Update могут вызывать сервис)
-- Легче читать
+- Работают с Command/DTO объектами;
+- Не знают о формах, HTTP и формате ответа;
+- Независимы от способа представления.
 
-#### ❌ Минусы:
-- Сервис всё ещё **зависит от `Book` (ActiveRecord)**
-- Сервис знает про `UploadedFile`, `Yii::$app`
-- **Тестирование:** всё ещё нужна вся инфраструктура
-- SMS всё ещё блокирует запрос
-- Один сервис на 200+ строк (BookService делает ВСЁ)
-- Сервис — это "толстый контроллер, вынесенный в класс"
+**Слой представления** разделен на Handlers и view factories:
 
----
+- **Command Handlers:** маппят форму в команду и вызывают Use Case.
+- **View factories:** подготавливают данные для отображения.
+- **Контроллер:** координирует HTTP и делегирует работу.
 
-### Уровень 3: Clean Architecture (этот проект)
+**Пример разделения:**
 
 ```php
 // presentation/controllers/BookController.php
+/**
+ * @return string|Response|array<string, mixed>
+ */
 public function actionCreate(): string|Response|array
 {
     $form = new BookForm();
@@ -369,6 +251,7 @@ public function actionCreate(): string|Response|array
 
         if ($form->validate()) {
             $bookId = $this->commandHandler->createBook($form);
+
             if ($bookId !== null) {
                 return $this->redirect(['view', 'id' => $bookId]);
             }
@@ -388,824 +271,219 @@ public function actionCreate(): string|Response|array
 // presentation/books/handlers/BookCommandHandler.php
 public function createBook(BookForm $form): int|null
 {
-    $tempFile = $this->uploadCover($form);
-    $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
-    $command = $this->mapper->toCreateCommand($form, $permanentRef);
+    try {
+        $data = $this->prepareCommandData($form);
+        /** @var CreateBookCommand $command */
+        $command = $this->autoMapper->map($data, CreateBookCommand::class);
+    } catch (\Throwable $e) {
+        $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 400, $e));
+        return null;
+    }
 
-    return $this->useCaseRunner->executeWithFormErrors(
-        fn(): int => $this->createBookUseCase->execute($command),
+    /** @var int|null */
+    return $this->executeWithForm(
+        $this->useCaseRunner,
+        $form,
+        $command,
+        $this->createBookUseCase,
         Yii::t('app', 'book.success.created'),
-        function (DomainException $e) use ($form, $permanentRef): void {
-            if ($permanentRef instanceof StoredFileReference) {
-                $this->fileStorage->delete((string)$permanentRef);
-            }
-            $this->addFormError($form, $e); // Маппинг ошибки на поле формы
-        }
     );
 }
 ```
 
-```php
-// application/books/usecases/PublishBookUseCase.php
-/**
- * @implements UseCaseInterface<PublishBookCommand, bool>
- */
-final readonly class PublishBookUseCase implements UseCaseInterface
-{
-    public function __construct(
-        private BookRepositoryInterface $bookRepository,
-        private TransactionalEventPublisher $eventPublisher,
-        private BookPublicationPolicy $publicationPolicy,
-    ) {
-    }
+[↑ К навигации](#-навигация)
 
-    public function execute(object $command): bool
-    {
-        assert($command instanceof PublishBookCommand);
-        $book = $this->bookRepository->get($command->bookId);
+### 5. Инфраструктура и окружение
 
-        $book->publish($this->publicationPolicy);
-        $this->bookRepository->save($book);
+- Переключение между MySQL и PostgreSQL управляется `DB_DRIVER` и конфигами `config/db.php`.
+- Очередь реализована через `HandlerAwareQueue`, задания хранятся в базе.
+- Время инкапсулировано через `Psr\Clock\ClockInterface` и `SystemClock`.
+- Трассировка и логирование интегрированы с Buggregator.
+- Интерактивная отладка доступна через `make shell`.
 
-        // Отправка события ТОЛЬКО после успешного коммита транзакции
-        $this->eventPublisher->publishAfterCommit(
-            new BookPublishedEvent($command->bookId, $book->title, $book->year->value),
-        );
+[↑ К навигации](#-навигация)
 
-        return true;
-    }
-}
-```
+### 6. DTO и формы для валидации
 
-```php
-// domain/values/Isbn.php
-final readonly class Isbn
-{
-    public private(set) string $value;
-    
-    public function __construct(string $value)
-    {
-        $normalized = $this->normalizeIsbn($value);
-        if (!$this->isValidIsbn($normalized)) {
-            throw new ValidationException(DomainErrorCode::IsbnInvalidFormat);
-        }
-        $this->value = $normalized;
-    }
-}
-```
+- Формы валидируют HTTP-ввод в `presentation/*/forms`.
+- Команды (`CreateBookCommand`, `UpdateBookCommand`) живут в `application/*/commands`.
+- Read-side DTO находятся в `application/*/queries`.
+- Пагинация оформлена через `PaginationDto` и `PagedResultInterface`.
 
-#### ✅ Плюсы:
-- **UseCase не знает про Yii** — чистый PHP
-- **Тестируется изолированно** — mock-аем интерфейсы
-- **SMS в очереди** — страница отвечает мгновенно
-- **Value Object** — невозможно создать невалидный ISBN
-- **Каждый класс = одна ответственность**
-- **Легко менять:** новый SMS-провайдер = новый адаптер, UseCase не трогаем
+[↑ К навигации](#-навигация)
 
-#### ❌ Минусы:
-- **Много файлов** (Form + Mapper + Command + UseCase + Repository + Event)
-- **Дольше писать** изначально
-- **Overkill** для простых CRUD
-- **Нужно понимать паттерны**
+### 7. Инфраструктурный слой
+
+- ActiveRecord модели размещены в `infrastructure/persistence` и используются только внутри инфраструктуры.
+- Репозитории и Query Services реализуют порты в `infrastructure/repositories` и `infrastructure/queries`.
+- События публикуются через `YiiEventPublisherAdapter`, маппинг в jobs делает `EventToJobMapper`.
+- Оптимистическая блокировка включена в `infrastructure/persistence/Book.php` через `OptimisticLockBehavior`.
+
+[↑ К навигации](#-навигация)
+
+### 8. Качество кода и стандарты
+
+- Строгая типизация (`declare(strict_types=1)`) во всех PHP-файлах.
+- PHPStan level 9, кастомные правила в `infrastructure/phpstan`.
+- PHPStan правила: `QueryPortsMustReturnDtoRule`, `NoActiveRecordInDomainOrApplicationRule`.
+- Rector для авто-рефакторинга и миграций синтаксиса.
+- Код-стайл через `phpcs.xml.dist`.
+- Архитектурные ограничения через Deptrac и Arkitect.
+
+[↑ К навигации](#-навигация)
+
+### 9. Гибридный поиск (Specification)
+
+- Критерии поиска формируются в `BookSearchSpecificationFactory`.
+- Спецификации (`FullTextSpecification`, `IsbnPrefixSpecification`, `AuthorSpecification`) живут в `domain/specifications`.
+- `ActiveQueryBookSpecificationVisitor` строит запросы под MySQL/PgSQL и делает fallback на `LIKE`.
+- Для ISBN используется префиксный поиск, для года - точное совпадение.
+- Поиск по авторам идет через отдельную спецификацию и подзапрос.
+- В UI используется HTMX для фильтрации без полной перезагрузки страницы.
+
+[↑ К навигации](#-навигация)
+
+### 10. Асинхронные операции (fan-out)
+
+Чтобы тяжелые задачи не тормозили интерфейс:
+
+1. Use Case публикует доменное событие (`BookPublishedEvent`).
+2. `EventJobMappingRegistry` маппит событие в `NotifySubscribersJob`.
+3. `NotifySubscribersHandler` создает отдельный `NotifySingleSubscriberJob` для каждого подписчика.
+
+Идемпотентность фоновой рассылки обеспечивается через `AsyncIdempotencyStorageInterface` внутри `NotifySingleSubscriberHandler`.
+
+Результат: интерфейс отвечает сразу, а рассылка выполняется параллельно в фоне.
+
+[↑ К навигации](#-навигация)
+
+### 11. Пагинация и кеширование
+
+- Query Services возвращают `PagedResultInterface` с `PaginationDto`.
+- Query Services не отдают `ActiveDataProvider`, чтобы не тащить Yii2 в слой приложения.
+- В presentation-layer используется адаптер `PagedResultDataProvider`.
+- Кэширование отчетов реализовано в `ReportQueryServiceCachingDecorator`, инвалидация - через `ReportCacheInvalidationListener`.
+
+[↑ К навигации](#-навигация)
+
+### 12. Внедрение зависимостей
+
+- Зависимости передаются через конструкторы и настраиваются в `config/container/*.php`.
+- В слоях application/domain нет обращений к `Yii::$app`.
+- Фоновые задачи остаются DTO благодаря `HandlerAwareQueue` и `JobHandlerRegistry`.
+
+[↑ К навигации](#-навигация)
+
+### 13. Наблюдаемость и трассировка
+
+- Трассировка команд реализована через `TracingMiddleware`.
+- Инфраструктурные декораторы (`*TracingDecorator`) оборачивают репозитории, Query Services и очередь.
+- Логирование и сбор трейсов выполняются через `BuggregatorLogTarget`.
+- В панели Buggregator доступны timeline, SQL-запросы и путь задач в очереди.
+
+[↑ К навигации](#-навигация)
+
+### 14. Хранилище файлов (CAS)
+
+- Файловое хранилище реализовано через `ContentAddressableStorage`.
+- Ключи формируются через `FileKey`, а домен работает с `StoredFileReference`.
+- Имя файла = sha256 от содержимого, что дает дедупликацию.
+- Домен не знает о путях к файлам, он оперирует ссылками на контент.
+
+[↑ К навигации](#-навигация)
+
+### 15. Инфраструктурное ядро
+
+- `BaseActiveRecordRepository` содержит Identity Map на основе `WeakMap` и переводит ошибки БД в доменные исключения.
+- `BaseQueryService` стандартизирует пагинацию и маппинг в DTO.
+
+[↑ К навигации](#-навигация)
+
+### 16. Маппинг данных (AutoMapper и Hydrator)
+
+- Read-side использует `AutoMapper` и атрибуты `#[MapTo]` в ActiveRecord моделях.
+- Write-side использует `ActiveRecordHydrator` в репозиториях (например, `BookRepository`).
 
 [↑ К навигации](#-навигация)
 
 ---
 
-## 📈 Сравнительная таблица
-
-Для ориентира: «толстый контроллер» = типичный Yii2 CRUD на ActiveRecord, «+Сервис» = привычный сервисный слой поверх AR.
-
-| Критерий | Толстый контроллер | +Сервис | Clean Architecture |
-|----------|-------------------|---------|-------------------|
-| **Время разработки** | ⚡ 30 мин | ⚡ 1 час | 🐢 3-4 часа |
-| **Файлов на операцию** | 1 | 2 | 6-8 |
-| **Строк кода** | 60 в одном | 15 + 80 | 15 + 20 + 25 + ... |
-| **Unit-тесты** | ❌ Невозможно | ⚠️ Сложно | ✅ Легко |
-| **Покрытие тестами** | 0-10% | 10-30% | 100% |
-| **SMS блокирует** | ✅ Да | ✅ Да | ❌ Нет (очередь) |
-| **Зависимость от Yii** | 🔴 Везде | 🟡 В сервисе | 🟢 Infrastructure + Presentation |
-| **Изменить провайдера SMS** | Правим контроллер | Правим сервис | Новый адаптер |
-| **Копипаста Create/Update** | 80% | 50% | 10% |
-| **Правила домена** | В контроллере | В сервисе | Entity/Policy |
-| **Поиск/фильтрация** | AR в контроллере | AR в сервисе | Specifications + QueryService |
-| **Onboarding нового дева** | ⚡ 1 день | 2-3 дня | 1 неделя |
-| **Поддержка через 2 года** | 😱 Ад | 😐 Норм | 😊 Легко |
-
-[↑ К навигации](#-навигация)
-
----
-
-## 🧩 Каждый паттерн: было → стало
-
-### 1. Form (отдельная валидация)
-
-**Было (в модели Book):**
-```php
-class Book extends ActiveRecord
-{
-    public $coverFile;  // Для загрузки
-    public $authorIds;  // Для формы
-    
-    public function rules()
-    {
-        return [
-            // Правила для БД
-            ['title', 'string', 'max' => 255],
-            // + правила для формы
-            ['coverFile', 'file', 'extensions' => 'png, jpg'],
-            // + сценарии create/update
-        ];
-    }
-}
-```
-❌ **Проблема:** модель смешивает "что хранить" и "что ввёл юзер"
-
-**Стало (BookForm):**
-```php
-// Только для валидации ввода
-final class BookForm extends RepositoryAwareForm
-{
-    /** @var int|string|null */
-    public $id;
-    /** @var string */
-    public $title = '';
-    public $year;
-    public $description;
-    public $isbn = '';
-    public $authorIds = [];
-    public $cover;
-    public int $version = 1;
-}
-
-// ActiveRecord чистый
-class Book extends ActiveRecord
-{
-    // Только поля БД: title, cover_url, year, isbn
-}
-```
-✅ **Результат:** модель не знает про `UploadedFile`. Форма не знает про БД.
-
----
-
-### 2. Command (чёткие данные)
-
-**Было:**
-```php
-$service->create($model);  // Book? BookForm? Array? Хз
-```
-❌ **Проблема:** что внутри `$model`? Какие поля есть?
-
-**Стало:**
-```php
-$command = new CreateBookCommand(
-    title: 'Название',
-    year: 2024,
-    description: 'Короткое описание',
-    isbn: '9783161484100',
-    authorIds: [1, 2],
-    cover: '/uploads/cover.jpg'  // Уже URL, не файл!
-);
-$useCase->execute($command);
-```
-✅ **Результат:** IDE подсказывает. Типы строгие. Нельзя передать фигню.
-
----
-
-### 3. Mapper (преобразование)
-
-**Было (в контроллере):**
-```php
-$command = new CreateBookCommand(
-    $form->title,
-    $form->year,
-    $form->isbn,
-    $form->authorIds,
-    $coverUrl  // откуда-то взялся
-);
-```
-❌ **Проблема:** копипаста в каждом контроллере
-
-**Стало:**
-```php
-// presentation/mappers/BookFormMapper.php
-class BookFormMapper
-{
-    public function toCreateCommand(
-        BookForm $form,
-        string|StoredFileReference|null $coverPath
-    ): CreateBookCommand
-    {
-        return new CreateBookCommand(
-            title: $form->title,
-            year: (int)$form->year,
-            description: $form->description !== '' ? $form->description : null,
-            isbn: (string)$form->isbn,
-            authorIds: array_map(intval(...), (array)$form->authorIds),
-            cover: $coverPath
-        );
-    }
-}
-```
-✅ **Результат:** маппинг в одном месте. DRY.
-
----
-
-### 4. UseCase (бизнес-логика)
-
-**Было (в сервисе):**
-```php
-class BookService
-{
-    public function create(Book $model) { /* 100 строк */ }
-    public function update(Book $model) { /* 100 строк */ }
-    public function delete(int $id) { /* 30 строк */ }
-    public function search(string $q) { /* 50 строк */ }
-    // ... 500 строк
-}
-```
-❌ **Проблема:** один файл на 500 строк. God Object.
-
-**Стало:**
-```php
-// Один файл = одна операция
-app/application/books/usecases/
-├── CreateBookUseCase.php   // 30 строк
-├── UpdateBookUseCase.php   // 25 строк
-├── DeleteBookUseCase.php   // 15 строк
-```
-✅ **Результат:** маленькие классы. Легко найти и изменить.
-
----
-
-### 5. Repository (абстракция БД)
-
-**Было:**
-```php
-// В сервисе
-$book = Book::findOne($id);
-$book->title = $newTitle;
-$book->save();
-```
-❌ **Проблема:** сервис зависит от ActiveRecord
-
-**Стало:**
-```php
-// Интерфейс (application/ports/)
-interface BookRepositoryInterface
-{
-    public function save(Book $book): void;
-    public function get(int $id): Book;
-    public function delete(Book $book): void;
-    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool;
-}
-
-// Отдельный read-порт (ISP)
-interface BookQueryServiceInterface
-{
-    public function findById(int $id): ?BookReadDto;
-    public function findByIdWithAuthors(int $id): ?BookReadDto;
-    public function search(string $term, int $page, int $pageSize): PagedResultInterface;
-    public function searchBySpecification(
-        BookSpecificationInterface $specification,
-        int $page,
-        int $pageSize
-    ): PagedResultInterface;
-}
-
-// Реализация (infrastructure/repositories/)
-class BookRepository implements BookRepositoryInterface
-{
-    public function __construct(private Connection $db) {} // Инъекция!
-
-    public function save(BookEntity $book): void
-    {
-        $ar = $book->id === null ? new Book() : Book::findOne($book->id);
-        if ($ar === null) {
-            throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
-        }
-        $ar->title = $book->title;
-        $ar->year = $book->year->value;
-        $ar->isbn = $book->isbn->value;
-        $ar->description = $book->description;
-        $ar->save();
-        
-        $this->syncAuthors($book);
-    }
-}
-```
-✅ **Результат:** UseCase зависит от интерфейса. Репозиторий **не использует глобальный Yii::$app**.
-Read‑операции вынесены в отдельный `BookQueryServiceInterface` (ISP), чтобы query‑логика не тянула write‑контракт.
-
----
-
-### 6. Value Object (доменные правила)
-
-**Было:**
-```php
-// Валидация размазана
-// В контроллере:
-if (!preg_match('/^\d{13}$/', $isbn)) { ... }
-// В модели:
-['isbn', 'match', 'pattern' => '/^\d{13}$/']
-// И всё равно можно:
-$book->isbn = 'фигня';
-$book->save();  // Сохранится!
-```
-❌ **Проблема:** невалидный ISBN может попасть в БД
-
-**Стало:**
-```php
-// domain/values/Isbn.php
-$isbn = new Isbn('фигня');  // DomainException!
-$isbn = new Isbn('9783161484100');  // OK
-
-// В репозитории
-public function save(BookEntity $book): void
-{
-    $ar->isbn = $book->isbn->value;  // Гарантированно валидный
-}
-```
-✅ **Результат:** невозможно создать невалидный ISBN. Точка.
-
----
-
-### 7. Domain Event (развязка)
-
-**Было:**
-```php
-// В сервисе после save()
-$this->sendSms(...);  // А если SMS упадёт?
-$this->sendEmail(...);  // А если email упадёт?
-// Книга не сохранится? Или сохранится но без уведомлений?
-```
-❌ **Проблема:** создание книги завязано на отправку SMS
-
-**Стало:**
-```php
-// UseCase
-// Отправка события черезTransactionalEventPublisher (гарантия согласованности)
-$this->eventPublisher->publishAfterCommit(
-    new BookPublishedEvent($command->bookId, $book->title, $book->year->value)
-);
-```
-Слушатели получают событие синхронно через `EventListenerInterface`, а в очередь уходят только события, реализующие `QueueableEvent`. Маппинг Event → Job выполняет `EventToJobMapper` в инфраструктуре, чтобы домен не знал о job-классах.
-✅ **Результат:** упал SMS? Книга всё равно создана. SMS повторится из очереди.
-
----
-
-### 8. Queue (асинхронность)
-
-**Было:**
-```php
-foreach ($subscribers as $sub) {
-    $sms->send($sub->phone, ...);  // 100 SMS = 30 сек
-}
-// Юзер ждёт...
-```
-❌ **Проблема:** страница висит пока шлются SMS
-
-**Стало:**
-```php
-// Event → одна задача в очередь (маппинг делает EventToJobMapper)
-$this->queue->push(new NotifySubscribersJob($bookId));
-// Страница отвечает мгновенно
-
-// Воркер в фоне:
-// NotifySubscribersJob → 100x NotifySingleSubscriberJob (параллельно)
-```
-✅ **Результат:** юзер не ждёт. SMS отправляются фоном. Ретраи автоматические.
-
----
-
-### 9. Entity (Rich Domain Model)
-
-**Было:**
-```php
-// ActiveRecord = данные + логика + persistence
-class Book extends ActiveRecord
-{
-    public function publish(): void
-    {
-        $this->status = 'published';
-        $this->save();  // Persistence внутри модели
-    }
-}
-```
-❌ **Проблема:** AR смешивает бизнес-логику и работу с БД. Нельзя тестировать без базы.
-
-**Стало:**
-```php
-// domain/entities/Book.php — чистый PHP, без Yii
-final class Book
-{
-    // ...
-    public function publish(BookPublicationPolicy $policy): void
-    {
-        $policy->ensureCanPublish($this);
-        $this->published = true;
-    }
-    
-    // Сущность сама управляет своими авторами
-    public function addAuthor(int $authorId): void
-    {
-        if ($authorId <= 0) {
-            throw new DomainException('book.error.invalid_author_id');
-        }
-
-        if (in_array($authorId, $this->authorIds, true)) {
-            return;
-        }
-
-        $this->authorIds[] = $authorId;
-    }
-}
-```
-✅ **Результат:** Entity не знает о БД. Тестируется без инфраструктуры. Value Objects гарантируют валидность.
-
-Дополнительно в домене:
-- **Domain Services** (например, `BookPublicationPolicy`) для правил, которые не принадлежат одной сущности.
-- **Specifications** для формализации критериев поиска (`BookSearchSpecificationFactory`, `YearSpecification`).
-
----
-
-### 10. Optimistic Locking (Конкурентность)
-
-**Было:**
-```php
-// Менеджер А открыл книгу. Менеджер Б открыл ту же книгу.
-// А сохранил. Б сохранил (затер изменения А).
-```
-❌ **Проблема:** Потеря данных (Lost Update).
-
-**Стало:**
-```php
-// Repository
-try {
-    $ar->version = $book->version;
-    $ar->save(); // Проверяет version = DB.version
-} catch (StaleObjectException $e) {
-    throw new StaleDataException(); // Контроллер покажет ошибку
-}
-```
-✅ **Результат:** Менеджер Б получит сообщение "Данные устарели, обновите страницу". Данные в безопасности.
-
----
-
-### 11. Handlers (Presentation Layer)
-
-**Было:**
-```php
-// Контроллер делает всё
-public function actionCreate()
-{
-    $form = new BookForm();
-    if ($form->load($request) && $form->validate()) {
-        $file = UploadedFile::getInstance($form, 'cover');
-        $path = $this->uploadFile($file);
-        $command = new CreateBookCommand(...);
-        $this->useCase->execute($command);
-    }
-}
-```
-❌ **Проблема:** контроллер знает о файлах, маппинге, Use Case. Сложно тестировать.
-
-**Стало:**
-```php
-// presentation/books/handlers/BookCommandHandler.php
-final readonly class BookCommandHandler
-{
-    public function createBook(BookForm $form): ?int
-    {
-        $tempFile = $this->uploadCover($form);
-        $permanentRef = $tempFile instanceof TemporaryFile ? $this->fileStorage->moveToPermanent($tempFile) : null;
-        $command = $this->mapper->toCreateCommand($form, $permanentRef);
-
-        return $this->useCaseRunner->executeWithFormErrors(
-            fn(): int => $this->createBookUseCase->execute($command),
-            Yii::t('app', 'book.success.created'),
-            function (DomainException $e) use ($form, $permanentRef): void {
-                if ($permanentRef instanceof StoredFileReference) {
-                    $this->fileStorage->delete((string)$permanentRef);
-                }
-                $this->addFormError($form, $e); // Маппинг ошибки на поле
-            }
-        );
-    }
-}
-```
-✅ **Результат:** Handler инкапсулирует логику. Контроллер только координирует HTTP.
-
----
-
-### 12. Validation Strategy (Pragmatic Approach)
-
-**Было (Standard Yii2):**
-```php
-// Валидация в ActiveRecord
-class Book extends ActiveRecord
-{
-    public function rules()
-    {
-        return [
-            // Проверка уникальности в модели = запрос в БД при валидации
-            [['isbn'], 'unique'],
-        ];
-    }
-}
-```
-❌ **Проблема:**
-1. **Смешивание ответственности:** модель/Форма знает о Базе Данных.
-2. **Race Condition:** между `SELECT count(*)` (валидация) и `INSERT` может вклиниться другой процесс.
-3. **Зависимость:** нельзя протестировать форму без рабочей БД.
-
-**Стало (Clean-ish):**
-```php
-// Presentation (Form) — формат + проверка уникальности через репозиторий
-class BookForm extends RepositoryAwareForm
-{
-    public function rules(): array
-    {
-        return [
-            [['title', 'year', 'isbn', 'authorIds'], 'required'],
-            ['isbn', 'string', 'max' => 20],
-            ['isbn', IsbnValidator::class],
-            ['isbn', 'validateIsbnUnique'],
-        ];
-    }
-
-    public function validateIsbnUnique(string $attribute): void
-    {
-        $value = $this->$attribute;
-
-        if (!is_string($value)) {
-            return;
-        }
-
-        $repository = $this->resolve(BookRepositoryInterface::class);
-        $excludeId = $this->id !== null ? (int)$this->id : null;
-
-        if (!$repository->existsByIsbn($value, $excludeId)) {
-            return;
-        }
-
-        $this->addError($attribute, Yii::t('app', 'book.error.isbn_exists'));
-    }
-}
-
-// Infrastructure (Repository) — целостность
-public function save(Book $book): void {
-    try {
-        $ar->save(); // Unique Index в БД гарантирует целостность
-    } catch (IntegrityException $e) {
-        throw new AlreadyExistsException('book.error.isbn_exists', 409, $e);
-    }
-}
-
-// Контроллер — обработка ошибок
-try {
-    $this->useCase->create(...);
-} catch (AlreadyExistsException $e) {
-    $form->addError('isbn', $e->getMessage());
-}
-```
-✅ **Результат:** форма даёт быстрый фидбек, а БД всё равно гарантирует целостность. Нет Race Condition.
-
----
-
-### 13. Specification (поиск и фильтрация)
-
-**Было:**
-```php
-// В UseCase или сервисе
-return Book::find()
-    ->where(['year' => $year])
-    ->andWhere(['like', 'title', $term])
-    ->all();
-```
-❌ **Проблема:** бизнес-слой знает про AR и SQL-детали.
-
-**Стало:**
-```php
-// Domain: фабрика спецификаций
-$spec = $this->specFactory->create($term);
-
-// QueryService: выполняет спецификацию
-$result = $this->bookQueryService->searchBySpecification($spec);
-```
-✅ **Результат:** критерии формализованы в домене, а SQL остаётся в инфраструктуре.
-
----
-
-### 14. Observability (Tracing)
-
-**Было:**
-Сложно понять, почему задача в очереди выполнялась долго или почему идемпотентность сработала некорректно. Логи разбросаны.
-
-**Стало:**
-Внедрен паттерн **Decorator** для добавления наблюдаемости без изменения бизнес-логики.
-```php
-// infrastructure/adapters/decorators/QueueTracingDecorator.php
-final readonly class QueueTracingDecorator implements QueueInterface {
-    public function __construct(
-        private QueueInterface $queue,
-        private TracerInterface $tracer
-    ) {}
-
-    public function push(object $job): void {
-        $this->tracer->trace(
-            'Queue::' . __FUNCTION__,
-            fn() => $this->queue->push($job),
-            ['job_class' => $job::class]
-        );
-    }
-}
-```
-✅ **Результат:** 
-1. `YiiQueueAdapter` остается чистым.
-2. `QueueTracingDecorator` добавляет spans в Inspector APM.
-3. В DI-контейнере адаптер просто оборачивается в декоратор.
-
-[↑ К навигации](#-навигация)
-
----
-
-## 🎯 Когда какой подход
-
-| Ситуация | Рекомендация |
-|----------|--------------|
-| Прототип за 2 часа | Толстый контроллер |
-| Типичный проект (1-2 дева) | Контроллер + Сервис |
-| Сложная бизнес-логика | Clean Architecture |
-| Нужны тесты | Clean Architecture |
-| Интеграции (SMS, Payment, API) | Clean Architecture |
-| 3+ разработчика | Clean Architecture |
-| Проект на 2+ года | Clean Architecture |
-
-[↑ К навигации](#-навигация)
-
----
-
-## 📁 Структура этого проекта
+## 📁 Структура проекта
 
 ```text
-yii2-book-catalog/
-├── assets/                  # Frontend assets
-├── bin/                     # Кастомные скрипты
-├── application/             # Application Layer (Use Cases, Queries, Ports)
-│   ├── books/               # Модуль "Книги"
-│   │   ├── commands/        # DTO команд (CreateBookCommand)
-│   │   ├── queries/         # DTO запросов (BookReadDto)
-│   │   └── usecases/        # Сценарии (CreateBookUseCase)
-│   ├── authors/             # Модуль "Авторы" (аналогичная структура)
-│   ├── subscriptions/       # Модуль "Подписки"
-│   ├── reports/             # Модуль "Отчеты"
-│   ├── common/              # Общие компоненты (IdempotencyService, DTO)
-│   └── ports/               # Интерфейсы (EventPublisher, EventListener, Mutex, Repository, QueryService)
-├── domain/                  # Domain Layer (Чистый PHP)
-│   ├── entities/            # Rich Entities (Book, Author)
-│   ├── events/              # Domain Events & QueueableEvent
-│   ├── exceptions/          # Domain Exceptions (StaleDataException)
-│   ├── services/            # Domain Services (BookPublicationPolicy)
-│   ├── specifications/      # Specifications (поиск/фильтрация)
-│   └── values/              # Value Objects (Isbn, BookYear)
-├── infrastructure/          # Infrastructure Layer (Реализации портов)
-│   ├── adapters/            # Адаптеры (YiiEventPublisher, EventToJobMapper, YiiMutex, YiiTransaction)
-│   │   └── decorators/      # Tracing Decorators для адаптеров
-│   ├── listeners/           # Event Listeners (ReportCacheInvalidation)
-│   ├── persistence/         # ActiveRecord модели (только для маппинга)
-│   ├── phpstan/             # Custom PHPStan rules
-│   ├── queue/               # Queue Jobs
-│   ├── repositories/        # Реализации репозиториев (Strict DI)
-│   │   └── decorators/      # Tracing Decorators
-│   └── services/            # Инфраструктурные сервисы (Logger, Storage)
-├── presentation/            # Presentation Layer (Yii2 & Web)
-│   ├── auth/                # Аутентификация
-│   ├── controllers/         # Тонкие контроллеры
-│   ├── books/               # Модуль "Книги" (Forms, Handlers, Mappers)
-│   ├── authors/             # Модуль Авторы
-│   ├── components/          # Базовые UI-компоненты
-│   ├── common/              # Общие компоненты Presentation Layer
-│   │   ├── adapters/        # Адаптеры (PagedResultDataProvider)
-│   │   ├── filters/         # Фильтры (IdempotencyFilter)
-│   │   ├── handlers/        # Общие handlers
-│   │   └── services/        # Сервисы (WebUseCaseRunner)
-│   ├── dto/                 # DTO для представления
-│   ├── mail/                # Шаблоны писем
-│   ├── reports/             # Модуль "Отчеты"
-│   ├── subscriptions/       # Модуль "Подписки"
-│   ├── views/               # Шаблоны (Views)
-│   └── widgets/             # UI-виджеты
-├── commands/                # Console контроллеры (CLI)
-├── config/                  # Конфигурация приложения
-├── db-data/                 # Данные локальной БД (volume)
-├── docker/                  # Docker-конфигурация
-├── messages/                # Переводы i18n
-├── migrations/              # Миграции БД
-├── runtime/                 # Runtime кэш/логи
-├── tests/                   # Тесты
-├── tools/                   # Инструменты разработки (PHPUnit, Rector)
-├── web/                     # Web root
-└── docs/                    # Документация
+domain/                 - Слой домена (Business Logic)
+  ├── common/           - Общие доменные элементы
+  ├── entities/         - Сущности (Rich Model)
+  ├── events/           - Domain Events
+  ├── exceptions/       - Исключения домена
+  ├── services/         - Domain Services (редко)
+  ├── specifications/   - Specifications (criteria)
+  ├── values/           - Value Objects (Immutable)
+application/            - Слой приложения (Application Logic)
+  ├── common/           - Общие DTO и валидаторы
+  ├── ports/            - Интерфейсы (Ports)
+  ├── {{module}}/
+  │   ├── commands/     - DTO команд (Write)
+  │   ├── queries/      - DTO чтения (Read)
+  │   ├── usecases/     - Классы Use Case (execute)
+infrastructure/         - Инфраструктурный слой (Framework Logic)
+  ├── adapters/         - Адаптеры инфраструктуры
+  ├── components/       - Вспомогательные компоненты
+  ├── factories/        - Фабрики инфраструктуры
+  ├── listeners/        - Event Listeners
+  ├── logging/          - Конфигурация логов
+  ├── mapping/          - Настройки маппинга
+  ├── persistence/      - ActiveRecord модели (Mapping)
+  ├── phpstan/          - Расширения и правила PHPStan
+  ├── queries/          - Query Services
+  ├── queue/            - Обработчики очередей
+  ├── repositories/     - Реализации Repository (через AR)
+  ├── services/         - Внешние сервисы
+presentation/           - Слой представления (UI/API)
+  ├── common/           - Общие компоненты
+  ├── components/       - UI компоненты
+  ├── controllers/      - Общие контроллеры
+  ├── dto/              - DTO уровня представления
+  ├── mail/             - Шаблоны писем
+  ├── views/            - Шаблоны представлений
+  ├── widgets/          - UI виджеты
+  ├── {{module}}/
+  │   ├── controllers/  - Контроллеры модуля
+  │   ├── dto/          - DTO уровня представления
+  │   ├── forms/        - Формы валидации
+bin/                    - CLI утилиты
+commands/               - Console контроллеры
+  ├── support/          - Служебные утилиты и вывод карты проекта
+config/                 - Конфигурация приложения
+  ├── container/        - Конфигурация контейнера зависимостей
+docker/                 - Docker конфигурация
+  ├── nginx/            - Конфигурация nginx
+docs/                   - Документация
+  ├── ai/               - Правила и инструкции для AI
+  ├── auto/             - Автоматизированные материалы
+messages/               - Переводы i18n
+migrations/             - Миграции БД
+runtime/                - Runtime кэш и логи
+tests/                  - Тесты
+tools/                  - Инструменты разработки
+  ├── PHPUnit/          - Конфигурация PHPUnit
+  ├── Rector/           - Конфигурация Rector
+vendor/                 - Зависимости Composer
+web/                    - Web root
 ```
 
-**Независимы от Yii:** `application/` + `domain/` — можно перенести в Symfony/Laravel без изменений.
+Список модулей:
 
-**Зависят от Yii:** `infrastructure/` + `presentation/` — специфичны для Yii2.
+| Модуль        | Назначение              |
+| ------------- | ----------------------- |
+| auth          | Авторизация и сессии    |
+| authors       | Управление авторами     |
+| books         | Каталог книг            |
+| reports       | Аналитические отчеты    |
+| subscriptions | Подписки на уведомления |
 
-[↑ К навигации](#-навигация)
-### 10. Command Pipeline (Cross-cutting concerns)
+**Независимы от Yii:** `application/` и `domain/`.
 
-**Уровень 1-2 (Обычный сервис):**
-```php
-public function create(Book $model)
-{
-    $transaction = Yii::$app->db->beginTransaction();
-    try {
-        $this->tracer->start('create_book');
-        // бизнес-логика...
-        $transaction->commit();
-    } catch (\Throwable $e) {
-        $transaction->rollBack();
-        throw $e;
-    }
-}
-```
-❌ **Проблема:** бизнес-логика перемешана с техническим кодом (транзакции, трассировка, идемпотентность). Если вы забудете добавить `try-catch` в новом сервисе — данные могут стать несогласованными.
-
-**Уровень 3 (Clean Architecture):**
-```php
-// application/common/pipeline/PipelineFactory.php
-public function createDefault(): PipelineInterface
-{
-    return (new Pipeline())
-        ->pipe(new TracingMiddleware($this->tracer))
-        ->pipe(new IdempotencyMiddleware($this->idempotencyService))
-        ->pipe(new TransactionMiddleware($this->transaction));
-}
-
-// Выполнение в WebUseCaseRunner
-$result = $this->pipelineFactory->createDefault()->execute($command, $useCase);
-```
-✅ **Результат:** Use Case содержит **только** бизнес-логику. Сквозная функциональность (Cross-cutting concerns) вынесена в Middleware. Конвейер гарантирует, что транзакция будет открыта вовремя, а трассировка — записана.
-
----
-
-### 11. Разделение интерфейсов (ISP) в репозиториях
-
-**Уровень 1-2 (Толстый репозиторий):**
-```php
-interface BookRepositoryInterface {
-    public function save(Book $book): void;
-    public function get(int $id): Book;
-    public function search(string $term): PagedResultInterface;
-}
-```
-❌ **Проблема:** Use Case для удаления книги вынужден зависеть от методов поиска или сохранения, которые ему не нужны. Это усложняет тестирование (нужно мокать лишнее) и нарушает принцип разделения интерфейсов.
-
-**Уровень 3 (Clean Architecture):**
-- `BookRepositoryInterface`: только методы изменения (Write: `save`, `delete`).
-- `BookFinderInterface`: методы получения по ID (Read/Point: `findById`).
-- `BookSearcherInterface`: сложные поисковые запросы (Read/Search: `search`).
-
-✅ **Результат:** Use Cases зависят только от тех интерфейсов, которые им реально нужны. Код стал более модульным, а тесты — более сфокусированными.
-
----
-
-### 12. Оптимизированный маппинг событий
-
-**Уровень 1-2 (Императивный маппинг):**
-```php
-// Инфраструктура (Listener)
-public function onEvent($event) {
-    if ($event instanceof BookPublishedEvent) {
-        Yii::$app->queue->push(new NotifySubscribersJob(['bookId' => $event->id]));
-    }
-}
-```
-❌ **Проблема:** при добавлении каждого нового события нужно изменять код инфраструктуры (нарушение Open-Closed Principle). Легко забыть обновить маппер при изменении полей события.
-
-**Уровень 3 (Clean Architecture):**
-Используется `EventJobMappingRegistry` с рефлексией. Инфраструктура автоматически сопоставляет ключи события с параметрами конструктора Job.
-
-✅ **Результат:** добавление новой асинхронной задачи требует только регистрации соответствия в конфиге DI. Система сама поймет, как собрать Job из данных события.
-
----
-
-### 13. Бесконечный скролл (HTMX)
-
-**Уровень 1-2 (Традиционная пагинация или JS-лапша):**
-- Обычные ссылки `?page=2` с полной перезагрузкой страницы.
-- Или гора jQuery кода для захвата скролла, ручных AJAX-запросов и вставки HTML/JSON.
-
-**Уровень 3 (Clean Architecture + HTMX):**
-```html
-<div hx-get="/site/index?page=2" 
-     hx-trigger="revealed" 
-     hx-swap="afterend">
-    <!-- скелетон загрузки -->
-</div>
-```
-✅ **Результат:** современный UX («бесконечный скролл») достигается декларативно. Контроллер лишь проверяет заголовок `X-Htmx-Request`, чтобы решить: отдать всю страницу или только фрагмент с карточками.
+**Зависят от Yii:** `infrastructure/` и `presentation/`.
 
 [↑ К навигации](#-навигация)

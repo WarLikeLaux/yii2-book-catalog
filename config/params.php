@@ -13,14 +13,13 @@ return [
     'storage' => [
         'basePath' => '@app/web/uploads',
         'baseUrl' => '/uploads',
-        'tempBasePath' => '@app/web/uploads/temp',
-        'tempBaseUrl' => '/uploads/temp',
         'placeholderUrl' => 'https://picsum.photos/seed/{seed}/400/600',
     ],
     'idempotency' => [
         'ttl' => (int)env('IDEMPOTENCY_TTL', 86400),
         'lockTimeout' => (int)env('IDEMPOTENCY_LOCK_TIMEOUT', 1),
         'waitSeconds' => (int)env('IDEMPOTENCY_WAIT_SECONDS', 1),
+        'smsPhoneHashKey' => env('SMS_IDEMPOTENCY_HASH_KEY', 'changeme'),
     ],
     'rateLimit' => [
         'limit' => (int)env('RATE_LIMIT_REQUESTS', 60),

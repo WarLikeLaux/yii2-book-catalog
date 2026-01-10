@@ -4,6 +4,7 @@ nbproject
 .buildpath
 .project
 .settings
+.vscode/settings.json
 
 # Файлы операционных систем
 Thumbs.db
@@ -32,6 +33,8 @@ tests/_support/_generated
 !/web/assets/.gitkeep
 /web/uploads/*
 !/web/uploads/.gitkeep
+/assets/*
+!/assets/.gitkeep
 
 # Секреты и окружение
 .env

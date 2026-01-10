@@ -6,10 +6,14 @@ namespace app\application\common\dto;
 
 use app\application\ports\PagedResultInterface;
 
+/**
+ * @template T of object
+ * @implements PagedResultInterface<T>
+ */
 final readonly class QueryResult implements PagedResultInterface
 {
     /**
-     * @param array<int, object> $models
+     * @param array<int, T> $models
      */
     public function __construct(
         private array $models,
@@ -19,7 +23,19 @@ final readonly class QueryResult implements PagedResultInterface
     }
 
     /**
-     * @return array<int, object>
+     * @return self<object>
+     */
+    public static function empty(int $page = 1, int $pageSize = 20): self
+    {
+        return new self(
+            [],
+            0,
+            new PaginationDto($page, $pageSize, 0, 0),
+        );
+    }
+
+    /**
+     * @return array<int, T>
      */
     public function getModels(): array
     {
@@ -37,7 +53,8 @@ final readonly class QueryResult implements PagedResultInterface
     }
 
     /**
-     * @param array<int, object> $models
+     * @param array<int, T> $models
+     * @return self<T>
      */
     public function withModels(array $models): self
     {

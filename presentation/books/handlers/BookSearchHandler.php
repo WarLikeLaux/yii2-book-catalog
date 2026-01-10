@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace app\presentation\books\handlers;
 
-use app\application\books\queries\BookQueryService;
 use app\application\books\queries\BookReadDto;
 use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
-use app\presentation\books\mappers\BookSearchCriteriaMapper;
+use app\application\ports\BookQueryServiceInterface;
+use app\presentation\books\forms\BookSearchForm;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
 
 final readonly class BookSearchHandler
 {
     public function __construct(
-        private BookSearchCriteriaMapper $bookSearchCriteriaMapper,
-        private BookQueryService $bookQueryService,
+        private BookQueryServiceInterface $bookQueryService,
         private PagedResultDataProviderFactory $dataProviderFactory,
         private FileUrlResolver $fileUrlResolver,
     ) {
@@ -28,9 +27,23 @@ final readonly class BookSearchHandler
      */
     public function prepareIndexViewData(array $params, PaginationRequest $pagination): array
     {
-        $form = $this->bookSearchCriteriaMapper->toForm($params);
-        $criteria = $this->bookSearchCriteriaMapper->toCriteria($form, $pagination->page, $pagination->limit);
-        $result = $this->bookQueryService->search($criteria);
+        $form = new BookSearchForm();
+        $form->load($params);
+
+        if (!$form->validate()) {
+            $emptyResult = QueryResult::empty($pagination->page, $pagination->limit);
+
+            return [
+                'searchModel' => $form,
+                'dataProvider' => $this->dataProviderFactory->create($emptyResult),
+            ];
+        }
+
+        $result = $this->bookQueryService->search(
+            $form->globalSearch,
+            $pagination->page,
+            $pagination->limit,
+        );
 
         $resolvedItems = [];
 

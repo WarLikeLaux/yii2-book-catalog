@@ -1,6 +1,5 @@
 meta:
   title: 'Application Use Cases'
-  updated_at: '2026-01-03T02:11:24+00:00'
 usecases:
   CreateAuthorUseCase:
     command: CreateAuthorCommand

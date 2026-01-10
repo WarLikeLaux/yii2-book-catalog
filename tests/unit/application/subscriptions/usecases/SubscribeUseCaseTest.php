@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\tests\unit\application\subscriptions\usecases;
 
+use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\application\subscriptions\usecases\SubscribeUseCase;
@@ -16,19 +17,21 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class SubscribeUseCaseTest extends Unit
 {
     private SubscriptionRepositoryInterface&MockObject $repository;
+    private SubscriptionQueryServiceInterface&MockObject $queryService;
     private SubscribeUseCase $useCase;
 
     protected function _before(): void
     {
         $this->repository = $this->createMock(SubscriptionRepositoryInterface::class);
-        $this->useCase = new SubscribeUseCase($this->repository);
+        $this->queryService = $this->createMock(SubscriptionQueryServiceInterface::class);
+        $this->useCase = new SubscribeUseCase($this->repository, $this->queryService);
     }
 
     public function testExecuteSuccess(): void
     {
         $command = new SubscribeCommand('79001112233', 1);
 
-        $this->repository->expects($this->once())
+        $this->queryService->expects($this->once())
             ->method('exists')
             ->willReturn(false);
 
@@ -46,7 +49,7 @@ final class SubscribeUseCaseTest extends Unit
     {
         $command = new SubscribeCommand('79001112233', 1);
 
-        $this->repository->method('exists')->willReturn(true);
+        $this->queryService->method('exists')->willReturn(true);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('subscription.error.already_subscribed');
@@ -58,7 +61,7 @@ final class SubscribeUseCaseTest extends Unit
     {
         $command = new SubscribeCommand('79001112233', 1);
 
-        $this->repository->method('exists')->willReturn(false);
+        $this->queryService->method('exists')->willReturn(false);
         $this->repository->method('save')->willThrowException(new \Exception('DB Error'));
 
         $this->expectException(DomainException::class);
@@ -71,7 +74,7 @@ final class SubscribeUseCaseTest extends Unit
     {
         $command = new SubscribeCommand('79001112233', 1);
 
-        $this->repository->method('exists')->willReturn(false);
+        $this->queryService->method('exists')->willReturn(false);
         $this->repository->method('save')->willThrowException(new AlreadyExistsException());
 
         $this->expectException(AlreadyExistsException::class);

@@ -157,40 +157,6 @@ final class BookRepositoryTest extends Unit
         $this->repository->get($bookId);
     }
 
-    public function testExistsByIsbnReturnsTrue(): void
-    {
-        $book = BookEntity::create(
-            'ISBN Test',
-            new BookYear(2024),
-            new Isbn('9783161484100'),
-            null,
-            null,
-        );
-        $this->repository->save($book);
-
-        $this->assertTrue($this->repository->existsByIsbn('9783161484100'));
-    }
-
-    public function testExistsByIsbnReturnsFalse(): void
-    {
-        $this->assertFalse($this->repository->existsByIsbn('9783161484100'));
-    }
-
-    public function testExistsByIsbnWithExcludeId(): void
-    {
-        $book = BookEntity::create(
-            'ISBN Exclude Test',
-            new BookYear(2024),
-            new Isbn('9783161484100'),
-            null,
-            null,
-        );
-        $this->repository->save($book);
-
-        $this->assertFalse($this->repository->existsByIsbn('9783161484100', $book->id));
-        $this->assertTrue($this->repository->existsByIsbn('9783161484100', 99999));
-    }
-
     public function testUpdateNonExistentBookThrowsException(): void
     {
         $book = BookEntity::create(
@@ -252,6 +218,38 @@ final class BookRepositoryTest extends Unit
         $this->expectException(AlreadyExistsException::class);
         $this->expectExceptionMessage('book.error.isbn_exists');
         $this->repository->save($book2);
+    }
+
+    public function testSaveReconstitutedEntityWithoutPriorGet(): void
+    {
+        $book = BookEntity::create(
+            'Original',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            null,
+            null,
+        );
+        $this->repository->save($book);
+        $bookId = $book->id;
+        $version = $book->version;
+
+        $freshRepository = Yii::$container->get(BookRepositoryInterface::class);
+        $reconstituted = BookEntity::reconstitute(
+            $bookId,
+            'Reconstituted Title',
+            new BookYear(2025),
+            new Isbn('9783161484100'),
+            'New desc',
+            null,
+            [],
+            false,
+            $version,
+        );
+
+        $freshRepository->save($reconstituted);
+
+        $retrieved = $freshRepository->get($bookId);
+        $this->assertSame('Reconstituted Title', $retrieved->title);
     }
 
     private function assignBookId(BookEntity $book, int $id): void

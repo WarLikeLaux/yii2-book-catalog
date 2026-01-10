@@ -85,7 +85,6 @@ return static function (Config $config): void {
         ->should(new NotDependsOnTheseNamespaces(['yii']))
         ->because('Домен не должен зависеть от фреймворка');
 
-
     // --- Application Layer ---
 
     $applicationRules[] = Rule::allClasses()
@@ -135,13 +134,13 @@ return static function (Config $config): void {
         ->should(new NotDependsOnTheseNamespaces(['yii']))
         ->because('Слой приложения не должен зависеть от фреймворка');
 
-
     // --- Infrastructure Layer ---
 
     $infrastructureRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\infrastructure\repositories'))
         ->andThat(new IsNotInterface())
         ->andThat(new IsNotTrait())
+        ->andThat(new IsNotAbstract())
         ->should(new IsFinal())
         ->because('Реализации репозиториев должны быть final');
 
@@ -156,9 +155,9 @@ return static function (Config $config): void {
         ->that(new ResideInOneOfTheseNamespaces('app\infrastructure\repositories'))
         ->andThat(new IsNotInterface())
         ->andThat(new IsNotTrait())
+        ->andThat(new IsNotAbstract())
         ->should(new Implement('app\application\ports\*'))
         ->because('Репозитории должны реализовывать порты');
-
 
     // --- Presentation Layer ---
 
@@ -173,6 +172,10 @@ return static function (Config $config): void {
         ->should(new HaveNameMatching('*Controller'))
         ->because('Контроллеры должны иметь суффикс Controller');
 
+    $presentationRules[] = Rule::allClasses()
+        ->that(new ResideInOneOfTheseNamespaces('app\presentation'))
+        ->should(new NotDependsOnTheseNamespaces(['app\domain\entities']))
+        ->because('Слой представления не должен зависеть от сущностей домена напрямую. Используйте DTO или Value Objects.');
 
     $config
         ->add($domainSet, ...$domainRules)

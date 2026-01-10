@@ -5,43 +5,28 @@ declare(strict_types=1);
 namespace app\infrastructure\queries;
 
 use app\application\books\queries\BookReadDto;
-use app\application\common\dto\PaginationDto;
-use app\application\common\dto\QueryResult;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\specifications\BookSearchSpecificationFactory;
 use app\domain\specifications\BookSpecificationInterface;
 use app\infrastructure\persistence\Book;
-use yii\data\ActiveDataProvider;
-use yii\db\Connection;
 
-final readonly class BookQueryService implements BookQueryServiceInterface
+final readonly class BookQueryService extends BaseQueryService implements BookQueryServiceInterface
 {
-    public function __construct(
-        private Connection $db,
-    ) {
-    }
-
     public function findById(int $id): ?BookReadDto
     {
-        $book = Book::findOne($id);
-
-        if ($book === null) {
-            return null;
-        }
-
-        return $this->mapToDto($book);
+        return $this->findByIdWithAuthors($id);
     }
 
     public function findByIdWithAuthors(int $id): ?BookReadDto
     {
-        $book = Book::find()->byId($id)->withAuthors()->one();
+        $book = Book::find()->byId($id)->withAuthors()->one($this->db);
 
         if ($book === null) {
             return null;
         }
 
-        return $this->mapToDto($book);
+        return $this->mapToDto($book, BookReadDto::class);
     }
 
     public function search(string $term, int $page, int $pageSize): PagedResultInterface
@@ -62,55 +47,45 @@ final readonly class BookQueryService implements BookQueryServiceInterface
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->db);
         $specification->accept($visitor);
 
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'page' => $page - 1,
-                'pageSize' => $pageSize,
-            ],
-        ]);
-
-        $models = array_map(
-            $this->mapToDto(...),
-            $dataProvider->getModels(),
-        );
-
-        $totalCount = $dataProvider->getTotalCount();
-        $totalPages = (int)ceil($totalCount / $pageSize);
-
-        $pagination = new PaginationDto(
-            page: $page,
-            pageSize: $pageSize,
-            totalCount: $totalCount,
-            totalPages: $totalPages,
-        );
-
-        return new QueryResult(
-            models: $models,
-            totalCount: $totalCount,
-            pagination: $pagination,
-        );
+        return $this->getPagedResult($query, $page, $pageSize, BookReadDto::class);
     }
 
-    private function mapToDto(Book $book): BookReadDto
+    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
     {
-        $authorNames = [];
+        return $this->exists(Book::find()->where(['isbn' => $isbn]), $excludeId);
+    }
 
-        foreach ($book->authors as $author) {
-            $authorNames[$author->id] = $author->fio;
-        }
+    /**
+     * @return string[]
+     */
+    public function getReferencedCoverKeys(): array
+    {
+        $urls = Book::find()
+            ->select('cover_url')
+            ->where(['IS NOT', 'cover_url', null])
+            ->column($this->db);
 
-        return new BookReadDto(
-            id: $book->id,
-            title: $book->title,
-            year: $book->year,
-            description: $book->description,
-            isbn: $book->isbn,
-            authorIds: array_keys($authorNames),
-            authorNames: $authorNames,
-            coverUrl: $book->cover_url,
-            isPublished: (bool)$book->is_published,
-            version: $book->version,
+        $urls = array_values(array_filter(
+            $urls,
+            static fn(mixed $value): bool => is_string($value) && $value !== '',
+        ));
+
+        $keys = array_map(
+            $this->extractCoverKeyFromUrl(...),
+            $urls,
         );
+
+        $keys = array_filter($keys, static fn(string $key): bool => $key !== '');
+
+        return array_values(array_unique($keys));
+    }
+
+    private function extractCoverKeyFromUrl(string $url): string
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+
+        $target = is_string($path) && $path !== '' ? $path : preg_split('/[?#]/', $url, 2)[0] ?? '';
+
+        return pathinfo($target, PATHINFO_FILENAME);
     }
 }

@@ -68,24 +68,6 @@ final class AuthorRepositoryTest extends Unit
         $this->repository->get($author->id);
     }
 
-    public function testExistsByFio(): void
-    {
-        $author = AuthorEntity::create('Existing');
-        $this->repository->save($author);
-
-        $this->assertTrue($this->repository->existsByFio('Existing'));
-        $this->assertFalse($this->repository->existsByFio('Non Existent'));
-    }
-
-    public function testExistsByFioWithExcludeId(): void
-    {
-        $author = AuthorEntity::create('Unique Author');
-        $this->repository->save($author);
-
-        $this->assertFalse($this->repository->existsByFio('Unique Author', $author->id));
-        $this->assertTrue($this->repository->existsByFio('Unique Author', 99999));
-    }
-
     public function testGetThrowsExceptionOnNotFound(): void
     {
         $this->expectException(EntityNotFoundException::class);
@@ -118,5 +100,20 @@ final class AuthorRepositoryTest extends Unit
         $this->expectException(AlreadyExistsException::class);
         $this->expectExceptionMessage('author.error.fio_exists');
         $this->repository->save($author2);
+    }
+
+    public function testSaveReconstitutedEntityWithoutPriorGet(): void
+    {
+        $author = AuthorEntity::create('Original Name');
+        $this->repository->save($author);
+        $authorId = $author->id;
+
+        $freshRepository = Yii::$container->get(AuthorRepositoryInterface::class);
+        $reconstituted = new AuthorEntity($authorId, 'Updated via Reconstitute');
+
+        $freshRepository->save($reconstituted);
+
+        $retrieved = $freshRepository->get($authorId);
+        $this->assertSame('Updated via Reconstitute', $retrieved->fio);
     }
 }

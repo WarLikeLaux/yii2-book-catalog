@@ -9,7 +9,16 @@ declare(strict_types=1);
 
 final class CommentLister
 {
-    private const array EXCLUDE_DIRS = ['vendor', 'tests', 'runtime', 'web/assets', '.git', '.idea'];
+    private const array EXCLUDE_DIRS = [
+        'vendor',
+        'tests',
+        'runtime',
+        'web/assets',
+        '.git',
+        '.idea',
+        'db-data',
+        'db-data-pgsql',
+    ];
 
     private const string C_RESET = "\033[0m";
     private const string C_RED = "\033[31m";

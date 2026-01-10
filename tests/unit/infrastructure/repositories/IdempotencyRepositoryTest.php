@@ -62,6 +62,18 @@ final class IdempotencyRepositoryTest extends Unit
         $this->assertNull($response['body']);
     }
 
+    public function testSaveStartedAllowsMaxKeyLength(): void
+    {
+        $key = str_repeat('m', IdempotencyKey::MAX_KEY_LENGTH);
+        $this->assertTrue($this->repository->saveStarted($key, 3600));
+
+        $response = $this->repository->getRecord($key);
+        $this->assertNotNull($response);
+        $this->assertSame('started', $response['status']);
+        $this->assertNull($response['status_code']);
+        $this->assertNull($response['body']);
+    }
+
     public function testSaveStartedLogsErrorOnValidationFailure(): void
     {
         IdempotencyKey::deleteAll();
@@ -71,9 +83,10 @@ final class IdempotencyRepositoryTest extends Unit
             ->method('error');
 
         $repository = new IdempotencyRepository($logger);
-        $key = str_repeat('a', 100);
+        $key = str_repeat('a', IdempotencyKey::MAX_KEY_LENGTH + 1);
 
         $this->assertFalse($repository->saveStarted($key, 3600));
+        $this->assertNull($repository->getRecord($key));
     }
 
     public function testSaveDuplicateKeyDoesNotCrash(): void
@@ -96,9 +109,23 @@ final class IdempotencyRepositoryTest extends Unit
             ->method('error');
 
         $repository = new IdempotencyRepository($logger);
-        $key = str_repeat('b', 100);
+        $key = str_repeat('b', IdempotencyKey::MAX_KEY_LENGTH + 1);
 
         $repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
+
+        $this->assertNull($repository->getRecord($key));
+    }
+
+    public function testSaveResponseAllowsMaxKeyLength(): void
+    {
+        $key = str_repeat('n', IdempotencyKey::MAX_KEY_LENGTH);
+        $this->repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
+
+        $response = $this->repository->getRecord($key);
+        $this->assertNotNull($response);
+        $this->assertSame('finished', $response['status']);
+        $this->assertSame(200, $response['status_code']);
+        $this->assertSame('{"result": "ok"}', $response['body']);
     }
 
     public function testNormalizeResponseBodyReturnsNullForNonResource(): void

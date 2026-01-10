@@ -2,6 +2,11 @@
 <ruleset name="Project">
     <description>Yii2 coding standard.</description>
 
+    <!-- Игнорируем ReturnTypeDeclaration для сущностей с PHP 8.4 Hook, так как это вызывает крэш линтера -->
+    <rule ref="PSR12.Functions.ReturnTypeDeclaration">
+        <exclude-pattern>domain/entities/*</exclude-pattern>
+    </rule>
+
     <file>.</file>
 
     <arg name="extensions" value="php"/>
@@ -108,6 +113,18 @@
     </rule>
     <!-- Запрет дублированных пробелов -->
     <rule ref="SlevomatCodingStandard.Whitespaces.DuplicateSpaces"/>
+
+    <!-- Контроль отступов внутри блоков (обнаруживает неправильные отступы) -->
+    <rule ref="Generic.WhiteSpace.ScopeIndent">
+        <properties>
+            <property name="indent" value="4"/>
+            <property name="exact" value="true"/>
+        </properties>
+        <exclude-pattern>views/*</exclude-pattern>
+    </rule>
+
+    <!-- Контроль отступов закрывающих скобок -->
+    <rule ref="Squiz.WhiteSpace.ScopeClosingBrace"/>
 
     <!-- Читаемость и контроль конструкций -->
     <rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
@@ -269,6 +286,12 @@
             <property name="absoluteComplexity" value="20"/>
         </properties>
         <exclude-pattern>migrations/*</exclude-pattern>
+    </rule>
+
+    <!-- ПЕРЕОПРЕДЕЛЕНИЕ: контроль пустых строк внутри функций -->
+    <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace.EmptyLines">
+        <severity>5</severity>
+        <exclude-pattern>views/*</exclude-pattern>
     </rule>
 
 </ruleset>

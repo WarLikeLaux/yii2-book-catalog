@@ -80,3 +80,17 @@ services:
 		class: app\infrastructure\phpstan\Rules\DisallowDateTimeRule
 		tags:
 			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\QueryPortsMustReturnDtoRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\NoActiveRecordInDomainOrApplicationRule
+		arguments:
+			reflectionProvider: @reflectionProvider
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\StrictRepositoryReturnTypeRule
+		tags:
+			- phpstan.rules.rule
