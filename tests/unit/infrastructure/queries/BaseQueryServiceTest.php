@@ -15,6 +15,13 @@ use yii\db\Connection;
 
 final class BaseQueryServiceTest extends Unit
 {
+    private Connection $conn;
+
+    protected function _before(): void
+    {
+        $this->conn = $this->createMock(Connection::class);
+    }
+
     public function testExistsWithActiveQueryAndExcludeId(): void
     {
         $service = $this->createService();
@@ -25,7 +32,10 @@ final class BaseQueryServiceTest extends Unit
             ->with(['<>', 'id', 123])
             ->willReturnSelf();
 
-        $query->method('exists')->willReturn(true);
+        $query->expects($this->once())
+            ->method('exists')
+            ->with($this->identicalTo($this->conn))
+            ->willReturn(true);
 
         $this->assertTrue($service->checkExists($query, 123));
     }
@@ -37,6 +47,7 @@ final class BaseQueryServiceTest extends Unit
         $query = $this->createMock(ActiveQueryInterface::class);
         $query->expects($this->once())
             ->method('exists')
+            ->with($this->identicalTo($this->conn))
             ->willReturn(false);
 
         $this->assertFalse($service->checkExists($query, null));
@@ -60,7 +71,10 @@ final class BaseQueryServiceTest extends Unit
 
         $query = $this->createMock(ActiveQuery::class);
         $query->modelClass = \stdClass::class;
-        $query->expects($this->once())->method('exists')->willReturn(true);
+        $query->expects($this->once())
+            ->method('exists')
+            ->with($this->identicalTo($this->conn))
+            ->willReturn(true);
 
         $this->assertTrue($service->checkExists($query, 123));
     }
@@ -97,7 +111,10 @@ final class BaseQueryServiceTest extends Unit
             ->with(['<>', 'id', 123])
             ->willReturnSelf();
 
-        $query->method('exists')->willReturn(true);
+        $query->expects($this->once())
+            ->method('exists')
+            ->with($this->identicalTo($this->conn))
+            ->willReturn(true);
 
         $this->assertTrue($service->checkExists($query, ['id' => 123]));
     }
@@ -123,7 +140,10 @@ final class BaseQueryServiceTest extends Unit
             ->with(['not', ['and', ['=', 'id', 1], ['=', 'cid', 2]]])
             ->willReturnSelf();
 
-        $query->method('exists')->willReturn(true);
+        $query->expects($this->once())
+            ->method('exists')
+            ->with($this->identicalTo($this->conn))
+            ->willReturn(true);
 
         $this->assertTrue($service->checkExists($query, ['id' => 1, 'cid' => 2]));
     }
@@ -141,10 +161,9 @@ final class BaseQueryServiceTest extends Unit
 
     private function createService(): object
     {
-        $conn = $this->makeEmpty(Connection::class);
         $mapper = $this->makeEmpty(AutoMapperInterface::class);
 
-        return new class ($conn, $mapper) extends BaseQueryService {
+        return new class ($this->conn, $mapper) extends BaseQueryService {
             public function checkExists(ActiveQueryInterface $query, mixed $excludeId): bool
             {
                 return $this->exists($query, $excludeId);

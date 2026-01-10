@@ -20,6 +20,7 @@ final class ReportQueryServiceTest extends Unit
 
     protected function _before(): void
     {
+        self::$isbnCounter = 0;
         DbCleaner::clear(['book_authors', 'books', 'authors']);
         $this->service = new ReportQueryService(Yii::$app->db);
     }
@@ -88,7 +89,7 @@ final class ReportQueryServiceTest extends Unit
         $book = new Book();
         $book->title = 'Unpublished';
         $book->year = 2024;
-        $book->isbn = '9783161484999';
+        $book->isbn = $this->generateUniqueIsbn();
         $book->description = 'Test description';
         $book->is_published = false;
         $book->save(false);
@@ -162,7 +163,7 @@ final class ReportQueryServiceTest extends Unit
         $book = new Book();
         $book->title = $title;
         $book->year = $year;
-        $book->isbn = '978' . str_pad((string)++self::$isbnCounter, 10, '0', STR_PAD_LEFT);
+        $book->isbn = $this->generateUniqueIsbn();
         $book->description = 'Test description';
         $book->is_published = true;
         $book->save(false);
@@ -172,5 +173,10 @@ final class ReportQueryServiceTest extends Unit
             ->execute();
 
         return $book->id;
+    }
+
+    private function generateUniqueIsbn(): string
+    {
+        return '978' . str_pad((string)++self::$isbnCounter, 10, '0', STR_PAD_LEFT);
     }
 }
