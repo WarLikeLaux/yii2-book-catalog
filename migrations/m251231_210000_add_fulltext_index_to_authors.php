@@ -10,10 +10,13 @@ final class m251231_210000_add_fulltext_index_to_authors extends Migration
 
     public function safeUp(): void
     {
+        $table = $this->db->quoteTableName('authors');
+        $index = $this->db->quoteColumnName(self::INDEX_NAME);
+
         match ($this->db->driverName) {
-            'mysql' => $this->execute('ALTER TABLE authors ADD FULLTEXT INDEX ' . self::INDEX_NAME . ' (fio)'),
+            'mysql' => $this->execute("ALTER TABLE $table ADD FULLTEXT INDEX $index (fio)"),
             'pgsql' => $this->execute(
-                'CREATE INDEX ' . self::INDEX_NAME . " ON authors USING gin(to_tsvector('english', coalesce(fio, '')))",
+                "CREATE INDEX $index ON $table USING gin(to_tsvector('english', coalesce(fio, '')))",
             ),
             default => null,
         };

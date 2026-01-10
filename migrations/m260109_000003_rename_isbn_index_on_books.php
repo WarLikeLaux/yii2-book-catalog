@@ -50,7 +50,7 @@ final class m260109_000003_rename_isbn_index_on_books extends Migration
     public function safeDown(): void
     {
         $this->dropUniqueIndex(self::INDEX_NAME);
-        $this->createIndex('isbn', 'books', 'isbn', true);
+        $this->restoreIsbnUniqueIndex();
     }
 
     private function isIsbnIndex(IndexConstraint $index): bool
@@ -64,10 +64,19 @@ final class m260109_000003_rename_isbn_index_on_books extends Migration
     private function dropUniqueIndex(string $name): void
     {
         if ($this->db->driverName === 'pgsql') {
-            $this->execute('ALTER TABLE books DROP CONSTRAINT IF EXISTS ' . $name);
+            $table = $this->db->quoteTableName('books');
+            $quotedName = $this->db->quoteColumnName($name);
+            $this->execute('ALTER TABLE ' . $table . ' DROP CONSTRAINT IF EXISTS ' . $quotedName);
             return;
         }
 
         $this->dropIndex($name, 'books');
+    }
+
+    private function restoreIsbnUniqueIndex(): void
+    {
+        $table = $this->db->quoteTableName('books');
+        $column = $this->db->quoteColumnName('isbn');
+        $this->execute('ALTER TABLE ' . $table . ' ADD UNIQUE (' . $column . ')');
     }
 }

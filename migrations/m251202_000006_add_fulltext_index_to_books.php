@@ -10,10 +10,13 @@ final class m251202_000006_add_fulltext_index_to_books extends Migration
 
     public function safeUp(): void
     {
+        $table = $this->db->quoteTableName('books');
+        $index = $this->db->quoteColumnName(self::INDEX_NAME);
+
         match ($this->db->driverName) {
-            'mysql' => $this->execute('ALTER TABLE books ADD FULLTEXT INDEX ' . self::INDEX_NAME . ' (title, description)'),
+            'mysql' => $this->execute("ALTER TABLE $table ADD FULLTEXT INDEX $index (title, description)"),
             'pgsql' => $this->execute(
-                'CREATE INDEX ' . self::INDEX_NAME . ' ON books USING gin(' .
+                "CREATE INDEX $index ON $table USING gin(" .
                 "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '')))",
             ),
             default => null,
