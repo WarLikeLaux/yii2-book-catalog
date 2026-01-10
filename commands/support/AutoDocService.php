@@ -15,6 +15,7 @@ use yii\web\UrlRule;
 
 final readonly class AutoDocService
 {
+    private const string IDEMPOTENCY_GUARD = 'Idempotency';
     private const string DOCS_PATH = '@app/docs/auto';
 
     public function generateDbSchema(): void
@@ -387,8 +388,8 @@ final readonly class AutoDocService
 
         for ($i = 0; $i < $count; $i++) {
             $actionName = $positions[$i][0];
-            $start = $positions[$i][1];
-            $end = $i + 1 < $count ? $positions[$i + 1][1] : strlen($content);
+            $start = (int)$positions[$i][1];
+            $end = $i + 1 < $count ? (int)$positions[$i + 1][1] : strlen($content);
             $result[$actionName] = substr($content, $start, $end - $start);
         }
 
@@ -550,8 +551,8 @@ final readonly class AutoDocService
      */
     private function filterGuardsForMethods(array $guards, array $methods): array
     {
-        if ($methods === ['GET'] && in_array('Idempotency', $guards, true)) {
-            return array_values(array_filter($guards, static fn(string $guard): bool => $guard !== 'Idempotency'));
+        if ($methods === ['GET'] && in_array(self::IDEMPOTENCY_GUARD, $guards, true)) {
+            return array_values(array_filter($guards, static fn(string $guard): bool => $guard !== self::IDEMPOTENCY_GUARD));
         }
 
         return $guards;
@@ -592,7 +593,7 @@ final readonly class AutoDocService
         $found = [];
 
         if (str_contains($content, 'IdempotencyFilter::class')) {
-            $found[] = 'Idempotency';
+            $found[] = self::IDEMPOTENCY_GUARD;
         }
 
         if (str_contains($content, 'AccessControl::class')) {
@@ -717,6 +718,9 @@ final readonly class AutoDocService
 
         FileHelper::createDirectory(dirname($path));
         $yaml = Yaml::dump($data, 10, 2, Yaml::DUMP_EMPTY_ARRAY_AS_SEQUENCE);
-        file_put_contents($path, $yaml);
+
+        if (file_put_contents($path, $yaml) === false) {
+            throw new \RuntimeException(sprintf('Failed to write %d bytes to file: %s', strlen($yaml), $path));
+        }
     }
 }

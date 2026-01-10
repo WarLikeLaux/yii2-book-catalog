@@ -44,4 +44,7 @@ if ! ./bin/test-db-prepare; then
     exit 1
 fi
 
-$COMPOSE exec -T php sh -c "DB_MIGRATION_TEST_NAME=$DB_MIGRATION_TEST_NAME ./vendor/bin/codecept run integration MigrationReversibilityTest"
+if ! $COMPOSE exec -T php sh -c "DB_MIGRATION_TEST_NAME=$DB_MIGRATION_TEST_NAME ./vendor/bin/codecept run integration MigrationReversibilityTest"; then
+    echo "❌ Ошибка при выполнении теста миграций (MigrationReversibilityTest)"
+    exit 1
+fi

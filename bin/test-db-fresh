@@ -20,6 +20,7 @@ reset_mysql() {
     validate_db_name "$DB_TEST_NAME"
     validate_credentials "$DB_USER" "DB_USER"
     validate_credentials "$DB_PASSWORD" "DB_PASSWORD"
+    validate_credentials "$DB_ROOT_PASSWORD" "DB_ROOT_PASSWORD"
 
     if ! $COMPOSE exec -T -e MYSQL_PWD="$DB_ROOT_PASSWORD" db mysql -uroot -h127.0.0.1 <<EOF
 DROP DATABASE IF EXISTS \`$DB_TEST_NAME\`;

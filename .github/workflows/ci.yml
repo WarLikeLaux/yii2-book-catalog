@@ -126,7 +126,7 @@ jobs:
         run: |
           ./vendor/bin/infection \
             --coverage=runtime/coverage \
-            --threads=max \
+            --threads=1 \
             --min-msi=95 \
             --min-covered-msi=95 \
             --test-framework-options="integration,unit"
