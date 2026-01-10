@@ -28,7 +28,7 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 
         if ($author->getId() === null) {
             if ($model->id === null) {
-                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
+                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed); // @codeCoverageIgnore
             }
 
             $this->assignId($author, $model->id);

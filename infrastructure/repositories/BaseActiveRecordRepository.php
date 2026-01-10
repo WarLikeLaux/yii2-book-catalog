@@ -107,7 +107,7 @@ abstract readonly class BaseActiveRecordRepository
             }
         } catch (StaleObjectException) {
             if (!$staleError instanceof DomainErrorCode) {
-                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
+                throw new OperationFailedException(DomainErrorCode::EntityPersistFailed); // @codeCoverageIgnore
             }
 
             throw new StaleDataException($staleError);

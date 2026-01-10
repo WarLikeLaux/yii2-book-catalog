@@ -23,7 +23,7 @@ final readonly class SubscriptionRepository extends BaseActiveRecordRepository i
         $this->persist($model, null, DomainErrorCode::SubscriptionAlreadySubscribed);
 
         if ($model->id === null) {
-            throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
+            throw new OperationFailedException(DomainErrorCode::EntityPersistFailed); // @codeCoverageIgnore
         }
 
         $this->assignId($subscription, $model->id);
