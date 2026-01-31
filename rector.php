@@ -19,6 +19,9 @@ return static function (RectorConfig $rectorConfig): void {
 
     $rectorConfig->phpVersion(PhpVersion::PHP_84);
 
+    $rectorConfig->importNames();
+    $rectorConfig->importShortClasses(true);
+
     $rectorConfig->sets([
         LevelSetList::UP_TO_PHP_83,
         SetList::DEAD_CODE,
