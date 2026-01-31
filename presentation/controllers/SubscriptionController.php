@@ -6,7 +6,6 @@ namespace app\presentation\controllers;
 
 use app\presentation\common\dto\ApiResponse;
 use app\presentation\common\filters\IdempotencyFilter;
-use app\presentation\subscriptions\forms\SubscriptionForm;
 use app\presentation\subscriptions\handlers\SubscriptionCommandHandler;
 use app\presentation\subscriptions\handlers\SubscriptionViewDataFactory;
 use Override;
@@ -44,19 +43,18 @@ final class SubscriptionController extends Controller
         ];
     }
 
-    public function actionSubscribe(): ApiResponse
+    public function actionSubscribe(): Response
     {
-        $this->response->format = Response::FORMAT_JSON;
-        $form = new SubscriptionForm();
+        $form = $this->viewDataFactory->createForm();
 
-        if ($form->load((array)$this->request->post()) && $form->validate()) {
-            return $this->commandHandler->subscribe($form);
+        if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
+            return $this->asJson($this->commandHandler->subscribe($form));
         }
 
-        return ApiResponse::failure(
+        return $this->asJson(ApiResponse::failure(
             Yii::t('app', 'error.validation'),
             $form->errors,
-        );
+        ));
     }
 
     public function actionForm(int $authorId): string

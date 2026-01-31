@@ -19,12 +19,22 @@ final readonly class SubscriptionViewDataFactory
     public function getSubscriptionViewModel(int $authorId, SubscriptionForm|null $form = null): SubscriptionViewModel
     {
         $author = $this->queryService->findById($authorId) ?? throw new NotFoundHttpException();
-        $form ??= new SubscriptionForm();
-        $form->authorId = $author->id;
+        $form ??= $this->createForm($author->id);
 
         return new SubscriptionViewModel(
             $form,
             $author,
         );
+    }
+
+    public function createForm(int|null $authorId = null): SubscriptionForm
+    {
+        $form = new SubscriptionForm($this->queryService);
+
+        if ($authorId !== null) {
+            $form->authorId = $authorId;
+        }
+
+        return $form;
     }
 }
