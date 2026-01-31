@@ -241,7 +241,7 @@ graph TD
  */
 public function actionCreate(): string|Response|array
 {
-    $form = new BookForm();
+    $form = $this->itemViewFactory->createForm();
 
     if ($this->request->isPost && $form->loadFromRequest($this->request)) {
         if ($this->request->isAjax) {
