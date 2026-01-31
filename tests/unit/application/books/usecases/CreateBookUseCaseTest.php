@@ -123,7 +123,7 @@ final class CreateBookUseCaseTest extends Unit
             description: 'Desc',
             isbn: '978-3-16-148410-0',
             authorIds: AuthorIdCollection::fromArray([1, 2]),
-            storedCover: new StoredFileReference('http://cover.com'),
+            storedCover: new StoredFileReference('https://cover.com'),
         );
 
         $this->bookRepository->expects($this->once())
