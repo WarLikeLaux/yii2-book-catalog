@@ -11,11 +11,9 @@ use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\presentation\authors\forms\AuthorForm;
+use app\presentation\authors\mappers\AuthorCommandMapper;
 use app\presentation\common\handlers\UseCaseHandlerTrait;
-use app\presentation\common\services\WebUseCaseRunner;
-use AutoMapper\AutoMapperInterface;
-use Psr\Log\LoggerInterface;
-use Throwable;
+use app\presentation\common\services\WebOperationRunner;
 use Yii;
 
 /**
@@ -27,12 +25,11 @@ final readonly class AuthorCommandHandler
     use UseCaseHandlerTrait;
 
     public function __construct(
-        private AutoMapperInterface $autoMapper,
+        private AuthorCommandMapper $commandMapper,
         private CreateAuthorUseCase $createAuthorUseCase,
         private UpdateAuthorUseCase $updateAuthorUseCase,
         private DeleteAuthorUseCase $deleteAuthorUseCase,
-        private WebUseCaseRunner $useCaseRunner,
-        private LoggerInterface $logger,
+        private WebOperationRunner $operationRunner,
     ) {
     }
 
@@ -51,19 +48,19 @@ final readonly class AuthorCommandHandler
 
     public function createAuthor(AuthorForm $form): ?int
     {
-        try {
-            $data = $this->prepareCommandData($form);
-            /** @var CreateAuthorCommand $command */
-            $command = $this->autoMapper->map($data, CreateAuthorCommand::class);
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to map author form to CreateAuthorCommand', ['exception' => $e]);
+        $command = $this->operationRunner->runStep(
+            fn(): CreateAuthorCommand => $this->commandMapper->toCreateCommand($form),
+            'Failed to map author form to CreateAuthorCommand',
+        );
+
+        if ($command === null) {
             $form->addError('fio', Yii::t('app', 'author.error.create_failed'));
             return null;
         }
 
         /** @var int|null */
         return $this->executeWithForm(
-            $this->useCaseRunner,
+            $this->operationRunner,
             $form,
             $command,
             $this->createAuthorUseCase,
@@ -73,19 +70,19 @@ final readonly class AuthorCommandHandler
 
     public function updateAuthor(int $id, AuthorForm $form): bool
     {
-        try {
-            $data = $this->prepareCommandData($form);
-            $data['id'] = $id;
-            /** @var UpdateAuthorCommand $command */
-            $command = $this->autoMapper->map($data, UpdateAuthorCommand::class);
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to map author form to UpdateAuthorCommand', ['exception' => $e, 'author_id' => $id]);
+        $command = $this->operationRunner->runStep(
+            fn(): UpdateAuthorCommand => $this->commandMapper->toUpdateCommand($id, $form),
+            'Failed to map author form to UpdateAuthorCommand',
+            ['author_id' => $id],
+        );
+
+        if ($command === null) {
             $form->addError('fio', Yii::t('app', 'author.error.update_failed'));
             return false;
         }
 
         return $this->executeWithForm(
-            $this->useCaseRunner,
+            $this->operationRunner,
             $form,
             $command,
             $this->updateAuthorUseCase,
@@ -97,7 +94,7 @@ final readonly class AuthorCommandHandler
     {
         $command = new DeleteAuthorCommand($id);
 
-        $result = $this->useCaseRunner->execute(
+        $result = $this->operationRunner->execute(
             $command,
             $this->deleteAuthorUseCase,
             Yii::t('app', 'author.success.deleted'),
@@ -105,13 +102,5 @@ final readonly class AuthorCommandHandler
         );
 
         return $result !== null;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function prepareCommandData(AuthorForm $form): array
-    {
-        return $form->toArray();
     }
 }

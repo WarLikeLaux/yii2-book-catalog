@@ -6,7 +6,7 @@ namespace app\presentation\reports\handlers;
 
 use app\application\ports\ReportQueryServiceInterface;
 use app\application\reports\queries\ReportDto;
-use app\presentation\common\services\WebUseCaseRunner;
+use app\presentation\common\services\WebOperationRunner;
 use app\presentation\reports\dto\ReportViewModel;
 use app\presentation\reports\mappers\ReportCriteriaMapper;
 use Yii;
@@ -16,13 +16,13 @@ final readonly class ReportHandler
     public function __construct(
         private ReportCriteriaMapper $reportCriteriaMapper,
         private ReportQueryServiceInterface $reportQueryService,
-        private WebUseCaseRunner $useCaseRunner,
+        private WebOperationRunner $operationRunner,
     ) {
     }
 
     /**
      * @param array<string, mixed> $queryParams
-     * @codeCoverageIgnore Использует Yii::t() и WebUseCaseRunner с flash-сообщениями
+     * @codeCoverageIgnore Использует Yii::t() и WebOperationRunner с flash-сообщениями
      */
     public function prepareIndexViewModel(array $queryParams): ReportViewModel
     {
@@ -38,7 +38,7 @@ final readonly class ReportHandler
 
         $criteria = $this->reportCriteriaMapper->toCriteria($form);
         /** @var ReportDto $data */
-        $data = $this->useCaseRunner->query(
+        $data = $this->operationRunner->query(
             fn(): ReportDto => $this->reportQueryService->getTopAuthorsReport($criteria),
             $this->reportQueryService->getEmptyTopAuthorsReport($form->year !== null && $form->year !== '' ? (int)$form->year : null),
             Yii::t('app', 'report.error.generate_failed'),

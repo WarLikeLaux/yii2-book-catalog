@@ -13,17 +13,12 @@ use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\ports\ContentStorageInterface;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\DomainException;
-use app\domain\exceptions\OperationFailedException;
 use app\domain\values\StoredFileReference;
 use app\presentation\books\forms\BookForm;
+use app\presentation\books\mappers\BookCommandMapper;
 use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\common\handlers\UseCaseHandlerTrait;
-use app\presentation\common\services\WebUseCaseRunner;
-use AutoMapper\AutoMapperInterface;
-use Psr\Log\LoggerInterface;
-use Throwable;
+use app\presentation\common\services\WebOperationRunner;
 use Yii;
 use yii\web\UploadedFile;
 
@@ -36,15 +31,14 @@ final readonly class BookCommandHandler
     use UseCaseHandlerTrait;
 
     public function __construct(
-        private AutoMapperInterface $autoMapper,
+        private BookCommandMapper $commandMapper,
         private CreateBookUseCase $createBookUseCase,
         private UpdateBookUseCase $updateBookUseCase,
         private DeleteBookUseCase $deleteBookUseCase,
         private PublishBookUseCase $publishBookUseCase,
-        private WebUseCaseRunner $useCaseRunner,
+        private WebOperationRunner $operationRunner,
         private ContentStorageInterface $contentStorage,
         private UploadedFileAdapter $uploadedFileAdapter,
-        private LoggerInterface $logger,
     ) {
     }
 
@@ -55,38 +49,44 @@ final readonly class BookCommandHandler
     {
         return [
             'isbn.error.invalid_format' => 'isbn',
+            'book.error.isbn_exists' => 'isbn',
             'year.error.too_old' => 'year',
             'year.error.future' => 'year',
             'book.error.title_empty' => 'title',
             'book.error.title_too_long' => 'title',
+            'book.error.stale_data' => 'version',
             'book.error.isbn_change_published' => 'isbn',
             'book.error.invalid_author_id' => 'authorIds',
             'book.error.publish_without_authors' => 'authorIds',
+            'error.mapper_failed' => 'title',
         ];
     }
 
     public function createBook(BookForm $form): int|null
     {
-        try {
-            $cover = $this->processCoverUpload($form);
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to upload book cover', ['exception' => $e]);
+        $cover = $this->operationRunner->runStep(
+            fn(): ?StoredFileReference => $this->processCoverUpload($form),
+            'Failed to upload book cover',
+        );
+
+        if ($form->cover instanceof UploadedFile && $cover === null) {
             $form->addError('cover', Yii::t('app', 'file.error.storage_operation_failed'));
             return null;
         }
 
-        try {
-            $data = $this->prepareCommandData($form, $cover);
-            /** @var CreateBookCommand $command */
-            $command = $this->autoMapper->map($data, CreateBookCommand::class);
-        } catch (Throwable $e) {
-            $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 0, $e));
+        $command = $this->operationRunner->runStep(
+            fn(): CreateBookCommand => $this->commandMapper->toCreateCommand($form, $cover),
+            'Failed to map book form to CreateBookCommand',
+        );
+
+        if ($command === null) {
+            $form->addError('title', Yii::t('app', 'error.internal_mapper_failed'));
             return null;
         }
 
         /** @var int|null */
         return $this->executeWithForm(
-            $this->useCaseRunner,
+            $this->operationRunner,
             $form,
             $command,
             $this->createBookUseCase,
@@ -96,26 +96,30 @@ final readonly class BookCommandHandler
 
     public function updateBook(int $id, BookForm $form): bool
     {
-        try {
-            $cover = $this->processCoverUpload($form);
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to upload book cover', ['exception' => $e, 'book_id' => $id]);
+        $cover = $this->operationRunner->runStep(
+            fn(): ?StoredFileReference => $this->processCoverUpload($form),
+            'Failed to upload book cover',
+            ['book_id' => $id],
+        );
+
+        if ($form->cover instanceof UploadedFile && $cover === null) {
             $form->addError('cover', Yii::t('app', 'file.error.storage_operation_failed'));
             return false;
         }
 
-        try {
-            $data = $this->prepareCommandData($form, $cover);
-            $data['id'] = $id;
-            /** @var UpdateBookCommand $command */
-            $command = $this->autoMapper->map($data, UpdateBookCommand::class);
-        } catch (Throwable $e) {
-            $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 0, $e));
+        $command = $this->operationRunner->runStep(
+            fn(): UpdateBookCommand => $this->commandMapper->toUpdateCommand($id, $form, $cover),
+            'Failed to map book form to UpdateBookCommand',
+            ['book_id' => $id],
+        );
+
+        if ($command === null) {
+            $form->addError('title', Yii::t('app', 'error.internal_mapper_failed'));
             return false;
         }
 
         return $this->executeWithForm(
-            $this->useCaseRunner,
+            $this->operationRunner,
             $form,
             $command,
             $this->updateBookUseCase,
@@ -123,26 +127,11 @@ final readonly class BookCommandHandler
         ) !== null;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function prepareCommandData(BookForm $form, StoredFileReference|null $cover = null): array
-    {
-        $data = $form->toArray();
-        $data['cover'] = $cover;
-        $data['description'] = ($data['description'] ?? '') !== '' ? $data['description'] : null;
-
-        $authorIds = (array)($form->authorIds ?? []);
-        $data['authorIds'] = array_map(intval(...), array_filter($authorIds, is_numeric(...)));
-
-        return $data;
-    }
-
     public function deleteBook(int $id): bool
     {
         $command = new DeleteBookCommand($id);
 
-        $result = $this->useCaseRunner->execute(
+        $result = $this->operationRunner->execute(
             $command,
             $this->deleteBookUseCase,
             Yii::t('app', 'book.success.deleted'),
@@ -156,7 +145,7 @@ final readonly class BookCommandHandler
     {
         $command = new PublishBookCommand($id);
 
-        $result = $this->useCaseRunner->execute(
+        $result = $this->operationRunner->execute(
             $command,
             $this->publishBookUseCase,
             Yii::t('app', 'book.success.published'),
