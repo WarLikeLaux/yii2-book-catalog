@@ -9,6 +9,7 @@ use app\application\common\dto\PaginationDto;
 use app\application\common\dto\PaginationRequest;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
+use app\presentation\books\dto\BookIndexViewModel;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\books\handlers\BookSearchHandler;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
@@ -37,7 +38,7 @@ final class BookSearchHandlerTest extends Unit
         );
     }
 
-    public function testPrepareIndexViewDataReturnsEmptyResultOnValidationFailure(): void
+    public function testPrepareIndexViewModelReturnsEmptyResultOnValidationFailure(): void
     {
         $params = ['globalSearch' => 'x'];
         $pagination = new PaginationRequest(1, 20);
@@ -49,16 +50,15 @@ final class BookSearchHandlerTest extends Unit
 
         $this->bookQueryService->expects($this->never())->method('search');
 
-        $result = $this->handler->prepareIndexViewData($params, $pagination);
+        $result = $this->handler->prepareIndexViewModel($params, $pagination);
 
-        $this->assertArrayHasKey('searchModel', $result);
-        $this->assertArrayHasKey('dataProvider', $result);
-        $this->assertInstanceOf(BookSearchForm::class, $result['searchModel']);
-        $this->assertInstanceOf(ArrayDataProvider::class, $result['dataProvider']);
-        $this->assertTrue($result['searchModel']->hasErrors());
+        $this->assertInstanceOf(BookIndexViewModel::class, $result);
+        $this->assertInstanceOf(BookSearchForm::class, $result->searchModel);
+        $this->assertInstanceOf(ArrayDataProvider::class, $result->dataProvider);
+        $this->assertTrue($result->searchModel->hasErrors());
     }
 
-    public function testPrepareIndexViewDataReturnsDataOnSuccess(): void
+    public function testPrepareIndexViewModelReturnsDataOnSuccess(): void
     {
         $params = ['globalSearch' => 'query'];
         $pagination = new PaginationRequest(1, 20);
@@ -97,10 +97,9 @@ final class BookSearchHandlerTest extends Unit
             }))
             ->willReturn(new ArrayDataProvider(['allModels' => [$dto]]));
 
-        $result = $this->handler->prepareIndexViewData($params, $pagination);
+        $result = $this->handler->prepareIndexViewModel($params, $pagination);
 
-        $this->assertArrayHasKey('searchModel', $result);
-        $this->assertArrayHasKey('dataProvider', $result);
-        $this->assertFalse($result['searchModel']->hasErrors());
+        $this->assertInstanceOf(BookIndexViewModel::class, $result);
+        $this->assertFalse($result->searchModel->hasErrors());
     }
 }

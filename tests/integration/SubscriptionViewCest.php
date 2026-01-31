@@ -18,8 +18,8 @@ final class SubscriptionViewCest
         $authorId = $I->haveRecord(Author::class, ['fio' => 'View Service Author']);
 
         $factory = Yii::$container->get(SubscriptionViewDataFactory::class);
-        $author = $factory->getAuthor($authorId);
+        $viewModel = $factory->getSubscriptionViewModel($authorId);
 
-        $I->assertSame('View Service Author', $author->fio);
+        $I->assertSame('View Service Author', $viewModel->author->fio);
     }
 }
