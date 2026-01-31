@@ -7,14 +7,14 @@ namespace app\presentation\books\forms;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\validators\IsbnValidator;
-use app\presentation\common\forms\RepositoryAwareForm;
 use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
+use yii\base\Model;
 use yii\web\Request;
 use yii\web\UploadedFile;
 
-final class BookForm extends RepositoryAwareForm
+final class BookForm extends Model
 {
     /** @var int|string|null */
     public $id;
@@ -43,6 +43,14 @@ final class BookForm extends RepositoryAwareForm
     public bool $isPublished = false;
     public ?string $fullTitle = null;
     public int $version = 1;
+
+    public function __construct(
+        private readonly BookQueryServiceInterface $bookQueryService,
+        private readonly AuthorQueryServiceInterface $authorQueryService,
+        array $config = [],
+    ) {
+        parent::__construct($config);
+    }
 
     #[CodeCoverageIgnore]
     public function loadFromRequest(Request $request): bool
@@ -101,9 +109,8 @@ final class BookForm extends RepositoryAwareForm
         }
 
         $excludeId = $this->id !== null ? (int)$this->id : null;
-        $queryService = $this->resolve(BookQueryServiceInterface::class);
 
-        if (!$queryService->existsByIsbn($value, $excludeId)) {
+        if (!$this->bookQueryService->existsByIsbn($value, $excludeId)) {
             return;
         }
 
@@ -138,8 +145,7 @@ final class BookForm extends RepositoryAwareForm
             return;
         }
 
-        $service = $this->resolve(AuthorQueryServiceInterface::class);
-        $missingIds = $service->findMissingIds($ids);
+        $missingIds = $this->authorQueryService->findMissingIds($ids);
 
         foreach ($missingIds as $missingId) {
             $this->addError($attribute, Yii::t('app', 'author.error.id_not_found', ['id' => $missingId]));

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
 use app\presentation\books\handlers\BookItemViewFactory;
 use app\presentation\books\handlers\BookListViewFactory;
@@ -82,7 +81,7 @@ final class BookController extends Controller
      */
     public function actionCreate(): string|Response|array
     {
-        $form = new BookForm();
+        $form = $this->itemViewFactory->createForm();
 
         if ($this->request->isPost && $form->loadFromRequest($this->request)) {
             if ($this->request->isAjax) {

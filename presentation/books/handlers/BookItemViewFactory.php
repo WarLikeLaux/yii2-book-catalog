@@ -6,7 +6,7 @@ namespace app\presentation\books\handlers;
 
 use app\application\books\queries\BookReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
-use app\application\ports\BookFinderInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\dto\BookEditViewModel;
 use app\presentation\books\dto\BookViewViewModel;
 use app\presentation\books\forms\BookForm;
@@ -18,7 +18,7 @@ use yii\web\NotFoundHttpException;
 final readonly class BookItemViewFactory
 {
     public function __construct(
-        private BookFinderInterface $finder,
+        private BookQueryServiceInterface $finder,
         private AuthorQueryServiceInterface $authorQueryService,
         private AutoMapperInterface $autoMapper,
         private FileUrlResolver $resolver,
@@ -28,9 +28,14 @@ final readonly class BookItemViewFactory
     public function getCreateViewModel(BookForm|null $form = null): BookEditViewModel
     {
         return new BookEditViewModel(
-            $form ?? new BookForm(),
+            $form ?? $this->createForm(),
             $this->getAuthorsList(),
         );
+    }
+
+    public function createForm(): BookForm
+    {
+        return new BookForm($this->finder, $this->authorQueryService);
     }
 
     public function getUpdateViewModel(int $id, BookForm|null $form = null): BookEditViewModel
@@ -52,7 +57,8 @@ final readonly class BookItemViewFactory
     public function getBookForUpdate(int $id): BookForm
     {
         $dto = $this->getBookById($id);
-        $form = $this->autoMapper->map($dto, BookForm::class);
+        $form = new BookForm($this->finder, $this->authorQueryService);
+        $form = $this->autoMapper->map($dto, $form);
 
         if (!$form instanceof BookForm) {
             throw new LogicException(sprintf(

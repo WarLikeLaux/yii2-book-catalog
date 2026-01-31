@@ -7,7 +7,7 @@ namespace tests\unit\presentation\books\handlers;
 use app\application\authors\queries\AuthorReadDto;
 use app\application\books\queries\BookReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
-use app\application\ports\BookFinderInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\dto\BookEditViewModel;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookItemViewFactory;
@@ -19,7 +19,7 @@ use yii\web\NotFoundHttpException;
 
 final class BookItemViewFactoryTest extends Unit
 {
-    private BookFinderInterface&MockObject $finder;
+    private BookQueryServiceInterface&MockObject $finder;
     private AuthorQueryServiceInterface&MockObject $authorQueryService;
     private AutoMapperInterface&MockObject $autoMapper;
     private FileUrlResolver $resolver;
@@ -27,7 +27,7 @@ final class BookItemViewFactoryTest extends Unit
 
     protected function _before(): void
     {
-        $this->finder = $this->createMock(BookFinderInterface::class);
+        $this->finder = $this->createMock(BookQueryServiceInterface::class);
         $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
         $this->autoMapper = $this->createMock(AutoMapperInterface::class);
         $this->resolver = new FileUrlResolver('/uploads');
@@ -88,7 +88,7 @@ final class BookItemViewFactoryTest extends Unit
 
                 ->method('map')
 
-                ->with($dto, BookForm::class)
+                ->with($dto, $this->isInstanceOf(BookForm::class))
 
                 ->willReturn($form);
 
