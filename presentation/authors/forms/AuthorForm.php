@@ -5,18 +5,25 @@ declare(strict_types=1);
 namespace app\presentation\authors\forms;
 
 use app\application\ports\AuthorQueryServiceInterface;
-use app\presentation\common\forms\RepositoryAwareForm;
 use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
+use yii\base\Model;
 
-final class AuthorForm extends RepositoryAwareForm
+final class AuthorForm extends Model
 {
     /** @var int|string|null */
     public $id;
 
     /** @var string|int|null */
     public $fio = '';
+
+    public function __construct(
+        private readonly AuthorQueryServiceInterface $queryService,
+        array $config = [],
+    ) {
+        parent::__construct($config);
+    }
 
     #[Override]
     #[CodeCoverageIgnore]
@@ -48,9 +55,8 @@ final class AuthorForm extends RepositoryAwareForm
         }
 
         $excludeId = $this->id !== null ? (int)$this->id : null;
-        $queryService = $this->resolve(AuthorQueryServiceInterface::class);
 
-        if (!$queryService->existsByFio($value, $excludeId)) {
+        if (!$this->queryService->existsByFio($value, $excludeId)) {
             return;
         }
 

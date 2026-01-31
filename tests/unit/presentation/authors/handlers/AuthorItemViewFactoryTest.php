@@ -40,7 +40,7 @@ final class AuthorItemViewFactoryTest extends Unit
     public function testGetUpdateViewModel(): void
     {
         $dto = new AuthorReadDto(1, 'Author');
-        $form = new AuthorForm();
+        $form = new AuthorForm($this->queryService);
 
         $this->queryService->expects($this->exactly(2))
             ->method('findById')
@@ -49,7 +49,7 @@ final class AuthorItemViewFactoryTest extends Unit
 
         $this->autoMapper->expects($this->once())
             ->method('map')
-            ->with($dto, AuthorForm::class)
+            ->with($dto, $this->isInstanceOf(AuthorForm::class))
             ->willReturn($form);
 
         $result = $this->factory->getUpdateViewModel(1);

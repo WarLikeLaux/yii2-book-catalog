@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\handlers\AuthorItemViewFactory;
 use app\presentation\authors\handlers\AuthorListViewFactory;
@@ -75,7 +74,7 @@ final class AuthorController extends Controller
 
     public function actionCreate(): string|Response
     {
-        $form = new AuthorForm();
+        $form = $this->itemViewFactory->createForm();
 
         if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
             $authorId = $this->commandHandler->createAuthor($form);
