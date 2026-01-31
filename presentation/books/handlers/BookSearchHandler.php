@@ -8,6 +8,7 @@ use app\application\books\queries\BookReadDto;
 use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookQueryServiceInterface;
+use app\presentation\books\dto\BookIndexViewModel;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
@@ -23,9 +24,8 @@ final readonly class BookSearchHandler
 
     /**
      * @param array<string, mixed> $params
-     * @return array<string, mixed>
      */
-    public function prepareIndexViewData(array $params, PaginationRequest $pagination): array
+    public function prepareIndexViewModel(array $params, PaginationRequest $pagination): BookIndexViewModel
     {
         $form = new BookSearchForm();
         $form->load($params);
@@ -33,10 +33,10 @@ final readonly class BookSearchHandler
         if (!$form->validate()) {
             $emptyResult = QueryResult::empty($pagination->page, $pagination->limit);
 
-            return [
-                'searchModel' => $form,
-                'dataProvider' => $this->dataProviderFactory->create($emptyResult),
-            ];
+            return new BookIndexViewModel(
+                $form,
+                $this->dataProviderFactory->create($emptyResult),
+            );
         }
 
         $result = $this->bookQueryService->search(
@@ -65,9 +65,9 @@ final readonly class BookSearchHandler
 
         $dataProvider = $this->dataProviderFactory->create($resolvedResult);
 
-        return [
-            'searchModel' => $form,
-            'dataProvider' => $dataProvider,
-        ];
+        return new BookIndexViewModel(
+            $form,
+            $dataProvider,
+        );
     }
 }

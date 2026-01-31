@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use app\presentation\books\dto\BookIndexViewModel;
 use yii\bootstrap5\ActiveForm;
 use yii\bootstrap5\Modal;
 use yii\helpers\Html;
 use yii\helpers\Url;
+
+/** @var BookIndexViewModel $viewModel */
 
 $this->title = 'Каталог книг';
 ?>
@@ -32,7 +35,7 @@ $this->title = 'Каталог книг';
 
     <div class="row mb-4">
         <div class="col-md-8 offset-md-2">
-            <?= $form->field($searchModel, 'globalSearch')
+            <?= $form->field($viewModel->searchModel, 'globalSearch')
                 ->textInput([
                     'placeholder' => 'Название, ISBN, Автор или Год...',
                     'id' => 'book-search-input',
@@ -49,7 +52,7 @@ $this->title = 'Каталог книг';
     <?php ActiveForm::end(); ?>
 
     <div id="book-list">
-        <?= $this->render('_book-cards', ['dataProvider' => $dataProvider]) ?>
+        <?= $this->render('_book-cards', ['dataProvider' => $viewModel->dataProvider]) ?>
     </div>
 </div>
 

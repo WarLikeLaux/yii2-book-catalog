@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use app\presentation\subscriptions\dto\SubscriptionViewModel;
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
+
+/** @var SubscriptionViewModel $viewModel */
 
 $form = ActiveForm::begin([
     'id' => 'subscription-form',
@@ -13,13 +16,13 @@ $form = ActiveForm::begin([
 ]);
 ?>
 
-<?= Html::hiddenInput('SubscriptionForm[authorId]', $authorId) ?>
+<?= Html::hiddenInput('SubscriptionForm[authorId]', $viewModel->author->id) ?>
 
 <div class="form-group">
-    <label>Подписка на автора: <strong><?= Html::encode($author->fio) ?></strong></label>
+    <label>Подписка на автора: <strong><?= Html::encode($viewModel->author->fio) ?></strong></label>
 </div>
 
-<?= $form->field($model, 'phone')->textInput(['placeholder' => '+79001234567']) ?>
+<?= $form->field($viewModel->form, 'phone')->textInput(['placeholder' => '+79001234567']) ?>
 
 <div class="form-group">
     <?= Html::submitButton('Подписаться', ['class' => 'btn btn-primary']) ?>

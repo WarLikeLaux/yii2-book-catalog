@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use app\presentation\authors\dto\AuthorListViewModel;
 use yii\grid\GridView;
 use yii\helpers\Html;
+
+/** @var AuthorListViewModel $viewModel */
 
 $this->title = 'Авторы';
 $this->params['breadcrumbs'][] = $this->title;
@@ -18,7 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
     </p>
 
     <?= GridView::widget([
-        'dataProvider' => $dataProvider,
+        'dataProvider' => $viewModel->dataProvider,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             'id',

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\presentation\common\dto\ApiResponse;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\subscriptions\forms\SubscriptionForm;
 use app\presentation\subscriptions\handlers\SubscriptionCommandHandler;
 use app\presentation\subscriptions\handlers\SubscriptionViewDataFactory;
 use Override;
-use yii\filters\AccessControl;
+use Yii;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\Response;
@@ -34,16 +35,6 @@ final class SubscriptionController extends Controller
                 'class' => IdempotencyFilter::class,
                 'only' => ['subscribe'],
             ],
-            'access' => [
-                'class' => AccessControl::class,
-                'rules' => [
-                    [
-                        'allow' => true,
-                        'actions' => ['form', 'subscribe'],
-                        'roles' => ['?', '@'],
-                    ],
-                ],
-            ],
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
@@ -53,10 +44,7 @@ final class SubscriptionController extends Controller
         ];
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function actionSubscribe(): array
+    public function actionSubscribe(): ApiResponse
     {
         $this->response->format = Response::FORMAT_JSON;
         $form = new SubscriptionForm();
@@ -65,18 +53,18 @@ final class SubscriptionController extends Controller
             return $this->commandHandler->subscribe($form);
         }
 
-        return ['success' => false, 'errors' => $form->errors];
+        return ApiResponse::failure(
+            Yii::t('app', 'error.validation'),
+            $form->errors,
+        );
     }
 
     public function actionForm(int $authorId): string
     {
-        $author = $this->viewDataFactory->getAuthor($authorId);
-        $form = new SubscriptionForm();
+        $viewModel = $this->viewDataFactory->getSubscriptionViewModel($authorId);
 
         return $this->renderAjax('_form', [
-            'model' => $form,
-            'author' => $author,
-            'authorId' => $authorId,
+            'viewModel' => $viewModel,
         ]);
     }
 }

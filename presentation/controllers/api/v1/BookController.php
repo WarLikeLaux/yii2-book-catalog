@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers\api\v1;
 
-use app\presentation\books\handlers\BookViewDataFactory;
+use app\presentation\books\handlers\BookListViewFactory;
 use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\filters\RateLimitFilter;
 use OpenApi\Attributes as OA;
 use Override;
 use yii\data\DataProviderInterface;
-use yii\filters\AccessControl;
 
 #[OA\Tag(name: 'API Books', description: 'REST API для работы с книгами')]
 final class BookController extends BaseApiController
@@ -19,7 +18,7 @@ final class BookController extends BaseApiController
     public function __construct(
         $id,
         $module,
-        private readonly BookViewDataFactory $viewDataFactory,
+        private readonly BookListViewFactory $listViewFactory,
         array $config = [],
     ) {
         parent::__construct($id, $module, $config);
@@ -37,16 +36,6 @@ final class BookController extends BaseApiController
 
         $behaviors['idempotency'] = [
             'class' => IdempotencyFilter::class,
-        ];
-        $behaviors['access'] = [
-            'class' => AccessControl::class,
-            'rules' => [
-                [
-                    'actions' => ['index'],
-                    'allow' => true,
-                    'roles' => ['?', '@'],
-                ],
-            ],
         ];
 
         return $behaviors;
@@ -82,9 +71,9 @@ final class BookController extends BaseApiController
     {
         $pagination = CrudPaginationRequest::fromRequest($this->request);
 
-        return $this->viewDataFactory->getIndexDataProvider(
+        return $this->listViewFactory->getListViewModel(
             $pagination->page,
             $pagination->limit,
-        );
+        )->dataProvider;
     }
 }

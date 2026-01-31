@@ -6,8 +6,9 @@ namespace app\presentation\controllers;
 
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
+use app\presentation\authors\handlers\AuthorItemViewFactory;
+use app\presentation\authors\handlers\AuthorListViewFactory;
 use app\presentation\authors\handlers\AuthorSearchHandler;
-use app\presentation\authors\handlers\AuthorViewDataFactory;
 use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
 use Override;
@@ -22,7 +23,8 @@ final class AuthorController extends Controller
         $id,
         $module,
         private readonly AuthorCommandHandler $commandHandler,
-        private readonly AuthorViewDataFactory $viewDataFactory,
+        private readonly AuthorListViewFactory $listViewFactory,
+        private readonly AuthorItemViewFactory $itemViewFactory,
         private readonly AuthorSearchHandler $authorSearchHandler,
         $config = [],
     ) {
@@ -42,11 +44,6 @@ final class AuthorController extends Controller
                 'rules' => [
                     [
                         'allow' => true,
-                        'actions' => ['search'],
-                        'roles' => ['@'],
-                    ],
-                    [
-                        'allow' => true,
                         'roles' => ['@'],
                     ],
                 ],
@@ -63,16 +60,16 @@ final class AuthorController extends Controller
     public function actionIndex(): string
     {
         $pagination = CrudPaginationRequest::fromRequest($this->request);
-        $dataProvider = $this->viewDataFactory->getIndexDataProvider($pagination->page, $pagination->limit);
+        $viewModel = $this->listViewFactory->getListViewModel($pagination->page, $pagination->limit);
 
         return $this->render('index', [
-            'dataProvider' => $dataProvider,
+            'viewModel' => $viewModel,
         ]);
     }
 
     public function actionView(int $id): string
     {
-        $viewData = $this->viewDataFactory->getAuthorView($id);
+        $viewData = $this->itemViewFactory->getAuthorView($id);
         return $this->render('view', ['model' => $viewData]);
     }
 
@@ -88,12 +85,14 @@ final class AuthorController extends Controller
             }
         }
 
-        return $this->render('create', ['model' => $form]);
+        $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+
+        return $this->render('create', ['viewModel' => $viewModel]);
     }
 
     public function actionUpdate(int $id): string|Response
     {
-        $form = $this->viewDataFactory->getAuthorForUpdate($id);
+        $form = $this->itemViewFactory->getAuthorForUpdate($id);
 
         if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
             $success = $this->commandHandler->updateAuthor($id, $form);
@@ -103,10 +102,10 @@ final class AuthorController extends Controller
             }
         }
 
-        $authorDto = $this->viewDataFactory->getAuthorView($id);
+        $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+
         return $this->render('update', [
-            'model' => $form,
-            'author' => $authorDto,
+            'viewModel' => $viewModel,
         ]);
     }
 

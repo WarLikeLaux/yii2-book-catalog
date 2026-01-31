@@ -5,48 +5,40 @@ declare(strict_types=1);
 namespace app\presentation\books\handlers;
 
 use app\application\books\queries\BookReadDto;
-use app\application\common\dto\QueryResult;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookFinderInterface;
-use app\application\ports\BookSearcherInterface;
+use app\presentation\books\dto\BookEditViewModel;
 use app\presentation\books\forms\BookForm;
-use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
 use AutoMapper\AutoMapperInterface;
 use LogicException;
-use yii\data\DataProviderInterface;
 use yii\web\NotFoundHttpException;
 
-final readonly class BookViewDataFactory
+final readonly class BookItemViewFactory
 {
     public function __construct(
         private BookFinderInterface $finder,
-        private BookSearcherInterface $searcher,
         private AuthorQueryServiceInterface $authorQueryService,
         private AutoMapperInterface $autoMapper,
-        private PagedResultDataProviderFactory $dataProviderFactory,
         private FileUrlResolver $resolver,
     ) {
     }
 
-    public function getIndexDataProvider(int $page, int $pageSize): DataProviderInterface
+    public function getCreateViewModel(BookForm|null $form = null): BookEditViewModel
     {
-        $queryResult = $this->searcher->search('', $page, $pageSize);
-
-        $dtos = array_map(
-            fn(mixed $dto): BookReadDto => $dto instanceof BookReadDto
-                ? $this->withResolvedUrl($dto)
-                : throw new LogicException('Expected BookReadDto'),
-            $queryResult->getModels(),
+        return new BookEditViewModel(
+            $form ?? new BookForm(),
+            $this->getAuthorsList(),
         );
+    }
 
-        $newResult = new QueryResult(
-            $dtos,
-            $queryResult->getTotalCount(),
-            $queryResult->getPagination(),
+    public function getUpdateViewModel(int $id, BookForm|null $form = null): BookEditViewModel
+    {
+        return new BookEditViewModel(
+            $form ?? $this->getBookForUpdate($id),
+            $this->getAuthorsList(),
+            $this->getBookView($id),
         );
-
-        return $this->dataProviderFactory->create($newResult);
     }
 
     public function getBookForUpdate(int $id): BookForm
@@ -56,7 +48,7 @@ final readonly class BookViewDataFactory
 
         if (!$form instanceof BookForm) {
             throw new LogicException(sprintf(
-                'AutoMapper не смог преобразовать %s в %s в getBookForUpdate: получен %s. Проверьте конфигурацию маппера.',
+                'AutoMapper не смог преобразовать %s в %s в getBookForUpdate: получен %s',
                 BookReadDto::class,
                 BookForm::class,
                 get_debug_type($form),
@@ -76,7 +68,7 @@ final readonly class BookViewDataFactory
     /**
      * @return array<int, string>
      */
-    public function getAuthorsList(): array
+    private function getAuthorsList(): array
     {
         $authors = $this->authorQueryService->findAllOrderedByFio();
         $map = [];

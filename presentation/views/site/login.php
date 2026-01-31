@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 /** @var yii\web\View $this */
 /** @var yii\bootstrap5\ActiveForm $form */
-
-/** @var app\models\forms\LoginForm $model */
+/** @var app\presentation\auth\dto\LoginViewModel $viewModel */
 
 use yii\bootstrap5\ActiveForm;
 use yii\bootstrap5\Html;
@@ -31,11 +30,11 @@ $this->params['breadcrumbs'][] = $this->title;
                 ],
             ]); ?>
 
-            <?= $form->field($model, 'username')->textInput(['autofocus' => true]) ?>
+            <?= $form->field($viewModel->form, 'username')->textInput(['autofocus' => true]) ?>
 
-            <?= $form->field($model, 'password')->passwordInput() ?>
+            <?= $form->field($viewModel->form, 'password')->passwordInput() ?>
 
-            <?= $form->field($model, 'rememberMe')->checkbox([
+            <?= $form->field($viewModel->form, 'rememberMe')->checkbox([
                 'template' => "<div class=\"custom-control custom-checkbox\">{input} {label}</div>\n<div class=\"col-lg-8\">{error}</div>",
             ]) ?>
 

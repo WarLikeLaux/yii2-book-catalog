@@ -10,6 +10,7 @@ use app\application\ports\NotificationInterface;
 use app\application\ports\TranslatorInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\exceptions\DomainException;
+use app\presentation\common\dto\ApiResponse;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -29,7 +30,6 @@ final readonly class WebUseCaseRunner
      * @param TCommand $command
      * @param UseCaseInterface<TCommand, TResponse> $useCase
      * @param array<string, mixed> $logContext
-     * @return TResponse|null
      */
     public function execute(
         CommandInterface $command,
@@ -58,23 +58,22 @@ final readonly class WebUseCaseRunner
      * @param TCommand $command
      * @param UseCaseInterface<TCommand, TResponse> $useCase
      * @param array<string, mixed> $logContext
-     * @return array<string, mixed>
      */
     public function executeForApi(
         CommandInterface $command,
         UseCaseInterface $useCase,
         string $successMessage,
         array $logContext = [],
-    ): array {
+    ): ApiResponse {
         try {
             /** @var TResponse $result */
             $result = $this->pipelineFactory->createDefault()->execute($command, $useCase);
-            return ['success' => true, 'message' => $successMessage, 'data' => $result];
+            return ApiResponse::success($successMessage, $result);
         } catch (DomainException $e) {
-            return ['success' => false, 'message' => $this->translator->translate('app', $e->getMessage())];
+            return ApiResponse::failure($this->translator->translate('app', $e->getMessage()));
         } catch (Throwable $e) {
             $this->logger->error($e->getMessage(), array_merge($logContext, ['exception' => $e]));
-            return ['success' => false, 'message' => $this->translator->translate('app', 'error.unexpected')];
+            return ApiResponse::failure($this->translator->translate('app', 'error.unexpected'));
         }
     }
 

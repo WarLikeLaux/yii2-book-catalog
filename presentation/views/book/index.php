@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 use app\application\books\queries\BookReadDto;
+use app\presentation\books\dto\BookListViewModel;
 use yii\bootstrap5\LinkPager;
 use yii\grid\GridView;
 use yii\helpers\Html;
+
+/** @var BookListViewModel $viewModel */
 
 $this->title = 'Книги';
 $this->params['breadcrumbs'][] = $this->title;
@@ -20,7 +23,7 @@ $this->params['breadcrumbs'][] = $this->title;
     </p>
 
     <?= GridView::widget([
-        'dataProvider' => $dataProvider,
+        'dataProvider' => $viewModel->dataProvider,
         'pager' => [
             'class' => LinkPager::class,
         ],

@@ -6,26 +6,33 @@ namespace app\presentation\authors\handlers;
 
 use app\application\authors\queries\AuthorReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
+use app\presentation\authors\dto\AuthorEditViewModel;
 use app\presentation\authors\forms\AuthorForm;
-use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use AutoMapper\AutoMapperInterface;
 use LogicException;
-use yii\data\DataProviderInterface;
 use yii\web\NotFoundHttpException;
 
-final readonly class AuthorViewDataFactory
+final readonly class AuthorItemViewFactory
 {
     public function __construct(
         private AuthorQueryServiceInterface $queryService,
         private AutoMapperInterface $autoMapper,
-        private PagedResultDataProviderFactory $dataProviderFactory,
     ) {
     }
 
-    public function getIndexDataProvider(int $page, int $pageSize): DataProviderInterface
+    public function getCreateViewModel(AuthorForm|null $form = null): AuthorEditViewModel
     {
-        $queryResult = $this->queryService->search('', $page, $pageSize);
-        return $this->dataProviderFactory->create($queryResult);
+        return new AuthorEditViewModel(
+            $form ?? new AuthorForm(),
+        );
+    }
+
+    public function getUpdateViewModel(int $id, AuthorForm|null $form = null): AuthorEditViewModel
+    {
+        return new AuthorEditViewModel(
+            $form ?? $this->getAuthorForUpdate($id),
+            $this->getAuthorView($id),
+        );
     }
 
     public function getAuthorForUpdate(int $id): AuthorForm

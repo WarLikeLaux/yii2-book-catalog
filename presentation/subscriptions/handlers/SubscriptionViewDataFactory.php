@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace app\presentation\subscriptions\handlers;
 
-use app\application\authors\queries\AuthorReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
+use app\presentation\subscriptions\dto\SubscriptionViewModel;
+use app\presentation\subscriptions\forms\SubscriptionForm;
 use yii\web\NotFoundHttpException;
 
 final readonly class SubscriptionViewDataFactory
@@ -15,8 +16,15 @@ final readonly class SubscriptionViewDataFactory
     ) {
     }
 
-    public function getAuthor(int $authorId): AuthorReadDto
+    public function getSubscriptionViewModel(int $authorId, SubscriptionForm|null $form = null): SubscriptionViewModel
     {
-        return $this->queryService->findById($authorId) ?? throw new NotFoundHttpException();
+        $author = $this->queryService->findById($authorId) ?? throw new NotFoundHttpException();
+        $form ??= new SubscriptionForm();
+        $form->authorId = $author->id;
+
+        return new SubscriptionViewModel(
+            $form,
+            $author,
+        );
     }
 }
