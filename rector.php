@@ -34,6 +34,7 @@ return static function (RectorConfig $rectorConfig): void {
 
     $rectorConfig->skip([
         __DIR__ . '/presentation/views/*',
+        __DIR__ . '/presentation/mail/*',
         __DIR__ . '/infrastructure/persistence/*',
         __DIR__ . '/domain/entities/*',
         RemoveParentDelegatingConstructorRector::class => [

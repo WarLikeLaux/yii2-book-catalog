@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\infrastructure\services\observability;
 
 use app\application\ports\SpanInterface;
-use Inspector\Models\Partials\Host;
 use Inspector\Models\Segment;
 use Inspector\Models\Transaction;
 use Override;
@@ -90,8 +89,7 @@ final readonly class InspectorSpan implements SpanInterface
             $data = $this->item->transaction;
 
             if (
-                is_array($data)
-                && isset($data['timestamp'])
+                isset($data['timestamp'])
                 && is_numeric($data['timestamp'])
                 && $data['timestamp'] < 9999999999
             ) {
@@ -102,10 +100,6 @@ final readonly class InspectorSpan implements SpanInterface
         }
 
         if (!($this->item instanceof Transaction)) {
-            return;
-        }
-
-        if (!$this->item->host instanceof Host) {
             return;
         }
 
