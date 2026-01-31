@@ -9,6 +9,7 @@ use yii\helpers\Html;
 /**
  * @var AuthorListViewModel $viewModel
  */
+
 $this->title = 'Авторы';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
@@ -17,8 +18,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Создать автора', ['create'], ['class' => 'btn btn-success']) ?>
-        <?= Html::a('Книги', ['book/index'], ['class' => 'btn btn-primary']) ?>
+        <?= Html::a(Yii::t('app', 'ui.author_create'), ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a(Yii::t('app', 'ui.books'), ['book/index'], ['class' => 'btn btn-primary']) ?>
     </p>
 
     <?= GridView::widget([
@@ -26,7 +27,10 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             'id',
-            'fio',
+            [
+                'attribute' => 'fio',
+                'label' => Yii::t('app', 'ui.fio'),
+            ],
             [
                 'class' => 'yii\grid\ActionColumn',
             ],

@@ -8,8 +8,9 @@ use yii\helpers\Html;
 /**
  * @var BookViewViewModel $viewModel
  */
+
 $this->title = $viewModel->book->title;
-$this->params['breadcrumbs'][] = ['label' => 'Книги', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.books'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
@@ -17,20 +18,20 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Обновить', ['update', 'id' => $viewModel->book->id], ['class' => 'btn btn-primary']) ?>
+        <?= Html::a(Yii::t('app', 'ui.update'), ['update', 'id' => $viewModel->book->id], ['class' => 'btn btn-primary']) ?>
         <?php if (!$viewModel->book->isPublished): ?>
-            <?= Html::a('Опубликовать', ['publish', 'id' => $viewModel->book->id], [
+            <?= Html::a(Yii::t('app', 'ui.publish'), ['publish', 'id' => $viewModel->book->id], [
                 'class' => 'btn btn-success',
                 'data' => [
-                    'confirm' => 'Опубликовать книгу? Подписчики получат уведомления.',
+                    'confirm' => Yii::t('app', 'book.confirm.publish'),
                     'method' => 'post',
                 ],
             ]) ?>
         <?php endif; ?>
-        <?= Html::a('Удалить', ['delete', 'id' => $viewModel->book->id], [
+        <?= Html::a(Yii::t('app', 'ui.delete'), ['delete', 'id' => $viewModel->book->id], [
             'class' => 'btn btn-danger',
             'data' => [
-                'confirm' => 'Вы уверены, что хотите удалить эту книгу?',
+                'confirm' => Yii::t('app', 'book.confirm.delete'),
                 'method' => 'post',
             ],
         ]) ?>
@@ -38,38 +39,38 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <table class="table table-striped table-bordered">
         <tr>
-            <th>Статус</th>
+            <th><?= Yii::t('app', 'ui.status') ?></th>
             <td>
                 <?php if ($viewModel->book->isPublished): ?>
-                    <span class="badge bg-success">Опубликовано</span>
+                    <span class="badge bg-success"><?= Yii::t('app', 'ui.status_published') ?></span>
                 <?php else: ?>
-                    <span class="badge bg-secondary">Черновик</span>
+                    <span class="badge bg-secondary"><?= Yii::t('app', 'ui.status_draft') ?></span>
                 <?php endif; ?>
             </td>
         </tr>
         <tr>
-            <th>Название</th>
+            <th><?= Yii::t('app', 'ui.title') ?></th>
             <td><?= Html::encode($viewModel->book->title) ?></td>
         </tr>
         <tr>
-            <th>Год</th>
+            <th><?= Yii::t('app', 'ui.year') ?></th>
             <td><?= Html::encode($viewModel->book->year) ?></td>
         </tr>
         <tr>
-            <th>ISBN</th>
+            <th><?= Yii::t('app', 'ui.isbn') ?></th>
             <td><?= Html::encode($viewModel->book->isbn) ?></td>
         </tr>
         <tr>
-            <th>Описание</th>
+            <th><?= Yii::t('app', 'ui.description') ?></th>
             <td><?= Html::encode($viewModel->book->description) ?></td>
         </tr>
         <tr>
-            <th>Авторы</th>
+            <th><?= Yii::t('app', 'ui.authors') ?></th>
             <td><?= Html::encode(implode(', ', $viewModel->book->authorNames)) ?></td>
         </tr>
         <?php if ($viewModel->book->coverUrl): ?>
         <tr>
-            <th>Обложка</th>
+            <th><?= Yii::t('app', 'ui.cover') ?></th>
             <td>
                 <?= Html::a(
                     Html::img($viewModel->book->coverUrl, ['alt' => $viewModel->book->title, 'style' => 'max-width: 300px; cursor: pointer;', 'loading' => 'lazy']),

@@ -8,8 +8,9 @@ use yii\helpers\Html;
 /**
  * @var BookEditViewModel $viewModel
  */
-$this->title = 'Обновить книгу';
-$this->params['breadcrumbs'][] = ['label' => 'Книги', 'url' => ['index']];
+
+$this->title = Yii::t('app', 'ui.book_update');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.books'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $viewModel->book->title, 'url' => ['view', 'id' => $viewModel->book->id]];
 $this->params['breadcrumbs'][] = $this->title;
 ?>

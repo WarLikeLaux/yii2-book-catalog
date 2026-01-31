@@ -8,8 +8,9 @@ use yii\helpers\Html;
 /**
  * @var AuthorViewViewModel $viewModel
  */
+
 $this->title = $viewModel->author->fio;
-$this->params['breadcrumbs'][] = ['label' => 'Авторы', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.authors'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
@@ -17,11 +18,11 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Обновить', ['update', 'id' => $viewModel->author->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a('Удалить', ['delete', 'id' => $viewModel->author->id], [
+        <?= Html::a(Yii::t('app', 'ui.update'), ['update', 'id' => $viewModel->author->id], ['class' => 'btn btn-primary']) ?>
+        <?= Html::a(Yii::t('app', 'ui.delete'), ['delete', 'id' => $viewModel->author->id], [
             'class' => 'btn btn-danger',
             'data' => [
-                'confirm' => 'Вы уверены, что хотите удалить этого автора?',
+                'confirm' => Yii::t('app', 'author.confirm.delete'),
                 'method' => 'post',
             ],
         ]) ?>
@@ -29,11 +30,11 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <table class="table table-striped table-bordered">
         <tr>
-            <th>ID</th>
+            <th><?= Yii::t('app', 'ui.id') ?></th>
             <td><?= Html::encode((string)$viewModel->author->id) ?></td>
         </tr>
         <tr>
-            <th>ФИО</th>
+            <th><?= Yii::t('app', 'ui.fio') ?></th>
             <td><?= Html::encode($viewModel->author->fio) ?></td>
         </tr>
     </table>

@@ -8,6 +8,7 @@ use yii\helpers\Html;
 /**
  * @var AuthorEditViewModel $viewModel
  */
+
 $this->title = Yii::t('app', 'ui.author_update');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.authors'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $viewModel->author->fio, 'url' => ['view', 'id' => $viewModel->author->id]];

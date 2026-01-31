@@ -11,6 +11,7 @@ use yii\helpers\Url;
 /**
  * @var BookIndexViewModel $viewModel
  */
+
 $this->title = 'Каталог книг';
 ?>
 

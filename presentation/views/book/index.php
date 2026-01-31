@@ -11,7 +11,8 @@ use yii\helpers\Html;
 /**
  * @var BookListViewModel $viewModel
  */
-$this->title = 'Книги';
+
+$this->title = Yii::t('app', 'ui.books');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
@@ -19,8 +20,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Создать книгу', ['create'], ['class' => 'btn btn-success']) ?>
-        <?= Html::a('Авторы', ['author/index'], ['class' => 'btn btn-primary']) ?>
+        <?= Html::a(Yii::t('app', 'ui.book_create'), ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a(Yii::t('app', 'ui.authors'), ['author/index'], ['class' => 'btn btn-primary']) ?>
     </p>
 
     <?= GridView::widget([
@@ -31,11 +32,18 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             'id',
-            'title',
-            'year',
+            [
+                'attribute' => 'title',
+                'label' => Yii::t('app', 'ui.title'),
+            ],
+            [
+                'attribute' => 'year',
+                'label' => Yii::t('app', 'ui.year'),
+            ],
             'isbn',
             [
                 'attribute' => 'authors',
+                'label' => Yii::t('app', 'ui.authors'),
                 'value' => static fn (BookReadDto $model): string => implode(', ', $model->authorNames),
             ],
             [

@@ -10,6 +10,7 @@ use yii\helpers\Url;
 /**
  * @var SubscriptionViewModel $viewModel
  */
+
 $form = ActiveForm::begin([
     'id' => 'subscription-form',
     'action' => Url::to(['subscription/subscribe']),
