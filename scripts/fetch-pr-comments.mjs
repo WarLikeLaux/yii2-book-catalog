@@ -31,7 +31,13 @@ if (!token || !pullNumber || Number.isNaN(pullNumber)) {
 let owner, repo;
 
 try {
-	const remoteUrl = execSync('git remote get-url origin', { encoding: 'utf8' }).trim();
+	const remoteUrl = execSync('git remote get-url origin', {
+		encoding: 'utf8',
+		env: {
+			...process.env,
+			PATH: '/usr/bin:/bin',
+		},
+	}).trim();
 	const repoMatch = remoteUrl.match(/github\.com[:/]([^/]+)\/([^/.]+?)(?:\.git)?$/);
 	if (!repoMatch) throw new Error('Не удалось разобрать URL репозитория');
 	owner = repoMatch[1];
@@ -100,10 +106,23 @@ function cleanBody(body) {
 		}
 	}
 
-	const promptMatch = body.match(/<summary>🤖 Prompt for AI Agents<\/summary>[\s\S]*?```[\s\S]*?```[\s\S]*?<\/details>/);
-	const cleanPrompt = promptMatch
-		? `\n\n> 🤖 **Prompt:**\n> ${promptMatch[1].trim().replace(/\n/g, '\n> ')}`
-		: '';
+	const summaryMarker = '<summary>🤖 Prompt for AI Agents</summary>';
+	const summaryIndex = body.indexOf(summaryMarker);
+	let cleanPrompt = '';
+	if (summaryIndex !== -1) {
+		const detailsIndex = body.indexOf('</details>', summaryIndex);
+		const detailsChunk = detailsIndex === -1 ? body.slice(summaryIndex) : body.slice(summaryIndex, detailsIndex);
+		const fenceStart = detailsChunk.indexOf('```');
+		if (fenceStart !== -1) {
+			const fenceEnd = detailsChunk.indexOf('```', fenceStart + 3);
+			if (fenceEnd !== -1) {
+				const promptText = detailsChunk.slice(fenceStart + 3, fenceEnd).trim();
+				if (promptText !== '') {
+					cleanPrompt = `\n\n> 🤖 **Prompt:**\n> ${promptText.replace(/\n/g, '\n> ')}`;
+				}
+			}
+		}
+	}
 
 	return `${mainPart}${cleanPrompt}`;
 }
