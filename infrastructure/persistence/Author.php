@@ -27,14 +27,6 @@ final class Author extends ActiveRecord
         ];
     }
 
-    public function attributeLabels(): array
-    {
-        return [
-            'id' => 'ID',
-            'fio' => 'ФИО',
-        ];
-    }
-
     public function getBooks(): ActiveQuery
     {
         return $this->hasMany(Book::class, ['id' => 'book_id'])

@@ -65,20 +65,6 @@ final class Book extends ActiveRecord
         ];
     }
 
-    public function attributeLabels(): array
-    {
-        return [
-            'id' => 'ID',
-            'title' => 'Название',
-            'year' => 'Год выпуска',
-            'description' => 'Описание',
-            'isbn' => 'ISBN',
-            'cover_url' => 'Обложка',
-            'created_at' => 'Создано',
-            'updated_at' => 'Обновлено',
-        ];
-    }
-
     /** @return int[] */
     #[MapTo(target: BookReadDto::class, property: 'authorIds')]
     public function getAuthorIds(): array
