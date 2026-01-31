@@ -7,6 +7,8 @@ namespace tests\unit\infrastructure;
 use app\infrastructure\services\YiiPsrLogger;
 use Codeception\Test\Unit;
 use Psr\Log\LogLevel;
+use Yii;
+use yii\log\Logger;
 
 final class YiiPsrLoggerTest extends Unit
 {
@@ -75,5 +77,30 @@ final class YiiPsrLoggerTest extends Unit
     {
         $this->logger->log(LogLevel::INFO, 'message without context');
         $this->assertTrue(true);
+    }
+
+    public function testLogWithExceptionContextFormatsException(): void
+    {
+        $previousLogger = Yii::getLogger();
+        $yiiLogger = new Logger();
+        $yiiLogger->flushInterval = 0;
+        Yii::setLogger($yiiLogger);
+
+        try {
+            $this->logger->log(LogLevel::INFO, 'message with exception', [
+                'exception' => new \RuntimeException('boom'),
+            ]);
+
+            $this->assertNotEmpty($yiiLogger->messages);
+
+            $lastMessage = end($yiiLogger->messages);
+            $this->assertIsArray($lastMessage);
+            $this->assertIsString($lastMessage[0]);
+            $this->assertStringContainsString('RuntimeException', $lastMessage[0]);
+            $this->assertStringContainsString('boom', $lastMessage[0]);
+            $this->assertStringContainsString('Context', $lastMessage[0]);
+        } finally {
+            Yii::setLogger($previousLogger);
+        }
     }
 }

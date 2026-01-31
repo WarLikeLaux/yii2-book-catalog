@@ -61,7 +61,7 @@ final class SubscriptionController extends Controller
     {
         $viewModel = $this->viewDataFactory->getSubscriptionViewModel($authorId);
 
-        return $this->renderAjax('_form', [
+        return $this->renderPartial('_form', [
             'viewModel' => $viewModel,
         ]);
     }

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use app\presentation\components\ActiveForm;
 use app\presentation\subscriptions\dto\SubscriptionViewModel;
-use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
@@ -20,6 +20,8 @@ $form = ActiveForm::begin([
 
 <?= Html::hiddenInput('SubscriptionForm[authorId]', $viewModel->author->id) ?>
 
+<?= $form->errorSummary($viewModel->form) ?>
+
 <div class="form-group">
     <label>Подписка на автора: <strong><?= Html::encode($viewModel->author->fio) ?></strong></label>
 </div>
@@ -31,31 +33,3 @@ $form = ActiveForm::begin([
 </div>
 
 <?php ActiveForm::end(); ?>
-
-<?php
-$js = <<<JS
-$('#subscription-form').on('beforeSubmit', function(e) {
-    e.preventDefault();
-    var form = $(this);
-    $.ajax({
-        url: form.attr('action'),
-        type: 'POST',
-        data: form.serialize(),
-        success: function(data) {
-            if (data.success) {
-                alert(data.message);
-                $('#sub-modal').modal('hide');
-                form[0].reset();
-            } else {
-                alert(data.message || 'Ошибка при подписке');
-            }
-        },
-        error: function() {
-            alert('Ошибка при отправке запроса');
-        }
-    });
-    return false;
-});
-JS;
-$this->registerJs($js);
-?>

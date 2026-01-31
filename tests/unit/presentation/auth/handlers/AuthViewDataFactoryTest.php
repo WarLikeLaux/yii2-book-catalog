@@ -23,4 +23,15 @@ final class AuthViewDataFactoryTest extends Unit
         $this->assertSame('', $viewModel->form->password);
         $this->assertTrue($viewModel->form->rememberMe);
     }
+
+    public function testGetApiInfoViewModelReturnsViewModel(): void
+    {
+        $factory = new AuthViewDataFactory();
+
+        $viewModel = $factory->getApiInfoViewModel(8080, 8000, 'example.test');
+
+        $this->assertSame(8080, $viewModel->swaggerPort);
+        $this->assertSame(8000, $viewModel->appPort);
+        $this->assertSame('example.test', $viewModel->host);
+    }
 }

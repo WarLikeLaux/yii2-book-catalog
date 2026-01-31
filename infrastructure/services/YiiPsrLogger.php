@@ -7,6 +7,7 @@ namespace app\infrastructure\services;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Stringable;
+use Throwable;
 use Yii;
 use yii\log\Logger;
 
@@ -113,7 +114,26 @@ final readonly class YiiPsrLogger implements LoggerInterface
             return $message;
         }
 
-        $contextString = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $contextString = json_encode($this->normalizeContext($context), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         return "{$message} | Context: {$contextString}";
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    private function normalizeContext(array $context): array
+    {
+        if (!isset($context['exception']) || !$context['exception'] instanceof Throwable) {
+            return $context;
+        }
+
+        $exception = $context['exception'];
+        $context['exception'] = [
+            'class' => $exception::class,
+            'message' => $exception->getMessage(),
+        ];
+
+        return $context;
     }
 }
