@@ -9,6 +9,7 @@ use app\presentation\auth\handlers\AuthViewDataFactory;
 use app\presentation\books\handlers\BookSearchHandler;
 use app\presentation\common\dto\CatalogPaginationRequest;
 use app\presentation\common\traits\HtmxDetectionTrait;
+use Override;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -31,7 +32,7 @@ final class SiteController extends Controller
         parent::__construct($id, $module, $config);
     }
 
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         return [
@@ -55,7 +56,7 @@ final class SiteController extends Controller
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function actions(): array
     {
         return [

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\reports\forms;
 
+use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
 use yii\base\Model;
@@ -20,7 +21,7 @@ final class ReportFilterForm extends Model
         return $this->load((array)$request->get());
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function rules(): array
     {
@@ -29,7 +30,7 @@ final class ReportFilterForm extends Model
         ];
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function attributeLabels(): array
     {
@@ -38,7 +39,7 @@ final class ReportFilterForm extends Model
         ];
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function formName(): string
     {

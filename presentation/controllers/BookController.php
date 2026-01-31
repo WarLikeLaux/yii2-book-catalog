@@ -9,6 +9,7 @@ use app\presentation\books\handlers\BookCommandHandler;
 use app\presentation\books\handlers\BookViewDataFactory;
 use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
+use Override;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -27,7 +28,7 @@ final class BookController extends Controller
         parent::__construct($id, $module, $config);
     }
 
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         return [

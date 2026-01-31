@@ -10,6 +10,7 @@ use app\presentation\authors\handlers\AuthorSearchHandler;
 use app\presentation\authors\handlers\AuthorViewDataFactory;
 use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
+use Override;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -28,7 +29,7 @@ final class AuthorController extends Controller
         parent::__construct($id, $module, $config);
     }
 
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         return [

@@ -8,6 +8,7 @@ use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\subscriptions\forms\SubscriptionForm;
 use app\presentation\subscriptions\handlers\SubscriptionCommandHandler;
 use app\presentation\subscriptions\handlers\SubscriptionViewDataFactory;
+use Override;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -25,7 +26,7 @@ final class SubscriptionController extends Controller
         parent::__construct($id, $module, $config);
     }
 
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         return [

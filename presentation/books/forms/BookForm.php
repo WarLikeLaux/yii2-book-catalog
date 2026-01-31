@@ -8,6 +8,7 @@ use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\validators\IsbnValidator;
 use app\presentation\common\forms\RepositoryAwareForm;
+use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
 use yii\web\Request;
@@ -33,7 +34,7 @@ final class BookForm extends RepositoryAwareForm
     /** @var array<int>|string|null */
     public $authorIds = [];
 
-    /** @var \yii\web\UploadedFile|string|null */
+    /** @var UploadedFile|string|null */
     public $cover;
 
     /** @var array<int, string> */
@@ -52,7 +53,7 @@ final class BookForm extends RepositoryAwareForm
         return $isLoaded || $this->cover !== null;
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function rules(): array
     {
@@ -77,7 +78,7 @@ final class BookForm extends RepositoryAwareForm
         ];
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function attributeLabels(): array
     {

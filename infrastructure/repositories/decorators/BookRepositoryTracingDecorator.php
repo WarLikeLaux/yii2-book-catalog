@@ -7,6 +7,7 @@ namespace app\infrastructure\repositories\decorators;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TracerInterface;
 use app\domain\entities\Book;
+use Override;
 
 final readonly class BookRepositoryTracingDecorator implements BookRepositoryInterface
 {
@@ -16,19 +17,19 @@ final readonly class BookRepositoryTracingDecorator implements BookRepositoryInt
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function save(Book $book): void
     {
         $this->tracer->trace('BookRepo::' . __FUNCTION__, fn() => $this->repository->save($book));
     }
 
-    #[\Override]
+    #[Override]
     public function get(int $id): Book
     {
         return $this->tracer->trace('BookRepo::' . __FUNCTION__, fn(): Book => $this->repository->get($id));
     }
 
-    #[\Override]
+    #[Override]
     public function getByIdAndVersion(int $id, int $expectedVersion): Book
     {
         return $this->tracer->trace(
@@ -37,7 +38,7 @@ final readonly class BookRepositoryTracingDecorator implements BookRepositoryInt
         );
     }
 
-    #[\Override]
+    #[Override]
     public function delete(Book $book): void
     {
         $this->tracer->trace('BookRepo::' . __FUNCTION__, fn() => $this->repository->delete($book));

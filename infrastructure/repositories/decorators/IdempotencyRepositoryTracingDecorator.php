@@ -6,6 +6,7 @@ namespace app\infrastructure\repositories\decorators;
 
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\TracerInterface;
+use Override;
 
 final readonly class IdempotencyRepositoryTracingDecorator implements IdempotencyInterface
 {
@@ -16,7 +17,7 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
     }
 
     /** @return array{status: string, status_code: int|null, body: string|null}|null */
-    #[\Override]
+    #[Override]
     public function getRecord(string $key): array|null
     {
         return $this->tracer->trace(
@@ -25,7 +26,7 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
         );
     }
 
-    #[\Override]
+    #[Override]
     public function saveStarted(string $key, int $ttl): bool
     {
         return $this->tracer->trace(
@@ -34,7 +35,7 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
         );
     }
 
-    #[\Override]
+    #[Override]
     public function saveResponse(string $key, int $statusCode, string $body, int $ttl): void
     {
         $this->tracer->trace(

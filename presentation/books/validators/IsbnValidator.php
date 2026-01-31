@@ -6,6 +6,7 @@ namespace app\presentation\books\validators;
 
 use app\domain\values\Isbn;
 use Exception;
+use Override;
 use Yii;
 use yii\validators\Validator;
 
@@ -16,7 +17,7 @@ final class IsbnValidator extends Validator
     /**
      * @codeCoverageIgnore Yii2 framework инициализация валидатора
      */
-    #[\Override]
+    #[Override]
     public function init(): void
     {
         parent::init();
@@ -28,7 +29,7 @@ final class IsbnValidator extends Validator
         $this->message = Yii::t('app', 'isbn.error.invalid_format_hint');
     }
 
-    #[\Override]
+    #[Override]
     public function validateAttribute($model, $attribute): void
     {
         $value = $model->$attribute;

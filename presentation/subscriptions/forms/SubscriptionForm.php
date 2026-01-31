@@ -9,6 +9,7 @@ use app\presentation\common\forms\RepositoryAwareForm;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
+use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
 
@@ -20,7 +21,7 @@ final class SubscriptionForm extends RepositoryAwareForm
     /** @var int|string */
     public $authorId = 0;
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function rules(): array
     {
@@ -34,7 +35,7 @@ final class SubscriptionForm extends RepositoryAwareForm
         ];
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function attributeLabels(): array
     {

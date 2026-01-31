@@ -6,6 +6,8 @@ namespace app\infrastructure\phpstan\Rules;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -23,7 +25,7 @@ final readonly class DisallowYiiTOutsideAdaptersRule implements Rule
 
     public function processNode(Node $node, Scope $scope): array
     {
-        if (!($node->class instanceof Node\Name) || !($node->name instanceof Node\Identifier)) {
+        if (!($node->class instanceof Name) || !($node->name instanceof Identifier)) {
             return [];
         }
 

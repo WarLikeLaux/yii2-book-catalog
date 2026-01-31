@@ -9,6 +9,7 @@ use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\filters\RateLimitFilter;
 use OpenApi\Attributes as OA;
+use Override;
 use yii\data\DataProviderInterface;
 use yii\filters\AccessControl;
 
@@ -25,7 +26,7 @@ final class BookController extends BaseApiController
     }
 
     /** @return array<int|string, mixed> */
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();

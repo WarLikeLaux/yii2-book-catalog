@@ -17,6 +17,7 @@ use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use RuntimeException;
 use WeakMap;
+use yii\base\InvalidConfigException;
 use yii\db\Connection;
 
 final readonly class BookRepository extends BaseActiveRecordRepository implements BookRepositoryInterface
@@ -84,8 +85,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     }
 
     /**
-     * @throws \app\domain\exceptions\EntityNotFoundException
-     * @throws \app\domain\exceptions\StaleDataException
+     * @throws EntityNotFoundException
+     * @throws StaleDataException
      */
     public function getByIdAndVersion(int $id, int $expectedVersion): BookEntity
     {
@@ -107,8 +108,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     }
 
     /**
-     * @throws \app\domain\exceptions\EntityNotFoundException
-     * @throws \yii\base\InvalidConfigException
+     * @throws EntityNotFoundException
+     * @throws InvalidConfigException
      */
     public function delete(BookEntity $book): void
     {

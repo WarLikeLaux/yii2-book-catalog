@@ -8,6 +8,7 @@ use app\application\ports\SpanInterface;
 use Inspector\Models\Partials\Host;
 use Inspector\Models\Segment;
 use Inspector\Models\Transaction;
+use Override;
 use Throwable;
 
 /**
@@ -20,7 +21,7 @@ final readonly class InspectorSpan implements SpanInterface
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function setAttribute(string $key, string|int|float|bool $value): self
     {
         $k = strtolower($key);
@@ -39,7 +40,7 @@ final readonly class InspectorSpan implements SpanInterface
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function setStatus(bool $ok, string $description = ''): self
     {
         if ($this->item instanceof Segment) {
@@ -60,7 +61,7 @@ final readonly class InspectorSpan implements SpanInterface
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function recordException(Throwable $exception): self
     {
         if ($this->item instanceof Transaction) {
@@ -78,7 +79,7 @@ final readonly class InspectorSpan implements SpanInterface
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function end(): void
     {
         $this->item->end();

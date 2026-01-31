@@ -37,7 +37,7 @@ final readonly class ReportHandler
         }
 
         $criteria = $this->reportCriteriaMapper->toCriteria($form);
-        /** @var \app\application\reports\queries\ReportDto $data */
+        /** @var ReportDto $data */
         $data = $this->useCaseRunner->query(
             fn(): ReportDto => $this->reportQueryService->getTopAuthorsReport($criteria),
             $this->reportQueryService->getEmptyTopAuthorsReport($form->year !== null && $form->year !== '' ? (int)$form->year : null),

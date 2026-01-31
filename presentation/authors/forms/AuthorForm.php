@@ -6,6 +6,7 @@ namespace app\presentation\authors\forms;
 
 use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\common\forms\RepositoryAwareForm;
+use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
 
@@ -17,7 +18,7 @@ final class AuthorForm extends RepositoryAwareForm
     /** @var string|int|null */
     public $fio = '';
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function rules(): array
     {
@@ -29,7 +30,7 @@ final class AuthorForm extends RepositoryAwareForm
         ];
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function attributeLabels(): array
     {

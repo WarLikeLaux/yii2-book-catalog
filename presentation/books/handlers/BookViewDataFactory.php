@@ -36,7 +36,7 @@ final readonly class BookViewDataFactory
         $dtos = array_map(
             fn(mixed $dto): BookReadDto => $dto instanceof BookReadDto
                 ? $this->withResolvedUrl($dto)
-                : throw new \LogicException('Expected BookReadDto'),
+                : throw new LogicException('Expected BookReadDto'),
             $queryResult->getModels(),
         );
 

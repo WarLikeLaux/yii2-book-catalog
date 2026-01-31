@@ -6,8 +6,9 @@ namespace app\domain\values;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
+use Stringable;
 
-final readonly class BookYear implements \Stringable
+final readonly class BookYear implements Stringable
 {
     public private(set) int $value;
 

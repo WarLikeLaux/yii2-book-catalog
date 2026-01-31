@@ -15,6 +15,7 @@ use app\presentation\common\handlers\UseCaseHandlerTrait;
 use app\presentation\common\services\WebUseCaseRunner;
 use AutoMapper\AutoMapperInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 use Yii;
 
 /**
@@ -54,7 +55,7 @@ final readonly class AuthorCommandHandler
             $data = $this->prepareCommandData($form);
             /** @var CreateAuthorCommand $command */
             $command = $this->autoMapper->map($data, CreateAuthorCommand::class);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Failed to map author form to CreateAuthorCommand', ['exception' => $e]);
             $form->addError('fio', Yii::t('app', 'author.error.create_failed'));
             return null;
@@ -77,7 +78,7 @@ final readonly class AuthorCommandHandler
             $data['id'] = $id;
             /** @var UpdateAuthorCommand $command */
             $command = $this->autoMapper->map($data, UpdateAuthorCommand::class);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Failed to map author form to UpdateAuthorCommand', ['exception' => $e, 'author_id' => $id]);
             $form->addError('fio', Yii::t('app', 'author.error.update_failed'));
             return false;

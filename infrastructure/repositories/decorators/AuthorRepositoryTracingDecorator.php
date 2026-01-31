@@ -7,6 +7,7 @@ namespace app\infrastructure\repositories\decorators;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\TracerInterface;
 use app\domain\entities\Author;
+use Override;
 
 final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositoryInterface
 {
@@ -16,19 +17,19 @@ final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositor
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function save(Author $author): void
     {
         $this->tracer->trace('AuthorRepo::' . __FUNCTION__, fn() => $this->repository->save($author));
     }
 
-    #[\Override]
+    #[Override]
     public function delete(Author $author): void
     {
         $this->tracer->trace('AuthorRepo::' . __FUNCTION__, fn() => $this->repository->delete($author));
     }
 
-    #[\Override]
+    #[Override]
     public function get(int $id): Author
     {
         return $this->tracer->trace('AuthorRepo::' . __FUNCTION__, fn(): Author => $this->repository->get($id));
