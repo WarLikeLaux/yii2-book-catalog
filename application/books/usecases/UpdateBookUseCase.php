@@ -31,9 +31,6 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof UpdateBookCommand);
-
         $currentYear = (int) $this->clock->now()->format('Y');
 
         $book = $this->bookRepository->getByIdAndVersion($command->id, $command->version);

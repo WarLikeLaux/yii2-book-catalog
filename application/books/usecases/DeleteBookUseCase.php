@@ -26,8 +26,6 @@ final readonly class DeleteBookUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof DeleteBookCommand);
         $book = $this->bookRepository->get($command->id);
         $year = $book->year->value;
         $wasPublished = $book->published;

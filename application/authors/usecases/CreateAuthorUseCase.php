@@ -27,9 +27,6 @@ final readonly class CreateAuthorUseCase implements UseCaseInterface
      */
     public function execute(object $command): int
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof CreateAuthorCommand);
-
         try {
             $author = Author::create($command->fio);
             $this->authorRepository->save($author);

@@ -30,8 +30,6 @@ final readonly class CreateBookUseCase implements UseCaseInterface
      */
     public function execute(object $command): int
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof CreateBookCommand);
         $currentYear = (int) $this->clock->now()->format('Y');
 
         $cover = $command->cover;

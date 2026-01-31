@@ -23,8 +23,6 @@ final readonly class DeleteAuthorUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof DeleteAuthorCommand);
         $author = $this->authorRepository->get($command->id);
 
         $this->authorRepository->delete($author);
