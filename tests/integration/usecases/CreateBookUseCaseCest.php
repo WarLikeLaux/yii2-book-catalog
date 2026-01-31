@@ -6,6 +6,7 @@ use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\common\pipeline\PipelineFactory;
 use app\domain\exceptions\AlreadyExistsException;
+use app\domain\values\AuthorIdCollection;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use yii\db\Query;
@@ -28,8 +29,8 @@ final class CreateBookUseCaseCest
             year: 2024,
             isbn: '9783161484100',
             description: 'Test description',
-            authorIds: [$author1Id, $author2Id],
-            cover: null,
+            authorIds: AuthorIdCollection::fromArray([$author1Id, $author2Id]),
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
@@ -58,8 +59,8 @@ final class CreateBookUseCaseCest
             year: 2024,
             isbn: '9780306406157',
             description: 'Test',
-            authorIds: [$authorId],
-            cover: null,
+            authorIds: AuthorIdCollection::fromArray([$authorId]),
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
@@ -95,8 +96,8 @@ final class CreateBookUseCaseCest
             year: 2024,
             isbn: '9783161484100',
             description: 'Should fail',
-            authorIds: [$authorId],
-            cover: null,
+            authorIds: AuthorIdCollection::fromArray([$authorId]),
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
@@ -118,8 +119,8 @@ final class CreateBookUseCaseCest
             year: 2024,
             isbn: '9780306406157',
             description: 'Test',
-            authorIds: [99999],
-            cover: null,
+            authorIds: AuthorIdCollection::fromArray([99999]),
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);

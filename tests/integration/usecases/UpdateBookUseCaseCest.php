@@ -6,6 +6,7 @@ use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
+use app\domain\values\AuthorIdCollection;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use app\infrastructure\persistence\User;
@@ -36,9 +37,9 @@ final class UpdateBookUseCaseCest
             year: 2024,
             isbn: '9783161484100',
             description: 'Updated description',
-            authorIds: [$authorId],
+            authorIds: AuthorIdCollection::fromArray([$authorId]),
             version: 1,
-            cover: null,
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);
@@ -71,9 +72,9 @@ final class UpdateBookUseCaseCest
             year: 2024,
             isbn: '9783161484101',
             description: 'Updated description',
-            authorIds: [$authorId],
+            authorIds: AuthorIdCollection::fromArray([$authorId]),
             version: 1,
-            cover: null,
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);
@@ -96,9 +97,9 @@ final class UpdateBookUseCaseCest
             year: 2024,
             isbn: '9783161484102',
             description: 'Updated description',
-            authorIds: [],
+            authorIds: AuthorIdCollection::fromArray([]),
             version: 1,
-            cover: null,
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);

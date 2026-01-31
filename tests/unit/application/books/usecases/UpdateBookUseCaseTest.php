@@ -12,7 +12,9 @@ use app\domain\entities\Book;
 use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\StaleDataException;
+use app\domain\values\AuthorIdCollection;
 use app\domain\values\Isbn;
+use app\domain\values\StoredFileReference;
 use BookTestHelper;
 use Codeception\Test\Unit;
 use DateTimeImmutable;
@@ -48,9 +50,9 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'New description',
             isbn: '9780132350884',
-            authorIds: [1, 2],
+            authorIds: AuthorIdCollection::fromArray([1, 2]),
             version: 1,
-            cover: '/uploads/new-cover.jpg',
+            storedCover: new StoredFileReference('/uploads/new-cover.jpg'),
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -92,7 +94,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [1],
+            authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
         );
 
@@ -114,7 +116,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [1],
+            authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
         );
 
@@ -150,7 +152,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'New description',
             isbn: '9780132350884',
-            authorIds: [1],
+            authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
         );
 
@@ -186,7 +188,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '979-10-90636-07-1',
-            authorIds: [1],
+            authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
         );
 
@@ -220,9 +222,9 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [1],
+            authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
-            cover: '/uploads/new-cover.png',
+            storedCover: new StoredFileReference('/uploads/new-cover.png'),
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -255,9 +257,9 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2024,
             description: 'New description text',
             isbn: '9780132350884',
-            authorIds: [1],
+            authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
-            cover: ':284',
+            storedCover: new StoredFileReference(':284'),
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -290,7 +292,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2026,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [1],
+            authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
         );
 

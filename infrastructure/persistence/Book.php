@@ -36,6 +36,18 @@ final class Book extends ActiveRecord
         return 'books';
     }
 
+    /**
+     * @param mixed $_value
+     * @param object|array<string, mixed> $_source
+     * @param array<string, mixed> $_context
+     * @return array<int, string>
+     */
+    public static function mapAuthorNames(mixed $_value, object|array $_source, array $_context): array
+    {
+        /** @var array<int, string> */
+        return is_array($_value) ? $_value : [];
+    }
+
     public function behaviors(): array
     {
         return [
@@ -79,7 +91,7 @@ final class Book extends ActiveRecord
     }
 
     /** @return array<int, string> */
-    #[MapTo(target: BookReadDto::class, property: 'authorNames')]
+    #[MapTo(target: BookReadDto::class, property: 'authorNames', transformer: [self::class, 'mapAuthorNames'])]
     public function getAuthorNames(): array
     {
         $names = [];

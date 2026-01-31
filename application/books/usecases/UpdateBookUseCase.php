@@ -11,7 +11,6 @@ use app\application\ports\UseCaseInterface;
 use app\domain\events\BookUpdatedEvent;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
-use app\domain\values\StoredFileReference;
 use Psr\Clock\ClockInterface;
 
 /**
@@ -42,17 +41,11 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
         $book->correctIsbn(new Isbn($command->isbn));
         $book->updateDescription($command->description);
 
-        if ($command->cover !== null) {
-            $cover = $command->cover;
-
-            if (is_string($cover)) {
-                $cover = new StoredFileReference($cover);
-            }
-
-            $book->updateCover($cover);
+        if ($command->storedCover !== null) {
+            $book->updateCover($command->storedCover);
         }
 
-        $book->replaceAuthors($command->authorIds);
+        $book->replaceAuthors($command->authorIds->toArray());
 
         $this->bookRepository->save($book);
 

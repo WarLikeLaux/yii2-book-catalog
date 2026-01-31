@@ -9,6 +9,8 @@ use app\application\books\usecases\CreateBookUseCase;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
 use app\domain\exceptions\DomainException;
+use app\domain\values\AuthorIdCollection;
+use app\domain\values\StoredFileReference;
 use BookTestHelper;
 use Codeception\Test\Unit;
 use DateTimeImmutable;
@@ -40,8 +42,8 @@ final class CreateBookUseCaseTest extends Unit
             year: 2008,
             description: 'A Handbook of Agile Software Craftsmanship',
             isbn: '9780132350884',
-            authorIds: [1, 2],
-            cover: '/uploads/cover.jpg',
+            authorIds: AuthorIdCollection::fromArray([1, 2]),
+            storedCover: new StoredFileReference('/uploads/cover.jpg'),
         );
 
         $this->bookRepository->expects($this->once())
@@ -64,7 +66,7 @@ final class CreateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: '9780132350884',
-            authorIds: [1],
+            authorIds: AuthorIdCollection::fromArray([1]),
         );
 
         $this->bookRepository->expects($this->once())
@@ -84,7 +86,7 @@ final class CreateBookUseCaseTest extends Unit
             year: 2024,
             description: 'Description',
             isbn: 'invalid-isbn',
-            authorIds: [1],
+            authorIds: AuthorIdCollection::fromArray([1]),
         );
 
         $this->expectException(DomainException::class);
@@ -99,7 +101,7 @@ final class CreateBookUseCaseTest extends Unit
             year: 2024,
             description: 'A book without cover',
             isbn: '9780132350884',
-            authorIds: [],
+            authorIds: AuthorIdCollection::fromArray([]),
         );
 
         $this->bookRepository->expects($this->once())
@@ -120,8 +122,8 @@ final class CreateBookUseCaseTest extends Unit
             year: 2023,
             description: 'Desc',
             isbn: '978-3-16-148410-0',
-            authorIds: [1, 2],
-            cover: 'http://cover.com',
+            authorIds: AuthorIdCollection::fromArray([1, 2]),
+            storedCover: new StoredFileReference('http://cover.com'),
         );
 
         $this->bookRepository->expects($this->once())
@@ -143,7 +145,7 @@ final class CreateBookUseCaseTest extends Unit
             year: 2026,
             description: 'A book from the future',
             isbn: '9780132350884',
-            authorIds: [1],
+            authorIds: AuthorIdCollection::fromArray([1]),
         );
 
         $this->bookRepository->expects($this->never())->method('save');

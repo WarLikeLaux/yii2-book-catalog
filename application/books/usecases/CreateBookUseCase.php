@@ -10,7 +10,6 @@ use app\application\ports\UseCaseInterface;
 use app\domain\entities\Book;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
-use app\domain\values\StoredFileReference;
 use Psr\Clock\ClockInterface;
 use RuntimeException;
 
@@ -32,20 +31,14 @@ final readonly class CreateBookUseCase implements UseCaseInterface
     {
         $currentYear = (int) $this->clock->now()->format('Y');
 
-        $cover = $command->cover;
-
-        if (is_string($cover)) {
-            $cover = new StoredFileReference($cover);
-        }
-
         $book = Book::create(
             title: $command->title,
             year: new BookYear($command->year, $currentYear),
             isbn: new Isbn($command->isbn),
             description: $command->description,
-            coverImage: $cover,
+            coverImage: $command->storedCover,
         );
-        $book->replaceAuthors($command->authorIds);
+        $book->replaceAuthors($command->authorIds->toArray());
 
         $this->bookRepository->save($book);
         $bookId = $book->id;
