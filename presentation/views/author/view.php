@@ -5,8 +5,9 @@ declare(strict_types=1);
 use app\presentation\authors\dto\AuthorViewViewModel;
 use yii\helpers\Html;
 
-/** @var AuthorViewViewModel $viewModel */
-
+/**
+ * @var AuthorViewViewModel $viewModel
+ */
 $this->title = $viewModel->author->fio;
 $this->params['breadcrumbs'][] = ['label' => 'Авторы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;

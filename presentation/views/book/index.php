@@ -8,8 +8,9 @@ use yii\bootstrap5\LinkPager;
 use yii\grid\GridView;
 use yii\helpers\Html;
 
-/** @var BookListViewModel $viewModel */
-
+/**
+ * @var BookListViewModel $viewModel
+ */
 $this->title = 'Книги';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
@@ -35,7 +36,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'isbn',
             [
                 'attribute' => 'authors',
-                'value' => static fn (BookReadDto $model) => implode(', ', $model->authorNames),
+                'value' => static fn (BookReadDto $model): string => implode(', ', $model->authorNames),
             ],
             [
                 'class' => 'yii\grid\ActionColumn',

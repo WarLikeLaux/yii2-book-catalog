@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-/** @var yii\web\View $this */
-/** @var array<int, array{label: string, value: string, url: string, logoUrl: string}> $items */
-
+/**
+ * @var yii\web\View $this
+ */
+/**
+ * @var array<int, array{label: string, value: string, url: string, logoUrl: string}> $items
+ */
 use yii\bootstrap5\Html;
 
 ?>

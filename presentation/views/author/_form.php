@@ -6,10 +6,15 @@ use app\presentation\components\ActiveField;
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
 
-/** @var yii\web\View $this */
-/** @var app\models\forms\AuthorForm $model */
-/** @var yii\bootstrap5\ActiveForm $form */
-
+/**
+ * @var yii\web\View $this
+ */
+/**
+ * @var app\models\forms\AuthorForm $model
+ */
+/**
+ * @var yii\bootstrap5\ActiveForm $form
+ */
 ?>
 
 <?php $form = ActiveForm::begin([

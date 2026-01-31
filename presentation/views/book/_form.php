@@ -9,11 +9,18 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\JsExpression;
 
-/** @var yii\web\View $this */
-/** @var app\presentation\books\forms\BookForm $model */
-/** @var array $authors */
-/** @var yii\bootstrap5\ActiveForm $form */
-
+/**
+ * @var yii\web\View $this
+ */
+/**
+ * @var app\presentation\books\forms\BookForm $model
+ */
+/**
+ * @var array $authors
+ */
+/**
+ * @var yii\bootstrap5\ActiveForm $form
+ */
 ?>
 
 <?php $form = ActiveForm::begin([

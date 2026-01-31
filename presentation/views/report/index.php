@@ -6,9 +6,10 @@ use app\presentation\reports\dto\ReportViewModel;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
-/** @var ReportViewModel $viewModel */
-
-$this->title = 'ТОП-10 авторов за ' . (string)$viewModel->year . ' год';
+/**
+ * @var ReportViewModel $viewModel
+ */
+$this->title = 'ТОП-10 авторов за ' . $viewModel->year . ' год';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 

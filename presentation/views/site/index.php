@@ -8,8 +8,9 @@ use yii\bootstrap5\Modal;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
-/** @var BookIndexViewModel $viewModel */
-
+/**
+ * @var BookIndexViewModel $viewModel
+ */
 $this->title = 'Каталог книг';
 ?>
 

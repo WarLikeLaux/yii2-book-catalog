@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\ClassMethod\RemoveParentDelegatingConstructorRector;
+use Rector\DeadCode\Rector\Node\RemoveNonExistingVarAnnotationRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
 use Rector\ValueObject\PhpVersion;
 use Tools\Rector\AddCodeCoverageIgnoreToFormMethodsRector;
+use Tools\Rector\MultilineViewVarAnnotationRector;
 
 return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->paths([
@@ -31,12 +33,15 @@ return static function (RectorConfig $rectorConfig): void {
     ]);
 
     $rectorConfig->rule(AddCodeCoverageIgnoreToFormMethodsRector::class);
+    $rectorConfig->rule(MultilineViewVarAnnotationRector::class);
 
     $rectorConfig->skip([
-        __DIR__ . '/presentation/views/*',
-        __DIR__ . '/presentation/mail/*',
         __DIR__ . '/infrastructure/persistence/*',
         __DIR__ . '/domain/entities/*',
+        RemoveNonExistingVarAnnotationRector::class => [
+            __DIR__ . '/presentation/views/*',
+            __DIR__ . '/presentation/mail/*',
+        ],
         RemoveParentDelegatingConstructorRector::class => [
             __DIR__ . '/domain/exceptions/AlreadyExistsException.php',
             __DIR__ . '/domain/exceptions/StaleDataException.php',

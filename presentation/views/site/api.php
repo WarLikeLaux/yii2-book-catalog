@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-/** @var yii\web\View $this */
-/** @var app\presentation\auth\dto\ApiInfoViewModel $viewModel */
-
+/**
+ * @var yii\web\View $this
+ */
+/**
+ * @var app\presentation\auth\dto\ApiInfoViewModel $viewModel
+ */
 use yii\helpers\Html;
 
 $this->title = 'API Documentation';

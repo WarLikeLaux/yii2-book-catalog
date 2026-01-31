@@ -5,8 +5,9 @@ declare(strict_types=1);
 use app\presentation\authors\dto\AuthorEditViewModel;
 use yii\helpers\Html;
 
-/** @var AuthorEditViewModel $viewModel */
-
+/**
+ * @var AuthorEditViewModel $viewModel
+ */
 $this->title = Yii::t('app', 'ui.author_update');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.authors'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $viewModel->author->fio, 'url' => ['view', 'id' => $viewModel->author->id]];

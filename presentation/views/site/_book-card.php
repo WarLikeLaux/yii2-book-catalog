@@ -39,7 +39,7 @@ $coverUrl = $book->coverUrl ?? '';
             </div>
 
             <?php if ($book->description): ?>
-                <p class="small"><?= Html::encode(mb_substr($book->description, 0, 100)) ?>...</p>
+                <p class="small"><?= Html::encode(mb_substr((string) $book->description, 0, 100)) ?>...</p>
             <?php endif; ?>
         </div>
     </div>

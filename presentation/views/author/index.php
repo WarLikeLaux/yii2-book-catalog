@@ -6,8 +6,9 @@ use app\presentation\authors\dto\AuthorListViewModel;
 use yii\grid\GridView;
 use yii\helpers\Html;
 
-/** @var AuthorListViewModel $viewModel */
-
+/**
+ * @var AuthorListViewModel $viewModel
+ */
 $this->title = 'Авторы';
 $this->params['breadcrumbs'][] = $this->title;
 ?>

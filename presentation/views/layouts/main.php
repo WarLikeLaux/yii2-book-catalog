@@ -12,9 +12,12 @@ use yii\bootstrap5\Nav;
 use yii\bootstrap5\NavBar;
 use yii\helpers\Url;
 
-/** @var View $this */
-/** @var string $content */
-
+/**
+ * @var View $this
+ */
+/**
+ * @var string $content
+ */
 AppAsset::register($this);
 
 $this->registerCsrfMetaTags();

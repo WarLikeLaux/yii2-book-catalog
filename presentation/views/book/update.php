@@ -5,8 +5,9 @@ declare(strict_types=1);
 use app\presentation\books\dto\BookEditViewModel;
 use yii\helpers\Html;
 
-/** @var BookEditViewModel $viewModel */
-
+/**
+ * @var BookEditViewModel $viewModel
+ */
 $this->title = 'Обновить книгу';
 $this->params['breadcrumbs'][] = ['label' => 'Книги', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $viewModel->book->title, 'url' => ['view', 'id' => $viewModel->book->id]];
