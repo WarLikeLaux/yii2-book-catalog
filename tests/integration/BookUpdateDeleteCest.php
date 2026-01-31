@@ -29,7 +29,7 @@ final class BookCrudCest
 
         $I->amOnRoute('book/update', ['id' => $bookId]);
         $I->seeResponseCodeIs(200);
-        $I->see('Обновить книгу');
+        $I->see(Yii::t('app', 'ui.book_update'));
         $I->seeInField('BookForm[title]', 'Book To Update');
     }
 

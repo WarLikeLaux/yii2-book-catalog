@@ -16,14 +16,14 @@ final class BookCest
     {
         $I->amOnRoute('book/index');
         $I->seeResponseCodeIs(200);
-        $I->see('Книги', 'h1');
+        $I->see(Yii::t('app', 'ui.books'), 'h1');
     }
 
     public function testCanViewBookCreatePage(IntegrationTester $I): void
     {
         $I->amOnRoute('book/create');
         $I->seeResponseCodeIs(200);
-        $I->see('Создать книгу', 'h1');
+        $I->see(Yii::t('app', 'ui.book_create'), 'h1');
         $I->seeElement('form');
         $I->seeElement('input[name="BookForm[title]"]');
     }
