@@ -119,10 +119,14 @@ final class SiteController extends Controller
 
     public function actionApi(): string
     {
+        $viewModel = $this->authViewDataFactory->getApiInfoViewModel(
+            (int)Yii::$app->params['swaggerPort'],
+            (int)Yii::$app->params['appPort'],
+            (string)$this->request->serverName,
+        );
+
         return $this->render('api', [
-            'swaggerPort' => Yii::$app->params['swaggerPort'],
-            'appPort' => Yii::$app->params['appPort'],
-            'host' => $this->request->serverName,
+            'viewModel' => $viewModel,
         ]);
     }
 }

@@ -70,10 +70,10 @@ final class BookController extends Controller
 
     public function actionView(int $id): string
     {
-        $book = $this->itemViewFactory->getBookView($id);
+        $viewModel = $this->itemViewFactory->getBookViewModel($id);
 
         return $this->render('view', [
-            'book' => $book,
+            'viewModel' => $viewModel,
         ]);
     }
 

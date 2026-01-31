@@ -69,8 +69,8 @@ final class AuthorController extends Controller
 
     public function actionView(int $id): string
     {
-        $viewData = $this->itemViewFactory->getAuthorView($id);
-        return $this->render('view', ['model' => $viewData]);
+        $viewModel = $this->itemViewFactory->getAuthorViewModel($id);
+        return $this->render('view', ['viewModel' => $viewModel]);
     }
 
     public function actionCreate(): string|Response

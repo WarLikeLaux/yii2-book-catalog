@@ -8,6 +8,7 @@ use app\application\books\queries\BookReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookFinderInterface;
 use app\presentation\books\dto\BookEditViewModel;
+use app\presentation\books\dto\BookViewViewModel;
 use app\presentation\books\forms\BookForm;
 use app\presentation\services\FileUrlResolver;
 use AutoMapper\AutoMapperInterface;
@@ -37,6 +38,13 @@ final readonly class BookItemViewFactory
         return new BookEditViewModel(
             $form ?? $this->getBookForUpdate($id),
             $this->getAuthorsList(),
+            $this->getBookView($id),
+        );
+    }
+
+    public function getBookViewModel(int $id): BookViewViewModel
+    {
+        return new BookViewViewModel(
             $this->getBookView($id),
         );
     }
