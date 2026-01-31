@@ -28,8 +28,6 @@ final readonly class PublishBookUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof PublishBookCommand);
         $book = $this->bookRepository->get($command->bookId);
 
         $book->publish($this->publicationPolicy);

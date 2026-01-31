@@ -41,16 +41,6 @@ final class Subscription extends ActiveRecord
         ];
     }
 
-    public function attributeLabels(): array
-    {
-        return [
-            'id' => 'ID',
-            'phone' => 'Телефон',
-            'author_id' => 'Автор',
-            'created_at' => 'Создано',
-        ];
-    }
-
     public function getAuthor(): ActiveQuery
     {
         return $this->hasOne(Author::class, ['id' => 'author_id']);

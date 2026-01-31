@@ -11,6 +11,8 @@ use Inspector\Inspector;
 use Inspector\Models\Partials\Http;
 use Inspector\Models\Partials\Socket;
 use Inspector\Models\Transaction;
+use Override;
+use Throwable;
 
 /**
  * @codeCoverageIgnore Инфраструктурный адаптер для Inspector SDK
@@ -30,7 +32,7 @@ final class InspectorTracer implements TracerInterface
         $this->inspector = new Inspector($configuration);
     }
 
-    #[\Override]
+    #[Override]
     /** @param array<string, mixed> $attributes */
     public function startSpan(string $name, array $attributes = []): SpanInterface
     {
@@ -209,7 +211,7 @@ final class InspectorTracer implements TracerInterface
         return str_contains($k, 'cookie') || str_contains($k, 'header');
     }
 
-    #[\Override]
+    #[Override]
     /** @param array<string, mixed> $attributes */
     public function trace(string $name, callable $callback, array $attributes = []): mixed
     {
@@ -221,7 +223,7 @@ final class InspectorTracer implements TracerInterface
 
         try {
             return $callback();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $span->recordException($e);
             throw $e;
         } finally {
@@ -229,13 +231,13 @@ final class InspectorTracer implements TracerInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function activeSpan(): SpanInterface|null
     {
         return $this->currentSpan;
     }
 
-    #[\Override]
+    #[Override]
     public function flush(): void
     {
     }

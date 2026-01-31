@@ -12,6 +12,7 @@ use app\application\ports\TranslatorInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
+use app\presentation\common\dto\ApiResponse;
 use app\presentation\common\services\WebUseCaseRunner;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -94,8 +95,9 @@ final class WebUseCaseRunnerQueryTest extends Unit
             'success',
         );
 
-        $this->assertFalse($result['success']);
-        $this->assertSame(DomainErrorCode::BookTitleEmpty->value, $result['message']);
+        $this->assertInstanceOf(ApiResponse::class, $result);
+        $this->assertFalse($result->success);
+        $this->assertSame(DomainErrorCode::BookTitleEmpty->value, $result->message);
     }
 
     public function testExecuteForApiReturnsGenericError(): void
@@ -120,7 +122,8 @@ final class WebUseCaseRunnerQueryTest extends Unit
             'success',
         );
 
-        $this->assertFalse($result['success']);
-        $this->assertSame('error.unexpected', $result['message']);
+        $this->assertInstanceOf(ApiResponse::class, $result);
+        $this->assertFalse($result->success);
+        $this->assertSame('error.unexpected', $result->message);
     }
 }

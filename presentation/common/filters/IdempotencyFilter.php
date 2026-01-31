@@ -7,6 +7,7 @@ namespace app\presentation\common\filters;
 use app\application\common\config\IdempotencyConfig;
 use app\application\common\dto\IdempotencyRecordDto;
 use app\application\common\IdempotencyServiceInterface;
+use Override;
 use Yii;
 use yii\base\ActionFilter;
 use yii\web\Request;
@@ -33,7 +34,7 @@ final class IdempotencyFilter extends ActionFilter
         parent::__construct($config);
     }
 
-    #[\Override]
+    #[Override]
     public function beforeAction($_action): bool
     {
         $request = Yii::$app->request;
@@ -71,7 +72,7 @@ final class IdempotencyFilter extends ActionFilter
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function afterAction($_action, $result): mixed
     {
         $request = Yii::$app->request;

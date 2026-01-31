@@ -6,8 +6,9 @@ namespace app\domain\values;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
+use Stringable;
 
-final readonly class Isbn implements \Stringable
+final readonly class Isbn implements Stringable
 {
     private const array ISBN13_PREFIXES = ['978', '979'];
 

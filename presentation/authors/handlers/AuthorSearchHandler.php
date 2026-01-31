@@ -40,7 +40,7 @@ final readonly class AuthorSearchHandler
             $criteria->pageSize,
         );
 
-        /** @var \app\application\authors\queries\AuthorReadDto[] $models */
+        /** @var AuthorReadDto[] $models */
         $models = $result->getModels();
 
         return [

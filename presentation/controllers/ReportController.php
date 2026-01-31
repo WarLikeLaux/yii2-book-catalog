@@ -22,7 +22,7 @@ final class ReportController extends Controller
     {
         /** @var array<string, mixed> $params */
         $params = $this->request->get();
-        $viewData = $this->reportHandler->prepareIndexViewData($params);
-        return $this->render('index', $viewData);
+        $viewModel = $this->reportHandler->prepareIndexViewModel($params);
+        return $this->render('index', ['viewModel' => $viewModel]);
     }
 }

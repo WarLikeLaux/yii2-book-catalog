@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers\api\v1;
 
+use Override;
 use yii\filters\ContentNegotiator;
 use yii\filters\Cors;
 use yii\rest\Controller;
@@ -12,7 +13,7 @@ use yii\web\Response;
 abstract class BaseApiController extends Controller
 {
     /** @return array<int|string, mixed> */
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();

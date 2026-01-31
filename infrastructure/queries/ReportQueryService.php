@@ -7,6 +7,7 @@ namespace app\infrastructure\queries;
 use app\application\ports\ReportQueryServiceInterface;
 use app\application\reports\queries\ReportCriteria;
 use app\application\reports\queries\ReportDto;
+use Override;
 use yii\db\Connection;
 
 final readonly class ReportQueryService implements ReportQueryServiceInterface
@@ -16,7 +17,7 @@ final readonly class ReportQueryService implements ReportQueryServiceInterface
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function getTopAuthorsReport(ReportCriteria $criteria): ReportDto
     {
         $year = $criteria->year ?? (int)date('Y');
@@ -25,7 +26,7 @@ final readonly class ReportQueryService implements ReportQueryServiceInterface
         return new ReportDto($topAuthors, $year);
     }
 
-    #[\Override]
+    #[Override]
     public function getEmptyTopAuthorsReport(?int $year = null): ReportDto
     {
         return new ReportDto([], $year ?? (int)date('Y'));

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace app\infrastructure\services\observability;
 
 use app\application\ports\SpanInterface;
-use Inspector\Models\Partials\Host;
 use Inspector\Models\Segment;
 use Inspector\Models\Transaction;
+use Override;
 use Throwable;
 
 /**
@@ -20,7 +20,7 @@ final readonly class InspectorSpan implements SpanInterface
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function setAttribute(string $key, string|int|float|bool $value): self
     {
         $k = strtolower($key);
@@ -39,7 +39,7 @@ final readonly class InspectorSpan implements SpanInterface
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function setStatus(bool $ok, string $description = ''): self
     {
         if ($this->item instanceof Segment) {
@@ -60,7 +60,7 @@ final readonly class InspectorSpan implements SpanInterface
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function recordException(Throwable $exception): self
     {
         if ($this->item instanceof Transaction) {
@@ -78,7 +78,7 @@ final readonly class InspectorSpan implements SpanInterface
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function end(): void
     {
         $this->item->end();
@@ -89,8 +89,7 @@ final readonly class InspectorSpan implements SpanInterface
             $data = $this->item->transaction;
 
             if (
-                is_array($data)
-                && isset($data['timestamp'])
+                isset($data['timestamp'])
                 && is_numeric($data['timestamp'])
                 && $data['timestamp'] < 9999999999
             ) {
@@ -101,10 +100,6 @@ final readonly class InspectorSpan implements SpanInterface
         }
 
         if (!($this->item instanceof Transaction)) {
-            return;
-        }
-
-        if (!$this->item->host instanceof Host) {
             return;
         }
 

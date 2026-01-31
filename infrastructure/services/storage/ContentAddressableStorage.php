@@ -13,6 +13,7 @@ use app\domain\values\FileKey;
 use Generator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 use yii\helpers\FileHelper;
 
 final readonly class ContentAddressableStorage implements ContentStorageInterface
@@ -135,7 +136,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
 
         $seenKeys = [];
 
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if (!$file->isFile()) {
                 continue; // @codeCoverageIgnore

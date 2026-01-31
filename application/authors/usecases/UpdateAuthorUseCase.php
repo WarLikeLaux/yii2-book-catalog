@@ -27,8 +27,6 @@ final readonly class UpdateAuthorUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof UpdateAuthorCommand);
         $author = $this->authorRepository->get($command->id);
 
         try {

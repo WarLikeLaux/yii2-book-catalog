@@ -8,6 +8,7 @@ use app\application\ports\CacheInterface;
 use app\application\ports\ReportQueryServiceInterface;
 use app\application\reports\queries\ReportCriteria;
 use app\application\reports\queries\ReportDto;
+use Override;
 
 final readonly class ReportQueryServiceCachingDecorator implements ReportQueryServiceInterface
 {
@@ -18,7 +19,7 @@ final readonly class ReportQueryServiceCachingDecorator implements ReportQuerySe
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function getTopAuthorsReport(ReportCriteria $criteria): ReportDto
     {
         $year = $criteria->year ?? (int)date('Y');
@@ -38,7 +39,7 @@ final readonly class ReportQueryServiceCachingDecorator implements ReportQuerySe
         return new ReportDto($topAuthors, $year);
     }
 
-    #[\Override]
+    #[Override]
     public function getEmptyTopAuthorsReport(?int $year = null): ReportDto
     {
         return $this->inner->getEmptyTopAuthorsReport($year);

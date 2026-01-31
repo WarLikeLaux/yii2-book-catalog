@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\authors\forms;
 
+use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use yii\base\Model;
 
@@ -13,7 +14,7 @@ final class AuthorSearchForm extends Model
     public int $page = 1;
     public int $pageSize = 20;
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function rules(): array
     {
@@ -25,7 +26,7 @@ final class AuthorSearchForm extends Model
         ];
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function formName(): string
     {

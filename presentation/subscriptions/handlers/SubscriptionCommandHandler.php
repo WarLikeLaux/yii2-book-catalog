@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\subscriptions\handlers;
 
 use app\application\subscriptions\usecases\SubscribeUseCase;
+use app\presentation\common\dto\ApiResponse;
 use app\presentation\common\services\WebUseCaseRunner;
 use app\presentation\subscriptions\forms\SubscriptionForm;
 use app\presentation\subscriptions\mappers\SubscriptionFormMapper;
@@ -19,10 +20,7 @@ final readonly class SubscriptionCommandHandler
     ) {
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function subscribe(SubscriptionForm $form): array
+    public function subscribe(SubscriptionForm $form): ApiResponse
     {
         $command = $this->mapper->toCommand($form);
 

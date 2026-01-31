@@ -6,6 +6,9 @@ namespace app\infrastructure\adapters;
 
 use app\application\common\dto\SystemInfoDto;
 use app\application\ports\SystemInfoProviderInterface;
+use Override;
+use PDO;
+use Throwable;
 use yii\BaseYii;
 use yii\db\Connection;
 
@@ -16,7 +19,7 @@ final readonly class SystemInfoAdapter implements SystemInfoProviderInterface
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function getInfo(): SystemInfoDto
     {
         return new SystemInfoDto(
@@ -31,9 +34,9 @@ final readonly class SystemInfoAdapter implements SystemInfoProviderInterface
     {
         try {
             /** @var string|null $version */
-            $version = $this->db->getSlavePdo()?->getAttribute(\PDO::ATTR_SERVER_VERSION);
+            $version = $this->db->getSlavePdo()?->getAttribute(PDO::ATTR_SERVER_VERSION);
             return $version ?? 'unknown';
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return 'unknown';
         }
     }

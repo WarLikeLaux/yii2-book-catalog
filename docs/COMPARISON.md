@@ -216,7 +216,7 @@ class BookService
  */
 public function actionCreate(): string|Response|array
 {
-    $form = new BookForm();
+    $form = $this->itemViewFactory->createForm();
 
     if ($this->request->isPost && $form->loadFromRequest($this->request)) {
         if ($this->request->isAjax) {
@@ -392,8 +392,16 @@ class Book extends ActiveRecord
 
 ```php
 // presentation/books/forms/BookForm.php
-final class BookForm extends RepositoryAwareForm
+final class BookForm extends Model
 {
+    public function __construct(
+        private readonly BookQueryServiceInterface $bookQueryService,
+        private readonly AuthorQueryServiceInterface $authorQueryService,
+        array $config = [],
+    ) {
+        parent::__construct($config);
+    }
+
     /** @var int|string|null */
     public $id;
 
@@ -920,9 +928,8 @@ public function validateIsbnUnique(string $attribute): void
     }
 
     $excludeId = $this->id !== null ? (int)$this->id : null;
-    $queryService = $this->resolve(BookQueryServiceInterface::class);
 
-    if (!$queryService->existsByIsbn($value, $excludeId)) {
+    if (!$this->bookQueryService->existsByIsbn($value, $excludeId)) {
         return;
     }
 

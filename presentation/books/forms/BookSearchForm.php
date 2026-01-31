@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\books\forms;
 
+use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use yii\base\Model;
 
@@ -11,7 +12,7 @@ final class BookSearchForm extends Model
 {
     public string $globalSearch = '';
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function rules(): array
     {
@@ -21,7 +22,7 @@ final class BookSearchForm extends Model
         ];
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function formName(): string
     {

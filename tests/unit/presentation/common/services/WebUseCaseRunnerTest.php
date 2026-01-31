@@ -13,6 +13,7 @@ use app\application\ports\UseCaseInterface;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\ValidationException;
+use app\presentation\common\dto\ApiResponse;
 use app\presentation\common\services\WebUseCaseRunner;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -114,7 +115,10 @@ final class WebUseCaseRunnerTest extends Unit
 
         $result = $this->runner->executeForApi($command, $useCase, 'done');
 
-        $this->assertSame(['success' => true, 'message' => 'done', 'data' => 'result'], $result);
+        $this->assertInstanceOf(ApiResponse::class, $result);
+        $this->assertTrue($result->success);
+        $this->assertSame('done', $result->message);
+        $this->assertSame('result', $result->data);
     }
 
     public function testExecuteForApiHandlesUnexpectedExceptionWithLogging(): void
@@ -135,7 +139,9 @@ final class WebUseCaseRunnerTest extends Unit
 
         $result = $this->runner->executeForApi($command, $useCase, 'ok', ['requestId' => '123']);
 
-        $this->assertSame(['success' => false, 'message' => 'error.unexpected'], $result);
+        $this->assertInstanceOf(ApiResponse::class, $result);
+        $this->assertFalse($result->success);
+        $this->assertSame('error.unexpected', $result->message);
     }
 
     public function testExecuteWithFormErrorsReturnsResultOnSuccess(): void

@@ -23,6 +23,7 @@ use app\presentation\common\handlers\UseCaseHandlerTrait;
 use app\presentation\common\services\WebUseCaseRunner;
 use AutoMapper\AutoMapperInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 use Yii;
 use yii\web\UploadedFile;
 
@@ -68,7 +69,7 @@ final readonly class BookCommandHandler
     {
         try {
             $cover = $this->processCoverUpload($form);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Failed to upload book cover', ['exception' => $e]);
             $form->addError('cover', Yii::t('app', 'file.error.storage_operation_failed'));
             return null;
@@ -78,7 +79,7 @@ final readonly class BookCommandHandler
             $data = $this->prepareCommandData($form, $cover);
             /** @var CreateBookCommand $command */
             $command = $this->autoMapper->map($data, CreateBookCommand::class);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 0, $e));
             return null;
         }
@@ -97,7 +98,7 @@ final readonly class BookCommandHandler
     {
         try {
             $cover = $this->processCoverUpload($form);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Failed to upload book cover', ['exception' => $e, 'book_id' => $id]);
             $form->addError('cover', Yii::t('app', 'file.error.storage_operation_failed'));
             return false;
@@ -108,7 +109,7 @@ final readonly class BookCommandHandler
             $data['id'] = $id;
             /** @var UpdateBookCommand $command */
             $command = $this->autoMapper->map($data, UpdateBookCommand::class);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 0, $e));
             return false;
         }

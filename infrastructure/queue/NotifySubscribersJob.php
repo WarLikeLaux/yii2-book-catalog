@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace app\infrastructure\queue;
 
 use RuntimeException;
+use Throwable;
 use yii\queue\JobInterface;
+use yii\queue\Queue;
 use yii\queue\RetryableJobInterface;
 
 final readonly class NotifySubscribersJob implements JobInterface, RetryableJobInterface
@@ -20,7 +22,7 @@ final readonly class NotifySubscribersJob implements JobInterface, RetryableJobI
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
-     * @param \yii\queue\Queue $queue
+     * @param Queue $queue
      */
     public function execute($queue): void
     {
@@ -35,7 +37,7 @@ final readonly class NotifySubscribersJob implements JobInterface, RetryableJobI
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      * @param int $attempt
-     * @param \Throwable $_error
+     * @param Throwable $_error
      */
     public function canRetry($attempt, $_error): bool
     {

@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace app\presentation\subscriptions\forms;
 
+use app\application\authors\queries\AuthorReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
-use app\presentation\common\forms\RepositoryAwareForm;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
+use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
+use yii\base\Model;
 
-final class SubscriptionForm extends RepositoryAwareForm
+final class SubscriptionForm extends Model
 {
     /** @var string|int|null */
     public $phone = '';
@@ -20,7 +22,14 @@ final class SubscriptionForm extends RepositoryAwareForm
     /** @var int|string */
     public $authorId = 0;
 
-    #[\Override]
+    public function __construct(
+        private readonly AuthorQueryServiceInterface $authorQueryService,
+        array $config = [],
+    ) {
+        parent::__construct($config);
+    }
+
+    #[Override]
     #[CodeCoverageIgnore]
     public function rules(): array
     {
@@ -34,7 +43,7 @@ final class SubscriptionForm extends RepositoryAwareForm
         ];
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function attributeLabels(): array
     {
@@ -78,9 +87,7 @@ final class SubscriptionForm extends RepositoryAwareForm
             return;
         }
 
-        $service = $this->resolve(AuthorQueryServiceInterface::class);
-
-        if ($service->findById($authorId) !== null) {
+        if ($this->authorQueryService->findById($authorId) instanceof AuthorReadDto) {
             return;
         }
 

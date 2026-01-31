@@ -16,8 +16,21 @@ $config = [
         '@npm' => '@vendor/npm-asset',
     ],
     'language' => 'ru-RU',
+    'sourceLanguage' => 'en-US',
     'container' => $container($params),
     'components' => [
+        'i18n' => [
+            'translations' => [
+                'app*' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@app/messages',
+                    'sourceLanguage' => 'en-US',
+                    'fileMap' => [
+                        'app' => 'app.php',
+                    ],
+                ],
+            ],
+        ],
         'db' => $db,
         'redis' => [
             'class' => \app\infrastructure\components\AppRedisConnection::class,

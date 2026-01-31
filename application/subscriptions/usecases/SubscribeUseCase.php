@@ -31,9 +31,6 @@ final readonly class SubscribeUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof SubscribeCommand);
-
         if ($this->subscriptionQueryService->exists($command->phone, $command->authorId)) {
             throw new BusinessRuleException(DomainErrorCode::SubscriptionAlreadySubscribed);
         }
