@@ -8,6 +8,8 @@
 		"fix": "make fix",
 		"comments": "make comments",
 		"pr": "make pr",
+		"review:fetch": "node scripts/fetch-pr-comments.mjs",
+		"review:resolve": "node scripts/resolve-pr-threads.mjs",
 		"--- DOCKER ---": "echo 'Docker Ops'",
 		"up": "make up",
 		"down": "make down",

@@ -274,10 +274,11 @@ test:
 	fi; \
 	$(MAKE) _test-init; \
 	echo "🚀 Запуск всех тестов с генерацией отчетов..."; \
-	$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app ./vendor/bin/codecept run integration,unit \
+	$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app -d pcov.exclude="~/(vendor|tests|runtime|web/assets)/~" ./vendor/bin/codecept run integration,unit \
 		--ext DotReporter \
 		--skip-group migration \
-		--coverage-text --coverage-xml --coverage-html \
+		--coverage-text \
+		--coverage-xml \
 		--coverage-phpunit --xml=junit.xml --no-colors; \
 	sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml; \
 	$(MAKE) cov
@@ -423,3 +424,13 @@ ghr:
 .PHONY: test-migration
 test-migration:
 	bin/test-migration
+
+# =================================================================================================
+# 🔍 PR REVIEW
+# =================================================================================================
+
+review-fetch:
+	@node scripts/fetch-pr-comments.mjs
+
+review-resolve:
+	@node scripts/resolve-pr-threads.mjs
