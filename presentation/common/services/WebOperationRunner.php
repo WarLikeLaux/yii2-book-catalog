@@ -14,7 +14,7 @@ use app\presentation\common\dto\ApiResponse;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-final readonly class WebUseCaseRunner
+final readonly class WebOperationRunner
 {
     public function __construct(
         private NotificationInterface $notifier,
@@ -22,6 +22,25 @@ final readonly class WebUseCaseRunner
         private TranslatorInterface $translator,
         private PipelineFactory $pipelineFactory,
     ) {
+    }
+
+    /**
+     * Выполняет вспомогательный шаг (маппинг, загрузку).
+     * Логирует ошибку и возвращает null, если что-то пошло не так.
+     *
+     * @template T
+     * @param callable(): T $operation
+     * @param array<string, mixed> $logContext
+     * @return T|null
+     */
+    public function runStep(callable $operation, string $logMsg, array $logContext = []): mixed
+    {
+        try {
+            return $operation();
+        } catch (Throwable $e) {
+            $this->logger->error($logMsg, array_merge($logContext, ['exception' => $e]));
+            return null;
+        }
     }
 
     /**

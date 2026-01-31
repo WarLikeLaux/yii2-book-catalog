@@ -7,7 +7,7 @@ namespace app\presentation\common\handlers;
 use app\application\ports\CommandInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\exceptions\DomainException;
-use app\presentation\common\services\WebUseCaseRunner;
+use app\presentation\common\services\WebOperationRunner;
 use Yii;
 use yii\base\Model;
 
@@ -28,7 +28,7 @@ trait UseCaseHandlerTrait
      * @param UseCaseInterface<TCommand, TResponse> $useCase
      */
     protected function executeWithForm(
-        WebUseCaseRunner $runner,
+        WebOperationRunner $runner,
         Model $form,
         CommandInterface $command,
         UseCaseInterface $useCase,
@@ -50,8 +50,20 @@ trait UseCaseHandlerTrait
         $attributes = $form->attributes();
 
         if ($field === null || !in_array($field, $attributes, true)) {
+            $preferred = ['title', 'name', 'fio', 'isbn', 'phone', 'authorIds', 'email', 'username'];
+
+            foreach ($preferred as $candidate) {
+                if (in_array($candidate, $attributes, true)) {
+                    $field = $candidate;
+                    break;
+                }
+            }
+        }
+
+        if ($field === null || !in_array($field, $attributes, true)) {
+            $candidates = array_values(array_diff($attributes, ['id', 'version']));
             /** @var string|false $firstAttribute */
-            $firstAttribute = reset($attributes);
+            $firstAttribute = reset($candidates);
             $field = $firstAttribute !== false ? $firstAttribute : null;
         }
 
