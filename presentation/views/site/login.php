@@ -8,7 +8,7 @@ declare(strict_types=1);
  * @var app\presentation\auth\dto\LoginViewModel $viewModel
  */
 
-use yii\bootstrap5\ActiveForm;
+use app\presentation\components\ActiveForm;
 use yii\bootstrap5\Html;
 
 $this->title = 'Login';
@@ -31,6 +31,8 @@ $this->params['breadcrumbs'][] = $this->title;
                     'errorOptions' => ['class' => 'col-lg-7 invalid-feedback'],
                 ],
             ]); ?>
+
+            <?= $form->errorSummary($viewModel->form) ?>
 
             <?= $form->field($viewModel->form, 'username')->textInput(['autofocus' => true]) ?>
 

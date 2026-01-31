@@ -69,6 +69,10 @@ Modal::end();
 
 $subscriptionUrl = Url::to(['/subscription/form']);
 $js = <<<JS
+if (typeof htmx !== 'undefined' && htmx.config) {
+    htmx.config.headers = htmx.config.headers || {};
+    htmx.config.headers['X-Requested-With'] = 'XMLHttpRequest';
+}
 document.addEventListener('click', function(e) {
     let link = e.target.closest('.sub-link');
     if (!link) return;
@@ -77,6 +81,29 @@ document.addEventListener('click', function(e) {
     let modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('sub-modal'));
     modal.show();
     htmx.ajax('GET', '{$subscriptionUrl}?authorId=' + id, '#modal-content');
+});
+
+$(document).on('beforeSubmit', '#subscription-form', function(e) {
+    e.preventDefault();
+    var form = $(this);
+    $.ajax({
+        url: form.attr('action'),
+        type: 'POST',
+        data: form.serialize(),
+        success: function(data) {
+            if (data.success) {
+                alert(data.message);
+                $('#sub-modal').modal('hide');
+                form[0].reset();
+            } else {
+                alert(data.message || 'Ошибка при подписке');
+            }
+        },
+        error: function() {
+            alert('Ошибка при отправке запроса');
+        }
+    });
+    return false;
 });
 
 document.body.addEventListener('htmx:afterSwap', function(evt) {

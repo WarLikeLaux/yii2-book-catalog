@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use app\presentation\components\ActiveField;
+use app\presentation\components\ActiveForm;
 use kartik\select2\Select2;
-use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\JsExpression;
@@ -27,6 +27,8 @@ use yii\web\JsExpression;
 <?php if (isset($model->version)): ?>
     <?= Html::hiddenInput('BookForm[version]', $model->version) ?>
 <?php endif; ?>
+
+<?= $form->errorSummary($model) ?>
 
 <?= $form->field($model, 'title')
     ->textInput(['maxlength' => true])

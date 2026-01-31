@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use app\presentation\components\ActiveField;
-use yii\bootstrap5\ActiveForm;
+use app\presentation\components\ActiveForm;
 use yii\helpers\Html;
 
 /**
@@ -16,6 +16,8 @@ use yii\helpers\Html;
 <?php $form = ActiveForm::begin([
     'fieldClass' => ActiveField::class,
 ]); ?>
+
+<?= $form->errorSummary($model) ?>
 
 <?= $form->field($model, 'fio')
     ->textInput(['maxlength' => true])

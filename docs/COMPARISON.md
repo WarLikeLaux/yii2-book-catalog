@@ -448,7 +448,7 @@ $command = new CreateBookCommand(
     description: 'Короткое описание',
     isbn: '9783161484100',
     authorIds: [1, 2],
-    cover: '/covers/123.png'
+    cover: new StoredFileReference('/covers/123.png')
 );
 $useCase->execute($command);
 ```
@@ -504,21 +504,14 @@ public function actionCreate()
 // application/books/usecases/CreateBookUseCase.php
 public function execute(object $command): int
 {
-    /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-    assert($command instanceof CreateBookCommand);
     $currentYear = (int) $this->clock->now()->format('Y');
-
-    $cover = $command->cover;
-    if (is_string($cover)) {
-        $cover = new StoredFileReference($cover);
-    }
 
     $book = Book::create(
         title: $command->title,
         year: new BookYear($command->year, $currentYear),
         isbn: new Isbn($command->isbn),
         description: $command->description,
-        coverImage: $cover,
+        coverImage: $command->cover,
     );
     $book->replaceAuthors($command->authorIds);
 
