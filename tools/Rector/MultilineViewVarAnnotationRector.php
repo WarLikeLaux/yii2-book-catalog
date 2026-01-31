@@ -38,9 +38,7 @@ final class MultilineViewVarAnnotationRector extends AbstractRector
 
     public function refactor(Node $node): ?Node
     {
-        $filePath = $this->file->getFilePath();
-
-        if (!str_contains($filePath, '/views/') && !str_contains($filePath, '/mail/')) {
+        if (!$this->shouldProcessFile()) {
             return null;
         }
 
@@ -50,31 +48,91 @@ final class MultilineViewVarAnnotationRector extends AbstractRector
             return null;
         }
 
-        $hasChanged = false;
+        [$newComments, $hasChanged] = $this->processComments($comments);
+
+        if (!$hasChanged) {
+            return null;
+        }
+
+        // Avoid infinite loops by comparing text
+        $oldText = implode('', array_map(static fn($c) => $c->getText(), $comments));
+        $newText = implode('', array_map(static fn($c) => $c->getText(), $newComments));
+
+        if ($oldText === $newText) {
+            return null;
+        }
+
+        $node->setAttribute('comments', $newComments);
+        return $node;
+    }
+
+    private function shouldProcessFile(): bool
+    {
+        $filePath = $this->file->getFilePath();
+        return str_contains($filePath, '/views/') || str_contains($filePath, '/mail/');
+    }
+
+    /**
+     * @param \PhpParser\Comment[] $comments
+     * @return array{0: \PhpParser\Comment[], 1: bool}
+     */
+    private function processComments(array $comments): array
+    {
         $newComments = [];
+        $currentGroup = [];
+        $hasChanged = false;
 
         foreach ($comments as $comment) {
             $text = $comment->getText();
 
-            if (
-                str_starts_with($text, '/**')
-                && str_contains($text, '@var')
-                && !str_contains($text, "\n")
-            ) {
-                $content = trim(substr($text, 3, -2));
-                $newText = "/**\n * " . $content . "\n */";
-                $newComments[] = new Doc($newText);
+            if (str_starts_with($text, '/**') && str_contains($text, '@var')) {
+                $currentGroup = array_merge($currentGroup, $this->extractVarLines($text));
                 $hasChanged = true;
             } else {
+                if ($currentGroup !== []) {
+                    $newComments[] = $this->createCombinedDocBlock($currentGroup);
+                    $currentGroup = [];
+                }
+
                 $newComments[] = $comment;
             }
         }
 
-        if ($hasChanged) {
-            $node->setAttribute('comments', $newComments);
-            return $node;
+        if ($currentGroup !== []) {
+            $newComments[] = $this->createCombinedDocBlock($currentGroup);
         }
 
-        return null;
+        return [$newComments, $hasChanged];
+    }
+
+    /**
+     * @return string[]
+     */
+    private function extractVarLines(string $text): array
+    {
+        $lines = explode("\n", $text);
+        $extracted = [];
+
+        foreach ($lines as $line) {
+            $line = trim($line, "/* \t\r\n");
+
+            if (!str_contains($line, '@var')) {
+                continue;
+            }
+
+            $extracted[] = $line;
+        }
+
+        return $extracted;
+    }
+
+    /**
+     * @param string[] $lines
+     */
+    private function createCombinedDocBlock(array $lines): Doc
+    {
+        // Добавляем \n в конце для отступа от кода
+        $text = "/**\n * " . implode("\n * ", $lines) . "\n */\n";
+        return new Doc($text);
     }
 }
