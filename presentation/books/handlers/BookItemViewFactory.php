@@ -56,7 +56,7 @@ final readonly class BookItemViewFactory
 
         if (!$form instanceof BookForm) {
             throw new LogicException(sprintf(
-                'AutoMapper не смог преобразовать %s в %s в getBookForUpdate: получен %s',
+                'AutoMapper failed to convert %s to %s in getBookForUpdate: got %s. Check mapper configuration.',
                 BookReadDto::class,
                 BookForm::class,
                 get_debug_type($form),
