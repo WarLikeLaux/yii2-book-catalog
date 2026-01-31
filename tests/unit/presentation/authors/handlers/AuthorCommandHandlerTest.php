@@ -13,55 +13,47 @@ use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
-use app\presentation\common\services\WebUseCaseRunner;
-use AutoMapper\AutoMapperInterface;
+use app\presentation\authors\mappers\AuthorCommandMapper;
+use app\presentation\common\services\WebOperationRunner;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
-use Psr\Log\LoggerInterface;
 
 final class AuthorCommandHandlerTest extends Unit
 {
-    private AutoMapperInterface&MockObject $autoMapper;
+    private AuthorCommandMapper&MockObject $commandMapper;
     private CreateAuthorUseCase&MockObject $createAuthorUseCase;
     private UpdateAuthorUseCase&MockObject $updateAuthorUseCase;
     private DeleteAuthorUseCase&MockObject $deleteAuthorUseCase;
-    private WebUseCaseRunner&MockObject $useCaseRunner;
-    private LoggerInterface&MockObject $logger;
+    private WebOperationRunner&MockObject $operationRunner;
     private AuthorCommandHandler $handler;
 
     protected function _before(): void
     {
-        $this->autoMapper = $this->createMock(AutoMapperInterface::class);
+        $this->commandMapper = $this->createMock(AuthorCommandMapper::class);
         $this->createAuthorUseCase = $this->createMock(CreateAuthorUseCase::class);
         $this->updateAuthorUseCase = $this->createMock(UpdateAuthorUseCase::class);
         $this->deleteAuthorUseCase = $this->createMock(DeleteAuthorUseCase::class);
-        $this->useCaseRunner = $this->createMock(WebUseCaseRunner::class);
-
-        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->operationRunner = $this->createMock(WebOperationRunner::class);
 
         $this->handler = new AuthorCommandHandler(
-            $this->autoMapper,
+            $this->commandMapper,
             $this->createAuthorUseCase,
             $this->updateAuthorUseCase,
             $this->deleteAuthorUseCase,
-            $this->useCaseRunner,
-            $this->logger,
+            $this->operationRunner,
         );
     }
 
     public function testCreateAuthorReturnsIdOnSuccess(): void
     {
         $form = $this->createMock(AuthorForm::class);
-        $formData = ['fio' => 'Test Author'];
-        $form->method('toArray')->willReturn($formData);
         $command = $this->createMock(CreateAuthorCommand::class);
 
-        $this->autoMapper->expects($this->once())
-            ->method('map')
-            ->with($formData, CreateAuthorCommand::class)
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
             ->willReturn($command);
 
-        $this->useCaseRunner->method('executeWithFormErrors')->willReturn(123);
+        $this->operationRunner->method('executeWithFormErrors')->willReturn(123);
 
         $this->assertSame(123, $this->handler->createAuthor($form));
     }
@@ -69,7 +61,11 @@ final class AuthorCommandHandlerTest extends Unit
     public function testCreateAuthorReturnsNullOnMappingError(): void
     {
         $form = $this->createForm(['fio'], ['fio' => 'Invalid']);
-        $this->mockMappingFailure();
+
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
+            ->willReturn(null);
+
         $this->expectFormError($form);
         $this->assertNull($this->handler->createAuthor($form));
     }
@@ -77,14 +73,13 @@ final class AuthorCommandHandlerTest extends Unit
     public function testUpdateAuthorReturnsTrueOnSuccess(): void
     {
         $form = $this->createMock(AuthorForm::class);
-        $form->method('toArray')->willReturn(['fio' => 'New Name']);
         $command = $this->createMock(UpdateAuthorCommand::class);
 
-        $this->autoMapper->expects($this->once())
-            ->method('map')
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
             ->willReturn($command);
 
-        $this->useCaseRunner->method('executeWithFormErrors')->willReturn(true);
+        $this->operationRunner->method('executeWithFormErrors')->willReturn(true);
 
         $this->assertTrue($this->handler->updateAuthor(1, $form));
     }
@@ -92,7 +87,11 @@ final class AuthorCommandHandlerTest extends Unit
     public function testUpdateAuthorReturnsFalseOnMappingError(): void
     {
         $form = $this->createForm(['fio'], []);
-        $this->mockMappingFailure();
+
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
+            ->willReturn(null);
+
         $this->expectFormError($form);
         $this->assertFalse($this->handler->updateAuthor(1, $form));
     }
@@ -101,9 +100,12 @@ final class AuthorCommandHandlerTest extends Unit
     {
         $form = $this->createForm(['fio'], ['fio' => 'Duplicate']);
         $command = $this->createMock(CreateAuthorCommand::class);
-        $this->autoMapper->method('map')->willReturn($command);
 
-        $this->mockUseCaseRunnerDomainError(new ValidationException(DomainErrorCode::AuthorFioExists));
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
+            ->willReturn($command);
+
+        $this->mockOperationRunnerDomainError(new ValidationException(DomainErrorCode::AuthorFioExists));
 
         $form->expects($this->once())
             ->method('addError')
@@ -116,9 +118,12 @@ final class AuthorCommandHandlerTest extends Unit
     {
         $form = $this->createForm([], ['fio' => 'Duplicate']);
         $command = $this->createMock(CreateAuthorCommand::class);
-        $this->autoMapper->method('map')->willReturn($command);
 
-        $this->mockUseCaseRunnerDomainError(new ValidationException(DomainErrorCode::AuthorFioExists));
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
+            ->willReturn($command);
+
+        $this->mockOperationRunnerDomainError(new ValidationException(DomainErrorCode::AuthorFioExists));
 
         $form->expects($this->once())
             ->method('addError')
@@ -129,8 +134,18 @@ final class AuthorCommandHandlerTest extends Unit
 
     public function testDeleteAuthorReturnsTrueOnSuccess(): void
     {
-        $this->useCaseRunner->method('execute')->willReturn(true);
+        $this->operationRunner->method('execute')->willReturn(true);
         $this->assertTrue($this->handler->deleteAuthor(1));
+    }
+
+    public function testGetErrorFieldMapReturnsExpectedMap(): void
+    {
+        $map = $this->getErrorFieldMap($this->handler);
+
+        $this->assertSame('fio', $map['author.error.fio_exists']);
+        $this->assertSame('fio', $map['author.error.fio_empty']);
+        $this->assertSame('fio', $map['author.error.fio_too_short']);
+        $this->assertSame('fio', $map['author.error.fio_too_long']);
     }
 
     private function createForm(array $attributes, array $data): AuthorForm&MockObject
@@ -142,14 +157,9 @@ final class AuthorCommandHandlerTest extends Unit
         return $form;
     }
 
-    private function mockMappingFailure(): void
+    private function mockOperationRunnerDomainError(ValidationException $exception): void
     {
-        $this->autoMapper->method('map')->willThrowException(new \RuntimeException('Mapping failed'));
-    }
-
-    private function mockUseCaseRunnerDomainError(ValidationException $exception): void
-    {
-        $this->useCaseRunner->expects($this->once())
+        $this->operationRunner->expects($this->once())
             ->method('executeWithFormErrors')
             ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
                 $onDomainError($exception);
@@ -160,5 +170,20 @@ final class AuthorCommandHandlerTest extends Unit
     private function expectFormError(AuthorForm&MockObject $form): void
     {
         $form->expects($this->once())->method('addError');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function getErrorFieldMap(AuthorCommandHandler $handler): array
+    {
+        $reflection = new \ReflectionClass($handler);
+        $method = $reflection->getMethod('getErrorFieldMap');
+        $method->setAccessible(true);
+
+        /** @var array<string, string> $map */
+        $map = $method->invoke($handler);
+
+        return $map;
     }
 }
