@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace app\application\authors\usecases;
 
 use app\application\authors\commands\UpdateAuthorCommand;
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\UseCaseInterface;
-use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\DomainException;
 use app\domain\exceptions\OperationFailedException;
 use RuntimeException;
 
@@ -27,17 +28,21 @@ final readonly class UpdateAuthorUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
-        $author = $this->authorRepository->get($command->id);
-
         try {
-            $author->update($command->fio);
-            $this->authorRepository->save($author);
+            $author = $this->authorRepository->get($command->id);
 
-            return true;
-        } catch (AlreadyExistsException $e) {
-            throw $e;
-        } catch (RuntimeException $e) {
-            throw new OperationFailedException(DomainErrorCode::AuthorUpdateFailed, 0, $e);
+            try {
+                $author->update($command->fio);
+                $this->authorRepository->save($author);
+
+                return true;
+            } catch (DomainException $exception) {
+                throw $exception;
+            } catch (RuntimeException $e) {
+                throw new OperationFailedException(DomainErrorCode::AuthorUpdateFailed, 0, $e);
+            }
+        } catch (DomainException $exception) {
+            throw ApplicationException::fromDomainException($exception);
         }
     }
 }

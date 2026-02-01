@@ -6,6 +6,7 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\usecases\DeleteBookUseCase;
+use app\application\common\exceptions\ApplicationException;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\events\BookDeletedEvent;
@@ -72,7 +73,7 @@ final class DeleteBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->never())->method('delete');
 
-        $this->expectException(EntityNotFoundException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage(DomainErrorCode::BookNotFound->value);
 
         $this->useCase->execute($command);

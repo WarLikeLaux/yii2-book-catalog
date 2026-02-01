@@ -6,6 +6,7 @@ namespace tests\unit\application\authors\usecases;
 
 use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\authors\usecases\DeleteAuthorUseCase;
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
 use app\domain\exceptions\DomainErrorCode;
@@ -55,7 +56,7 @@ final class DeleteAuthorUseCaseTest extends Unit
 
         $this->authorRepository->expects($this->never())->method('delete');
 
-        $this->expectException(EntityNotFoundException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage(DomainErrorCode::AuthorNotFound->value);
 
         $this->useCase->execute($command);

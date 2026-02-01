@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace app\application\authors\usecases;
 
 use app\application\authors\commands\CreateAuthorCommand;
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\entities\Author;
 use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\DomainException;
 use app\domain\exceptions\OperationFailedException;
 use RuntimeException;
 
@@ -28,12 +30,18 @@ final readonly class CreateAuthorUseCase implements UseCaseInterface
     public function execute(object $command): int
     {
         try {
-            $author = Author::create($command->fio);
-            $this->authorRepository->save($author);
+            try {
+                $author = Author::create($command->fio);
+                $this->authorRepository->save($author);
 
-            return (int)$author->id;
-        } catch (RuntimeException $e) {
-            throw new OperationFailedException(DomainErrorCode::AuthorCreateFailed, 0, $e);
+                return (int)$author->id;
+            } catch (DomainException $exception) {
+                throw $exception;
+            } catch (RuntimeException $e) {
+                throw new OperationFailedException(DomainErrorCode::AuthorCreateFailed, 0, $e);
+            }
+        } catch (DomainException $exception) {
+            throw ApplicationException::fromDomainException($exception);
         }
     }
 }

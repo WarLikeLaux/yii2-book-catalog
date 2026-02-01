@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\domain\exceptions\EntityNotFoundException;
-use app\domain\exceptions\StaleDataException;
+use app\application\common\exceptions\ApplicationException;
 use app\domain\values\AuthorIdCollection;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
@@ -78,7 +77,7 @@ final class UpdateBookUseCaseCest
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);
-        $I->expectThrowable(StaleDataException::class, static function () use ($useCase, $command): void {
+        $I->expectThrowable(ApplicationException::class, static function () use ($useCase, $command): void {
             $useCase->execute($command);
         });
 
@@ -103,7 +102,7 @@ final class UpdateBookUseCaseCest
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);
-        $I->expectThrowable(EntityNotFoundException::class, static function () use ($useCase, $command): void {
+        $I->expectThrowable(ApplicationException::class, static function () use ($useCase, $command): void {
             $useCase->execute($command);
         });
     }

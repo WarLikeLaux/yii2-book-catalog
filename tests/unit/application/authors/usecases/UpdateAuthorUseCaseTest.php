@@ -6,11 +6,11 @@ namespace tests\unit\application\authors\usecases;
 
 use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\authors\usecases\UpdateAuthorUseCase;
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\DomainException;
 use app\domain\exceptions\EntityNotFoundException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -46,7 +46,7 @@ final class UpdateAuthorUseCaseTest extends Unit
         $this->assertTrue($result);
     }
 
-    public function testExecuteThrowsExceptionWhenAuthorNotFound(): void
+    public function testExecuteThrowsApplicationExceptionWhenAuthorNotFound(): void
     {
         $command = new UpdateAuthorCommand(id: 999, fio: 'New Name');
 
@@ -57,13 +57,13 @@ final class UpdateAuthorUseCaseTest extends Unit
 
         $this->authorRepository->expects($this->never())->method('save');
 
-        $this->expectException(EntityNotFoundException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage(DomainErrorCode::AuthorNotFound->value);
 
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsDomainExceptionOnRepositoryError(): void
+    public function testExecuteThrowsApplicationExceptionOnRepositoryError(): void
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'New Name');
 
@@ -77,14 +77,14 @@ final class UpdateAuthorUseCaseTest extends Unit
             ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
 
-        $this->expectException(DomainException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage('author.error.update_failed');
         $this->expectExceptionCode(0);
 
         $this->useCase->execute($command);
     }
 
-    public function testExecuteRethrowsAlreadyExistsException(): void
+    public function testExecuteThrowsApplicationExceptionOnAlreadyExists(): void
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'Duplicated Name');
 
@@ -98,7 +98,7 @@ final class UpdateAuthorUseCaseTest extends Unit
             ->method('save')
             ->willThrowException(new AlreadyExistsException(DomainErrorCode::AuthorFioExists));
 
-        $this->expectException(AlreadyExistsException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage(DomainErrorCode::AuthorFioExists->value);
 
         $this->useCase->execute($command);

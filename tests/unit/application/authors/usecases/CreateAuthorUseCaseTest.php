@@ -6,9 +6,10 @@ namespace tests\unit\application\authors\usecases;
 
 use app\application\authors\commands\CreateAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\DomainErrorCode;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 use ReflectionProperty;
@@ -46,7 +47,7 @@ final class CreateAuthorUseCaseTest extends Unit
         $this->assertSame(42, $result);
     }
 
-    public function testExecuteThrowsDomainExceptionOnRepositoryError(): void
+    public function testExecuteThrowsApplicationExceptionOnRepositoryError(): void
     {
         $command = new CreateAuthorCommand(fio: 'Test Author');
 
@@ -54,9 +55,19 @@ final class CreateAuthorUseCaseTest extends Unit
             ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
 
-        $this->expectException(DomainException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage('author.error.create_failed');
         $this->expectExceptionCode(0);
+
+        $this->useCase->execute($command);
+    }
+
+    public function testExecuteThrowsApplicationExceptionOnInvalidFio(): void
+    {
+        $command = new CreateAuthorCommand(fio: '');
+
+        $this->expectException(ApplicationException::class);
+        $this->expectExceptionMessage(DomainErrorCode::AuthorFioEmpty->value);
 
         $this->useCase->execute($command);
     }

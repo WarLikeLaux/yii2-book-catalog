@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace app\tests\unit\application\subscriptions\usecases;
 
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\application\subscriptions\usecases\SubscribeUseCase;
 use app\domain\entities\Subscription;
 use app\domain\exceptions\AlreadyExistsException;
-use app\domain\exceptions\DomainException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -45,39 +45,39 @@ final class SubscribeUseCaseTest extends Unit
         $this->assertTrue($result);
     }
 
-    public function testExecuteThrowsDomainExceptionWhenAlreadySubscribed(): void
+    public function testExecuteThrowsApplicationExceptionWhenAlreadySubscribed(): void
     {
         $command = new SubscribeCommand('79001112233', 1);
 
         $this->queryService->method('exists')->willReturn(true);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage('subscription.error.already_subscribed');
 
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsDomainExceptionOnRepositoryError(): void
+    public function testExecuteThrowsApplicationExceptionOnRepositoryError(): void
     {
         $command = new SubscribeCommand('79001112233', 1);
 
         $this->queryService->method('exists')->willReturn(false);
         $this->repository->method('save')->willThrowException(new \RuntimeException('DB Error'));
 
-        $this->expectException(DomainException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage('subscription.error.create_failed');
 
         $this->useCase->execute($command);
     }
 
-    public function testExecuteLetsAlreadyExistsExceptionBubbleUp(): void
+    public function testExecuteThrowsApplicationExceptionOnAlreadyExists(): void
     {
         $command = new SubscribeCommand('79001112233', 1);
 
         $this->queryService->method('exists')->willReturn(false);
         $this->repository->method('save')->willThrowException(new AlreadyExistsException());
 
-        $this->expectException(AlreadyExistsException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage('error.entity_already_exists');
 
         $this->useCase->execute($command);

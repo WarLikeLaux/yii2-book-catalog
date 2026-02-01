@@ -6,11 +6,10 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
-use app\domain\exceptions\DomainException;
 use app\domain\values\AuthorIdCollection;
-use app\domain\values\StoredFileReference;
 use BookTestHelper;
 use Codeception\Test\Unit;
 use DateTimeImmutable;
@@ -43,7 +42,7 @@ final class CreateBookUseCaseTest extends Unit
             description: 'A Handbook of Agile Software Craftsmanship',
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1, 2]),
-            storedCover: new StoredFileReference('/uploads/cover.jpg'),
+            storedCover: '/uploads/cover.jpg',
         );
 
         $this->bookRepository->expects($this->once())
@@ -89,7 +88,7 @@ final class CreateBookUseCaseTest extends Unit
             authorIds: AuthorIdCollection::fromArray([1]),
         );
 
-        $this->expectException(DomainException::class);
+        $this->expectException(ApplicationException::class);
 
         $this->useCase->execute($command);
     }
@@ -123,7 +122,7 @@ final class CreateBookUseCaseTest extends Unit
             description: 'Desc',
             isbn: '978-3-16-148410-0',
             authorIds: AuthorIdCollection::fromArray([1, 2]),
-            storedCover: new StoredFileReference('https://cover.com'),
+            storedCover: 'https://cover.com',
         );
 
         $this->bookRepository->expects($this->once())
@@ -150,7 +149,7 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->never())->method('save');
 
-        $this->expectException(DomainException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage('year.error.future');
 
         $this->useCase->execute($command);

@@ -6,15 +6,14 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\UpdateBookUseCase;
+use app\application\common\exceptions\ApplicationException;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookUpdatedEvent;
-use app\domain\exceptions\DomainException;
 use app\domain\exceptions\StaleDataException;
 use app\domain\values\AuthorIdCollection;
 use app\domain\values\Isbn;
-use app\domain\values\StoredFileReference;
 use BookTestHelper;
 use Codeception\Test\Unit;
 use DateTimeImmutable;
@@ -52,7 +51,7 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1, 2]),
             version: 1,
-            storedCover: new StoredFileReference('/uploads/new-cover.jpg'),
+            storedCover: '/uploads/new-cover.jpg',
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -103,7 +102,7 @@ final class UpdateBookUseCaseTest extends Unit
             ->with(999, 1)
             ->willThrowException(new StaleDataException());
 
-        $this->expectException(StaleDataException::class);
+        $this->expectException(ApplicationException::class);
 
         $this->useCase->execute($command);
     }
@@ -224,7 +223,7 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
-            storedCover: new StoredFileReference('/uploads/new-cover.png'),
+            storedCover: '/uploads/new-cover.png',
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -259,7 +258,7 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
-            storedCover: new StoredFileReference(':284'),
+            storedCover: ':284',
         );
 
         $existingBook = BookTestHelper::createBook(
@@ -313,7 +312,7 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->never())->method('save');
 
-        $this->expectException(DomainException::class);
+        $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage('year.error.future');
 
         $this->useCase->execute($command);
