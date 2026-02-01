@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\presentation\auth\dto;
 
-final readonly class ApiInfoViewModel
+use app\presentation\common\ViewModelInterface;
+
+final readonly class ApiInfoViewModel implements ViewModelInterface
 {
     public function __construct(
         public int $swaggerPort,

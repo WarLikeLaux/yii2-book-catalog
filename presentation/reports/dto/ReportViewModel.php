@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\presentation\reports\dto;
 
-final readonly class ReportViewModel
+use app\presentation\common\ViewModelInterface;
+
+final readonly class ReportViewModel implements ViewModelInterface
 {
     /**
      * @param array<array<string, mixed>> $topAuthors

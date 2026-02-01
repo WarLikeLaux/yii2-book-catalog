@@ -6,8 +6,9 @@ namespace app\presentation\books\dto;
 
 use app\application\books\queries\BookReadDto;
 use app\presentation\books\forms\BookForm;
+use app\presentation\common\ViewModelInterface;
 
-final readonly class BookEditViewModel
+final readonly class BookEditViewModel implements ViewModelInterface
 {
     /**
      * @param array<int, string> $authors
