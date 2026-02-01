@@ -80,24 +80,29 @@ final class BookController extends BaseController
     {
         $form = $this->itemViewFactory->createForm();
 
-        if ($this->request->isPost && $form->loadFromRequest($this->request)) {
-            if ($this->request->isAjax) {
-                $this->response->format = Response::FORMAT_JSON;
-                return ActiveForm::validate($form);
-            }
-
-            if ($form->validate()) {
-                $bookId = $this->commandHandler->createBook($form);
-
-                if ($bookId !== null) {
-                    return $this->redirect(['view', 'id' => $bookId]);
-                }
-            }
+        if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
+            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+            return $this->renderer->render('create', $viewModel);
         }
 
-        $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+        if ($this->request->isAjax) {
+            $this->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($form);
+        }
 
-        return $this->renderer->render('create', $viewModel);
+        if (!$form->validate()) {
+            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+            return $this->renderer->render('create', $viewModel);
+        }
+
+        $bookId = $this->commandHandler->createBook($form);
+
+        if ($bookId === null) {
+            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+            return $this->renderer->render('create', $viewModel);
+        }
+
+        return $this->redirect(['view', 'id' => $bookId]);
     }
 
     /**
@@ -107,24 +112,29 @@ final class BookController extends BaseController
     {
         $form = $this->itemViewFactory->getBookForUpdate($id);
 
-        if ($this->request->isPost && $form->loadFromRequest($this->request)) {
-            if ($this->request->isAjax) {
-                $this->response->format = Response::FORMAT_JSON;
-                return ActiveForm::validate($form);
-            }
-
-            if ($form->validate()) {
-                $success = $this->commandHandler->updateBook($id, $form);
-
-                if ($success) {
-                    return $this->redirect(['view', 'id' => $id]);
-                }
-            }
+        if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
+            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+            return $this->renderer->render('update', $viewModel);
         }
 
-        $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+        if ($this->request->isAjax) {
+            $this->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($form);
+        }
 
-        return $this->renderer->render('update', $viewModel);
+        if (!$form->validate()) {
+            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+            return $this->renderer->render('update', $viewModel);
+        }
+
+        $success = $this->commandHandler->updateBook($id, $form);
+
+        if (!$success) {
+            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+            return $this->renderer->render('update', $viewModel);
+        }
+
+        return $this->redirect(['view', 'id' => $id]);
     }
 
     public function actionDelete(int $id): Response
