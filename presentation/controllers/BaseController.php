@@ -29,6 +29,10 @@ abstract class BaseController extends Controller
     #[Override]
     public function render($_view, $_params = []): string
     {
+        if ($_view === 'error') {
+            return parent::render($_view, $_params);
+        }
+
         throw new LogicException(
             'Use $this->renderer->render() for rendering views. Example: $this->renderer->render("view", $viewModel)',
         );
