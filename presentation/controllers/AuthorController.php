@@ -9,6 +9,7 @@ use app\presentation\authors\handlers\AuthorItemViewFactory;
 use app\presentation\authors\handlers\AuthorListViewFactory;
 use app\presentation\authors\handlers\AuthorSearchHandler;
 use app\presentation\common\dto\CrudPaginationRequest;
+use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\ViewModelRenderer;
 use Override;
@@ -37,7 +38,7 @@ final class AuthorController extends BaseController
         return [
             'idempotency' => [
                 'class' => IdempotencyFilter::class,
-                'only' => ['create', 'update'],
+                'only' => [ActionName::CREATE->value, ActionName::UPDATE->value],
             ],
             'access' => [
                 'class' => AccessControl::class,
@@ -51,7 +52,7 @@ final class AuthorController extends BaseController
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'delete' => ['post'],
+                    ActionName::DELETE->value => ['post'],
                 ],
             ],
         ];

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\controllers;
 
 use app\presentation\common\dto\ApiResponse;
+use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\ViewModelRenderer;
 use app\presentation\subscriptions\handlers\SubscriptionCommandHandler;
@@ -33,12 +34,12 @@ final class SubscriptionController extends BaseController
         return [
             'idempotency' => [
                 'class' => IdempotencyFilter::class,
-                'only' => ['subscribe'],
+                'only' => [ActionName::SUBSCRIBE->value],
             ],
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'subscribe' => ['post'],
+                    ActionName::SUBSCRIBE->value => ['post'],
                 ],
             ],
         ];

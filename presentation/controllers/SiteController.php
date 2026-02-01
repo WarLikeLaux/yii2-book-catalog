@@ -9,6 +9,7 @@ use app\presentation\auth\forms\LoginForm;
 use app\presentation\auth\handlers\AuthViewDataFactory;
 use app\presentation\books\handlers\BookSearchHandler;
 use app\presentation\common\dto\CatalogPaginationRequest;
+use app\presentation\common\enums\ActionName;
 use app\presentation\common\traits\HtmxDetectionTrait;
 use app\presentation\common\ViewModelRenderer;
 use Override;
@@ -40,10 +41,10 @@ final class SiteController extends BaseController
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['logout'],
+                'only' => [ActionName::LOGOUT->value],
                 'rules' => [
                     [
-                        'actions' => ['logout'],
+                        'actions' => [ActionName::LOGOUT->value],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -52,7 +53,7 @@ final class SiteController extends BaseController
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'logout' => ['post'],
+                    ActionName::LOGOUT->value => ['post'],
                 ],
             ],
         ];

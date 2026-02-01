@@ -8,6 +8,7 @@ use app\presentation\books\handlers\BookCommandHandler;
 use app\presentation\books\handlers\BookItemViewFactory;
 use app\presentation\books\handlers\BookListViewFactory;
 use app\presentation\common\dto\CrudPaginationRequest;
+use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\ViewModelRenderer;
 use Override;
@@ -36,7 +37,7 @@ final class BookController extends BaseController
         return [
             'idempotency' => [
                 'class' => IdempotencyFilter::class,
-                'only' => ['create', 'update'],
+                'only' => [ActionName::CREATE->value, ActionName::UPDATE->value],
             ],
             'access' => [
                 'class' => AccessControl::class,
@@ -47,8 +48,8 @@ final class BookController extends BaseController
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'delete' => ['post'],
-                    'publish' => ['post'],
+                    ActionName::DELETE->value => ['post'],
+                    ActionName::PUBLISH->value => ['post'],
                 ],
             ],
         ];
