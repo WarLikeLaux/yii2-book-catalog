@@ -29,4 +29,11 @@ final class AuthorIdCollectionTest extends Unit
 
         $this->assertSame([1, 2], $collection->toArray());
     }
+
+    public function testFromArrayKeepsValidValuesAfterInvalidOnes(): void
+    {
+        $collection = AuthorIdCollection::fromArray(['nope', 7]);
+
+        $this->assertSame([7], $collection->toArray());
+    }
 }

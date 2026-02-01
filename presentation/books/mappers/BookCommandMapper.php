@@ -6,7 +6,6 @@ namespace app\presentation\books\mappers;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\UpdateBookCommand;
-use app\domain\values\StoredFileReference;
 use app\presentation\books\forms\BookForm;
 use app\presentation\common\mappers\AutoMapperContextBuilder;
 use AutoMapper\AutoMapperInterface;
@@ -19,7 +18,7 @@ final readonly class BookCommandMapper
     ) {
     }
 
-    public function toCreateCommand(BookForm $form, StoredFileReference|null $cover): CreateBookCommand
+    public function toCreateCommand(BookForm $form, string|null $cover): CreateBookCommand
     {
         /** @var CreateBookCommand $command */
         $command = $this->autoMapper->map(
@@ -33,7 +32,7 @@ final readonly class BookCommandMapper
         return $command;
     }
 
-    public function toUpdateCommand(int $id, BookForm $form, StoredFileReference|null $cover): UpdateBookCommand
+    public function toUpdateCommand(int $id, BookForm $form, string|null $cover): UpdateBookCommand
     {
         /** @var UpdateBookCommand $command */
         $command = $this->autoMapper->map(

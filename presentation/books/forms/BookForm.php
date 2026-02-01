@@ -6,7 +6,6 @@ namespace app\presentation\books\forms;
 
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
-use app\domain\values\StoredFileReference;
 use app\presentation\books\validators\IsbnValidator;
 use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
@@ -35,7 +34,7 @@ final class BookForm extends Model
     /** @var array<int>|string|null */
     public $authorIds = [];
 
-    /** @var StoredFileReference|UploadedFile|string|null */
+    /** @var UploadedFile|string|null */
     public $cover;
 
     /** @var array<int, string> */

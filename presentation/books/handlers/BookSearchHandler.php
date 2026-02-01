@@ -9,6 +9,7 @@ use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\dto\BookIndexViewModel;
+use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
@@ -52,9 +53,11 @@ final readonly class BookSearchHandler
                 continue; // @codeCoverageIgnore
             }
 
-            $resolvedItems[] = $model->withCoverUrl(
+            $dtoWithUrl = $model->withCoverUrl(
                 $this->fileUrlResolver->resolveCoverUrl($model->coverUrl, $model->id),
             );
+
+            $resolvedItems[] = $this->mapToViewModel($dtoWithUrl);
         }
 
         $resolvedResult = new QueryResult(
@@ -68,6 +71,20 @@ final readonly class BookSearchHandler
         return new BookIndexViewModel(
             $form,
             $dataProvider,
+        );
+    }
+
+    private function mapToViewModel(BookReadDto $dto): BookViewModel
+    {
+        return new BookViewModel(
+            $dto->id,
+            $dto->title,
+            $dto->year,
+            $dto->description,
+            $dto->isbn,
+            $dto->authorNames,
+            $dto->coverUrl,
+            $dto->isPublished,
         );
     }
 }

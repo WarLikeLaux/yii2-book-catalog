@@ -8,6 +8,7 @@ use app\application\books\queries\BookReadDto;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\dto\BookListViewModel;
+use app\presentation\books\dto\BookViewModel;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
 use LogicException;
@@ -34,8 +35,8 @@ final readonly class BookListViewFactory
         $queryResult = $this->searcher->search('', $page, $pageSize);
 
         $dtos = array_map(
-            fn(mixed $dto): BookReadDto => $dto instanceof BookReadDto
-                ? $this->withResolvedUrl($dto)
+            fn(mixed $dto): BookViewModel => $dto instanceof BookReadDto
+                ? $this->mapToViewModel($this->withResolvedUrl($dto))
                 : throw new LogicException('Expected BookReadDto'),
             $queryResult->getModels(),
         );
@@ -52,5 +53,19 @@ final readonly class BookListViewFactory
     private function withResolvedUrl(BookReadDto $dto): BookReadDto
     {
         return $dto->withCoverUrl($this->resolver->resolve($dto->coverUrl));
+    }
+
+    private function mapToViewModel(BookReadDto $dto): BookViewModel
+    {
+        return new BookViewModel(
+            $dto->id,
+            $dto->title,
+            $dto->year,
+            $dto->description,
+            $dto->isbn,
+            $dto->authorNames,
+            $dto->coverUrl,
+            $dto->isPublished,
+        );
     }
 }

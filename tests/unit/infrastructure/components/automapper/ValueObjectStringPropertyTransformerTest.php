@@ -27,7 +27,12 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
         $types = new TypesMatching();
         $source = new SourcePropertyMetadata('storedCover');
         $target = new TargetPropertyMetadata('storedCover');
-        $metadata = new MapperMetadata('array', CreateBookCommand::class, true);
+        $command = new class (new StoredFileReference('/files/cover.jpg')) {
+            public function __construct(public StoredFileReference $storedCover)
+            {
+            }
+        };
+        $metadata = new MapperMetadata('array', $command::class, true);
 
         $this->assertTrue($transformer->supports($types, $source, $target, $metadata));
     }
@@ -38,7 +43,12 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
         $types = new TypesMatching();
         $source = new SourcePropertyMetadata('storedCover');
         $target = new TargetPropertyMetadata('storedCover');
-        $metadata = new MapperMetadata('array', CreateBookCommand::class, true);
+        $command = new class (new StoredFileReference('/files/cover.jpg')) {
+            public function __construct(public StoredFileReference $storedCover)
+            {
+            }
+        };
+        $metadata = new MapperMetadata('array', $command::class, true);
 
         $this->assertTrue($transformer->supports($types, $source, $target, $metadata));
 
@@ -53,7 +63,12 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
         $types = new TypesMatching();
         $source = new SourcePropertyMetadata('storedCover');
         $target = new TargetPropertyMetadata('storedCover');
-        $metadata = new MapperMetadata('array', CreateBookCommand::class, true);
+        $command = new class (new StoredFileReference('/files/cover.jpg')) {
+            public function __construct(public StoredFileReference $storedCover)
+            {
+            }
+        };
+        $metadata = new MapperMetadata('array', $command::class, true);
 
         $this->assertTrue($transformer->supports($types, $source, $target, $metadata));
 

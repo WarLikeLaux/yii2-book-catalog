@@ -6,7 +6,7 @@ use yii\helpers\Html;
 
 /**
  * @var yii\web\View $this
- * @var app\application\books\queries\BookReadDto $book
+ * @var app\presentation\books\dto\BookViewModel $book
  */
 
 $coverUrl = $book->coverUrl ?? '';

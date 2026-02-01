@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\validators;
 
+use app\application\common\services\IsbnFormatValidator;
 use app\presentation\books\validators\IsbnValidator;
 use Codeception\Test\Unit;
 use yii\base\Model;
@@ -12,7 +13,7 @@ final class ValidatorEdgeCasesTest extends Unit
 {
     public function testIsbnValidatorAddsErrorForNonStringValue(): void
     {
-        $validator = new IsbnValidator();
+        $validator = new IsbnValidator(new IsbnFormatValidator());
 
         $model = new class extends Model {
             public $isbn = null;
@@ -25,7 +26,7 @@ final class ValidatorEdgeCasesTest extends Unit
 
     public function testIsbnValidatorAddsErrorForInvalidIsbn(): void
     {
-        $validator = new IsbnValidator();
+        $validator = new IsbnValidator(new IsbnFormatValidator());
 
         $model = new class extends Model {
             public $isbn = 'invalid-isbn';
@@ -38,7 +39,7 @@ final class ValidatorEdgeCasesTest extends Unit
 
     public function testIsbnValidatorPassesForValidIsbn(): void
     {
-        $validator = new IsbnValidator();
+        $validator = new IsbnValidator(new IsbnFormatValidator());
 
         $model = new class extends Model {
             public $isbn = '9783161484100';

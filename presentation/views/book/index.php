@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use app\application\books\queries\BookReadDto;
 use app\presentation\books\dto\BookListViewModel;
+use app\presentation\books\dto\BookViewModel;
 use yii\bootstrap5\LinkPager;
 use yii\grid\GridView;
 use yii\helpers\Html;
@@ -44,7 +44,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'authors',
                 'label' => Yii::t('app', 'ui.authors'),
-                'value' => static fn (BookReadDto $model): string => implode(', ', $model->authorNames),
+                'value' => static fn (BookViewModel $model): string => implode(', ', $model->authorNames),
             ],
             [
                 'class' => 'yii\grid\ActionColumn',

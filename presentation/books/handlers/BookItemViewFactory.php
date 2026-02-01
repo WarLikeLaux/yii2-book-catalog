@@ -8,6 +8,7 @@ use app\application\books\queries\BookReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\dto\BookEditViewModel;
+use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\dto\BookViewViewModel;
 use app\presentation\books\forms\BookForm;
 use app\presentation\services\FileUrlResolver;
@@ -43,14 +44,14 @@ final readonly class BookItemViewFactory
         return new BookEditViewModel(
             $form ?? $this->getBookForUpdate($id),
             $this->getAuthorsList(),
-            $this->getBookView($id),
+            $this->mapToViewModel($this->getBookView($id)),
         );
     }
 
     public function getBookViewModel(int $id): BookViewViewModel
     {
         return new BookViewViewModel(
-            $this->getBookView($id),
+            $this->mapToViewModel($this->getBookView($id)),
         );
     }
 
@@ -108,5 +109,19 @@ final readonly class BookItemViewFactory
         }
 
         return $dto;
+    }
+
+    private function mapToViewModel(BookReadDto $dto): BookViewModel
+    {
+        return new BookViewModel(
+            $dto->id,
+            $dto->title,
+            $dto->year,
+            $dto->description,
+            $dto->isbn,
+            $dto->authorNames,
+            $dto->coverUrl,
+            $dto->isPublished,
+        );
     }
 }

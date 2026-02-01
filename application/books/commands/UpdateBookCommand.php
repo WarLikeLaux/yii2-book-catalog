@@ -6,7 +6,6 @@ namespace app\application\books\commands;
 
 use app\application\ports\CommandInterface;
 use app\domain\values\AuthorIdCollection;
-use app\domain\values\StoredFileReference;
 use AutoMapper\Attribute\MapFrom;
 
 final readonly class UpdateBookCommand implements CommandInterface
@@ -20,7 +19,7 @@ final readonly class UpdateBookCommand implements CommandInterface
         #[MapFrom(transformer: [AuthorIdCollection::class, 'fromMixed'])]
         public AuthorIdCollection $authorIds,
         public int $version,
-        public StoredFileReference|null $storedCover = null,
+        public string|null $storedCover = null,
     ) {
     }
 }

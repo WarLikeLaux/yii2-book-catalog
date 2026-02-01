@@ -6,7 +6,6 @@ namespace tests\unit\presentation\books\mappers;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\UpdateBookCommand;
-use app\domain\values\StoredFileReference;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookCommandMapper;
 use app\presentation\common\mappers\AutoMapperContextBuilder;
@@ -37,7 +36,7 @@ final class BookCommandMapperTest extends Unit
         $form->authorIds = ['1', 2, 0, 'bad'];
         $form->version = 1;
 
-        $cover = $this->createMock(StoredFileReference::class);
+        $cover = 'covers/test.jpg';
         $command = $this->createMock(CreateBookCommand::class);
         $context = ['constructor_arguments' => [CreateBookCommand::class => ['storedCover' => $cover]]];
 
@@ -70,7 +69,7 @@ final class BookCommandMapperTest extends Unit
         $form->authorIds = 3;
         $form->version = 3;
 
-        $cover = $this->createMock(StoredFileReference::class);
+        $cover = 'covers/test.jpg';
         $command = $this->createMock(UpdateBookCommand::class);
         $context = ['constructor_arguments' => [UpdateBookCommand::class => ['id' => 10, 'storedCover' => $cover]]];
 

@@ -6,7 +6,6 @@ namespace app\application\books\commands;
 
 use app\application\ports\CommandInterface;
 use app\domain\values\AuthorIdCollection;
-use app\domain\values\StoredFileReference;
 use AutoMapper\Attribute\MapFrom;
 
 final readonly class CreateBookCommand implements CommandInterface
@@ -18,7 +17,7 @@ final readonly class CreateBookCommand implements CommandInterface
         public string $isbn,
         #[MapFrom(transformer: [AuthorIdCollection::class, 'fromMixed'])]
         public AuthorIdCollection $authorIds,
-        public StoredFileReference|null $storedCover = null,
+        public string|null $storedCover = null,
     ) {
     }
 }

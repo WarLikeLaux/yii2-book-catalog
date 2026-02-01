@@ -8,14 +8,13 @@ use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\commands\UpdateBookCommand;
 use app\domain\values\AuthorIdCollection;
-use app\domain\values\StoredFileReference;
 use Codeception\Test\Unit;
 
 final class BookCommandsTest extends Unit
 {
     public function testCreateBookCommandStoresAllProperties(): void
     {
-        $cover = new StoredFileReference('/uploads/cover.jpg');
+        $cover = '/uploads/cover.jpg';
         $command = new CreateBookCommand(
             title: 'Clean Code',
             year: 2008,
@@ -48,7 +47,7 @@ final class BookCommandsTest extends Unit
 
     public function testUpdateBookCommandStoresAllProperties(): void
     {
-        $cover = new StoredFileReference('/uploads/new.jpg');
+        $cover = '/uploads/new.jpg';
         $command = new UpdateBookCommand(
             id: 42,
             title: 'Updated Title',

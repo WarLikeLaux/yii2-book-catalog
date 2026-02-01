@@ -9,8 +9,7 @@ use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\ValidationException;
+use app\application\common\exceptions\ApplicationException;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\mappers\AuthorCommandMapper;
@@ -96,7 +95,7 @@ final class AuthorCommandHandlerTest extends Unit
         $this->assertFalse($this->handler->updateAuthor(1, $form));
     }
 
-    public function testCreateAuthorAddsFormErrorOnDomainException(): void
+    public function testCreateAuthorAddsFormErrorOnApplicationException(): void
     {
         $form = $this->createForm(['fio'], ['fio' => 'Duplicate']);
         $command = $this->createMock(CreateAuthorCommand::class);
@@ -105,7 +104,7 @@ final class AuthorCommandHandlerTest extends Unit
             ->method('runStep')
             ->willReturn($command);
 
-        $this->mockOperationRunnerDomainError(new ValidationException(DomainErrorCode::AuthorFioExists));
+        $this->mockOperationRunnerDomainError(new ApplicationException('author.error.fio_exists'));
 
         $form->expects($this->once())
             ->method('addError')
@@ -123,7 +122,7 @@ final class AuthorCommandHandlerTest extends Unit
             ->method('runStep')
             ->willReturn($command);
 
-        $this->mockOperationRunnerDomainError(new ValidationException(DomainErrorCode::AuthorFioExists));
+        $this->mockOperationRunnerDomainError(new ApplicationException('author.error.fio_exists'));
 
         $form->expects($this->once())
             ->method('addError')
@@ -157,7 +156,7 @@ final class AuthorCommandHandlerTest extends Unit
         return $form;
     }
 
-    private function mockOperationRunnerDomainError(ValidationException $exception): void
+    private function mockOperationRunnerDomainError(ApplicationException $exception): void
     {
         $this->operationRunner->expects($this->once())
             ->method('executeWithFormErrors')

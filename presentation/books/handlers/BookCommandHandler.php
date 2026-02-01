@@ -12,8 +12,7 @@ use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\application\ports\ContentStorageInterface;
-use app\domain\values\StoredFileReference;
+use app\application\common\services\UploadedFileStorage;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookCommandMapper;
 use app\presentation\common\adapters\UploadedFileAdapter;
@@ -37,7 +36,7 @@ final readonly class BookCommandHandler
         private DeleteBookUseCase $deleteBookUseCase,
         private PublishBookUseCase $publishBookUseCase,
         private WebOperationRunner $operationRunner,
-        private ContentStorageInterface $contentStorage,
+        private UploadedFileStorage $uploadedFileStorage,
         private UploadedFileAdapter $uploadedFileAdapter,
     ) {
     }
@@ -65,7 +64,7 @@ final readonly class BookCommandHandler
     public function createBook(BookForm $form): int|null
     {
         $cover = $this->operationRunner->runStep(
-            fn(): ?StoredFileReference => $this->processCoverUpload($form),
+            fn(): ?string => $this->processCoverUpload($form),
             'Failed to upload book cover',
         );
 
@@ -97,7 +96,7 @@ final readonly class BookCommandHandler
     public function updateBook(int $id, BookForm $form): bool
     {
         $cover = $this->operationRunner->runStep(
-            fn(): ?StoredFileReference => $this->processCoverUpload($form),
+            fn(): ?string => $this->processCoverUpload($form),
             'Failed to upload book cover',
             ['book_id' => $id],
         );
@@ -155,14 +154,13 @@ final readonly class BookCommandHandler
         return (bool)$result;
     }
 
-    private function processCoverUpload(BookForm $form): StoredFileReference|null
+    private function processCoverUpload(BookForm $form): string|null
     {
         if (!$form->cover instanceof UploadedFile) {
             return null;
         }
 
-        $fileContent = $this->uploadedFileAdapter->toFileContent($form->cover);
-        $fileKey = $this->contentStorage->save($fileContent);
-        return new StoredFileReference($fileKey->getExtendedPath($fileContent->extension));
+        $payload = $this->uploadedFileAdapter->toPayload($form->cover);
+        return $this->uploadedFileStorage->store($payload);
     }
 }
