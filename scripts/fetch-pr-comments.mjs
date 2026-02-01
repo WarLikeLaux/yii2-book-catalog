@@ -31,7 +31,7 @@ if (!token || !pullNumber || Number.isNaN(pullNumber)) {
 let owner, repo;
 
 try {
-	const remoteUrl = execSync('git remote get-url origin', {
+	const remoteUrl = execSync('/usr/bin/git remote get-url origin', {
 		encoding: 'utf8',
 		env: {
 			...process.env,
