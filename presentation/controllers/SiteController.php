@@ -10,15 +10,15 @@ use app\presentation\auth\handlers\AuthViewDataFactory;
 use app\presentation\books\handlers\BookSearchHandler;
 use app\presentation\common\dto\CatalogPaginationRequest;
 use app\presentation\common\traits\HtmxDetectionTrait;
+use app\presentation\common\ViewModelRenderer;
 use Override;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\ErrorAction;
 use yii\web\Response;
 
-final class SiteController extends Controller
+final class SiteController extends BaseController
 {
     use HtmxDetectionTrait;
 
@@ -28,9 +28,10 @@ final class SiteController extends Controller
         private readonly AuthServiceInterface $authService,
         private readonly BookSearchHandler $bookSearchHandler,
         private readonly AuthViewDataFactory $authViewDataFactory,
+        ViewModelRenderer $renderer,
         $config = [],
     ) {
-        parent::__construct($id, $module, $config);
+        parent::__construct($id, $module, $renderer, $config);
     }
 
     #[Override]
@@ -78,7 +79,7 @@ final class SiteController extends Controller
             return $this->renderPartial('_book-cards', ['dataProvider' => $viewModel->dataProvider]);
         }
 
-        return $this->render('index', ['viewModel' => $viewModel]);
+        return $this->renderer->render('index', $viewModel);
     }
 
     public function actionLogin(): Response|string
@@ -107,7 +108,7 @@ final class SiteController extends Controller
 
         $viewModel = $this->authViewDataFactory->getLoginViewModel($form);
 
-        return $this->render('login', ['viewModel' => $viewModel]);
+        return $this->renderer->render('login', $viewModel);
     }
 
     public function actionLogout(): Response
@@ -125,8 +126,6 @@ final class SiteController extends Controller
             (string)$this->request->serverName,
         );
 
-        return $this->render('api', [
-            'viewModel' => $viewModel,
-        ]);
+        return $this->renderer->render('api', $viewModel);
     }
 }

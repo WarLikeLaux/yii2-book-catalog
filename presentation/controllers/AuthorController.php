@@ -10,13 +10,13 @@ use app\presentation\authors\handlers\AuthorListViewFactory;
 use app\presentation\authors\handlers\AuthorSearchHandler;
 use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
+use app\presentation\common\ViewModelRenderer;
 use Override;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\Response;
 
-final class AuthorController extends Controller
+final class AuthorController extends BaseController
 {
     public function __construct(
         $id,
@@ -25,9 +25,10 @@ final class AuthorController extends Controller
         private readonly AuthorListViewFactory $listViewFactory,
         private readonly AuthorItemViewFactory $itemViewFactory,
         private readonly AuthorSearchHandler $authorSearchHandler,
+        ViewModelRenderer $renderer,
         $config = [],
     ) {
-        parent::__construct($id, $module, $config);
+        parent::__construct($id, $module, $renderer, $config);
     }
 
     #[Override]
@@ -61,22 +62,20 @@ final class AuthorController extends Controller
         $pagination = CrudPaginationRequest::fromRequest($this->request);
         $viewModel = $this->listViewFactory->getListViewModel($pagination->page, $pagination->limit);
 
-        return $this->render('index', [
-            'viewModel' => $viewModel,
-        ]);
+        return $this->renderer->render('index', $viewModel);
     }
 
     public function actionView(int $id): string
     {
         $viewModel = $this->itemViewFactory->getAuthorViewModel($id);
-        return $this->render('view', ['viewModel' => $viewModel]);
+        return $this->renderer->render('view', $viewModel);
     }
 
     public function actionCreate(): string|Response
     {
         $form = $this->itemViewFactory->createForm();
 
-        if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
+        if ($this->request->isPost && $form->loadFromRequest($this->request) && $form->validate()) {
             $authorId = $this->commandHandler->createAuthor($form);
 
             if ($authorId !== null) {
@@ -86,14 +85,14 @@ final class AuthorController extends Controller
 
         $viewModel = $this->itemViewFactory->getCreateViewModel($form);
 
-        return $this->render('create', ['viewModel' => $viewModel]);
+        return $this->renderer->render('create', $viewModel);
     }
 
     public function actionUpdate(int $id): string|Response
     {
         $form = $this->itemViewFactory->getAuthorForUpdate($id);
 
-        if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
+        if ($this->request->isPost && $form->loadFromRequest($this->request) && $form->validate()) {
             $success = $this->commandHandler->updateAuthor($id, $form);
 
             if ($success) {
@@ -103,9 +102,7 @@ final class AuthorController extends Controller
 
         $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
 
-        return $this->render('update', [
-            'viewModel' => $viewModel,
-        ]);
+        return $this->renderer->render('update', $viewModel);
     }
 
     public function actionDelete(int $id): Response

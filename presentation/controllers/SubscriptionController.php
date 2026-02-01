@@ -47,7 +47,7 @@ final class SubscriptionController extends Controller
     {
         $form = $this->viewDataFactory->createForm();
 
-        if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
+        if ($this->request->isPost && $form->loadFromRequest($this->request) && $form->validate()) {
             return $this->asJson($this->commandHandler->subscribe($form));
         }
 

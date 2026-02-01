@@ -9,14 +9,14 @@ use app\presentation\books\handlers\BookItemViewFactory;
 use app\presentation\books\handlers\BookListViewFactory;
 use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
+use app\presentation\common\ViewModelRenderer;
 use Override;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\Response;
 use yii\widgets\ActiveForm;
 
-final class BookController extends Controller
+final class BookController extends BaseController
 {
     public function __construct(
         $id,
@@ -24,9 +24,10 @@ final class BookController extends Controller
         private readonly BookCommandHandler $commandHandler,
         private readonly BookListViewFactory $listViewFactory,
         private readonly BookItemViewFactory $itemViewFactory,
+        ViewModelRenderer $renderer,
         $config = [],
     ) {
-        parent::__construct($id, $module, $config);
+        parent::__construct($id, $module, $renderer, $config);
     }
 
     #[Override]
@@ -62,18 +63,14 @@ final class BookController extends Controller
             $pagination->limit,
         );
 
-        return $this->render('index', [
-            'viewModel' => $viewModel,
-        ]);
+        return $this->renderer->render('index', $viewModel);
     }
 
     public function actionView(int $id): string
     {
         $viewModel = $this->itemViewFactory->getBookViewModel($id);
 
-        return $this->render('view', [
-            'viewModel' => $viewModel,
-        ]);
+        return $this->renderer->render('view', $viewModel);
     }
 
     /**
@@ -100,9 +97,7 @@ final class BookController extends Controller
 
         $viewModel = $this->itemViewFactory->getCreateViewModel($form);
 
-        return $this->render('create', [
-            'viewModel' => $viewModel,
-        ]);
+        return $this->renderer->render('create', $viewModel);
     }
 
     /**
@@ -129,9 +124,7 @@ final class BookController extends Controller
 
         $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
 
-        return $this->render('update', [
-            'viewModel' => $viewModel,
-        ]);
+        return $this->renderer->render('update', $viewModel);
     }
 
     public function actionDelete(int $id): Response
