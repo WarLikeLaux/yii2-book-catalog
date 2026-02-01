@@ -96,18 +96,7 @@ final readonly class BookItemViewFactory
 
     private function withResolvedUrl(BookReadDto $dto): BookReadDto
     {
-        return new BookReadDto(
-            $dto->id,
-            $dto->title,
-            $dto->year,
-            $dto->description,
-            $dto->isbn,
-            $dto->authorIds,
-            $dto->authorNames,
-            $this->resolver->resolve($dto->coverUrl),
-            $dto->isPublished,
-            $dto->version,
-        );
+        return $dto->withCoverUrl($this->resolver->resolve($dto->coverUrl));
     }
 
     private function getBookById(int $id): BookReadDto

@@ -52,7 +52,7 @@ final readonly class BookSearchHandler
                 continue; // @codeCoverageIgnore
             }
 
-            $resolvedItems[] = $model->withResolvedCoverUrl(
+            $resolvedItems[] = $model->withCoverUrl(
                 $this->fileUrlResolver->resolveCoverUrl($model->coverUrl, $model->id),
             );
         }

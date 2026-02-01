@@ -77,8 +77,8 @@ final class SubscriptionForm extends Model
         $value = $this->$attribute;
 
         if (!is_int($value) && !is_string($value)) {
-            $this->addError($attribute, Yii::t('app', 'author.error.invalid_id')); // @codeCoverageIgnore
-            return; // @codeCoverageIgnore
+            $this->addError($attribute, Yii::t('app', 'author.error.invalid_id'));
+            return;
         }
 
         $authorId = (int)$value;

@@ -106,7 +106,7 @@ final class BookForm extends Model
         $value = $this->$attribute;
 
         if (!is_string($value)) {
-            return; // @codeCoverageIgnore
+            return;
         }
 
         $excludeId = $this->id !== null ? (int)$this->id : null;
@@ -123,14 +123,14 @@ final class BookForm extends Model
         $value = $this->$attribute;
 
         if (!is_array($value)) {
-            return; // @codeCoverageIgnore
+            return;
         }
 
         $ids = [];
 
         foreach ($value as $rawId) {
             if (!is_int($rawId) && !is_string($rawId)) {
-                continue; // @codeCoverageIgnore
+                continue;
             }
 
             $id = (int)$rawId;
