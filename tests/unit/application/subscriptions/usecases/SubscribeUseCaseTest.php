@@ -62,7 +62,7 @@ final class SubscribeUseCaseTest extends Unit
         $command = new SubscribeCommand('79001112233', 1);
 
         $this->queryService->method('exists')->willReturn(false);
-        $this->repository->method('save')->willThrowException(new \Exception('DB Error'));
+        $this->repository->method('save')->willThrowException(new \RuntimeException('DB Error'));
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('subscription.error.create_failed');
