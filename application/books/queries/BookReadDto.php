@@ -31,7 +31,7 @@ final readonly class BookReadDto implements JsonSerializable
         return $this->year !== null ? "{$this->title} ({$this->year})" : $this->title;
     }
 
-    public function withResolvedCoverUrl(string $resolvedUrl): self
+    public function withCoverUrl(string|null $coverUrl): self
     {
         return new self(
             $this->id,
@@ -41,7 +41,7 @@ final readonly class BookReadDto implements JsonSerializable
             $this->isbn,
             $this->authorIds,
             $this->authorNames,
-            $resolvedUrl,
+            $coverUrl,
             $this->isPublished,
             $this->version,
         );

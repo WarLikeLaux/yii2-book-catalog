@@ -10,7 +10,7 @@ use app\application\ports\UseCaseInterface;
 use app\domain\entities\Author;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
-use Throwable;
+use RuntimeException;
 
 /**
  * @implements UseCaseInterface<CreateAuthorCommand, int>
@@ -32,7 +32,7 @@ final readonly class CreateAuthorUseCase implements UseCaseInterface
             $this->authorRepository->save($author);
 
             return (int)$author->id;
-        } catch (Throwable $e) {
+        } catch (RuntimeException $e) {
             throw new OperationFailedException(DomainErrorCode::AuthorCreateFailed, 0, $e);
         }
     }

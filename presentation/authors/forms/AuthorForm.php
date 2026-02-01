@@ -52,7 +52,7 @@ final class AuthorForm extends Model
         $value = $this->$attribute;
 
         if (!is_string($value)) {
-            return; // @codeCoverageIgnore
+            return;
         }
 
         $excludeId = $this->id !== null ? (int)$this->id : null;

@@ -10,7 +10,7 @@ use app\application\ports\UseCaseInterface;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
-use Throwable;
+use RuntimeException;
 
 /**
  * @implements UseCaseInterface<UpdateAuthorCommand, bool>
@@ -36,7 +36,7 @@ final readonly class UpdateAuthorUseCase implements UseCaseInterface
             return true;
         } catch (AlreadyExistsException $e) {
             throw $e;
-        } catch (Throwable $e) {
+        } catch (RuntimeException $e) {
             throw new OperationFailedException(DomainErrorCode::AuthorUpdateFailed, 0, $e);
         }
     }

@@ -13,7 +13,7 @@ use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
-use Throwable;
+use RuntimeException;
 
 /**
  * @implements UseCaseInterface<SubscribeCommand, bool>
@@ -42,7 +42,7 @@ final readonly class SubscribeUseCase implements UseCaseInterface
             return true;
         } catch (AlreadyExistsException $e) {
             throw $e;
-        } catch (Throwable) {
+        } catch (RuntimeException) {
             throw new OperationFailedException(DomainErrorCode::SubscriptionCreateFailed);
         }
     }
