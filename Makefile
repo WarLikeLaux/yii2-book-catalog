@@ -229,7 +229,7 @@ rector:
 rector-fix:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process
 
-analyze: lint
+analyze: lint arch
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan analyse --memory-limit=2G
 
 prettier:
