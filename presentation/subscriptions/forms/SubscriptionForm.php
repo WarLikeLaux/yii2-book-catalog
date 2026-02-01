@@ -13,6 +13,7 @@ use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
 use yii\base\Model;
+use yii\web\Request;
 
 final class SubscriptionForm extends Model
 {
@@ -92,5 +93,11 @@ final class SubscriptionForm extends Model
         }
 
         $this->addError($attribute, Yii::t('app', 'author.error.not_exists'));
+    }
+
+    #[CodeCoverageIgnore]
+    public function loadFromRequest(Request $request): bool
+    {
+        return $this->load((array)$request->post());
     }
 }

@@ -9,6 +9,7 @@ use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
 use yii\base\Model;
+use yii\web\Request;
 
 final class AuthorForm extends Model
 {
@@ -61,5 +62,11 @@ final class AuthorForm extends Model
         }
 
         $this->addError($attribute, Yii::t('app', 'author.error.fio_exists'));
+    }
+
+    #[CodeCoverageIgnore]
+    public function loadFromRequest(Request $request): bool
+    {
+        return $this->load((array)$request->post());
     }
 }
