@@ -10,6 +10,19 @@ use Codeception\Test\Unit;
 
 final class SubscriptionFormTest extends Unit
 {
+    public function testValidateAuthorExistsAddsErrorForNonScalarAuthorId(): void
+    {
+        $authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
+        $authorQueryService->expects($this->never())->method('findById');
+
+        $form = new SubscriptionForm($authorQueryService);
+        $form->authorId = ['1'];
+
+        $form->validateAuthorExists('authorId');
+
+        $this->assertTrue($form->hasErrors('authorId'));
+    }
+
     public function testValidatePhoneAddsErrorForParsableButInvalidNumber(): void
     {
         $form = new SubscriptionForm($this->createMock(AuthorQueryServiceInterface::class));
