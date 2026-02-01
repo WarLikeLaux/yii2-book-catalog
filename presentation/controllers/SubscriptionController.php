@@ -6,24 +6,25 @@ namespace app\presentation\controllers;
 
 use app\presentation\common\dto\ApiResponse;
 use app\presentation\common\filters\IdempotencyFilter;
+use app\presentation\common\ViewModelRenderer;
 use app\presentation\subscriptions\handlers\SubscriptionCommandHandler;
 use app\presentation\subscriptions\handlers\SubscriptionViewDataFactory;
 use Override;
 use Yii;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\Response;
 
-final class SubscriptionController extends Controller
+final class SubscriptionController extends BaseController
 {
     public function __construct(
         $id,
         $module,
         private readonly SubscriptionCommandHandler $commandHandler,
         private readonly SubscriptionViewDataFactory $viewDataFactory,
+        ViewModelRenderer $renderer,
         $config = [],
     ) {
-        parent::__construct($id, $module, $config);
+        parent::__construct($id, $module, $renderer, $config);
     }
 
     #[Override]
