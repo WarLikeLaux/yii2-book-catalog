@@ -13,9 +13,6 @@ use yii\base\BootstrapInterface;
 use yii\base\Component;
 use yii\web\Application as WebApplication;
 
-/**
- * @codeCoverageIgnore Интеграционный компонент Yii2
- */
 final class TracerBootstrap extends Component implements BootstrapInterface
 {
     public bool $enabled = true;
