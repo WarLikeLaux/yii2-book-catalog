@@ -183,8 +183,8 @@ req-dev require-dev:
 # 🛡️ КОНТРОЛЬ КАЧЕСТВА (QA)
 # =================================================================================================
 
-ci: lint analyze
-fix: prettier-fix lint-fix rector-fix
+ci: analyze
+fix: lint-fix rector-fix
 dev:
 	@lockdir="$(CURDIR)/.dev.lock"; \
 	pidfile="$$lockdir/pid"; \
@@ -206,7 +206,7 @@ dev:
 	else \
 		$(MAKE) _dev_file; \
 	fi
-_dev_full: fix ci
+_dev_full: lint-fix rector-fix
 _dev_file:
 	@echo "🔍 Проверяем: $(FILE_ARG)"
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf $(FILE_ARG) || true
@@ -229,7 +229,7 @@ rector:
 rector-fix:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process
 
-analyze:
+analyze: lint
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan analyse --memory-limit=2G
 
 prettier:
@@ -256,7 +256,9 @@ audit:
 _test-init:
 	@DB_DRIVER=$(DB_DRIVER) DB_TEST_NAME=$(DB_TEST_NAME) COMPOSE="$(COMPOSE)" ./bin/test-db-prepare
 
-test:
+test: test-unit
+
+test-full:
 	@lockdir="$(CURDIR)/.test.lock"; \
 	pidfile="$$lockdir/pid"; \
 	cleanup() { rm -rf "$$lockdir"; }; \
@@ -273,8 +275,8 @@ test:
 		exit 1; \
 	fi; \
 	$(MAKE) _test-init; \
-	echo "🚀 Запуск всех тестов с генерацией отчетов..."; \
-	$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app -d pcov.exclude="~/(vendor|tests|runtime|web/assets)/~" ./vendor/bin/codecept run integration,unit \
+	echo "🚀 Запуск всех тестов (unit + integration + e2e) с генерацией отчетов..."; \
+	$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app -d pcov.exclude="~/(vendor|tests|runtime|web/assets)/~" ./vendor/bin/codecept run integration,unit,e2e \
 		--ext DotReporter \
 		--skip-group migration \
 		--coverage-text \
