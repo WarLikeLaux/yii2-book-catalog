@@ -25,6 +25,7 @@ parameters:
 		- tests/*              # Тесты анализируются отдельно (или не требуют такой строгости)
 		- runtime/*            # Временные файлы Yii2
 		- vendor/*             # Сторонние библиотеки
+		- presentation/controllers/BaseController.php # Переопределяет render() с более строгой сигнатурой
 
 	# Не ругаться, если какое-то правило ignoreErrors больше не срабатывает (полезно при рефакторинге)
 	reportUnmatchedIgnoredErrors: false
