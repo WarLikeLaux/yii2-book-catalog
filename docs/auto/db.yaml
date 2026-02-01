@@ -114,7 +114,7 @@ tables:
         name: version
         type: int
         nullable: false
-        default: 0
+        default: 1
       -
         name: created_at
         type: int

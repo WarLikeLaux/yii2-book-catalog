@@ -53,7 +53,7 @@ deptrac:
     - name: Vendor
       collectors:
         - type: classLike
-          value: ^(Ramsey\\|Psr\\|Symfony\\|Doctrine\\).*  
+          value: ^(Ramsey\\|Psr\\|Symfony\\|Doctrine\\).*
 
   ruleset:
     DomainEntities:
@@ -84,7 +84,6 @@ deptrac:
       - Framework
 
     Presentation:
-      - DomainShared
       - Application
       - Vendor
       - Framework

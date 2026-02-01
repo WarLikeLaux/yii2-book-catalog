@@ -214,8 +214,7 @@ _dev_file:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs $(FILE_ARG) || true
 	@echo "✅ Готово"
 
-check: dev arch test
-pr: docs check test-e2e infection
+pr: dev prettier-fix analyze test-full docs
 
 lint:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs
