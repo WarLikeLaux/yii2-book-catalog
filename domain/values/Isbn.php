@@ -16,46 +16,33 @@ final readonly class Isbn implements Stringable
 
     public function __construct(string $value)
     {
-        $normalized = $this->normalizeIsbn($value);
+        $normalized = self::normalizeIsbn($value);
 
-        if (!$this->isValidIsbn($normalized)) {
+        if (!self::isValid($normalized)) {
             throw new ValidationException(DomainErrorCode::IsbnInvalidFormat);
         }
 
         $this->value = $normalized;
     }
 
-    public function getFormatted(): string
+    public static function isValid(string $value): bool
     {
-        if (strlen($this->value) === 13) {
-            return substr($this->value, 0, 3) . '-' . $this->value[3] . '-' . substr($this->value, 4, 2) . '-' . substr($this->value, 6, 6) . '-' . $this->value[12];
-        }
-
-        return $this->value;
-    }
-
-    public function equals(self $other): bool
-    {
-        return $this->value === $other->value;
-    }
-
-    private function normalizeIsbn(string $isbn): string
-    {
-        return (string)preg_replace('/[\s\-]/', '', $isbn);
-    }
-
-    private function isValidIsbn(string $isbn): bool
-    {
+        $isbn = self::normalizeIsbn($value);
         $length = strlen($isbn);
 
         return match ($length) {
-            10 => $this->validateIsbn10($isbn),
-            13 => $this->validateIsbn13($isbn),
+            10 => self::validateIsbn10($isbn),
+            13 => self::validateIsbn13($isbn),
             default => false,
         };
     }
 
-    private function validateIsbn10(string $isbn): bool
+    private static function normalizeIsbn(string $isbn): string
+    {
+        return (string)preg_replace('/[\s\-]/', '', $isbn);
+    }
+
+    private static function validateIsbn10(string $isbn): bool
     {
         if (!ctype_digit(substr($isbn, 0, 9))) {
             return false;
@@ -77,13 +64,13 @@ final readonly class Isbn implements Stringable
         return array_sum($weightedDigits) % 11 === 0;
     }
 
-    private function validateIsbn13(string $isbn): bool
+    private static function validateIsbn13(string $isbn): bool
     {
         if (!ctype_digit($isbn)) {
             return false;
         }
 
-        if (!$this->hasValidIsbn13Prefix($isbn)) {
+        if (!self::hasValidIsbn13Prefix($isbn)) {
             return false;
         }
 
@@ -97,7 +84,7 @@ final readonly class Isbn implements Stringable
         return $checksum % 10 === 0;
     }
 
-    private function hasValidIsbn13Prefix(string $isbn): bool
+    private static function hasValidIsbn13Prefix(string $isbn): bool
     {
         foreach (self::ISBN13_PREFIXES as $prefix) {
             if (str_starts_with($isbn, $prefix)) {
@@ -106,6 +93,20 @@ final readonly class Isbn implements Stringable
         }
 
         return false;
+    }
+
+    public function getFormatted(): string
+    {
+        if (strlen($this->value) === 13) {
+            return substr($this->value, 0, 3) . '-' . $this->value[3] . '-' . substr($this->value, 4, 2) . '-' . substr($this->value, 6, 6) . '-' . $this->value[12];
+        }
+
+        return $this->value;
+    }
+
+    public function equals(self $other): bool
+    {
+        return $this->value === $other->value;
     }
 
     public function __toString(): string
