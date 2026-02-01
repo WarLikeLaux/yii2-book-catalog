@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace app\presentation\common\adapters;
 
-use app\domain\exceptions\OperationFailedException;
-use app\domain\exceptions\ValidationException;
-use app\domain\services\MimeTypeDetectorInterface;
-use app\domain\values\FileContent;
+use app\application\common\dto\UploadedFilePayload;
+use app\application\ports\MimeTypeDetectorInterface;
 use yii\web\UploadedFile;
 
 final readonly class UploadedFileAdapter
@@ -17,18 +15,15 @@ final readonly class UploadedFileAdapter
     ) {
     }
 
-    public function toFileContent(UploadedFile $uploadedFile): FileContent
+    public function toPayload(UploadedFile $uploadedFile): UploadedFilePayload
     {
-        try {
-            $extension = $uploadedFile->getExtension() !== '' ? $uploadedFile->getExtension() : null;
+        $extension = $uploadedFile->getExtension();
+        $extension = $extension !== '' ? $extension : pathinfo($uploadedFile->name, PATHINFO_EXTENSION);
 
-            return FileContent::fromPath(
-                $uploadedFile->tempName,
-                $extension,
-                $this->mimeTypeDetector,
-            );
-        } catch (ValidationException $exception) {
-            throw new OperationFailedException($exception->errorCode, $exception->getCode(), $exception);
-        }
+        return new UploadedFilePayload(
+            $uploadedFile->tempName,
+            $extension,
+            $this->mimeTypeDetector->detect($uploadedFile->tempName),
+        );
     }
 }

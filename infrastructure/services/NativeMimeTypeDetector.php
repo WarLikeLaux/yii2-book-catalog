@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace app\domain\services;
+namespace app\infrastructure\services;
 
+use app\application\ports\MimeTypeDetectorInterface;
 use Closure;
 
 final readonly class NativeMimeTypeDetector implements MimeTypeDetectorInterface

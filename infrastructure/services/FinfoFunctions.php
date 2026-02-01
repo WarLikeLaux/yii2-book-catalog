@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\domain\services;
+namespace app\infrastructure\services;
 
 use Closure;
 

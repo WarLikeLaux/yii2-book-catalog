@@ -7,7 +7,6 @@ namespace tests\unit\domain\values;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\ValidationException;
-use app\domain\services\NativeMimeTypeDetector;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use Codeception\Test\Unit;
@@ -71,7 +70,7 @@ final class FileContentTest extends Unit
         $filePath = $this->tempDir . '/test.txt';
         file_put_contents($filePath, 'test content');
 
-        $content = FileContent::fromPath($filePath, null, $this->createDetector());
+        $content = FileContent::fromPath($filePath, null, self::MIME_TYPE);
 
         $this->assertSame(self::EXTENSION, $content->extension);
         $this->assertIsResource($content->getStream());
@@ -82,7 +81,7 @@ final class FileContentTest extends Unit
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::FileNotFound->value);
 
-        FileContent::fromPath($this->tempDir . '/non-existent.txt', null, $this->createDetector());
+        FileContent::fromPath($this->tempDir . '/non-existent.txt', null, self::MIME_TYPE);
     }
 
     public function testFromPathThrowsOnDirectory(): void
@@ -93,15 +92,15 @@ final class FileContentTest extends Unit
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::FileNotFound->value);
 
-        FileContent::fromPath($dirPath, null, $this->createDetector());
+        FileContent::fromPath($dirPath, null, self::MIME_TYPE);
     }
 
-    public function testFromPathDetectsMimeType(): void
+    public function testFromPathUsesProvidedMimeType(): void
     {
         $filePath = $this->tempDir . '/test.txt';
         file_put_contents($filePath, 'plain text content');
 
-        $content = FileContent::fromPath($filePath, null, $this->createDetector());
+        $content = FileContent::fromPath($filePath, null, self::MIME_TYPE);
 
         $this->assertSame(self::MIME_TYPE, $content->mimeType);
     }
@@ -121,18 +120,10 @@ final class FileContentTest extends Unit
             $this->expectException(ValidationException::class);
             $this->expectExceptionMessage(DomainErrorCode::FileNotFound->value);
 
-            FileContent::fromPath($filePath, null, $this->createDetector());
+            FileContent::fromPath($filePath, null, self::MIME_TYPE);
         } finally {
             chmod($filePath, 0644);
         }
-    }
-
-    public function testFromPathDetectsMimeTypeWithFinfo(): void
-    {
-        $filePath = $this->tempDir . '/test.bin';
-        file_put_contents($filePath, 'binary content');
-        $content = FileContent::fromPath($filePath, null, $this->createDetector());
-        $this->assertNotEmpty($content->mimeType);
     }
 
     public function testComputeKeyReturnsFileKey(): void
@@ -167,8 +158,16 @@ final class FileContentTest extends Unit
         $this->assertTrue($content1->computeKey()->equals($content2->computeKey()));
     }
 
-    private function createDetector(): NativeMimeTypeDetector
+    public function testDestructorClosesStream(): void
     {
-        return new NativeMimeTypeDetector();
+        $stream = fopen(self::MEMORY_STREAM, 'r+b');
+        fwrite($stream, 'content');
+        rewind($stream);
+
+        $content = new FileContent($stream, self::EXTENSION, self::MIME_TYPE);
+        unset($content);
+        gc_collect_cycles();
+
+        $this->assertFalse(is_resource($stream));
     }
 }

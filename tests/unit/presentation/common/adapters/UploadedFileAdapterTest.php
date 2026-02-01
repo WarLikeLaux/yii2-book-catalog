@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\common\adapters;
 
-use app\domain\exceptions\OperationFailedException;
-use app\domain\services\NativeMimeTypeDetector;
-use app\domain\values\FileContent;
+use app\application\common\dto\UploadedFilePayload;
+use app\infrastructure\services\NativeMimeTypeDetector;
 use app\presentation\common\adapters\UploadedFileAdapter;
 use Codeception\Test\Unit;
 use tests\_support\RemovesDirectoriesTrait;
@@ -35,20 +34,20 @@ final class UploadedFileAdapterTest extends Unit
         $this->removeDir($this->tempDir);
     }
 
-    public function testToFileContentCreatesValidFileContent(): void
+    public function testToPayloadCreatesValidPayload(): void
     {
         $tempFile = $this->tempDir . '/test-upload.txt';
         file_put_contents($tempFile, 'uploaded content');
 
         $uploadedFile = $this->createUploadedFile($tempFile, 'test.txt');
 
-        $content = $this->adapter->toFileContent($uploadedFile);
+        $payload = $this->adapter->toPayload($uploadedFile);
 
-        $this->assertInstanceOf(FileContent::class, $content);
-        $this->assertSame('txt', $content->extension);
+        $this->assertInstanceOf(UploadedFilePayload::class, $payload);
+        $this->assertSame('txt', $payload->extension);
     }
 
-    public function testToFileContentPreservesStreamContent(): void
+    public function testToPayloadPreservesTempPath(): void
     {
         $originalContent = 'this is the uploaded file content';
         $tempFile = $this->tempDir . '/test-upload.txt';
@@ -56,40 +55,21 @@ final class UploadedFileAdapterTest extends Unit
 
         $uploadedFile = $this->createUploadedFile($tempFile, 'document.txt');
 
-        $content = $this->adapter->toFileContent($uploadedFile);
-        $stream = $content->getStream();
+        $payload = $this->adapter->toPayload($uploadedFile);
 
-        rewind($stream);
-        $this->assertSame($originalContent, stream_get_contents($stream));
+        $this->assertSame($tempFile, $payload->path);
     }
 
-    public function testToFileContentUsesOriginalExtensionEvenIfTempFileHasNone(): void
+    public function testToPayloadUsesOriginalExtensionEvenIfTempFileHasNone(): void
     {
         $tempFile = $this->tempDir . '/phpTMP123';
         file_put_contents($tempFile, 'content');
 
         $uploadedFile = $this->createUploadedFile($tempFile, 'document.pdf');
 
-        $content = $this->adapter->toFileContent($uploadedFile);
+        $payload = $this->adapter->toPayload($uploadedFile);
 
-        $this->assertSame('pdf', $content->extension);
-    }
-
-    public function testToFileContentThrowsOperationFailedWhenTempFileNotFound(): void
-    {
-        $nonExistentPath = $this->tempDir . '/non-existent-file.tmp';
-
-        $uploadedFile = new UploadedFile([
-            'name' => 'test.txt',
-            'tempName' => $nonExistentPath,
-            'type' => 'text/plain',
-            'size' => 0,
-            'error' => UPLOAD_ERR_OK,
-        ]);
-
-        $this->expectException(OperationFailedException::class);
-
-        $this->adapter->toFileContent($uploadedFile);
+        $this->assertSame('pdf', $payload->extension);
     }
 
     private function createUploadedFile(string $tempPath, string $originalName): UploadedFile
