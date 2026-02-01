@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\common\services;
 
+use app\application\common\exceptions\ApplicationException;
 use app\application\common\pipeline\PipelineFactory;
 use app\application\ports\CommandInterface;
 use app\application\ports\NotificationInterface;
 use app\application\ports\PipelineInterface;
 use app\application\ports\TranslatorInterface;
 use app\application\ports\UseCaseInterface;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\DomainException;
-use app\domain\exceptions\ValidationException;
 use app\presentation\common\dto\ApiResponse;
 use app\presentation\common\services\WebOperationRunner;
 use Codeception\Test\Unit;
@@ -53,7 +51,7 @@ final class WebOperationRunnerTest extends Unit
         $this->assertSame('success-result', $result);
     }
 
-    public function testExecuteHandlesDomainException(): void
+    public function testExecuteHandlesApplicationException(): void
     {
         $command = $this->createMock(CommandInterface::class);
         $useCase = $this->createMock(UseCaseInterface::class);
@@ -62,15 +60,15 @@ final class WebOperationRunnerTest extends Unit
         $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
         $pipeline->expects($this->once())
             ->method('execute')
-            ->willThrowException(new ValidationException(DomainErrorCode::BookTitleEmpty));
+            ->willThrowException(new ApplicationException('book.error.title_empty'));
 
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('app', DomainErrorCode::BookTitleEmpty->value)
-            ->willReturn(DomainErrorCode::BookTitleEmpty->value);
+            ->with('app', 'book.error.title_empty')
+            ->willReturn('book.error.title_empty');
         $this->notifier->expects($this->once())
             ->method('error')
-            ->with(DomainErrorCode::BookTitleEmpty->value);
+            ->with('book.error.title_empty');
         $this->notifier->expects($this->never())->method('success');
 
         $result = $this->runner->execute($command, $useCase, 'ok');
@@ -165,12 +163,12 @@ final class WebOperationRunnerTest extends Unit
         $this->assertSame(42, $result);
     }
 
-    public function testExecuteWithFormErrorsCallsOnDomainErrorCallback(): void
+    public function testExecuteWithFormErrorsCallsOnApplicationErrorCallback(): void
     {
         $command = $this->createMock(CommandInterface::class);
         $useCase = $this->createMock(UseCaseInterface::class);
         $pipeline = $this->createMock(PipelineInterface::class);
-        $exception = new ValidationException(DomainErrorCode::BookTitleEmpty);
+        $exception = new ApplicationException('book.error.title_empty');
 
         $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
         $pipeline->expects($this->once())->method('execute')->willThrowException($exception);
@@ -182,7 +180,7 @@ final class WebOperationRunnerTest extends Unit
             $command,
             $useCase,
             'ok',
-            static function (DomainException $e) use (&$capturedException) {
+            static function (ApplicationException $e) use (&$capturedException) {
                 $capturedException = $e;
             },
             static function () use (&$onErrorCalled) {

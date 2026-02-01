@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\presentation\common\handlers;
 
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\CommandInterface;
 use app\application\ports\UseCaseInterface;
-use app\domain\exceptions\DomainException;
 use app\presentation\common\services\WebOperationRunner;
 use Yii;
 use yii\base\Model;
@@ -38,13 +38,13 @@ trait UseCaseHandlerTrait
             $command,
             $useCase,
             $successMsg,
-            fn (DomainException $e) => $this->addFormError($form, $e),
+            fn (ApplicationException $e) => $this->addFormError($form, $e),
         );
     }
 
-    protected function addFormError(Model $form, DomainException $e): void
+    protected function addFormError(Model $form, ApplicationException $e): void
     {
-        $errorCode = $e->errorCode->value;
+        $errorCode = $e->errorCode;
         $errorToFieldMap = $this->getErrorFieldMap();
         $field = $errorToFieldMap[$errorCode] ?? null;
         $attributes = $form->attributes();

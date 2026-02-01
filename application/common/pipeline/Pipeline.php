@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace app\application\common\pipeline;
 
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\CommandInterface;
 use app\application\ports\MiddlewareInterface;
 use app\application\ports\PipelineInterface;
 use app\application\ports\UseCaseInterface;
+use app\domain\exceptions\DomainException;
 
 final class Pipeline implements PipelineInterface
 {
@@ -39,7 +41,11 @@ final class Pipeline implements PipelineInterface
             $handler = static fn(CommandInterface $cmd): mixed => $middleware->process($cmd, $next);
         }
 
-        /** @var TResponse */
-        return $handler($command);
+        try {
+            /** @var TResponse */
+            return $handler($command);
+        } catch (DomainException $exception) {
+            throw ApplicationException::fromDomainException($exception);
+        }
     }
 }
