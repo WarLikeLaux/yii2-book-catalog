@@ -90,22 +90,26 @@ final class SiteController extends BaseController
 
         $form = new LoginForm();
 
-        if ($this->request->isPost) {
-            /** @var array<string, mixed> $postData */
-            $postData = (array) $this->request->post();
-
-            if ($form->load($postData) && $form->validate()) {
-                if ($this->authService->login($form->username, $form->password, $form->rememberMe)) {
-                    return $this->goBack();
-                }
-
-                $form->addError('password', Yii::t('app', 'auth.error.invalid_credentials'));
-                $form->password = '';
-            } else {
-                $form->password = '';
-            }
+        if (!$this->request->isPost) {
+            $viewModel = $this->authViewDataFactory->getLoginViewModel($form);
+            return $this->renderer->render('login', $viewModel);
         }
 
+        /** @var array<string, mixed> $postData */
+        $postData = (array) $this->request->post();
+
+        if (!$form->load($postData) || !$form->validate()) {
+            $form->password = '';
+            $viewModel = $this->authViewDataFactory->getLoginViewModel($form);
+            return $this->renderer->render('login', $viewModel);
+        }
+
+        if ($this->authService->login($form->username, $form->password, $form->rememberMe)) {
+            return $this->goBack();
+        }
+
+        $form->addError('password', Yii::t('app', 'auth.error.invalid_credentials'));
+        $form->password = '';
         $viewModel = $this->authViewDataFactory->getLoginViewModel($form);
 
         return $this->renderer->render('login', $viewModel);
