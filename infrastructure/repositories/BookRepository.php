@@ -35,9 +35,10 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         $this->authorSnapshots = new WeakMap();
     }
 
-    public function save(BookEntity $book): void
+    public function save(BookEntity $book): int
     {
-        $this->db->transaction(function () use ($book): void {
+        /** @var int */
+        return $this->db->transaction(function () use ($book): int {
             $isNew = $book->getId() === null;
             $model = $isNew ? new Book() : $this->getArForEntity($book, Book::class, DomainErrorCode::BookNotFound);
             $model->version = $book->version;
@@ -66,6 +67,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             $this->registerIdentity($book, $model);
 
             $this->syncAuthors($book);
+
+            return (int)$model->id;
         });
     }
 

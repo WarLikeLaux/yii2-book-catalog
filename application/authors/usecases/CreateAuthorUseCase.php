@@ -32,9 +32,7 @@ final readonly class CreateAuthorUseCase implements UseCaseInterface
         try {
             try {
                 $author = Author::create($command->fio);
-                $this->authorRepository->save($author);
-
-                return (int)$author->id;
+                return $this->authorRepository->save($author);
             } catch (DomainException $exception) {
                 throw $exception;
             } catch (RuntimeException $e) {

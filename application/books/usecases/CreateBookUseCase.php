@@ -66,10 +66,9 @@ final readonly class CreateBookUseCase implements UseCaseInterface
             );
             $book->replaceAuthors($authorIds);
 
-            $this->bookRepository->save($book);
-            $bookId = $book->id;
+            $bookId = $this->bookRepository->save($book);
 
-            if ($bookId === null) {
+            if ($bookId === 0) {
                 throw new RuntimeException('Failed to retrieve book ID after save');
             }
 

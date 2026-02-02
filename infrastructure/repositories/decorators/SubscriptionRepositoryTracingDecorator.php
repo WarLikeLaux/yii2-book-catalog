@@ -18,8 +18,8 @@ final readonly class SubscriptionRepositoryTracingDecorator implements Subscript
     }
 
     #[Override]
-    public function save(Subscription $subscription): void
+    public function save(Subscription $subscription): int
     {
-        $this->tracer->trace('SubRepo::' . __FUNCTION__, fn() => $this->repository->save($subscription));
+        return $this->tracer->trace('SubRepo::' . __FUNCTION__, fn(): int => $this->repository->save($subscription));
     }
 }

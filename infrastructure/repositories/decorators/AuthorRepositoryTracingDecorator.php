@@ -18,9 +18,9 @@ final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositor
     }
 
     #[Override]
-    public function save(Author $author): void
+    public function save(Author $author): int
     {
-        $this->tracer->trace('AuthorRepo::' . __FUNCTION__, fn() => $this->repository->save($author));
+        return $this->tracer->trace('AuthorRepo::' . __FUNCTION__, fn(): int => $this->repository->save($author));
     }
 
     #[Override]

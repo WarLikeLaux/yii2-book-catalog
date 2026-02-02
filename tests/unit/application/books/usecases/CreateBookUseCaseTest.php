@@ -59,8 +59,9 @@ final class CreateBookUseCaseTest extends Unit
             ->method('save')
             ->with($this->callback(static fn (Book $book): bool => $book->title === 'Clean Code'
                     && $book->authorIds === [1, 2]))
-            ->willReturnCallback(static function (Book $book): void {
+            ->willReturnCallback(static function (Book $book): int {
                 BookTestHelper::assignBookId($book, 42);
+                return 42;
             });
 
         $result = $this->useCase->execute($command);
@@ -115,8 +116,9 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->willReturnCallback(static function (Book $book): void {
+            ->willReturnCallback(static function (Book $book): int {
                 BookTestHelper::assignBookId($book, 1);
+                return 1;
             });
 
         $result = $this->useCase->execute($command);
@@ -138,8 +140,7 @@ final class CreateBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(Book::class))
-            ->willReturnCallback(static function (Book $_book): void {
-            });
+            ->willReturnCallback(static fn (Book $_book): int => 0);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Failed to retrieve book ID after save');

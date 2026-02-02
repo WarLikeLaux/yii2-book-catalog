@@ -8,7 +8,7 @@ use app\domain\entities\Book;
 
 interface BookRepositoryInterface
 {
-    public function save(Book $book): void;
+    public function save(Book $book): int;
 
     public function get(int $id): Book;
 

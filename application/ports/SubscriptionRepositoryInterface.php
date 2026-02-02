@@ -8,5 +8,5 @@ use app\domain\entities\Subscription;
 
 interface SubscriptionRepositoryInterface
 {
-    public function save(Subscription $subscription): void;
+    public function save(Subscription $subscription): int;
 }

@@ -14,7 +14,7 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 {
     use IdentityAssignmentTrait;
 
-    public function save(AuthorEntity $author): void
+    public function save(AuthorEntity $author): int
     {
         $isNew = $author->getId() === null;
 
@@ -33,6 +33,8 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
         }
 
         $this->registerIdentity($author, $model);
+
+        return (int)$model->id;
     }
 
     public function get(int $id): AuthorEntity

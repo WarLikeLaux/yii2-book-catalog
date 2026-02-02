@@ -40,7 +40,8 @@ final class CreateAuthorUseCaseTest extends Unit
                 $property->setValue($author, 42);
 
                 return true;
-            }));
+            }))
+            ->willReturn(42);
 
         $result = $this->useCase->execute($command);
 

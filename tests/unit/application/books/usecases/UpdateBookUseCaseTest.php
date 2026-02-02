@@ -83,7 +83,8 @@ final class UpdateBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
-                    && $book->authorIds === [1, 2]));
+                    && $book->authorIds === [1, 2]))
+            ->willReturn(42);
 
         $this->eventPublisher->expects($this->once())
             ->method('publishAfterCommit')
@@ -184,7 +185,8 @@ final class UpdateBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
-                    && $book->coverImage?->getPath() === '/uploads/old-cover.jpg'));
+                    && $book->coverImage?->getPath() === '/uploads/old-cover.jpg'))
+            ->willReturn(42);
 
         $this->useCase->execute($command);
     }
@@ -218,7 +220,8 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->isbn->equals(new Isbn('979-10-90636-07-1'))));
+            ->with($this->callback(static fn (Book $book): bool => $book->isbn->equals(new Isbn('979-10-90636-07-1'))))
+            ->willReturn(42);
 
         $this->useCase->execute($command);
     }
@@ -253,7 +256,8 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->coverImage?->getPath() === '/uploads/new-cover.png'));
+            ->with($this->callback(static fn (Book $book): bool => $book->coverImage?->getPath() === '/uploads/new-cover.png'))
+            ->willReturn(42);
 
         $this->useCase->execute($command);
     }
@@ -288,7 +292,8 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->description === 'New description text'));
+            ->with($this->callback(static fn (Book $book): bool => $book->description === 'New description text'))
+            ->willReturn(42);
 
         $this->useCase->execute($command);
     }

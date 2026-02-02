@@ -14,7 +14,7 @@ final readonly class SubscriptionRepository extends BaseActiveRecordRepository i
 {
     use IdentityAssignmentTrait;
 
-    public function save(SubscriptionEntity $subscription): void
+    public function save(SubscriptionEntity $subscription): int
     {
         $model = new Subscription();
         $model->phone = $subscription->phone;
@@ -28,5 +28,7 @@ final readonly class SubscriptionRepository extends BaseActiveRecordRepository i
 
         $this->assignId($subscription, $model->id);
         $this->registerIdentity($subscription, $model);
+
+        return (int)$model->id;
     }
 }

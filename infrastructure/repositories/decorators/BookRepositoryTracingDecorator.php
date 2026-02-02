@@ -18,9 +18,9 @@ final readonly class BookRepositoryTracingDecorator implements BookRepositoryInt
     }
 
     #[Override]
-    public function save(Book $book): void
+    public function save(Book $book): int
     {
-        $this->tracer->trace('BookRepo::' . __FUNCTION__, fn() => $this->repository->save($book));
+        return $this->tracer->trace('BookRepo::' . __FUNCTION__, fn(): int => $this->repository->save($book));
     }
 
     #[Override]
