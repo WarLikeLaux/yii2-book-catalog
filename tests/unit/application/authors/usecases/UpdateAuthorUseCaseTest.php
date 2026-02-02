@@ -39,7 +39,8 @@ final class UpdateAuthorUseCaseTest extends Unit
 
         $this->authorRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Author $author) => $author->id === 42 && $author->fio === 'Новое ФИО'));
+            ->with($this->callback(static fn (Author $author) => $author->id === 42 && $author->fio === 'Новое ФИО'))
+            ->willReturn(42);
 
         $result = $this->useCase->execute($command);
 
