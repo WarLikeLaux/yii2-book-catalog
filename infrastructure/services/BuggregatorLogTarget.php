@@ -11,14 +11,12 @@ use yii\helpers\Json;
 use yii\log\Logger;
 use yii\log\Target;
 
-/**
- * @codeCoverageIgnore
- */
 final class BuggregatorLogTarget extends Target
 {
     public string $host = 'buggregator';
     public int $port = 9913;
 
+    /** @codeCoverageIgnore */
     #[Override]
     public function export(): void
     {
