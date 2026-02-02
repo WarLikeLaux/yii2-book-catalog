@@ -14,14 +14,12 @@ use Inspector\Models\Transaction;
 use Override;
 use Throwable;
 
-/**
- * @codeCoverageIgnore Инфраструктурный адаптер для Inspector SDK
- */
 final class InspectorTracer implements TracerInterface
 {
     private readonly Inspector $inspector;
     private InspectorSpan|null $currentSpan = null;
 
+    /** @codeCoverageIgnore */
     public function __construct(
         string $ingestionKey,
         string $url,
@@ -32,8 +30,11 @@ final class InspectorTracer implements TracerInterface
         $this->inspector = new Inspector($configuration);
     }
 
+    /**
+     * @codeCoverageIgnore
+     * @param array<string, mixed> $attributes
+     */
     #[Override]
-    /** @param array<string, mixed> $attributes */
     public function startSpan(string $name, array $attributes = []): SpanInterface
     {
         if (!$this->inspector->hasTransaction()) {
@@ -43,7 +44,10 @@ final class InspectorTracer implements TracerInterface
         return $this->startChildSpan($name, $attributes);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /**
+     * @codeCoverageIgnore
+     * @param array<string, mixed> $attributes
+     */
     private function startRootSpan(string $name, array $attributes): SpanInterface
     {
         /** @var Transaction $item */
@@ -178,7 +182,10 @@ final class InspectorTracer implements TracerInterface
         return is_array($query) ? array_merge($table, $query) : $table;
     }
 
-    /** @param array<string, mixed> $attributes */
+    /**
+     * @codeCoverageIgnore
+     * @param array<string, mixed> $attributes
+     */
     private function startChildSpan(string $name, array $attributes): SpanInterface
     {
         $item = $this->inspector->startSegment('database', $name);
@@ -211,8 +218,11 @@ final class InspectorTracer implements TracerInterface
         return str_contains($k, 'cookie') || str_contains($k, 'header');
     }
 
+    /**
+     * @codeCoverageIgnore
+     * @param array<string, mixed> $attributes
+     */
     #[Override]
-    /** @param array<string, mixed> $attributes */
     public function trace(string $name, callable $callback, array $attributes = []): mixed
     {
         if ($name === '') {
@@ -231,12 +241,14 @@ final class InspectorTracer implements TracerInterface
         }
     }
 
+    /** @codeCoverageIgnore */
     #[Override]
     public function activeSpan(): SpanInterface|null
     {
         return $this->currentSpan;
     }
 
+    /** @codeCoverageIgnore */
     #[Override]
     public function flush(): void
     {
