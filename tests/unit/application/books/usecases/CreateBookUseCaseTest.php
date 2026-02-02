@@ -8,6 +8,8 @@ use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\common\exceptions\ApplicationException;
 use app\application\common\values\AuthorIdCollection;
+use app\application\ports\AuthorQueryServiceInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
 use BookTestHelper;
@@ -19,17 +21,25 @@ use Psr\Clock\ClockInterface;
 final class CreateBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
+    private BookQueryServiceInterface&MockObject $bookQueryService;
+    private AuthorQueryServiceInterface&MockObject $authorQueryService;
     private ClockInterface&MockObject $clock;
     private CreateBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
+        $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
+        $this->bookQueryService->method('existsByIsbn')->willReturn(false);
+        $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
+        $this->authorQueryService->method('findMissingIds')->willReturn([]);
         $this->clock = $this->createMock(ClockInterface::class);
         $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
         $this->useCase = new CreateBookUseCase(
             $this->bookRepository,
+            $this->bookQueryService,
+            $this->authorQueryService,
             $this->clock,
         );
     }
@@ -153,5 +163,63 @@ final class CreateBookUseCaseTest extends Unit
         $this->expectExceptionMessage('year.error.future');
 
         $this->useCase->execute($command);
+    }
+
+    public function testExecuteThrowsIsbnAlreadyExistsException(): void
+    {
+        $bookQueryService = $this->createMock(BookQueryServiceInterface::class);
+        $bookQueryService->method('existsByIsbn')
+            ->with('9780132350884')
+            ->willReturn(true);
+
+        $useCase = new CreateBookUseCase(
+            $this->bookRepository,
+            $bookQueryService,
+            $this->authorQueryService,
+            $this->clock,
+        );
+
+        $command = new CreateBookCommand(
+            title: 'Clean Code',
+            year: 2008,
+            description: 'A Handbook of Agile Software Craftsmanship',
+            isbn: '9780132350884',
+            authorIds: AuthorIdCollection::fromArray([1]),
+        );
+
+        $this->bookRepository->expects($this->never())->method('save');
+
+        $this->expectException(ApplicationException::class);
+
+        $useCase->execute($command);
+    }
+
+    public function testExecuteThrowsAuthorsNotFoundException(): void
+    {
+        $authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
+        $authorQueryService->method('findMissingIds')
+            ->with([1, 999])
+            ->willReturn([999]);
+
+        $useCase = new CreateBookUseCase(
+            $this->bookRepository,
+            $this->bookQueryService,
+            $authorQueryService,
+            $this->clock,
+        );
+
+        $command = new CreateBookCommand(
+            title: 'Clean Code',
+            year: 2008,
+            description: 'A Handbook of Agile Software Craftsmanship',
+            isbn: '9780132350884',
+            authorIds: AuthorIdCollection::fromArray([1, 999]),
+        );
+
+        $this->bookRepository->expects($this->never())->method('save');
+
+        $this->expectException(ApplicationException::class);
+
+        $useCase->execute($command);
     }
 }

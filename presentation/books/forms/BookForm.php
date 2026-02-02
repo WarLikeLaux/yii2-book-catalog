@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace app\presentation\books\forms;
 
 use app\application\common\values\AuthorIdCollection;
-use app\application\ports\AuthorQueryServiceInterface;
-use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\validators\IsbnValidator;
 use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
@@ -45,14 +43,6 @@ final class BookForm extends Model
     public ?string $fullTitle = null;
     public int $version = 1;
 
-    public function __construct(
-        private readonly BookQueryServiceInterface $bookQueryService,
-        private readonly AuthorQueryServiceInterface $authorQueryService,
-        array $config = [],
-    ) {
-        parent::__construct($config);
-    }
-
     #[CodeCoverageIgnore]
     public function loadFromRequest(Request $request): bool
     {
@@ -73,9 +63,7 @@ final class BookForm extends Model
             [['title'], 'string', 'max' => 255],
             [['isbn'], 'string', 'max' => 20],
             [['isbn'], IsbnValidator::class],
-            [['isbn'], 'validateIsbnUnique'],
             [['authorIds'], 'each', 'rule' => ['integer']],
-            [['authorIds'], 'validateAuthorsExist'],
             [['version'], 'integer', 'min' => 1],
             [
                 ['cover'],
@@ -99,44 +87,6 @@ final class BookForm extends Model
             'cover' => Yii::t('app', 'ui.cover'),
             'authorIds' => Yii::t('app', 'ui.authors'),
         ];
-    }
-
-    public function validateIsbnUnique(string $attribute): void
-    {
-        $value = $this->$attribute;
-
-        if (!is_string($value)) {
-            return;
-        }
-
-        $excludeId = $this->id !== null ? (int)$this->id : null;
-
-        if (!$this->bookQueryService->existsByIsbn($value, $excludeId)) {
-            return;
-        }
-
-        $this->addError($attribute, Yii::t('app', 'book.error.isbn_exists'));
-    }
-
-    public function validateAuthorsExist(string $attribute): void
-    {
-        $value = $this->$attribute;
-
-        if (!is_array($value)) {
-            return;
-        }
-
-        $ids = AuthorIdCollection::fromMixed($value)->toArray();
-
-        if ($ids === []) {
-            return;
-        }
-
-        $missingIds = $this->authorQueryService->findMissingIds($ids);
-
-        foreach ($missingIds as $missingId) {
-            $this->addError($attribute, Yii::t('app', 'author.error.id_not_found', ['id' => $missingId]));
-        }
     }
 
     /**

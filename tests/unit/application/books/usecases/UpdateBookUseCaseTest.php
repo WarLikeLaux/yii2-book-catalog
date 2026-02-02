@@ -9,6 +9,8 @@ use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\exceptions\ApplicationException;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\common\values\AuthorIdCollection;
+use app\application\ports\AuthorQueryServiceInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookUpdatedEvent;
@@ -23,6 +25,8 @@ use Psr\Clock\ClockInterface;
 final class UpdateBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
+    private BookQueryServiceInterface&MockObject $bookQueryService;
+    private AuthorQueryServiceInterface&MockObject $authorQueryService;
     private TransactionalEventPublisher&MockObject $eventPublisher;
     private ClockInterface&MockObject $clock;
     private UpdateBookUseCase $useCase;
@@ -30,12 +34,18 @@ final class UpdateBookUseCaseTest extends Unit
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
+        $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
+        $this->bookQueryService->method('existsByIsbn')->willReturn(false);
+        $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
+        $this->authorQueryService->method('findMissingIds')->willReturn([]);
         $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
         $this->clock = $this->createMock(ClockInterface::class);
         $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
         $this->useCase = new UpdateBookUseCase(
             $this->bookRepository,
+            $this->bookQueryService,
+            $this->authorQueryService,
             $this->eventPublisher,
             $this->clock,
         );
@@ -316,5 +326,69 @@ final class UpdateBookUseCaseTest extends Unit
         $this->expectExceptionMessage('year.error.future');
 
         $this->useCase->execute($command);
+    }
+
+    public function testExecuteThrowsIsbnAlreadyExistsException(): void
+    {
+        $bookQueryService = $this->createMock(BookQueryServiceInterface::class);
+        $bookQueryService->method('existsByIsbn')
+            ->willReturn(true);
+
+        $useCase = new UpdateBookUseCase(
+            $this->bookRepository,
+            $bookQueryService,
+            $this->authorQueryService,
+            $this->eventPublisher,
+            $this->clock,
+        );
+
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Updated Title',
+            year: 2024,
+            description: 'New description',
+            isbn: '9780132350884',
+            authorIds: AuthorIdCollection::fromArray([1]),
+            version: 1,
+        );
+
+        $this->bookRepository->expects($this->never())->method('getByIdAndVersion');
+        $this->bookRepository->expects($this->never())->method('save');
+
+        $this->expectException(ApplicationException::class);
+
+        $useCase->execute($command);
+    }
+
+    public function testExecuteThrowsAuthorsNotFoundException(): void
+    {
+        $authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
+        $authorQueryService->method('findMissingIds')
+            ->willReturn([999]);
+
+        $useCase = new UpdateBookUseCase(
+            $this->bookRepository,
+            $this->bookQueryService,
+            $authorQueryService,
+            $this->eventPublisher,
+            $this->clock,
+        );
+
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Updated Title',
+            year: 2024,
+            description: 'New description',
+            isbn: '9780132350884',
+            authorIds: AuthorIdCollection::fromArray([1, 999]),
+            version: 1,
+        );
+
+        $this->bookRepository->expects($this->never())->method('getByIdAndVersion');
+        $this->bookRepository->expects($this->never())->method('save');
+
+        $this->expectException(ApplicationException::class);
+
+        $useCase->execute($command);
     }
 }

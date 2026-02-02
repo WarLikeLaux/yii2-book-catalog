@@ -16,6 +16,7 @@ enum DomainErrorCode: string
     case BookPublishShortDescription = 'book.error.publish_short_description';
     case BookStaleData = 'book.error.stale_data';
     case BookIsbnExists = 'book.error.isbn_exists';
+    case BookAuthorsNotFound = 'book.error.authors_not_found';
 
     case AuthorFioEmpty = 'author.error.fio_empty';
     case AuthorFioTooShort = 'author.error.fio_too_short';

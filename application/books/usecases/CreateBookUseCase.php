@@ -6,10 +6,15 @@ namespace app\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\common\exceptions\ApplicationException;
+use app\application\ports\AuthorQueryServiceInterface;
+use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\entities\Book;
+use app\domain\exceptions\AlreadyExistsException;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
+use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
@@ -23,6 +28,8 @@ final readonly class CreateBookUseCase implements UseCaseInterface
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
+        private BookQueryServiceInterface $bookQueryService,
+        private AuthorQueryServiceInterface $authorQueryService,
         private ClockInterface $clock,
     ) {
     }
@@ -33,6 +40,20 @@ final readonly class CreateBookUseCase implements UseCaseInterface
     public function execute(object $command): int
     {
         try {
+            $authorIds = $command->authorIds->toArray();
+
+            if ($this->bookQueryService->existsByIsbn($command->isbn)) {
+                throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
+            }
+
+            if ($authorIds !== []) {
+                $missingIds = $this->authorQueryService->findMissingIds($authorIds);
+
+                if ($missingIds !== []) {
+                    throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
+                }
+            }
+
             $currentYear = (int) $this->clock->now()->format('Y');
             $coverImage = $command->storedCover !== null ? new StoredFileReference($command->storedCover) : null;
 
@@ -43,7 +64,7 @@ final readonly class CreateBookUseCase implements UseCaseInterface
                 description: $command->description,
                 coverImage: $coverImage,
             );
-            $book->replaceAuthors($command->authorIds->toArray());
+            $book->replaceAuthors($authorIds);
 
             $this->bookRepository->save($book);
             $bookId = $book->id;
