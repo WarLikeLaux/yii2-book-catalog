@@ -6,7 +6,7 @@ use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\common\exceptions\ApplicationException;
 use app\application\common\pipeline\PipelineFactory;
-use app\domain\values\AuthorIdCollection;
+use app\application\common\values\AuthorIdCollection;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use yii\db\Query;

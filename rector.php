@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\ClassMethod\RemoveParentDelegatingConstructorRector;
+use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPrivateMethodParameterRector;
+use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPublicMethodParameterRector;
 use Rector\DeadCode\Rector\Node\RemoveNonExistingVarAnnotationRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
@@ -45,6 +47,12 @@ return static function (RectorConfig $rectorConfig): void {
         RemoveParentDelegatingConstructorRector::class => [
             __DIR__ . '/domain/exceptions/AlreadyExistsException.php',
             __DIR__ . '/domain/exceptions/StaleDataException.php',
+        ],
+        RemoveUnusedPrivateMethodParameterRector::class => [
+            __DIR__ . '/domain/values/*',
+        ],
+        RemoveUnusedPublicMethodParameterRector::class => [
+            __DIR__ . '/domain/values/*',
         ],
     ]);
 };

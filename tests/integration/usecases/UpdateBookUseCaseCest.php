@@ -5,7 +5,7 @@ declare(strict_types=1);
 use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\exceptions\ApplicationException;
-use app\domain\values\AuthorIdCollection;
+use app\application\common\values\AuthorIdCollection;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use app\infrastructure\persistence\User;

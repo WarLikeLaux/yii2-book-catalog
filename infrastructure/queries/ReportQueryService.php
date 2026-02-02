@@ -9,6 +9,7 @@ use app\application\reports\queries\ReportCriteria;
 use app\application\reports\queries\ReportDto;
 use Override;
 use yii\db\Connection;
+use yii\db\Query;
 
 final readonly class ReportQueryService implements ReportQueryServiceInterface
 {
@@ -37,21 +38,15 @@ final readonly class ReportQueryService implements ReportQueryServiceInterface
      */
     private function getTopAuthorsByYear(int $year, int $limit): array
     {
-        return $this->db->createCommand('
-            SELECT
-                a.id,
-                a.fio,
-                COUNT(DISTINCT b.id) as books_count
-            FROM {{%authors}} a
-            INNER JOIN {{%book_authors}} ba ON ba.author_id = a.id
-            INNER JOIN {{%books}} b ON b.id = ba.book_id
-            WHERE b.year = :year AND b.is_published = TRUE
-            GROUP BY a.id, a.fio
-            ORDER BY books_count DESC
-            LIMIT :limit
-        ')
-            ->bindValue(':year', $year)
-            ->bindValue(':limit', $limit)
-            ->queryAll();
+        return (new Query())
+            ->select(['a.id', 'a.fio', 'COUNT(DISTINCT b.id) as books_count'])
+            ->from('{{%authors}} a')
+            ->innerJoin('{{%book_authors}} ba', 'ba.author_id = a.id')
+            ->innerJoin('{{%books}} b', 'b.id = ba.book_id')
+            ->where(['b.year' => $year, 'b.is_published' => true])
+            ->groupBy(['a.id', 'a.fio'])
+            ->orderBy(['books_count' => SORT_DESC])
+            ->limit($limit)
+            ->all($this->db);
     }
 }
