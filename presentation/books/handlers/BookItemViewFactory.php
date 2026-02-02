@@ -36,7 +36,7 @@ final readonly class BookItemViewFactory
 
     public function createForm(): BookForm
     {
-        return new BookForm($this->finder, $this->authorQueryService);
+        return new BookForm();
     }
 
     public function getUpdateViewModel(int $id, BookForm|null $form = null): BookEditViewModel
@@ -58,7 +58,7 @@ final readonly class BookItemViewFactory
     public function getBookForUpdate(int $id): BookForm
     {
         $dto = $this->getBookById($id);
-        $form = new BookForm($this->finder, $this->authorQueryService);
+        $form = new BookForm();
         $form = $this->autoMapper->map($dto, $form);
 
         if (!$form instanceof BookForm) {
