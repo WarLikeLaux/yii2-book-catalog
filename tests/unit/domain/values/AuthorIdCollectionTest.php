@@ -36,4 +36,18 @@ final class AuthorIdCollectionTest extends Unit
 
         $this->assertSame([7], $collection->toArray());
     }
+
+    public function testFromArraySkipsNonStringTypesAndKeepsFollowing(): void
+    {
+        $collection = AuthorIdCollection::fromArray([true, 5]);
+
+        $this->assertSame([5], $collection->toArray());
+    }
+
+    public function testFromArraySkipsNonPositiveValuesAndKeepsFollowing(): void
+    {
+        $collection = AuthorIdCollection::fromArray([0, -1, 3]);
+
+        $this->assertSame([3], $collection->toArray());
+    }
 }
