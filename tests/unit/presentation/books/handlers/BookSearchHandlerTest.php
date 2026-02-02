@@ -12,8 +12,8 @@ use app\application\ports\PagedResultInterface;
 use app\presentation\books\dto\BookIndexViewModel;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\books\handlers\BookSearchHandler;
+use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
-use app\presentation\services\FileUrlResolver;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 use yii\data\ArrayDataProvider;
@@ -22,19 +22,19 @@ final class BookSearchHandlerTest extends Unit
 {
     private BookQueryServiceInterface&MockObject $bookQueryService;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
-    private FileUrlResolver&MockObject $fileUrlResolver;
+    private BookDtoUrlResolver&MockObject $urlResolver;
     private BookSearchHandler $handler;
 
     protected function _before(): void
     {
         $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
-        $this->fileUrlResolver = $this->createMock(FileUrlResolver::class);
+        $this->urlResolver = $this->createMock(BookDtoUrlResolver::class);
 
         $this->handler = new BookSearchHandler(
             $this->bookQueryService,
             $this->dataProviderFactory,
-            $this->fileUrlResolver,
+            $this->urlResolver,
         );
     }
 
@@ -84,10 +84,11 @@ final class BookSearchHandlerTest extends Unit
             ->with('query', 1, 20)
             ->willReturn($pagedResult);
 
-        $this->fileUrlResolver->expects($this->once())
-            ->method('resolveCoverUrl')
-            ->with('cover.jpg', 1)
-            ->willReturn('resolved.jpg');
+        $resolvedDto = $dto->withCoverUrl('resolved.jpg');
+        $this->urlResolver->expects($this->once())
+            ->method('resolveUrl')
+            ->with($dto)
+            ->willReturn($resolvedDto);
 
         $this->dataProviderFactory->expects($this->once())
             ->method('create')

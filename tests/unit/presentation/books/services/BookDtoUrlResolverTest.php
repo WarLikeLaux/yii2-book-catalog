@@ -29,12 +29,12 @@ final class BookDtoUrlResolverTest extends Unit
         $this->assertSame('/uploads/cover.jpg', $result->coverUrl);
     }
 
-    public function testResolveUrlKeepsNullCoverWhenEmpty(): void
+    public function testResolveUrlReturnsPlaceholderWhenEmpty(): void
     {
         $dto = new BookReadDto(1, 'Title', 2020, null, 'ISBN', [], [], null, false, 1);
 
         $result = $this->resolver->resolveUrl($dto);
 
-        $this->assertNull($result->coverUrl);
+        $this->assertEquals('', $result->coverUrl);
     }
 }

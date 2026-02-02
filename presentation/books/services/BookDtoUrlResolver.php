@@ -16,6 +16,8 @@ final readonly class BookDtoUrlResolver
 
     public function resolveUrl(BookReadDto $dto): BookReadDto
     {
-        return $dto->withCoverUrl($this->resolver->resolve($dto->coverUrl));
+        return $dto->withCoverUrl(
+            $this->resolver->resolveCoverUrl($dto->coverUrl, $dto->id),
+        );
     }
 }

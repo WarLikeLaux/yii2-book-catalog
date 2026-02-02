@@ -11,15 +11,15 @@ use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\dto\BookIndexViewModel;
 use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\forms\BookSearchForm;
+use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
-use app\presentation\services\FileUrlResolver;
 
 final readonly class BookSearchHandler
 {
     public function __construct(
         private BookQueryServiceInterface $bookQueryService,
         private PagedResultDataProviderFactory $dataProviderFactory,
-        private FileUrlResolver $fileUrlResolver,
+        private BookDtoUrlResolver $urlResolver,
     ) {
     }
 
@@ -53,11 +53,9 @@ final readonly class BookSearchHandler
                 continue; // @codeCoverageIgnore
             }
 
-            $dtoWithUrl = $model->withCoverUrl(
-                $this->fileUrlResolver->resolveCoverUrl($model->coverUrl, $model->id),
+            $resolvedItems[] = $this->mapToViewModel(
+                $this->urlResolver->resolveUrl($model),
             );
-
-            $resolvedItems[] = $this->mapToViewModel($dtoWithUrl);
         }
 
         $resolvedResult = new QueryResult(
