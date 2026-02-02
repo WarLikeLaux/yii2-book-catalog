@@ -10,7 +10,6 @@ use app\presentation\authors\dto\AuthorEditViewModel;
 use app\presentation\authors\dto\AuthorViewViewModel;
 use app\presentation\authors\forms\AuthorForm;
 use AutoMapper\AutoMapperInterface;
-use LogicException;
 use yii\web\NotFoundHttpException;
 
 final readonly class AuthorItemViewFactory
@@ -53,17 +52,9 @@ final readonly class AuthorItemViewFactory
         $dto = $this->queryService->findById($id) ?? throw new NotFoundHttpException();
 
         $form = new AuthorForm($this->queryService);
-        $form = $this->autoMapper->map($dto, $form);
 
-        if (!$form instanceof AuthorForm) {
-            throw new LogicException(sprintf(
-                'AutoMapper returned unexpected type: expected %s, got %s',
-                AuthorForm::class,
-                get_debug_type($form),
-            ));
-        }
-
-        return $form;
+        /** @var AuthorForm */
+        return $this->autoMapper->map($dto, $form);
     }
 
     public function getAuthorView(int $id): AuthorReadDto

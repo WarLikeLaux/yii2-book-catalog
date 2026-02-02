@@ -13,7 +13,6 @@ use app\presentation\books\dto\BookViewViewModel;
 use app\presentation\books\forms\BookForm;
 use app\presentation\services\FileUrlResolver;
 use AutoMapper\AutoMapperInterface;
-use LogicException;
 use yii\web\NotFoundHttpException;
 
 final readonly class BookItemViewFactory
@@ -59,18 +58,9 @@ final readonly class BookItemViewFactory
     {
         $dto = $this->getBookById($id);
         $form = new BookForm();
-        $form = $this->autoMapper->map($dto, $form);
 
-        if (!$form instanceof BookForm) {
-            throw new LogicException(sprintf(
-                'AutoMapper failed to convert %s to %s in getBookForUpdate: got %s. Check mapper configuration.',
-                BookReadDto::class,
-                BookForm::class,
-                get_debug_type($form),
-            ));
-        }
-
-        return $form;
+        /** @var BookForm */
+        return $this->autoMapper->map($dto, $form);
     }
 
     public function getBookView(int $id): BookReadDto

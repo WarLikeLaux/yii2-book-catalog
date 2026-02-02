@@ -135,7 +135,7 @@ final class BookItemViewFactoryTest extends Unit
 
                 ->willReturn(new \stdClass());
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(\TypeError::class);
 
         $this->factory->getBookForUpdate(1);
     }

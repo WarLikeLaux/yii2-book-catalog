@@ -72,7 +72,7 @@ final class AuthorItemViewFactoryTest extends Unit
             ->method('map')
             ->willReturn(new \stdClass());
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(\TypeError::class);
         $this->factory->getAuthorForUpdate(1);
     }
 
