@@ -10,6 +10,7 @@ use app\application\common\dto\QueryResult;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\handlers\BookListViewFactory;
+use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
 use Codeception\Test\Unit;
@@ -21,6 +22,7 @@ final class BookListViewFactoryTest extends Unit
     private BookSearcherInterface&MockObject $searcher;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private FileUrlResolver $resolver;
+    private BookDtoUrlResolver $urlResolver;
     private BookListViewFactory $factory;
 
     protected function _before(): void
@@ -28,11 +30,12 @@ final class BookListViewFactoryTest extends Unit
         $this->searcher = $this->createMock(BookSearcherInterface::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $this->resolver = new FileUrlResolver('/uploads');
+        $this->urlResolver = new BookDtoUrlResolver($this->resolver);
 
         $this->factory = new BookListViewFactory(
             $this->searcher,
             $this->dataProviderFactory,
-            $this->resolver,
+            $this->urlResolver,
         );
     }
 

@@ -9,8 +9,8 @@ use app\application\common\dto\QueryResult;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\dto\BookViewModel;
+use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
-use app\presentation\services\FileUrlResolver;
 use LogicException;
 use yii\data\DataProviderInterface;
 
@@ -19,7 +19,7 @@ final readonly class BookListViewFactory
     public function __construct(
         private BookSearcherInterface $searcher,
         private PagedResultDataProviderFactory $dataProviderFactory,
-        private FileUrlResolver $resolver,
+        private BookDtoUrlResolver $urlResolver,
     ) {
     }
 
@@ -36,7 +36,7 @@ final readonly class BookListViewFactory
 
         $dtos = array_map(
             fn(mixed $dto): BookViewModel => $dto instanceof BookReadDto
-                ? $this->mapToViewModel($this->withResolvedUrl($dto))
+                ? $this->mapToViewModel($this->urlResolver->resolveUrl($dto))
                 : throw new LogicException('Expected BookReadDto'),
             $queryResult->getModels(),
         );
@@ -48,11 +48,6 @@ final readonly class BookListViewFactory
         );
 
         return $this->dataProviderFactory->create($newResult);
-    }
-
-    private function withResolvedUrl(BookReadDto $dto): BookReadDto
-    {
-        return $dto->withCoverUrl($this->resolver->resolve($dto->coverUrl));
     }
 
     private function mapToViewModel(BookReadDto $dto): BookViewModel

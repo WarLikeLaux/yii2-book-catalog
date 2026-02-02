@@ -11,6 +11,7 @@ use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\dto\BookEditViewModel;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookItemViewFactory;
+use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\services\FileUrlResolver;
 use AutoMapper\AutoMapperInterface;
 use Codeception\Test\Unit;
@@ -23,6 +24,7 @@ final class BookItemViewFactoryTest extends Unit
     private AuthorQueryServiceInterface&MockObject $authorQueryService;
     private AutoMapperInterface&MockObject $autoMapper;
     private FileUrlResolver $resolver;
+    private BookDtoUrlResolver $urlResolver;
     private BookItemViewFactory $factory;
 
     protected function _before(): void
@@ -31,12 +33,13 @@ final class BookItemViewFactoryTest extends Unit
         $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
         $this->autoMapper = $this->createMock(AutoMapperInterface::class);
         $this->resolver = new FileUrlResolver('/uploads');
+        $this->urlResolver = new BookDtoUrlResolver($this->resolver);
 
         $this->factory = new BookItemViewFactory(
             $this->finder,
             $this->authorQueryService,
             $this->autoMapper,
-            $this->resolver,
+            $this->urlResolver,
         );
     }
 

@@ -11,7 +11,7 @@ use app\presentation\books\dto\BookEditViewModel;
 use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\dto\BookViewViewModel;
 use app\presentation\books\forms\BookForm;
-use app\presentation\services\FileUrlResolver;
+use app\presentation\books\services\BookDtoUrlResolver;
 use AutoMapper\AutoMapperInterface;
 use yii\web\NotFoundHttpException;
 
@@ -21,7 +21,7 @@ final readonly class BookItemViewFactory
         private BookQueryServiceInterface $finder,
         private AuthorQueryServiceInterface $authorQueryService,
         private AutoMapperInterface $autoMapper,
-        private FileUrlResolver $resolver,
+        private BookDtoUrlResolver $urlResolver,
     ) {
     }
 
@@ -67,7 +67,7 @@ final readonly class BookItemViewFactory
     {
         $dto = $this->getBookById($id);
 
-        return $this->withResolvedUrl($dto);
+        return $this->urlResolver->resolveUrl($dto);
     }
 
     /**
@@ -83,11 +83,6 @@ final readonly class BookItemViewFactory
         }
 
         return $map;
-    }
-
-    private function withResolvedUrl(BookReadDto $dto): BookReadDto
-    {
-        return $dto->withCoverUrl($this->resolver->resolve($dto->coverUrl));
     }
 
     private function getBookById(int $id): BookReadDto
