@@ -10,9 +10,6 @@ use Inspector\Models\Transaction;
 use Override;
 use Throwable;
 
-/**
- * @codeCoverageIgnore Инфраструктурный адаптер для Inspector SDK
- */
 final readonly class InspectorSpan implements SpanInterface
 {
     public function __construct(
