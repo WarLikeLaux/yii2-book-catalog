@@ -8,13 +8,11 @@ use app\application\authors\queries\AuthorReadDto;
 use app\application\authors\queries\AuthorSearchCriteria;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\authors\forms\AuthorSearchForm;
-use AutoMapper\AutoMapperInterface;
 
 final readonly class AuthorSearchHandler
 {
     public function __construct(
         private AuthorQueryServiceInterface $queryService,
-        private AutoMapperInterface $autoMapper,
     ) {
     }
 
@@ -31,8 +29,11 @@ final readonly class AuthorSearchHandler
             return $this->createEmptySelect2Result();
         }
 
-        /** @var AuthorSearchCriteria $criteria */
-        $criteria = $this->autoMapper->map($form, AuthorSearchCriteria::class);
+        $criteria = new AuthorSearchCriteria(
+            search: $form->q,
+            page: $form->page,
+            pageSize: $form->limit,
+        );
 
         $result = $this->queryService->search(
             $criteria->search,

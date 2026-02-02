@@ -5,29 +5,23 @@ declare(strict_types=1);
 namespace tests\unit\presentation\authors\handlers;
 
 use app\application\authors\queries\AuthorReadDto;
-use app\application\authors\queries\AuthorSearchCriteria;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
-use app\presentation\authors\forms\AuthorSearchForm;
 use app\presentation\authors\handlers\AuthorSearchHandler;
-use AutoMapper\AutoMapperInterface;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class AuthorSearchHandlerTest extends Unit
 {
-    private AutoMapperInterface&MockObject $autoMapper;
     private AuthorQueryServiceInterface&MockObject $queryService;
     private AuthorSearchHandler $handler;
 
     protected function _before(): void
     {
-        $this->autoMapper = $this->createMock(AutoMapperInterface::class);
         $this->queryService = $this->createMock(AuthorQueryServiceInterface::class);
 
         $this->handler = new AuthorSearchHandler(
             $this->queryService,
-            $this->autoMapper,
         );
     }
 
@@ -52,13 +46,6 @@ final class AuthorSearchHandlerTest extends Unit
     public function testSearchReturnsMappedResultsWhenValidationPasses(): void
     {
         $queryParams = ['q' => 'test'];
-
-        $criteria = new AuthorSearchCriteria('test', 1, 20);
-
-        $this->autoMapper->expects($this->once())
-            ->method('map')
-            ->with($this->isInstanceOf(AuthorSearchForm::class), AuthorSearchCriteria::class)
-            ->willReturn($criteria);
 
         $pagedResult = $this->createMock(PagedResultInterface::class);
         $pagedResult->method('getModels')->willReturn([
