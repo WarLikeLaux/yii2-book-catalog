@@ -7,7 +7,6 @@ namespace app\infrastructure\services\sms;
 use app\application\ports\SmsSenderInterface;
 use Psr\Log\LoggerInterface;
 
-/** @codeCoverageIgnore Интеграция с внешним API (SmsPilot.ru) */
 final readonly class SmsPilotSender implements SmsSenderInterface
 {
     public function __construct(
@@ -16,6 +15,7 @@ final readonly class SmsPilotSender implements SmsSenderInterface
     ) {
     }
 
+    /** @codeCoverageIgnore */
     public function send(string $phone, string $message): bool
     {
         $url = 'https://smspilot.ru/api.php';
@@ -44,15 +44,7 @@ final readonly class SmsPilotSender implements SmsSenderInterface
             return false;
         }
 
-        $data = json_decode((string)$response, true);
-        /** @var array<string, mixed> $data */
-        $send = $data['send'] ?? [];
-
-        $status = null;
-
-        if (is_array($send) && isset($send[0]) && is_array($send[0])) {
-            $status = $send[0]['status'] ?? null;
-        }
+        $status = $this->parseResponseStatus((string)$response);
 
         if ($status === 'OK' || $status === '0') {
             $this->logger->info('SMS sent successfully', [
@@ -68,5 +60,24 @@ final readonly class SmsPilotSender implements SmsSenderInterface
             'response' => $response,
         ]);
         return false;
+    }
+
+    private function parseResponseStatus(string $responseBody): ?string
+    {
+        $data = json_decode($responseBody, true);
+
+        if (!is_array($data)) {
+            return null;
+        }
+
+        $send = $data['send'] ?? [];
+
+        if (!is_array($send) || !isset($send[0]) || !is_array($send[0])) {
+            return null;
+        }
+
+        $status = $send[0]['status'] ?? null;
+
+        return is_string($status) ? $status : null;
     }
 }
