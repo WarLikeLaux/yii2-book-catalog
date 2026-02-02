@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace app\infrastructure\persistence;
 
-use app\application\books\queries\BookReadDto;
-use AutoMapper\Attribute\MapTo;
 use yii\behaviors\OptimisticLockBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveQuery;
@@ -78,7 +76,6 @@ final class Book extends ActiveRecord
     }
 
     /** @return int[] */
-    #[MapTo(target: BookReadDto::class, property: 'authorIds')]
     public function getAuthorIds(): array
     {
         $ids = [];
@@ -91,7 +88,6 @@ final class Book extends ActiveRecord
     }
 
     /** @return array<int, string> */
-    #[MapTo(target: BookReadDto::class, property: 'authorNames', transformer: [self::class, 'mapAuthorNames'])]
     public function getAuthorNames(): array
     {
         $names = [];
@@ -109,13 +105,11 @@ final class Book extends ActiveRecord
             ->viaTable('book_authors', ['book_id' => 'id']);
     }
 
-    #[MapTo(target: BookReadDto::class, property: 'coverUrl')]
     public function getCoverUrl(): ?string
     {
         return $this->cover_url;
     }
 
-    #[MapTo(target: BookReadDto::class, property: 'isPublished')]
     public function getIsPublished(): bool
     {
         return (bool)$this->is_published;
