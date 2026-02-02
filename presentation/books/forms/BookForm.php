@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\books\forms;
 
+use app\application\common\values\AuthorIdCollection;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\validators\IsbnValidator;
@@ -125,21 +126,7 @@ final class BookForm extends Model
             return;
         }
 
-        $ids = [];
-
-        foreach ($value as $rawId) {
-            if (!is_int($rawId) && !is_string($rawId)) {
-                continue;
-            }
-
-            $id = (int)$rawId;
-
-            if ($id <= 0) {
-                continue;
-            }
-
-            $ids[] = $id;
-        }
+        $ids = AuthorIdCollection::fromMixed($value)->toArray();
 
         if ($ids === []) {
             return;
@@ -158,7 +145,7 @@ final class BookForm extends Model
      */
     public function getAuthorInitValueText(array $authors): array
     {
-        $authorIds = $this->normalizeAuthorIds();
+        $authorIds = AuthorIdCollection::fromMixed($this->authorIds)->toArray();
 
         if ($authorIds === []) {
             return [];
@@ -168,31 +155,5 @@ final class BookForm extends Model
             static fn(int $authorId): string => $authors[$authorId] ?? (string)$authorId,
             $authorIds,
         );
-    }
-
-    /**
-     * @return array<int>
-     */
-    private function normalizeAuthorIds(): array
-    {
-        $authorIds = $this->authorIds;
-
-        if (!is_array($authorIds)) {
-            $authorIds = $authorIds === null ? [] : [$authorIds];
-        }
-
-        $normalized = [];
-
-        foreach ($authorIds as $authorId) {
-            $id = filter_var($authorId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-
-            if ($id === false) {
-                continue;
-            }
-
-            $normalized[] = $id;
-        }
-
-        return $normalized;
     }
 }

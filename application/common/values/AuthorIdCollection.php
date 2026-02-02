@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\domain\values;
+namespace app\application\common\values;
 
 final readonly class AuthorIdCollection
 {
@@ -21,14 +21,8 @@ final readonly class AuthorIdCollection
         return new self(self::normalize($ids));
     }
 
-    /**
-     * @param object|array<string, mixed> $source
-     * @param array<string, mixed> $context
-     */
-    public static function fromMixed(mixed $value, object|array $source, array $context): self
+    public static function fromMixed(mixed $value): self
     {
-        unset($source, $context);
-
         if (!is_array($value)) {
             $value = $value === null ? [] : [$value];
         }

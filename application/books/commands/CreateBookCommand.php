@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\application\books\commands;
 
+use app\application\common\values\AuthorIdCollection;
 use app\application\ports\CommandInterface;
-use app\domain\values\AuthorIdCollection;
 use AutoMapper\Attribute\MapFrom;
 
 final readonly class CreateBookCommand implements CommandInterface

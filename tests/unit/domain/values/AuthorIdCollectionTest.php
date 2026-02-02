@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace tests\unit\domain\values;
 
-use app\domain\values\AuthorIdCollection;
+use app\application\common\values\AuthorIdCollection;
 use Codeception\Test\Unit;
 
 final class AuthorIdCollectionTest extends Unit
 {
     public function testFromMixedNormalizesNullToEmptyArray(): void
     {
-        $collection = AuthorIdCollection::fromMixed(null, new \stdClass(), []);
+        $collection = AuthorIdCollection::fromMixed(null);
 
         $this->assertSame([], $collection->toArray());
     }
 
     public function testFromMixedWrapsScalarValue(): void
     {
-        $collection = AuthorIdCollection::fromMixed('5', new \stdClass(), []);
+        $collection = AuthorIdCollection::fromMixed('5');
 
         $this->assertSame([5], $collection->toArray());
     }
