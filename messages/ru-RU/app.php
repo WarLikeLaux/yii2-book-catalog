@@ -81,6 +81,7 @@ return [
     'book.error.publish_short_description' => 'Для публикации описание книги должно содержать не менее 50 символов',
     'book.error.isbn_change_published' => 'Нельзя изменить ISBN опубликованной книги',
     'book.error.stale_data' => 'Данные книги устарели. Пожалуйста, обновите страницу.',
+    'book.error.authors_not_found' => 'Автор не существует',
     'book.error.invalid_author_id' => 'Некорректный ID автора',
     'subscription.error.already_subscribed' => 'Вы уже подписаны на этого автора',
     'subscription.error.create_failed' => 'Не удалось создать подписку. Попробуйте позже.',

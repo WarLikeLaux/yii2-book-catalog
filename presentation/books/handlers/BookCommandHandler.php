@@ -56,6 +56,7 @@ final readonly class BookCommandHandler
             'book.error.stale_data' => 'version',
             'book.error.isbn_change_published' => 'isbn',
             'book.error.invalid_author_id' => 'authorIds',
+            'book.error.authors_not_found' => 'authorIds',
             'book.error.publish_without_authors' => 'authorIds',
             'error.mapper_failed' => 'title',
         ];
