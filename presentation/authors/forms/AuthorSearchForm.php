@@ -12,7 +12,7 @@ final class AuthorSearchForm extends Model
 {
     public string $q = '';
     public int $page = 1;
-    public int $pageSize = 20;
+    public int $limit = 20;
 
     #[Override]
     #[CodeCoverageIgnore]
@@ -22,7 +22,7 @@ final class AuthorSearchForm extends Model
             ['q', 'trim'],
             ['q', 'string', 'max' => 255],
             ['page', 'integer', 'min' => 1],
-            ['pageSize', 'integer', 'min' => 1, 'max' => 50],
+            ['limit', 'integer', 'min' => 1, 'max' => 50],
         ];
     }
 

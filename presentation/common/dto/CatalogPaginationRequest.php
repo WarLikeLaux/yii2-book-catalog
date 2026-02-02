@@ -15,7 +15,7 @@ final readonly class CatalogPaginationRequest extends PaginationRequest
     {
         return new self(
             $request->get('page'),
-            $request->get('pageSize'),
+            $request->get('limit'),
         );
     }
 }

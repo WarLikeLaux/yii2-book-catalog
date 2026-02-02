@@ -37,7 +37,7 @@ final class ApiBookCest
 
     public function testPagination(IntegrationTester $I): void
     {
-        $I->sendGet('/index-test.php?r=api/v1/book/index', ['pageSize' => 1]);
+        $I->sendGet('/index-test.php?r=api/v1/book/index', ['limit' => 1]);
         $I->seeResponseCodeIs(200);
         $I->seeResponseIsJson();
 

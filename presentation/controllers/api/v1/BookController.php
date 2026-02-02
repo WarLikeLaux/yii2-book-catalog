@@ -47,7 +47,7 @@ final class BookController extends BaseApiController
         tags: ['API Books'],
         parameters: [
             new OA\Parameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'pageSize', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'limit', in: 'query', schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
             new OA\Response(
