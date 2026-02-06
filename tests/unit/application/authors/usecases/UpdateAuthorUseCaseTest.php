@@ -29,7 +29,7 @@ final class UpdateAuthorUseCaseTest extends Unit
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'Новое ФИО');
 
-        $existingAuthor = new Author(id: 42, fio: 'Старое ФИО');
+        $existingAuthor = Author::reconstitute(id: 42, fio: 'Старое ФИО');
 
         $this->authorRepository->expects($this->once())
             ->method('get')
@@ -67,7 +67,7 @@ final class UpdateAuthorUseCaseTest extends Unit
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'New Name');
 
-        $existingAuthor = new Author(id: 42, fio: 'Old Name');
+        $existingAuthor = Author::reconstitute(id: 42, fio: 'Old Name');
 
         $this->authorRepository->expects($this->once())
             ->method('get')
@@ -87,7 +87,7 @@ final class UpdateAuthorUseCaseTest extends Unit
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'Duplicated Name');
 
-        $existingAuthor = new Author(id: 42, fio: 'Old Name');
+        $existingAuthor = Author::reconstitute(id: 42, fio: 'Old Name');
 
         $this->authorRepository->expects($this->once())
             ->method('get')

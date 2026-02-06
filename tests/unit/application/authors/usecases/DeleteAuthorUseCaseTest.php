@@ -29,7 +29,7 @@ final class DeleteAuthorUseCaseTest extends Unit
     {
         $command = new DeleteAuthorCommand(id: 42);
 
-        $existingAuthor = new Author(id: 42, fio: 'Test Author');
+        $existingAuthor = Author::reconstitute(id: 42, fio: 'Test Author');
 
         $this->authorRepository->expects($this->once())
             ->method('get')
