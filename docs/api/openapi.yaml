@@ -21,7 +21,7 @@ paths:
           schema:
             type: integer
         -
-          name: pageSize
+          name: limit
           in: query
           schema:
             type: integer
