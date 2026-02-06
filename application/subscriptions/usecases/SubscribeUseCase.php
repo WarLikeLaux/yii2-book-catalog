@@ -11,6 +11,7 @@ use app\application\subscriptions\commands\SubscribeCommand;
 use app\domain\entities\Subscription;
 use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\DomainException;
 use app\domain\exceptions\OperationFailedException;
 use RuntimeException;
 
@@ -39,6 +40,8 @@ final readonly class SubscribeUseCase implements UseCaseInterface
             $this->subscriptionRepository->save($subscription);
 
             return true;
+        } catch (DomainException $e) {
+            throw $e;
         } catch (RuntimeException) {
             throw new OperationFailedException(DomainErrorCode::SubscriptionCreateFailed);
         }
