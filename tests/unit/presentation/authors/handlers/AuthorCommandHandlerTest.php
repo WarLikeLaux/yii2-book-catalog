@@ -9,7 +9,7 @@ use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
-use app\application\common\exceptions\ApplicationException;
+use app\application\common\exceptions\OperationFailedException;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\mappers\AuthorCommandMapper;
@@ -52,24 +52,26 @@ final class AuthorCommandHandlerTest extends Unit
             ->method('runStep')
             ->willReturn($command);
 
-        $this->operationRunner->method('executeWithFormErrors')->willReturn(123);
+        $this->operationRunner->method('executeAndPropagate')->willReturn(123);
 
         $this->assertSame(123, $this->handler->createAuthor($form));
     }
 
-    public function testCreateAuthorReturnsNullOnMappingError(): void
+    public function testCreateAuthorThrowsOnMappingError(): void
     {
-        $form = $this->createForm(['fio'], ['fio' => 'Invalid']);
+        $form = $this->createMock(AuthorForm::class);
 
         $this->operationRunner->expects($this->once())
             ->method('runStep')
             ->willReturn(null);
 
-        $this->expectFormError($form);
-        $this->assertNull($this->handler->createAuthor($form));
+        $this->expectException(OperationFailedException::class);
+        $this->expectExceptionMessage('error.internal_mapper_failed');
+
+        $this->handler->createAuthor($form);
     }
 
-    public function testUpdateAuthorReturnsTrueOnSuccess(): void
+    public function testUpdateAuthorSucceeds(): void
     {
         $form = $this->createMock(AuthorForm::class);
         $command = $this->createMock(UpdateAuthorCommand::class);
@@ -78,86 +80,33 @@ final class AuthorCommandHandlerTest extends Unit
             ->method('runStep')
             ->willReturn($command);
 
-        $this->operationRunner->method('executeWithFormErrors')->willReturn(true);
+        $this->operationRunner->expects($this->once())
+            ->method('executeAndPropagate');
 
-        $this->assertTrue($this->handler->updateAuthor(1, $form));
+        $this->handler->updateAuthor(1, $form);
+        $this->assertTrue(true);
     }
 
-    public function testUpdateAuthorReturnsFalseOnMappingError(): void
+    public function testUpdateAuthorThrowsOnMappingError(): void
     {
-        $form = $this->createForm(['fio'], []);
+        $form = $this->createMock(AuthorForm::class);
 
         $this->operationRunner->expects($this->once())
             ->method('runStep')
             ->willReturn(null);
 
-        $this->expectFormError($form);
-        $this->assertFalse($this->handler->updateAuthor(1, $form));
+        $this->expectException(OperationFailedException::class);
+        $this->expectExceptionMessage('error.internal_mapper_failed');
+
+        $this->handler->updateAuthor(1, $form);
     }
 
-    public function testCreateAuthorAddsFormErrorOnApplicationException(): void
-    {
-        $form = $this->createForm(['fio'], ['fio' => 'Duplicate']);
-        $command = $this->createMock(CreateAuthorCommand::class);
-
-        $this->operationRunner->expects($this->once())
-            ->method('runStep')
-            ->willReturn($command);
-
-        $this->mockOperationRunnerDomainError(new ApplicationException('author.error.fio_exists'));
-
-        $form->expects($this->once())
-            ->method('addError')
-            ->with('fio', $this->anything());
-
-        $this->handler->createAuthor($form);
-    }
-
-    public function testCreateAuthorAddsFioErrorWhenNoAttributes(): void
-    {
-        $form = $this->createForm([], ['fio' => 'Duplicate']);
-        $command = $this->createMock(CreateAuthorCommand::class);
-
-        $this->operationRunner->expects($this->once())
-            ->method('runStep')
-            ->willReturn($command);
-
-        $this->mockOperationRunnerDomainError(new ApplicationException('author.error.fio_exists'));
-
-        $form->expects($this->once())
-            ->method('addError')
-            ->with('fio', $this->anything());
-
-        $this->handler->createAuthor($form);
-    }
-
-    public function testDeleteAuthorReturnsTrueOnSuccess(): void
-    {
-        $this->operationRunner->method('execute')->willReturn(true);
-        $this->assertTrue($this->handler->deleteAuthor(1));
-    }
-
-    private function createForm(array $attributes, array $data): AuthorForm&MockObject
-    {
-        $form = $this->createMock(AuthorForm::class);
-        $form->method('attributes')->willReturn($attributes);
-        $form->method('toArray')->willReturn($data);
-
-        return $form;
-    }
-
-    private function mockOperationRunnerDomainError(ApplicationException $exception): void
+    public function testDeleteAuthorSucceeds(): void
     {
         $this->operationRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
-                $onDomainError($exception);
-                return null;
-            });
-    }
+            ->method('executeAndPropagate');
 
-    private function expectFormError(AuthorForm&MockObject $form): void
-    {
-        $form->expects($this->once())->method('addError');
+        $this->handler->deleteAuthor(1);
+        $this->assertTrue(true);
     }
 }

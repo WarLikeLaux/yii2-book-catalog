@@ -12,7 +12,6 @@ use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\dto\BookViewViewModel;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\services\BookDtoUrlResolver;
-use AutoMapper\AutoMapperInterface;
 use yii\web\NotFoundHttpException;
 
 final readonly class BookItemViewFactory
@@ -20,7 +19,6 @@ final readonly class BookItemViewFactory
     public function __construct(
         private BookQueryServiceInterface $finder,
         private AuthorQueryServiceInterface $authorQueryService,
-        private AutoMapperInterface $autoMapper,
         private BookDtoUrlResolver $urlResolver,
     ) {
     }
@@ -58,9 +56,15 @@ final readonly class BookItemViewFactory
     {
         $dto = $this->getBookById($id);
         $form = new BookForm();
+        $form->id = $dto->id;
+        $form->title = $dto->title;
+        $form->year = $dto->year;
+        $form->isbn = $dto->isbn;
+        $form->description = $dto->description;
+        $form->authorIds = $dto->authorIds;
+        $form->version = $dto->version;
 
-        /** @var BookForm */
-        return $this->autoMapper->map($dto, $form);
+        return $form;
     }
 
     public function getBookView(int $id): BookReadDto

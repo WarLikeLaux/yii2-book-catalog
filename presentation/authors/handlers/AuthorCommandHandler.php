@@ -10,7 +10,7 @@ use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
-use app\application\common\exceptions\ApplicationException;
+use app\application\common\exceptions\OperationFailedException;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\mappers\AuthorCommandMapper;
 use app\presentation\common\services\WebOperationRunner;
@@ -31,7 +31,7 @@ final readonly class AuthorCommandHandler
     ) {
     }
 
-    public function createAuthor(AuthorForm $form): ?int
+    public function createAuthor(AuthorForm $form): int
     {
         $command = $this->operationRunner->runStep(
             fn(): CreateAuthorCommand => $this->commandMapper->toCreateCommand($form),
@@ -39,20 +39,30 @@ final readonly class AuthorCommandHandler
         );
 
         if ($command === null) {
-            $form->addError('fio', Yii::t('app', 'author.error.create_failed'));
-            return null;
+            // Mapping failed (should theoretically throw exception in runStep if we want strictness,
+            // but for now runStep returns null on error.
+            // In BookCommandHandler we threw exception if mapping failed?
+            // let's check BookCommandHandler logic.
+            // BookCommandHandler uses runStep and checks for null.
+            // But if runStep failed it logged error.
+            // Here we should probably throw an exception if we want to catch it in controller.
+            // Or assume runStep logs it and we just return null?
+            // The contract says "Stop swallowing exceptions".
+            // If runStep catches throwable and returns null, we swallow it here if we just return null (or fail type check).
+            // Let's modify runStep behavior? No, runStep logic: "Logs error and returns null".
+            // So if I return int, I MUST throw exception here if command is null.
+            throw new OperationFailedException('error.internal_mapper_failed');
         }
 
-        /** @var int|null */
-        return $this->operationRunner->executeWithFormErrors(
+        /** @var int */
+        return $this->operationRunner->executeAndPropagate(
             $command,
             $this->createAuthorUseCase,
             Yii::t('app', 'author.success.created'),
-            fn(ApplicationException $e) => $this->addFormError($form, $e),
         );
     }
 
-    public function updateAuthor(int $id, AuthorForm $form): bool
+    public function updateAuthor(int $id, AuthorForm $form): void
     {
         $command = $this->operationRunner->runStep(
             fn(): UpdateAuthorCommand => $this->commandMapper->toUpdateCommand($id, $form),
@@ -61,45 +71,24 @@ final readonly class AuthorCommandHandler
         );
 
         if ($command === null) {
-            $form->addError('fio', Yii::t('app', 'author.error.update_failed'));
-            return false;
+            throw new OperationFailedException('error.internal_mapper_failed');
         }
 
-        return $this->operationRunner->executeWithFormErrors(
+        $this->operationRunner->executeAndPropagate(
             $command,
             $this->updateAuthorUseCase,
             Yii::t('app', 'author.success.updated'),
-            fn(ApplicationException $e) => $this->addFormError($form, $e),
-        ) !== null;
+        );
     }
 
-    public function deleteAuthor(int $id): bool
+    public function deleteAuthor(int $id): void
     {
         $command = new DeleteAuthorCommand($id);
 
-        $result = $this->operationRunner->execute(
+        $this->operationRunner->executeAndPropagate(
             $command,
             $this->deleteAuthorUseCase,
             Yii::t('app', 'author.success.deleted'),
-            ['author_id' => $id],
         );
-
-        return $result !== null;
-    }
-
-    private function addFormError(AuthorForm $form, ApplicationException $exception): void
-    {
-        $form->addError($this->resolveField($exception), Yii::t('app', $exception->errorCode));
-    }
-
-    private function resolveField(ApplicationException $exception): string
-    {
-        return match ($exception->errorCode) {
-            'author.error.fio_exists',
-            'author.error.fio_empty',
-            'author.error.fio_too_short',
-            'author.error.fio_too_long' => 'fio',
-            default => '',
-        };
     }
 }

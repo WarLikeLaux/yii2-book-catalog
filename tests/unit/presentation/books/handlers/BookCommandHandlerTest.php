@@ -14,6 +14,7 @@ use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\dto\UploadedFilePayload;
 use app\application\common\exceptions\ApplicationException;
+use app\application\common\exceptions\OperationFailedException;
 use app\application\common\services\UploadedFileStorage;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
@@ -75,7 +76,7 @@ final class BookCommandHandlerTest extends Unit
             ->with($form, null)
             ->willReturn($command);
 
-        $this->mockOperationRunnerSimple(42);
+        $this->mockOperationRunnerExecute(42);
 
         $result = $this->handler->createBook($form);
 
@@ -99,92 +100,30 @@ final class BookCommandHandlerTest extends Unit
             ->with($form, 'covers/test.jpg')
             ->willReturn($createCommand);
 
-        $this->mockOperationRunnerSimple(7);
+        $this->mockOperationRunnerExecute(7);
 
         $result = $this->handler->createBook($form);
 
         $this->assertSame(7, $result);
     }
 
-    public function testCreateBookWithApplicationExceptionReturnsNull(): void
-    {
-        $form = $this->createMock(BookForm::class);
-        $form->cover = $this->createUploadedFile();
-        $form->method('attributes')->willReturn(['title']);
-
-        $this->mockContentStorageWithCover();
-
-        $command = $this->createMock(CreateBookCommand::class);
-        $this->commandMapper->expects($this->once())->method('toCreateCommand')->willReturn($command);
-
-        $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
-
-        $this->mockOperationRunnerWithException();
-
-        $result = $this->handler->createBook($form);
-
-        $this->assertNull($result);
-    }
-
-    public function testCreateBookWithApplicationExceptionAddsFormError(): void
+    public function testCreateBookPropagatesApplicationException(): void
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = null;
-        $form->method('attributes')->willReturn(['isbn']);
 
         $command = $this->createMock(CreateBookCommand::class);
         $this->commandMapper->expects($this->once())->method('toCreateCommand')->willReturn($command);
 
         $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
 
-        $exception = new ApplicationException('isbn.error.invalid_format');
+        $this->expectException(ApplicationException::class);
+        $this->mockOperationRunnerExecuteWithException();
 
-        $form->expects($this->once())
-            ->method('addError')
-            ->with('isbn', $this->anything());
-
-        $this->operationRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
-                $onDomainError($exception);
-                return null;
-            });
-
-        $result = $this->handler->createBook($form);
-
-        $this->assertNull($result);
+        $this->handler->createBook($form);
     }
 
-    public function testCreateBookWithUnknownApplicationExceptionAddsDefaultFormError(): void
-    {
-        $form = $this->createMock(BookForm::class);
-        $form->cover = null;
-        $form->method('attributes')->willReturn(['title', 'description']);
-
-        $command = $this->createMock(CreateBookCommand::class);
-
-        $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
-        $this->commandMapper->expects($this->once())->method('toCreateCommand')->willReturn($command);
-
-        $exception = new ApplicationException('error.entity_already_exists');
-
-        $form->expects($this->once())
-            ->method('addError')
-            ->with('', $this->anything());
-
-        $this->operationRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
-                $onDomainError($exception);
-                return null;
-            });
-
-        $result = $this->handler->createBook($form);
-
-        $this->assertNull($result);
-    }
-
-    public function testUpdateBookReturnsTrueOnSuccess(): void
+    public function testUpdateBookSucceeds(): void
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = null;
@@ -198,31 +137,26 @@ final class BookCommandHandlerTest extends Unit
             ->with(123, $form, null)
             ->willReturn($command);
 
-        $this->mockOperationRunnerSimple(true);
+        // Expect execute to be called
+        $this->mockOperationRunnerExecute(true); // Return value doesn't matter for void, but it shouldn't throw
 
-        $result = $this->handler->updateBook(123, $form);
-
-        $this->assertTrue($result);
+        $this->handler->updateBook(123, $form);
     }
 
-    public function testUpdateBookWithApplicationExceptionReturnsFalse(): void
+    public function testUpdateBookPropagatesException(): void
     {
         $form = $this->createMock(BookForm::class);
-        $form->cover = $this->createUploadedFile();
-        $form->method('attributes')->willReturn(['title']);
-
-        $this->mockContentStorageWithCover();
+        $form->cover = null;
 
         $command = $this->createMock(UpdateBookCommand::class);
 
         $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
         $this->commandMapper->expects($this->once())->method('toUpdateCommand')->willReturn($command);
 
-        $this->mockOperationRunnerWithException();
+        $this->expectException(ApplicationException::class);
+        $this->mockOperationRunnerExecuteWithException();
 
-        $result = $this->handler->updateBook(123, $form);
-
-        $this->assertFalse($result);
+        $this->handler->updateBook(123, $form);
     }
 
     public function testUpdateBookSavesCoverToCas(): void
@@ -240,14 +174,12 @@ final class BookCommandHandlerTest extends Unit
             ->with(7, $form, 'covers/test.jpg')
             ->willReturn($updateCommand);
 
-        $this->mockOperationRunnerSimple(true);
+        $this->mockOperationRunnerExecute(true);
 
-        $result = $this->handler->updateBook(7, $form);
-
-        $this->assertTrue($result);
+        $this->handler->updateBook(7, $form);
     }
 
-    public function testCreateBookReturnsNullOnMappingError(): void
+    public function testCreateBookThrowsOnMappingError(): void
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = null;
@@ -255,14 +187,15 @@ final class BookCommandHandlerTest extends Unit
         // runStep returns null if mapping failed (WebOperationRunner behavior simulated)
         $this->operationRunner->expects($this->exactly(2))
             ->method('runStep')
-            ->willReturnOnConsecutiveCalls(null, null); // null for cover (okay), null for mapping (error)
+            ->willReturnOnConsecutiveCalls(null, null);
 
-        $form->expects($this->once())->method('addError')->with('title', $this->anything());
+        $this->expectException(ApplicationException::class);
+        $this->expectExceptionMessage('error.internal_mapper_failed');
 
-        $this->assertNull($this->handler->createBook($form));
+        $this->handler->createBook($form);
     }
 
-    public function testUpdateBookReturnsFalseOnMappingError(): void
+    public function testUpdateBookThrowsOnMappingError(): void
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = null;
@@ -271,28 +204,13 @@ final class BookCommandHandlerTest extends Unit
             ->method('runStep')
             ->willReturnOnConsecutiveCalls(null, null);
 
-        $form->expects($this->once())->method('addError')->with('title', $this->anything());
+        $this->expectException(ApplicationException::class);
+        $this->expectExceptionMessage('error.internal_mapper_failed');
 
-        $this->assertFalse($this->handler->updateBook(1, $form));
+        $this->handler->updateBook(1, $form);
     }
 
-    public function testProcessCoverUploadThrowsOnError(): void
-    {
-        $form = $this->createMock(BookForm::class);
-        $file = $this->createUploadedFile();
-        $form->cover = $file;
-
-        // Start with runStep returning null (simulation of exception caught in runner)
-        $this->operationRunner->expects($this->once())
-            ->method('runStep')
-            ->willReturn(null);
-
-        $form->expects($this->once())->method('addError')->with('cover', $this->anything());
-
-        $this->assertFalse($this->handler->updateBook(1, $form));
-    }
-
-    public function testCreateBookReturnsNullOnCoverUploadError(): void
+    public function testUpdateBookThrowsOnCoverUploadError(): void
     {
         $form = $this->createMock(BookForm::class);
         $file = $this->createUploadedFile();
@@ -302,9 +220,24 @@ final class BookCommandHandlerTest extends Unit
             ->method('runStep')
             ->willReturn(null);
 
-        $form->expects($this->once())->method('addError')->with('cover', $this->anything());
+        $this->expectException(OperationFailedException::class);
 
-        $this->assertNull($this->handler->createBook($form));
+        $this->handler->updateBook(1, $form);
+    }
+
+    public function testCreateBookThrowsOnCoverUploadError(): void
+    {
+        $form = $this->createMock(BookForm::class);
+        $file = $this->createUploadedFile();
+        $form->cover = $file;
+
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
+            ->willReturn(null);
+
+        $this->expectException(OperationFailedException::class);
+
+        $this->handler->createBook($form);
     }
 
     public function testPublishBookExecutesUseCase(): void
@@ -312,18 +245,15 @@ final class BookCommandHandlerTest extends Unit
         $bookId = 123;
 
         $this->operationRunner->expects($this->once())
-            ->method('execute')
+            ->method('executeAndPropagate')
             ->with(
                 $this->isInstanceOf(PublishBookCommand::class),
                 $this->isInstanceOf(PublishBookUseCase::class),
                 $this->anything(),
-                $this->anything(),
             )
             ->willReturn(true);
 
-        $result = $this->handler->publishBook($bookId);
-
-        $this->assertTrue($result);
+        $this->handler->publishBook($bookId);
     }
 
     public function testDeleteBookExecutesUseCase(): void
@@ -331,18 +261,15 @@ final class BookCommandHandlerTest extends Unit
         $bookId = 456;
 
         $this->operationRunner->expects($this->once())
-            ->method('execute')
+            ->method('executeAndPropagate')
             ->with(
                 $this->isInstanceOf(DeleteBookCommand::class),
                 $this->isInstanceOf(DeleteBookUseCase::class),
                 $this->anything(),
-                $this->anything(),
             )
             ->willReturn(true);
 
-        $result = $this->handler->deleteBook($bookId);
-
-        $this->assertTrue($result);
+        $this->handler->deleteBook($bookId);
     }
 
     private function createUploadedFile(string $name = 'test.jpg', string $tempPath = '/tmp/test.jpg'): UploadedFile
@@ -368,20 +295,17 @@ final class BookCommandHandlerTest extends Unit
             ->willReturn('covers/test.jpg');
     }
 
-    private function mockOperationRunnerSimple(mixed $returnValue = null): void
+    private function mockOperationRunnerExecute(mixed $returnValue = null): void
     {
         $this->operationRunner->expects($this->once())
-            ->method('executeWithFormErrors')
+            ->method('executeAndPropagate')
             ->willReturn($returnValue);
     }
 
-    private function mockOperationRunnerWithException(): void
+    private function mockOperationRunnerExecuteWithException(): void
     {
         $this->operationRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static function ($_command, $_useCase, $_msg, $onDomainError, $_onError) {
-                $onDomainError(new ApplicationException('book.error.title_empty'));
-                return null;
-            });
+            ->method('executeAndPropagate')
+            ->willThrowException(new ApplicationException('book.error.title_empty'));
     }
 }

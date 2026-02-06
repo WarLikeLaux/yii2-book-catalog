@@ -155,4 +155,21 @@ final readonly class WebOperationRunner
             return $fallback;
         }
     }
+
+    /**
+     * @template TCommand of CommandInterface
+     * @template TResponse
+     * @param TCommand $command
+     * @param UseCaseInterface<TCommand, TResponse> $useCase
+     */
+    public function executeAndPropagate(
+        CommandInterface $command,
+        UseCaseInterface $useCase,
+        string $successMessage,
+    ): mixed {
+        /** @var TResponse $result */
+        $result = $this->pipelineFactory->createDefault()->execute($command, $useCase);
+        $this->notifier->success($successMessage);
+        return $result;
+    }
 }
