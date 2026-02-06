@@ -7,7 +7,6 @@ namespace app\presentation\controllers;
 use app\presentation\books\handlers\BookCommandHandler;
 use app\presentation\books\handlers\BookItemViewFactory;
 use app\presentation\books\handlers\BookListViewFactory;
-use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\ViewModelRenderer;
@@ -57,12 +56,7 @@ final class BookController extends BaseController
 
     public function actionIndex(): string
     {
-        $pagination = CrudPaginationRequest::fromRequest($this->request);
-
-        $viewModel = $this->listViewFactory->getListViewModel(
-            $pagination->page,
-            $pagination->limit,
-        );
+        $viewModel = $this->listViewFactory->getListViewModel($this->request);
 
         return $this->renderer->render('index', $viewModel);
     }

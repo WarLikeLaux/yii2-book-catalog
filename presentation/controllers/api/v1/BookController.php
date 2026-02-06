@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\presentation\controllers\api\v1;
 
 use app\presentation\books\handlers\BookListViewFactory;
-use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\filters\RateLimitFilter;
 use OpenApi\Attributes as OA;
@@ -69,11 +68,6 @@ final class BookController extends BaseApiController
     )]
     public function actionIndex(): DataProviderInterface
     {
-        $pagination = CrudPaginationRequest::fromRequest($this->request);
-
-        return $this->listViewFactory->getListViewModel(
-            $pagination->page,
-            $pagination->limit,
-        )->dataProvider;
+        return $this->listViewFactory->getListViewModel($this->request)->dataProvider;
     }
 }

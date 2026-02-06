@@ -21,11 +21,6 @@ abstract class BaseController extends Controller
         parent::__construct($id, $module, $config);
     }
 
-    private function renderInternal(string $view, array $params): string
-    {
-        return parent::render($view, $params);
-    }
-
     #[Override]
     public function render($_view, $_params = []): string
     {
