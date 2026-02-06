@@ -28,22 +28,22 @@ final readonly class BookQueryServiceTracingDecorator implements BookQueryServic
         return $this->tracer->trace('BookQuery::' . __FUNCTION__, fn(): ?BookReadDto => $this->service->findByIdWithAuthors($id));
     }
 
-    public function search(string $term, int $page, int $pageSize): PagedResultInterface
+    public function search(string $term, int $page, int $limit): PagedResultInterface
     {
         return $this->tracer->trace(
             'BookQuery::' . __FUNCTION__,
-            fn(): PagedResultInterface => $this->service->search($term, $page, $pageSize),
+            fn(): PagedResultInterface => $this->service->search($term, $page, $limit),
         );
     }
 
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
-        int $pageSize,
+        int $limit,
     ): PagedResultInterface {
         return $this->tracer->trace(
             'BookQuery::' . __FUNCTION__,
-            fn(): PagedResultInterface => $this->service->searchBySpecification($specification, $page, $pageSize),
+            fn(): PagedResultInterface => $this->service->searchBySpecification($specification, $page, $limit),
         );
     }
 

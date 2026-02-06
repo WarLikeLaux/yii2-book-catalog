@@ -31,18 +31,18 @@ abstract readonly class BaseQueryService
     protected function getPagedResult(
         ActiveQueryInterface $query,
         int $page,
-        int $pageSize,
+        int $limit,
         string $dtoClass,
     ): PagedResultInterface {
         $page = max(1, $page);
-        $pageSize = max(1, $pageSize);
+        $limit = max(1, $limit);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'db' => $this->db,
             'pagination' => [
                 'page' => $page - 1,
-                'pageSize' => $pageSize,
+                'pageSize' => $limit,
             ],
         ]);
 
@@ -54,11 +54,11 @@ abstract readonly class BaseQueryService
         );
 
         $totalCount = $dataProvider->getTotalCount();
-        $totalPages = (int)ceil($totalCount / $pageSize);
+        $totalPages = (int)ceil($totalCount / $limit);
 
         $pagination = new PaginationDto(
             page: $page,
-            pageSize: $pageSize,
+            limit: $limit,
             totalCount: $totalCount,
             totalPages: $totalPages,
         );

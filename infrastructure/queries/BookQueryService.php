@@ -29,25 +29,25 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
         return $this->mapToDto($book, BookReadDto::class);
     }
 
-    public function search(string $term, int $page, int $pageSize): PagedResultInterface
+    public function search(string $term, int $page, int $limit): PagedResultInterface
     {
         $factory = new BookSearchSpecificationFactory();
         $specification = $factory->createFromSearchTerm($term);
 
-        return $this->searchBySpecification($specification, $page, $pageSize);
+        return $this->searchBySpecification($specification, $page, $limit);
     }
 
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
-        int $pageSize,
+        int $limit,
     ): PagedResultInterface {
         $query = Book::find()->withAuthors()->orderedByCreatedAt();
 
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->db);
         $specification->accept($visitor);
 
-        return $this->getPagedResult($query, $page, $pageSize, BookReadDto::class);
+        return $this->getPagedResult($query, $page, $limit, BookReadDto::class);
     }
 
     public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
