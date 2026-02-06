@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace app\presentation\books\handlers;
 
 use app\application\books\queries\BookReadDto;
+use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\dto\BookViewModel;
+use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\common\dto\CrudPaginationRequest;
 use LogicException;
 use yii\data\DataProviderInterface;
+use yii\web\Request;
 
 final readonly class BookListViewFactory
 {
@@ -20,23 +24,26 @@ final readonly class BookListViewFactory
         private BookSearcherInterface $searcher,
         private PagedResultDataProviderFactory $dataProviderFactory,
         private BookDtoUrlResolver $urlResolver,
+        private BookViewModelMapper $viewModelMapper,
     ) {
     }
 
-    public function getListViewModel(int $page, int $pageSize): BookListViewModel
+    public function getListViewModel(Request $request): BookListViewModel
     {
+        $pagination = CrudPaginationRequest::fromRequest($request);
+
         return new BookListViewModel(
-            $this->getIndexDataProvider($page, $pageSize),
+            $this->getIndexDataProvider($pagination),
         );
     }
 
-    private function getIndexDataProvider(int $page, int $pageSize): DataProviderInterface
+    private function getIndexDataProvider(PaginationRequest $pagination): DataProviderInterface
     {
-        $queryResult = $this->searcher->search('', $page, $pageSize);
+        $queryResult = $this->searcher->search('', $pagination->page, $pagination->limit);
 
         $dtos = array_map(
             fn(mixed $dto): BookViewModel => $dto instanceof BookReadDto
-                ? $this->mapToViewModel($this->urlResolver->resolveUrl($dto))
+                ? $this->viewModelMapper->map($this->urlResolver->resolveUrl($dto))
                 : throw new LogicException('Expected BookReadDto'),
             $queryResult->getModels(),
         );
@@ -48,19 +55,5 @@ final readonly class BookListViewFactory
         );
 
         return $this->dataProviderFactory->create($newResult);
-    }
-
-    private function mapToViewModel(BookReadDto $dto): BookViewModel
-    {
-        return new BookViewModel(
-            $dto->id,
-            $dto->title,
-            $dto->year,
-            $dto->description,
-            $dto->isbn,
-            $dto->authorNames,
-            $dto->coverUrl,
-            $dto->isPublished,
-        );
     }
 }

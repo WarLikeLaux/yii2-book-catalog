@@ -9,8 +9,8 @@ use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\dto\BookIndexViewModel;
-use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\forms\BookSearchForm;
+use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 
@@ -20,6 +20,7 @@ final readonly class BookSearchHandler
         private BookQueryServiceInterface $bookQueryService,
         private PagedResultDataProviderFactory $dataProviderFactory,
         private BookDtoUrlResolver $urlResolver,
+        private BookViewModelMapper $viewModelMapper,
     ) {
     }
 
@@ -53,7 +54,7 @@ final readonly class BookSearchHandler
                 continue; // @codeCoverageIgnore
             }
 
-            $resolvedItems[] = $this->mapToViewModel(
+            $resolvedItems[] = $this->viewModelMapper->map(
                 $this->urlResolver->resolveUrl($model),
             );
         }
@@ -69,20 +70,6 @@ final readonly class BookSearchHandler
         return new BookIndexViewModel(
             $form,
             $dataProvider,
-        );
-    }
-
-    private function mapToViewModel(BookReadDto $dto): BookViewModel
-    {
-        return new BookViewModel(
-            $dto->id,
-            $dto->title,
-            $dto->year,
-            $dto->description,
-            $dto->isbn,
-            $dto->authorNames,
-            $dto->coverUrl,
-            $dto->isPublished,
         );
     }
 }
