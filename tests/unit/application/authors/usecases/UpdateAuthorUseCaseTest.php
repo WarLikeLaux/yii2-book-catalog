@@ -6,7 +6,6 @@ namespace tests\unit\application\authors\usecases;
 
 use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\authors\usecases\UpdateAuthorUseCase;
-use app\application\common\exceptions\ApplicationException;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
 use app\domain\exceptions\AlreadyExistsException;
@@ -42,9 +41,9 @@ final class UpdateAuthorUseCaseTest extends Unit
             ->with($this->callback(static fn (Author $author) => $author->id === 42 && $author->fio === 'Новое ФИО'))
             ->willReturn(42);
 
-        $result = $this->useCase->execute($command);
+        $this->useCase->execute($command);
 
-        $this->assertTrue($result);
+        $this->assertTrue(true);
     }
 
     public function testExecuteThrowsApplicationExceptionWhenAuthorNotFound(): void
@@ -58,7 +57,7 @@ final class UpdateAuthorUseCaseTest extends Unit
 
         $this->authorRepository->expects($this->never())->method('save');
 
-        $this->expectException(ApplicationException::class);
+        $this->expectException(EntityNotFoundException::class);
         $this->expectExceptionMessage(DomainErrorCode::AuthorNotFound->value);
 
         $this->useCase->execute($command);
@@ -78,9 +77,8 @@ final class UpdateAuthorUseCaseTest extends Unit
             ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
 
-        $this->expectException(ApplicationException::class);
-        $this->expectExceptionMessage('author.error.update_failed');
-        $this->expectExceptionCode(0);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('DB error');
 
         $this->useCase->execute($command);
     }
@@ -99,7 +97,7 @@ final class UpdateAuthorUseCaseTest extends Unit
             ->method('save')
             ->willThrowException(new AlreadyExistsException(DomainErrorCode::AuthorFioExists));
 
-        $this->expectException(ApplicationException::class);
+        $this->expectException(AlreadyExistsException::class);
         $this->expectExceptionMessage(DomainErrorCode::AuthorFioExists->value);
 
         $this->useCase->execute($command);

@@ -40,9 +40,9 @@ final class DeleteAuthorUseCaseTest extends Unit
             ->method('delete')
             ->with($existingAuthor);
 
-        $result = $this->useCase->execute($command);
+        $this->useCase->execute($command);
 
-        $this->assertTrue($result);
+        $this->assertTrue(true);
     }
 
     public function testExecuteThrowsExceptionWhenAuthorNotFound(): void

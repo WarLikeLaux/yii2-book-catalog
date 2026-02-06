@@ -11,7 +11,7 @@ use app\application\ports\UseCaseInterface;
 use app\domain\exceptions\DomainException;
 
 /**
- * @implements UseCaseInterface<DeleteAuthorCommand, bool>
+ * @implements UseCaseInterface<DeleteAuthorCommand, void>
  */
 final readonly class DeleteAuthorUseCase implements UseCaseInterface
 {
@@ -23,14 +23,12 @@ final readonly class DeleteAuthorUseCase implements UseCaseInterface
     /**
      * @param DeleteAuthorCommand $command
      */
-    public function execute(object $command): bool
+    public function execute(object $command): void
     {
         try {
             $author = $this->authorRepository->get($command->id);
 
             $this->authorRepository->delete($author);
-
-            return true;
         } catch (DomainException $exception) {
             throw ApplicationException::fromDomainException($exception);
         }
