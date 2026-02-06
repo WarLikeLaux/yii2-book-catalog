@@ -13,12 +13,12 @@ readonly class PaginationRequest
     public int $page;
     public int $limit;
 
-    final public function __construct(mixed $page, mixed $limit)
+    final public function __construct(mixed $page, mixed $limit, int $defaultLimit = self::DEFAULT_LIMIT)
     {
         $p = is_numeric($page) ? (int) $page : static::DEFAULT_PAGE;
         $this->page = max(1, $p);
 
-        $l = is_numeric($limit) ? (int) $limit : static::DEFAULT_LIMIT;
+        $l = is_numeric($limit) ? (int) $limit : $defaultLimit;
         $this->limit = min(static::MAX_LIMIT, max(1, $l));
     }
 }

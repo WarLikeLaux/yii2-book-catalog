@@ -7,15 +7,16 @@ namespace app\presentation\common\dto;
 use app\application\common\dto\PaginationRequest;
 use yii\web\Request;
 
-final readonly class CrudPaginationRequest extends PaginationRequest
+final class CrudPaginationRequest
 {
-    protected const int DEFAULT_LIMIT = 20;
+    private const int DEFAULT_LIMIT = 20;
 
-    public static function fromRequest(Request $request): self
+    public static function fromRequest(Request $request): PaginationRequest
     {
-        return new self(
+        return new PaginationRequest(
             $request->get('page'),
             $request->get('limit'),
+            self::DEFAULT_LIMIT,
         );
     }
 }
