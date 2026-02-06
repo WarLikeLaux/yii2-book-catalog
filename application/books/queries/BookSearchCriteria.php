@@ -9,7 +9,7 @@ final readonly class BookSearchCriteria
     public function __construct(
         public string $globalSearch = '',
         public int $page = 1,
-        public int $pageSize = 20,
+        public int $limit = 20,
     ) {
     }
 }

@@ -14,6 +14,6 @@ final class BookSearchCriteriaTest extends Unit
         $criteria = new BookSearchCriteria();
         $this->assertSame('', $criteria->globalSearch);
         $this->assertSame(1, $criteria->page);
-        $this->assertSame(20, $criteria->pageSize);
+        $this->assertSame(20, $criteria->limit);
     }
 }
