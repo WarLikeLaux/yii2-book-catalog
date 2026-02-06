@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\AuthServiceInterface;
 use app\presentation\auth\forms\LoginForm;
 use app\presentation\auth\handlers\AuthViewFactory;
@@ -101,15 +102,15 @@ final class SiteController extends BaseController
             return $this->renderer->render('login', $viewModel);
         }
 
-        if ($this->authService->login($form->username, $form->password, $form->rememberMe)) {
+        try {
+            $this->authService->login($form->username, $form->password, $form->rememberMe);
             return $this->goBack();
+        } catch (ApplicationException $e) {
+            $this->addFormError($form, $e);
+            $form->password = '';
+            $viewModel = $this->authViewFactory->getLoginViewModel($form);
+            return $this->renderer->render('login', $viewModel);
         }
-
-        $form->addError('password', Yii::t('app', 'auth.error.invalid_credentials'));
-        $form->password = '';
-        $viewModel = $this->authViewFactory->getLoginViewModel($form);
-
-        return $this->renderer->render('login', $viewModel);
     }
 
     public function actionLogout(): Response
