@@ -10,7 +10,7 @@ use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\presentation\books\dto\BookIndexViewModel;
 use app\presentation\books\forms\BookSearchForm;
-use app\presentation\books\handlers\BookSearchHandler;
+use app\presentation\books\handlers\BookSearchViewFactory;
 use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
@@ -19,13 +19,13 @@ use PHPUnit\Framework\MockObject\MockObject;
 use yii\data\ArrayDataProvider;
 use yii\web\Request;
 
-final class BookSearchHandlerTest extends Unit
+final class BookSearchViewFactoryTest extends Unit
 {
     private BookQueryServiceInterface&MockObject $bookQueryService;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private BookDtoUrlResolver&MockObject $urlResolver;
     private BookViewModelMapper $viewModelMapper;
-    private BookSearchHandler $handler;
+    private BookSearchViewFactory $viewFactory;
 
     protected function _before(): void
     {
@@ -34,7 +34,7 @@ final class BookSearchHandlerTest extends Unit
         $this->urlResolver = $this->createMock(BookDtoUrlResolver::class);
         $this->viewModelMapper = new BookViewModelMapper();
 
-        $this->handler = new BookSearchHandler(
+        $this->viewFactory = new BookSearchViewFactory(
             $this->bookQueryService,
             $this->dataProviderFactory,
             $this->urlResolver,
@@ -44,12 +44,15 @@ final class BookSearchHandlerTest extends Unit
 
     public function testPrepareIndexViewModelReturnsEmptyResultOnValidationFailure(): void
     {
-        $params = ['globalSearch' => 'x'];
         $request = $this->createMock(Request::class);
-        $request->method('get')->willReturnMap([
-            ['page', null, 1],
-            ['limit', null, null],
-        ]);
+        $request->method('get')->willReturnCallback(
+            static fn(?string $name = null, mixed $default = null): mixed => match ($name) {
+                null => ['globalSearch' => 'x'],
+                'page' => 1,
+                'limit' => null,
+                default => $default,
+            },
+        );
 
         $this->dataProviderFactory
             ->expects($this->once())
@@ -58,7 +61,7 @@ final class BookSearchHandlerTest extends Unit
 
         $this->bookQueryService->expects($this->never())->method('search');
 
-        $result = $this->handler->prepareIndexViewModel($params, $request);
+        $result = $this->viewFactory->prepareIndexViewModel($request);
 
         $this->assertInstanceOf(BookIndexViewModel::class, $result);
         $this->assertInstanceOf(BookSearchForm::class, $result->searchModel);
@@ -68,12 +71,15 @@ final class BookSearchHandlerTest extends Unit
 
     public function testPrepareIndexViewModelReturnsDataOnSuccess(): void
     {
-        $params = ['globalSearch' => 'query'];
         $request = $this->createMock(Request::class);
-        $request->method('get')->willReturnMap([
-            ['page', null, 1],
-            ['limit', null, 20],
-        ]);
+        $request->method('get')->willReturnCallback(
+            static fn(?string $name = null, mixed $default = null): mixed => match ($name) {
+                null => ['globalSearch' => 'query'],
+                'page' => 1,
+                'limit' => 20,
+                default => $default,
+            },
+        );
 
         $dto = new BookReadDto(
             1,
@@ -110,7 +116,7 @@ final class BookSearchHandlerTest extends Unit
             }))
             ->willReturn(new ArrayDataProvider(['allModels' => [$dto]]));
 
-        $result = $this->handler->prepareIndexViewModel($params, $request);
+        $result = $this->viewFactory->prepareIndexViewModel($request);
 
         $this->assertInstanceOf(BookIndexViewModel::class, $result);
         $this->assertFalse($result->searchModel->hasErrors());

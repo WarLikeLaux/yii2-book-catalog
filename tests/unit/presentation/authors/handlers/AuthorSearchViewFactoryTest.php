@@ -7,20 +7,20 @@ namespace tests\unit\presentation\authors\handlers;
 use app\application\authors\queries\AuthorReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
-use app\presentation\authors\handlers\AuthorSearchHandler;
+use app\presentation\authors\handlers\AuthorSearchViewFactory;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class AuthorSearchHandlerTest extends Unit
+final class AuthorSearchViewFactoryTest extends Unit
 {
     private AuthorQueryServiceInterface&MockObject $queryService;
-    private AuthorSearchHandler $handler;
+    private AuthorSearchViewFactory $viewFactory;
 
     protected function _before(): void
     {
         $this->queryService = $this->createMock(AuthorQueryServiceInterface::class);
 
-        $this->handler = new AuthorSearchHandler(
+        $this->viewFactory = new AuthorSearchViewFactory(
             $this->queryService,
         );
     }
@@ -31,7 +31,7 @@ final class AuthorSearchHandlerTest extends Unit
 
         $this->queryService->expects($this->never())->method('search');
 
-        $result = $this->handler->search($queryParams);
+        $result = $this->viewFactory->search($queryParams);
 
         $expectedResult = [
             'results' => [],
@@ -58,7 +58,7 @@ final class AuthorSearchHandlerTest extends Unit
             ->with('test', 1, 20)
             ->willReturn($pagedResult);
 
-        $result = $this->handler->search($queryParams);
+        $result = $this->viewFactory->search($queryParams);
 
         $expectedResult = [
             'results' => [
