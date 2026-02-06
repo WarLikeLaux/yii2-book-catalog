@@ -8,11 +8,18 @@ use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author as AuthorEntity;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
+use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use app\infrastructure\persistence\Author;
 
 final readonly class AuthorRepository extends BaseActiveRecordRepository implements AuthorRepositoryInterface
 {
     use IdentityAssignmentTrait;
+
+    public function __construct(
+        private ActiveRecordHydrator $hydrator,
+    ) {
+        parent::__construct();
+    }
 
     public function save(AuthorEntity $author): int
     {
@@ -20,7 +27,7 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 
         $model = $isNew ? new Author() : $this->getArForEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
 
-        $model->fio = $author->fio;
+        $this->hydrator->hydrate($model, $author, ['fio']);
 
         $this->persist($model, DomainErrorCode::AuthorStaleData, DomainErrorCode::AuthorFioExists);
 
@@ -41,7 +48,7 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
     {
         $ar = $this->getArById($id, Author::class, DomainErrorCode::AuthorNotFound);
 
-        $entity = new AuthorEntity((int)$ar->id, $ar->fio);
+        $entity = AuthorEntity::reconstitute((int)$ar->id, $ar->fio);
         $this->registerIdentity($entity, $ar);
 
         return $entity;

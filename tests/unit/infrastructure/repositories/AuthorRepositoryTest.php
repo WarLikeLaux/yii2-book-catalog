@@ -76,7 +76,7 @@ final class AuthorRepositoryTest extends Unit
 
     public function testDeleteThrowsExceptionOnNotFound(): void
     {
-        $author = new AuthorEntity(99999, 'Non Existent');
+        $author = AuthorEntity::reconstitute(99999, 'Non Existent');
 
         $this->expectException(EntityNotFoundException::class);
         $this->repository->delete($author);
@@ -84,7 +84,7 @@ final class AuthorRepositoryTest extends Unit
 
     public function testSaveUpdateNonExistentAuthorThrowsException(): void
     {
-        $author = new AuthorEntity(99999, 'Non Existent');
+        $author = AuthorEntity::reconstitute(99999, 'Non Existent');
 
         $this->expectException(EntityNotFoundException::class);
         $this->repository->save($author);
@@ -109,7 +109,7 @@ final class AuthorRepositoryTest extends Unit
         $authorId = $author->id;
 
         $freshRepository = Yii::$container->get(AuthorRepositoryInterface::class);
-        $reconstituted = new AuthorEntity($authorId, 'Updated via Reconstitute');
+        $reconstituted = AuthorEntity::reconstitute($authorId, 'Updated via Reconstitute');
 
         $freshRepository->save($reconstituted);
 
