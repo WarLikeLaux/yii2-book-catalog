@@ -70,10 +70,7 @@ final class BookController extends BaseController
         return $this->renderer->render('view', $viewModel);
     }
 
-    /**
-     * @return string|Response|array<string, mixed>
-     */
-    public function actionCreate(): string|Response|array
+    public function actionCreate(): string|Response
     {
         $form = $this->itemViewFactory->createForm();
 
@@ -83,8 +80,7 @@ final class BookController extends BaseController
         }
 
         if ($this->request->isAjax) {
-            $this->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($form);
+            return $this->asJson(ActiveForm::validate($form));
         }
 
         if (!$form->validate()) {
@@ -102,10 +98,7 @@ final class BookController extends BaseController
         }
     }
 
-    /**
-     * @return string|Response|array<string, mixed>
-     */
-    public function actionUpdate(int $id): string|Response|array
+    public function actionUpdate(int $id): string|Response
     {
         $form = $this->itemViewFactory->getBookForUpdate($id);
 
@@ -115,8 +108,7 @@ final class BookController extends BaseController
         }
 
         if ($this->request->isAjax) {
-            $this->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($form);
+            return $this->asJson(ActiveForm::validate($form));
         }
 
         if (!$form->validate()) {

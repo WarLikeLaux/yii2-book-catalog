@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace app\presentation\controllers;
 
 use app\presentation\common\ViewModelRenderer;
-use app\presentation\reports\handlers\ReportHandler;
+use app\presentation\reports\handlers\ReportViewFactory;
 
 final class ReportController extends BaseController
 {
     public function __construct(
         $id,
         $module,
-        private readonly ReportHandler $reportHandler,
+        private readonly ReportViewFactory $reportViewFactory,
         ViewModelRenderer $renderer,
         $config = [],
     ) {
@@ -23,7 +23,7 @@ final class ReportController extends BaseController
     {
         /** @var array<string, mixed> $params */
         $params = $this->request->get();
-        $viewModel = $this->reportHandler->prepareIndexViewModel($params);
+        $viewModel = $this->reportViewFactory->prepareIndexViewModel($params);
         return $this->renderer->render('index', $viewModel);
     }
 }

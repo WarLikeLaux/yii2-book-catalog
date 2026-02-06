@@ -6,8 +6,8 @@ namespace app\presentation\controllers;
 
 use app\application\ports\AuthServiceInterface;
 use app\presentation\auth\forms\LoginForm;
-use app\presentation\auth\handlers\AuthViewDataFactory;
-use app\presentation\books\handlers\BookSearchHandler;
+use app\presentation\auth\handlers\AuthViewFactory;
+use app\presentation\books\handlers\BookSearchViewFactory;
 use app\presentation\common\enums\ActionName;
 use app\presentation\common\traits\HtmxDetectionTrait;
 use app\presentation\common\ViewModelRenderer;
@@ -26,8 +26,8 @@ final class SiteController extends BaseController
         $id,
         $module,
         private readonly AuthServiceInterface $authService,
-        private readonly BookSearchHandler $bookSearchHandler,
-        private readonly AuthViewDataFactory $authViewDataFactory,
+        private readonly BookSearchViewFactory $bookSearchViewFactory,
+        private readonly AuthViewFactory $authViewFactory,
         ViewModelRenderer $renderer,
         $config = [],
     ) {
@@ -70,9 +70,7 @@ final class SiteController extends BaseController
 
     public function actionIndex(): string
     {
-        /** @var array<string, mixed> $params */
-        $params = (array)$this->request->get();
-        $viewModel = $this->bookSearchHandler->prepareIndexViewModel($params, $this->request);
+        $viewModel = $this->bookSearchViewFactory->prepareIndexViewModel($this->request);
 
         if ($this->isHtmxRequest()) {
             return $this->renderPartial('_book-cards', ['dataProvider' => $viewModel->dataProvider]);
@@ -90,7 +88,7 @@ final class SiteController extends BaseController
         $form = new LoginForm();
 
         if (!$this->request->isPost) {
-            $viewModel = $this->authViewDataFactory->getLoginViewModel($form);
+            $viewModel = $this->authViewFactory->getLoginViewModel($form);
             return $this->renderer->render('login', $viewModel);
         }
 
@@ -99,7 +97,7 @@ final class SiteController extends BaseController
 
         if (!$form->load($postData) || !$form->validate()) {
             $form->password = '';
-            $viewModel = $this->authViewDataFactory->getLoginViewModel($form);
+            $viewModel = $this->authViewFactory->getLoginViewModel($form);
             return $this->renderer->render('login', $viewModel);
         }
 
@@ -109,7 +107,7 @@ final class SiteController extends BaseController
 
         $form->addError('password', Yii::t('app', 'auth.error.invalid_credentials'));
         $form->password = '';
-        $viewModel = $this->authViewDataFactory->getLoginViewModel($form);
+        $viewModel = $this->authViewFactory->getLoginViewModel($form);
 
         return $this->renderer->render('login', $viewModel);
     }
@@ -123,7 +121,7 @@ final class SiteController extends BaseController
 
     public function actionApi(): string
     {
-        $viewModel = $this->authViewDataFactory->getApiInfoViewModel(
+        $viewModel = $this->authViewFactory->getApiInfoViewModel(
             (int)Yii::$app->params['swaggerPort'],
             (int)Yii::$app->params['appPort'],
             (string)$this->request->serverName,

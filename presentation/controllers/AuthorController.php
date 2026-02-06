@@ -8,7 +8,7 @@ use app\application\common\exceptions\ApplicationException;
 use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\handlers\AuthorItemViewFactory;
 use app\presentation\authors\handlers\AuthorListViewFactory;
-use app\presentation\authors\handlers\AuthorSearchHandler;
+use app\presentation\authors\handlers\AuthorSearchViewFactory;
 use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\ViewModelRenderer;
@@ -26,7 +26,7 @@ final class AuthorController extends BaseController
         private readonly AuthorCommandHandler $commandHandler,
         private readonly AuthorListViewFactory $listViewFactory,
         private readonly AuthorItemViewFactory $itemViewFactory,
-        private readonly AuthorSearchHandler $authorSearchHandler,
+        private readonly AuthorSearchViewFactory $authorSearchViewFactory,
         ViewModelRenderer $renderer,
         $config = [],
     ) {
@@ -119,14 +119,10 @@ final class AuthorController extends BaseController
         return $this->redirect(['index']);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function actionSearch(): array
+    public function actionSearch(): Response
     {
-        $this->response->format = Response::FORMAT_JSON;
         /** @var array<string, mixed> $params */
         $params = $this->request->get();
-        return $this->authorSearchHandler->search($params);
+        return $this->asJson($this->authorSearchViewFactory->search($params));
     }
 }

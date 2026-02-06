@@ -9,7 +9,7 @@ use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\ViewModelRenderer;
 use app\presentation\subscriptions\handlers\SubscriptionCommandHandler;
-use app\presentation\subscriptions\handlers\SubscriptionViewDataFactory;
+use app\presentation\subscriptions\handlers\SubscriptionViewFactory;
 use Override;
 use Yii;
 use yii\filters\VerbFilter;
@@ -21,7 +21,7 @@ final class SubscriptionController extends BaseController
         $id,
         $module,
         private readonly SubscriptionCommandHandler $commandHandler,
-        private readonly SubscriptionViewDataFactory $viewDataFactory,
+        private readonly SubscriptionViewFactory $viewFactory,
         ViewModelRenderer $renderer,
         $config = [],
     ) {
@@ -47,7 +47,7 @@ final class SubscriptionController extends BaseController
 
     public function actionSubscribe(): Response
     {
-        $form = $this->viewDataFactory->createForm();
+        $form = $this->viewFactory->createForm();
 
         if ($this->request->isPost && $form->loadFromRequest($this->request) && $form->validate()) {
             return $this->asJson($this->commandHandler->subscribe($form));
@@ -61,7 +61,7 @@ final class SubscriptionController extends BaseController
 
     public function actionForm(int $authorId): string
     {
-        $viewModel = $this->viewDataFactory->getSubscriptionViewModel($authorId);
+        $viewModel = $this->viewFactory->getSubscriptionViewModel($authorId);
 
         return $this->renderPartial('_form', [
             'viewModel' => $viewModel,
