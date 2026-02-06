@@ -31,6 +31,8 @@ enum DomainErrorCode: string
     case SubscriptionCreateFailed = 'subscription.error.create_failed';
     case SubscriptionStaleData = 'subscription.error.stale_data';
 
+    case AuthInvalidCredentials = 'auth.error.invalid_credentials';
+
     case IsbnInvalidFormat = 'isbn.error.invalid_format';
 
     case YearTooOld = 'year.error.too_old';
