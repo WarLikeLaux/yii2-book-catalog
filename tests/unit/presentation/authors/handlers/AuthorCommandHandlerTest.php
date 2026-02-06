@@ -113,7 +113,7 @@ final class AuthorCommandHandlerTest extends Unit
         $this->handler->createAuthor($form);
     }
 
-    public function testCreateAuthorAddsGlobalErrorWhenNoAttributes(): void
+    public function testCreateAuthorAddsFioErrorWhenNoAttributes(): void
     {
         $form = $this->createForm([], ['fio' => 'Duplicate']);
         $command = $this->createMock(CreateAuthorCommand::class);
@@ -126,7 +126,7 @@ final class AuthorCommandHandlerTest extends Unit
 
         $form->expects($this->once())
             ->method('addError')
-            ->with('', $this->anything());
+            ->with('fio', $this->anything());
 
         $this->handler->createAuthor($form);
     }
@@ -135,16 +135,6 @@ final class AuthorCommandHandlerTest extends Unit
     {
         $this->operationRunner->method('execute')->willReturn(true);
         $this->assertTrue($this->handler->deleteAuthor(1));
-    }
-
-    public function testGetErrorFieldMapReturnsExpectedMap(): void
-    {
-        $map = $this->getErrorFieldMap($this->handler);
-
-        $this->assertSame('fio', $map['author.error.fio_exists']);
-        $this->assertSame('fio', $map['author.error.fio_empty']);
-        $this->assertSame('fio', $map['author.error.fio_too_short']);
-        $this->assertSame('fio', $map['author.error.fio_too_long']);
     }
 
     private function createForm(array $attributes, array $data): AuthorForm&MockObject
@@ -169,20 +159,5 @@ final class AuthorCommandHandlerTest extends Unit
     private function expectFormError(AuthorForm&MockObject $form): void
     {
         $form->expects($this->once())->method('addError');
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function getErrorFieldMap(AuthorCommandHandler $handler): array
-    {
-        $reflection = new \ReflectionClass($handler);
-        $method = $reflection->getMethod('getErrorFieldMap');
-        $method->setAccessible(true);
-
-        /** @var array<string, string> $map */
-        $map = $method->invoke($handler);
-
-        return $map;
     }
 }

@@ -12,6 +12,7 @@ use app\application\ports\PagedResultInterface;
 use app\presentation\books\dto\BookIndexViewModel;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\books\handlers\BookSearchHandler;
+use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use Codeception\Test\Unit;
@@ -23,6 +24,7 @@ final class BookSearchHandlerTest extends Unit
     private BookQueryServiceInterface&MockObject $bookQueryService;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private BookDtoUrlResolver&MockObject $urlResolver;
+    private BookViewModelMapper $viewModelMapper;
     private BookSearchHandler $handler;
 
     protected function _before(): void
@@ -30,11 +32,13 @@ final class BookSearchHandlerTest extends Unit
         $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $this->urlResolver = $this->createMock(BookDtoUrlResolver::class);
+        $this->viewModelMapper = new BookViewModelMapper();
 
         $this->handler = new BookSearchHandler(
             $this->bookQueryService,
             $this->dataProviderFactory,
             $this->urlResolver,
+            $this->viewModelMapper,
         );
     }
 

@@ -12,6 +12,7 @@ use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 use yii\data\DataProviderInterface;
+use yii\web\Request;
 
 final class AuthorListViewFactoryTest extends Unit
 {
@@ -45,7 +46,13 @@ final class AuthorListViewFactoryTest extends Unit
             ->with($pagedResult)
             ->willReturn($dataProvider);
 
-        $result = $this->factory->getListViewModel(1, 20);
+        $request = $this->createMock(Request::class);
+        $request->method('get')->willReturnMap([
+            ['page', null, null, 1],
+            ['limit', null, null, 20],
+        ]);
+
+        $result = $this->factory->getListViewModel($request);
 
         $this->assertInstanceOf(AuthorListViewModel::class, $result);
         $this->assertSame($dataProvider, $result->dataProvider);

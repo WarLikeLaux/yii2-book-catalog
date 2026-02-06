@@ -170,7 +170,7 @@ final class BookCommandHandlerTest extends Unit
 
         $form->expects($this->once())
             ->method('addError')
-            ->with('title', $this->anything());
+            ->with('', $this->anything());
 
         $this->operationRunner->expects($this->once())
             ->method('executeWithFormErrors')
@@ -345,23 +345,6 @@ final class BookCommandHandlerTest extends Unit
         $this->assertTrue($result);
     }
 
-    public function testGetErrorFieldMapReturnsExpectedMap(): void
-    {
-        $map = $this->getErrorFieldMap($this->handler);
-
-        $this->assertSame('isbn', $map['isbn.error.invalid_format']);
-        $this->assertSame('isbn', $map['book.error.isbn_exists']);
-        $this->assertSame('year', $map['year.error.too_old']);
-        $this->assertSame('year', $map['year.error.future']);
-        $this->assertSame('title', $map['book.error.title_empty']);
-        $this->assertSame('title', $map['book.error.title_too_long']);
-        $this->assertSame('version', $map['book.error.stale_data']);
-        $this->assertSame('isbn', $map['book.error.isbn_change_published']);
-        $this->assertSame('authorIds', $map['book.error.invalid_author_id']);
-        $this->assertSame('authorIds', $map['book.error.publish_without_authors']);
-        $this->assertSame('title', $map['error.mapper_failed']);
-    }
-
     private function createUploadedFile(string $name = 'test.jpg', string $tempPath = '/tmp/test.jpg'): UploadedFile
     {
         return new UploadedFile([
@@ -400,20 +383,5 @@ final class BookCommandHandlerTest extends Unit
                 $onDomainError(new ApplicationException('book.error.title_empty'));
                 return null;
             });
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function getErrorFieldMap(BookCommandHandler $handler): array
-    {
-        $reflection = new \ReflectionClass($handler);
-        $method = $reflection->getMethod('getErrorFieldMap');
-        $method->setAccessible(true);
-
-        /** @var array<string, string> $map */
-        $map = $method->invoke($handler);
-
-        return $map;
     }
 }

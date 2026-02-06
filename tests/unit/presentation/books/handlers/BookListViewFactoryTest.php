@@ -10,12 +10,14 @@ use app\application\common\dto\QueryResult;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\handlers\BookListViewFactory;
+use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\services\FileUrlResolver;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 use yii\data\DataProviderInterface;
+use yii\web\Request;
 
 final class BookListViewFactoryTest extends Unit
 {
@@ -23,6 +25,7 @@ final class BookListViewFactoryTest extends Unit
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private FileUrlResolver $resolver;
     private BookDtoUrlResolver $urlResolver;
+    private BookViewModelMapper $viewModelMapper;
     private BookListViewFactory $factory;
 
     protected function _before(): void
@@ -31,11 +34,13 @@ final class BookListViewFactoryTest extends Unit
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $this->resolver = new FileUrlResolver('/uploads');
         $this->urlResolver = new BookDtoUrlResolver($this->resolver);
+        $this->viewModelMapper = new BookViewModelMapper();
 
         $this->factory = new BookListViewFactory(
             $this->searcher,
             $this->dataProviderFactory,
             $this->urlResolver,
+            $this->viewModelMapper,
         );
     }
 
@@ -54,7 +59,13 @@ final class BookListViewFactoryTest extends Unit
             ->method('create')
             ->willReturn($dataProvider);
 
-        $result = $this->factory->getListViewModel(1, 20);
+        $request = $this->createMock(Request::class);
+        $request->method('get')->willReturnMap([
+            ['page', null, null, 1],
+            ['limit', null, null, 20],
+        ]);
+
+        $result = $this->factory->getListViewModel($request);
 
         $this->assertInstanceOf(BookListViewModel::class, $result);
         $this->assertSame($dataProvider, $result->dataProvider);
