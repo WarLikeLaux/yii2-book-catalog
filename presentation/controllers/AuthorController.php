@@ -8,7 +8,6 @@ use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\handlers\AuthorItemViewFactory;
 use app\presentation\authors\handlers\AuthorListViewFactory;
 use app\presentation\authors\handlers\AuthorSearchHandler;
-use app\presentation\common\dto\CrudPaginationRequest;
 use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\ViewModelRenderer;
@@ -60,8 +59,7 @@ final class AuthorController extends BaseController
 
     public function actionIndex(): string
     {
-        $pagination = CrudPaginationRequest::fromRequest($this->request);
-        $viewModel = $this->listViewFactory->getListViewModel($pagination->page, $pagination->limit);
+        $viewModel = $this->listViewFactory->getListViewModel($this->request);
 
         return $this->renderer->render('index', $viewModel);
     }
