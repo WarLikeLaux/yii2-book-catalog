@@ -15,7 +15,7 @@ use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\common\dto\CatalogPaginationRequest;
 use yii\web\Request;
 
-final readonly class BookSearchHandler
+final readonly class BookSearchViewFactory
 {
     public function __construct(
         private BookQueryServiceInterface $bookQueryService,
@@ -25,13 +25,12 @@ final readonly class BookSearchHandler
     ) {
     }
 
-    /**
-     * @param array<string, mixed> $params
-     */
-    public function prepareIndexViewModel(array $params, Request $request): BookIndexViewModel
+    public function prepareIndexViewModel(Request $request): BookIndexViewModel
     {
         $pagination = CatalogPaginationRequest::fromRequest($request);
         $form = new BookSearchForm();
+        /** @var array<string, mixed> $params */
+        $params = (array)$request->get();
         $form->load($params);
 
         if (!$form->validate()) {

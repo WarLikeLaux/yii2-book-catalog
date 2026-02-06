@@ -9,7 +9,7 @@ use app\presentation\subscriptions\dto\SubscriptionViewModel;
 use app\presentation\subscriptions\forms\SubscriptionForm;
 use yii\web\NotFoundHttpException;
 
-final readonly class SubscriptionViewDataFactory
+final readonly class SubscriptionViewFactory
 {
     public function __construct(
         private AuthorQueryServiceInterface $queryService,

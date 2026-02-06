@@ -8,7 +8,7 @@ use app\presentation\auth\dto\ApiInfoViewModel;
 use app\presentation\auth\dto\LoginViewModel;
 use app\presentation\auth\forms\LoginForm;
 
-final readonly class AuthViewDataFactory
+final readonly class AuthViewFactory
 {
     public function getLoginViewModel(LoginForm|null $form = null): LoginViewModel
     {

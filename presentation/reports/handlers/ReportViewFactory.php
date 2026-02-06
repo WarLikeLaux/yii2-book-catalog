@@ -11,7 +11,7 @@ use app\presentation\reports\dto\ReportViewModel;
 use app\presentation\reports\mappers\ReportCriteriaMapper;
 use Yii;
 
-final readonly class ReportHandler
+final readonly class ReportViewFactory
 {
     public function __construct(
         private ReportCriteriaMapper $reportCriteriaMapper,

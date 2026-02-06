@@ -9,7 +9,7 @@ use app\application\authors\queries\AuthorSearchCriteria;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\authors\forms\AuthorSearchForm;
 
-final readonly class AuthorSearchHandler
+final readonly class AuthorSearchViewFactory
 {
     public function __construct(
         private AuthorQueryServiceInterface $queryService,
