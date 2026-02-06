@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\infrastructure\adapters;
 
+use app\application\common\exceptions\OperationFailedException;
 use app\application\ports\AuthServiceInterface;
+use app\domain\exceptions\DomainErrorCode;
 use app\infrastructure\persistence\User;
 use Yii;
 use yii\web\Application;
@@ -24,12 +26,12 @@ final class YiiAuthAdapter implements AuthServiceInterface
         return $app->user->isGuest;
     }
 
-    public function login(string $username, string $password, bool $rememberMe): bool
+    public function login(string $username, string $password, bool $rememberMe): void
     {
         $user = User::findByUsername($username);
 
         if ($user === null || !$user->validatePassword($password)) {
-            return false;
+            throw new OperationFailedException(DomainErrorCode::AuthInvalidCredentials->value, 'password');
         }
 
         $duration = $rememberMe ? self::REMEMBER_ME_DURATION : 0;
@@ -37,10 +39,12 @@ final class YiiAuthAdapter implements AuthServiceInterface
         $app = Yii::$app;
 
         if (!$app instanceof Application) {
-            return false;
+            throw new OperationFailedException(DomainErrorCode::AuthInvalidCredentials->value, 'password');
         }
 
-        return $app->user->login($user, $duration);
+        if (!$app->user->login($user, $duration)) {
+            throw new OperationFailedException(DomainErrorCode::AuthInvalidCredentials->value, 'password');
+        }
     }
 
     public function logout(): void
