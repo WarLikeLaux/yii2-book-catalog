@@ -76,7 +76,7 @@ final class BookSearchViewFactoryTest extends Unit
             static fn(?string $name = null, mixed $default = null): mixed => match ($name) {
                 null => ['globalSearch' => 'query'],
                 'page' => 1,
-                'limit' => 20,
+                'limit' => 9,
                 default => $default,
             },
         );
@@ -95,11 +95,11 @@ final class BookSearchViewFactoryTest extends Unit
         $pagedResult = $this->createMock(PagedResultInterface::class);
         $pagedResult->method('getModels')->willReturn([$dto]);
         $pagedResult->method('getTotalCount')->willReturn(1);
-        $pagedResult->method('getPagination')->willReturn(new PaginationDto(1, 20, 1, 1));
+        $pagedResult->method('getPagination')->willReturn(new PaginationDto(1, 9, 1, 1));
 
         $this->bookQueryService->expects($this->once())
             ->method('search')
-            ->with('query', 1, 20)
+            ->with('query', 1, 9)
             ->willReturn($pagedResult);
 
         $resolvedDto = $dto->withCoverUrl('resolved.jpg');

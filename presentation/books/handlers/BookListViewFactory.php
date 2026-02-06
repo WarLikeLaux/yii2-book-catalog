@@ -13,13 +13,14 @@ use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
-use app\presentation\common\dto\CrudPaginationRequest;
 use LogicException;
 use yii\data\DataProviderInterface;
 use yii\web\Request;
 
 final readonly class BookListViewFactory
 {
+    private const int DEFAULT_LIMIT = 20;
+
     public function __construct(
         private BookSearcherInterface $searcher,
         private PagedResultDataProviderFactory $dataProviderFactory,
@@ -30,7 +31,11 @@ final readonly class BookListViewFactory
 
     public function getListViewModel(Request $request): BookListViewModel
     {
-        $pagination = CrudPaginationRequest::fromRequest($request);
+        $pagination = new PaginationRequest(
+            $request->get('page'),
+            $request->get('limit'),
+            self::DEFAULT_LIMIT,
+        );
 
         return new BookListViewModel(
             $this->getIndexDataProvider($pagination),

@@ -70,7 +70,7 @@ final class PagedResultDataProviderTest extends Unit
     {
         $paginationDto = new PaginationDto(
             page: 2,
-            pageSize: 20,
+            limit: 20,
             totalCount: 100,
             totalPages: 5,
         );

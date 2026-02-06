@@ -32,13 +32,13 @@ final readonly class AuthorSearchViewFactory
         $criteria = new AuthorSearchCriteria(
             search: $form->q,
             page: $form->page,
-            pageSize: $form->limit,
+            limit: $form->limit,
         );
 
         $result = $this->queryService->search(
             $criteria->search,
             $criteria->page,
-            $criteria->pageSize,
+            $criteria->limit,
         );
 
         /** @var AuthorReadDto[] $models */
@@ -50,7 +50,7 @@ final readonly class AuthorSearchViewFactory
                 'text' => $dto->fio,
             ], $models),
             'pagination' => [
-                'more' => $criteria->page * $criteria->pageSize < $result->getTotalCount(),
+                'more' => $criteria->page * $criteria->limit < $result->getTotalCount(),
             ],
         ];
     }

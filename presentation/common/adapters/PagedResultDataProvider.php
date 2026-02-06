@@ -21,7 +21,7 @@ final class PagedResultDataProvider extends BaseDataProvider
             if ($paginationDto instanceof PaginationDto) {
                 $pagination = new Pagination([
                     'page' => $paginationDto->page - 1,
-                    'pageSize' => $paginationDto->pageSize,
+                    'pageSize' => $paginationDto->limit,
                     'totalCount' => $paginationDto->totalCount,
                 ]);
             } else {
