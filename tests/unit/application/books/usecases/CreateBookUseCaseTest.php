@@ -6,12 +6,14 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
-use app\application\common\exceptions\ApplicationException;
 use app\application\common\values\AuthorIdCollection;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
+use app\domain\exceptions\AlreadyExistsException;
+use app\domain\exceptions\DomainException;
+use app\domain\exceptions\EntityNotFoundException;
 use BookTestHelper;
 use Codeception\Test\Unit;
 use DateTimeImmutable;
@@ -99,7 +101,7 @@ final class CreateBookUseCaseTest extends Unit
             authorIds: AuthorIdCollection::fromArray([1]),
         );
 
-        $this->expectException(ApplicationException::class);
+        $this->expectException(DomainException::class);
 
         $this->useCase->execute($command);
     }
@@ -160,7 +162,7 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->never())->method('save');
 
-        $this->expectException(ApplicationException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessage('year.error.future');
 
         $this->useCase->execute($command);
@@ -190,7 +192,7 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->never())->method('save');
 
-        $this->expectException(ApplicationException::class);
+        $this->expectException(AlreadyExistsException::class);
 
         $useCase->execute($command);
     }
@@ -219,7 +221,7 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->never())->method('save');
 
-        $this->expectException(ApplicationException::class);
+        $this->expectException(EntityNotFoundException::class);
 
         $useCase->execute($command);
     }

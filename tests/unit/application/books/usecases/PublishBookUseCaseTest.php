@@ -6,11 +6,11 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\PublishBookCommand;
 use app\application\books\usecases\PublishBookUseCase;
-use app\application\common\exceptions\ApplicationException;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookPublishedEvent;
+use app\domain\exceptions\BusinessRuleException;
 use app\domain\services\BookPublicationPolicy;
 use BookTestHelper;
 use Codeception\Test\Unit;
@@ -77,7 +77,7 @@ final class PublishBookUseCaseTest extends Unit
         $useCase->execute($command);
     }
 
-    public function testThrowsApplicationExceptionWithoutAuthors(): void
+    public function testThrowsBusinessRuleExceptionWithoutAuthors(): void
     {
         $book = BookTestHelper::createBook(
             id: 42,
@@ -98,7 +98,7 @@ final class PublishBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->never())->method('save');
         $this->eventPublisher->expects($this->never())->method('publishAfterCommit');
 
-        $this->expectException(ApplicationException::class);
+        $this->expectException(BusinessRuleException::class);
         $this->expectExceptionMessage('book.error.publish_without_authors');
 
         $this->useCase->execute($command);
