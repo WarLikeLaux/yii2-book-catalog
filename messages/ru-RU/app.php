@@ -102,6 +102,7 @@ return [
     'error.entity_delete_failed' => 'Ошибка при удалении данных',
     'error.entity_persist_failed' => 'Ошибка при сохранении данных',
     'error.entity_id_missing' => 'Отсутствует идентификатор объекта',
+    'error.internal_mapper_failed' => 'Внутренняя ошибка обработки данных. Обратитесь к администратору.',
     'error.mapper_failed' => 'Ошибка обработки данных',
     'storage.gc.starting' => 'Запуск сборки мусора хранилища...',
     'storage.gc.ttl' => 'TTL: {hours} ч.',
