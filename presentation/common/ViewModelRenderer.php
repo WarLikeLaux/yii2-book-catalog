@@ -6,7 +6,6 @@ namespace app\presentation\common;
 
 use app\presentation\controllers\BaseController;
 use LogicException;
-use ReflectionMethod;
 use yii\web\Controller;
 
 final class ViewModelRenderer
@@ -44,11 +43,8 @@ final class ViewModelRenderer
             throw new LogicException('Controller must be instance of BaseController');
         }
 
-        $reflection = new ReflectionMethod($this->controller, 'renderInternal');
+        $output = $this->controller->getView()->render($view, $params, $this->controller);
 
-        /** @var string $result */
-        $result = $reflection->invoke($this->controller, $view, $params);
-
-        return $result;
+        return $this->controller->renderContent($output);
     }
 }
