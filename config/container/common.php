@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+use app\application\common\exceptions\AlreadyExistsException;
+use app\application\common\exceptions\DomainErrorMappingRegistry;
+use app\application\common\exceptions\EntityNotFoundException;
+use app\application\common\exceptions\OperationFailedException;
+use app\application\common\middleware\DomainExceptionTranslationMiddleware;
+use app\domain\exceptions\DomainErrorCode;
 use app\infrastructure\adapters\SystemClock;
 use app\infrastructure\components\automapper\BookToBookReadDtoMappingListener;
 use app\infrastructure\components\automapper\ValueObjectStringPropertyTransformer;
@@ -15,6 +21,7 @@ use AutoMapper\Loader\FileReloadStrategy;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use yii\di\Container;
 
 return static fn (array $_params) => [
     ClockInterface::class => SystemClock::class,
@@ -40,4 +47,25 @@ return static fn (array $_params) => [
             eventDispatcher: $eventDispatcher,
         );
     },
+
+    DomainErrorMappingRegistry::class => static function (): DomainErrorMappingRegistry {
+        $registry = new DomainErrorMappingRegistry();
+
+        $registry->register(DomainErrorCode::BookIsbnExists, AlreadyExistsException::class, field: 'isbn');
+        $registry->register(DomainErrorCode::BookAuthorsNotFound, EntityNotFoundException::class, field: 'authorIds');
+        $registry->register(DomainErrorCode::BookTitleEmpty, OperationFailedException::class, field: 'title');
+        $registry->register(DomainErrorCode::BookNotFound, EntityNotFoundException::class);
+
+        $registry->register(DomainErrorCode::AuthorFioExists, AlreadyExistsException::class, field: 'fio');
+        $registry->register(DomainErrorCode::AuthorUpdateFailed, OperationFailedException::class, field: 'fio');
+        $registry->register(DomainErrorCode::AuthorNotFound, EntityNotFoundException::class);
+
+        $registry->register(DomainErrorCode::SubscriptionAlreadySubscribed, AlreadyExistsException::class);
+        $registry->register(DomainErrorCode::SubscriptionCreateFailed, OperationFailedException::class);
+
+        return $registry;
+    },
+
+    DomainExceptionTranslationMiddleware::class => static fn(Container $container)
+        => new DomainExceptionTranslationMiddleware($container->get(DomainErrorMappingRegistry::class)),
 ];
