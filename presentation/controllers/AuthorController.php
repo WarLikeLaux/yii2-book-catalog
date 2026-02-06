@@ -17,6 +17,7 @@ use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Response;
+use yii\widgets\ActiveForm;
 
 final class AuthorController extends BaseController
 {
@@ -76,36 +77,56 @@ final class AuthorController extends BaseController
     {
         $form = $this->itemViewFactory->createForm();
 
-        if ($this->request->isPost && $form->loadFromRequest($this->request) && $form->validate()) {
-            try {
-                $authorId = $this->commandHandler->createAuthor($form);
-                return $this->redirect(['view', 'id' => $authorId]);
-            } catch (ApplicationException $e) {
-                $this->addFormError($form, $e);
-            }
+        if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
+            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+            return $this->renderer->render('create', $viewModel);
         }
 
-        $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+        if ($this->request->isAjax) {
+            return $this->asJson(ActiveForm::validate($form));
+        }
 
-        return $this->renderer->render('create', $viewModel);
+        if (!$form->validate()) {
+            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+            return $this->renderer->render('create', $viewModel);
+        }
+
+        try {
+            $authorId = $this->commandHandler->createAuthor($form);
+            return $this->redirect(['view', 'id' => $authorId]);
+        } catch (ApplicationException $e) {
+            $this->addFormError($form, $e);
+            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+            return $this->renderer->render('create', $viewModel);
+        }
     }
 
     public function actionUpdate(int $id): string|Response
     {
         $form = $this->itemViewFactory->getAuthorForUpdate($id);
 
-        if ($this->request->isPost && $form->loadFromRequest($this->request) && $form->validate()) {
-            try {
-                $this->commandHandler->updateAuthor($id, $form);
-                return $this->redirect(['view', 'id' => $id]);
-            } catch (ApplicationException $e) {
-                $this->addFormError($form, $e);
-            }
+        if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
+            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+            return $this->renderer->render('update', $viewModel);
         }
 
-        $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+        if ($this->request->isAjax) {
+            return $this->asJson(ActiveForm::validate($form));
+        }
 
-        return $this->renderer->render('update', $viewModel);
+        if (!$form->validate()) {
+            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+            return $this->renderer->render('update', $viewModel);
+        }
+
+        try {
+            $this->commandHandler->updateAuthor($id, $form);
+            return $this->redirect(['view', 'id' => $id]);
+        } catch (ApplicationException $e) {
+            $this->addFormError($form, $e);
+            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+            return $this->renderer->render('update', $viewModel);
+        }
     }
 
     public function actionDelete(int $id): Response
