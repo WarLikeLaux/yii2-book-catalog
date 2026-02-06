@@ -12,11 +12,11 @@ use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
+use app\application\common\exceptions\ApplicationException;
 use app\application\common\services\UploadedFileStorage;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookCommandMapper;
 use app\presentation\common\adapters\UploadedFileAdapter;
-use app\presentation\common\handlers\UseCaseHandlerTrait;
 use app\presentation\common\services\WebOperationRunner;
 use Yii;
 use yii\web\UploadedFile;
@@ -27,8 +27,6 @@ use yii\web\UploadedFile;
  */
 final readonly class BookCommandHandler
 {
-    use UseCaseHandlerTrait;
-
     public function __construct(
         private BookCommandMapper $commandMapper,
         private CreateBookUseCase $createBookUseCase,
@@ -39,27 +37,6 @@ final readonly class BookCommandHandler
         private UploadedFileStorage $uploadedFileStorage,
         private UploadedFileAdapter $uploadedFileAdapter,
     ) {
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function getErrorFieldMap(): array
-    {
-        return [
-            'isbn.error.invalid_format' => 'isbn',
-            'book.error.isbn_exists' => 'isbn',
-            'year.error.too_old' => 'year',
-            'year.error.future' => 'year',
-            'book.error.title_empty' => 'title',
-            'book.error.title_too_long' => 'title',
-            'book.error.stale_data' => 'version',
-            'book.error.isbn_change_published' => 'isbn',
-            'book.error.invalid_author_id' => 'authorIds',
-            'book.error.authors_not_found' => 'authorIds',
-            'book.error.publish_without_authors' => 'authorIds',
-            'error.mapper_failed' => 'title',
-        ];
     }
 
     public function createBook(BookForm $form): int|null
@@ -85,12 +62,11 @@ final readonly class BookCommandHandler
         }
 
         /** @var int|null */
-        return $this->executeWithForm(
-            $this->operationRunner,
-            $form,
+        return $this->operationRunner->executeWithFormErrors(
             $command,
             $this->createBookUseCase,
             Yii::t('app', 'book.success.created'),
+            fn(ApplicationException $e) => $this->addFormError($form, $e),
         );
     }
 
@@ -118,12 +94,11 @@ final readonly class BookCommandHandler
             return false;
         }
 
-        return $this->executeWithForm(
-            $this->operationRunner,
-            $form,
+        return $this->operationRunner->executeWithFormErrors(
             $command,
             $this->updateBookUseCase,
             Yii::t('app', 'book.success.updated'),
+            fn(ApplicationException $e) => $this->addFormError($form, $e),
         ) !== null;
     }
 
@@ -163,5 +138,29 @@ final readonly class BookCommandHandler
 
         $payload = $this->uploadedFileAdapter->toPayload($form->cover);
         return $this->uploadedFileStorage->store($payload);
+    }
+
+    private function addFormError(BookForm $form, ApplicationException $exception): void
+    {
+        $form->addError($this->resolveField($exception), Yii::t('app', $exception->errorCode));
+    }
+
+    private function resolveField(ApplicationException $exception): string
+    {
+        return match ($exception->errorCode) {
+            'isbn.error.invalid_format',
+            'book.error.isbn_exists',
+            'book.error.isbn_change_published' => 'isbn',
+            'year.error.too_old',
+            'year.error.future' => 'year',
+            'book.error.title_empty',
+            'book.error.title_too_long',
+            'error.mapper_failed' => 'title',
+            'book.error.stale_data' => 'version',
+            'book.error.invalid_author_id',
+            'book.error.authors_not_found',
+            'book.error.publish_without_authors' => 'authorIds',
+            default => '',
+        };
     }
 }

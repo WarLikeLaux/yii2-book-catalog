@@ -10,9 +10,9 @@ use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
+use app\application\common\exceptions\ApplicationException;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\mappers\AuthorCommandMapper;
-use app\presentation\common\handlers\UseCaseHandlerTrait;
 use app\presentation\common\services\WebOperationRunner;
 use Yii;
 
@@ -22,8 +22,6 @@ use Yii;
  */
 final readonly class AuthorCommandHandler
 {
-    use UseCaseHandlerTrait;
-
     public function __construct(
         private AuthorCommandMapper $commandMapper,
         private CreateAuthorUseCase $createAuthorUseCase,
@@ -31,19 +29,6 @@ final readonly class AuthorCommandHandler
         private DeleteAuthorUseCase $deleteAuthorUseCase,
         private WebOperationRunner $operationRunner,
     ) {
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function getErrorFieldMap(): array
-    {
-        return [
-            'author.error.fio_exists' => 'fio',
-            'author.error.fio_empty' => 'fio',
-            'author.error.fio_too_short' => 'fio',
-            'author.error.fio_too_long' => 'fio',
-        ];
     }
 
     public function createAuthor(AuthorForm $form): ?int
@@ -59,12 +44,11 @@ final readonly class AuthorCommandHandler
         }
 
         /** @var int|null */
-        return $this->executeWithForm(
-            $this->operationRunner,
-            $form,
+        return $this->operationRunner->executeWithFormErrors(
             $command,
             $this->createAuthorUseCase,
             Yii::t('app', 'author.success.created'),
+            fn(ApplicationException $e) => $this->addFormError($form, $e),
         );
     }
 
@@ -81,12 +65,11 @@ final readonly class AuthorCommandHandler
             return false;
         }
 
-        return $this->executeWithForm(
-            $this->operationRunner,
-            $form,
+        return $this->operationRunner->executeWithFormErrors(
             $command,
             $this->updateAuthorUseCase,
             Yii::t('app', 'author.success.updated'),
+            fn(ApplicationException $e) => $this->addFormError($form, $e),
         ) !== null;
     }
 
@@ -102,5 +85,21 @@ final readonly class AuthorCommandHandler
         );
 
         return $result !== null;
+    }
+
+    private function addFormError(AuthorForm $form, ApplicationException $exception): void
+    {
+        $form->addError($this->resolveField($exception), Yii::t('app', $exception->errorCode));
+    }
+
+    private function resolveField(ApplicationException $exception): string
+    {
+        return match ($exception->errorCode) {
+            'author.error.fio_exists',
+            'author.error.fio_empty',
+            'author.error.fio_too_short',
+            'author.error.fio_too_long' => 'fio',
+            default => '',
+        };
     }
 }
