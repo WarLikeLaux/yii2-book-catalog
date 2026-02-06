@@ -280,10 +280,9 @@ test-full:
 		--skip-group migration \
 		--coverage-text \
 		--coverage-xml \
-		--coverage-phpunit --xml=junit.xml --no-colors; \
-	sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml; \
-	$(MAKE) cov; \
-	$(MAKE) test-e2e
+		--coverage-phpunit --xml=junit.xml --no-colors && \
+	sed -i "s|/app/|$(CURDIR)/|g" tests/_output/coverage.xml && \
+	$(MAKE) cov
 
 test-unit:
 	@echo "🚀 Запуск Unit тестов..."
