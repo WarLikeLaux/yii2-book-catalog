@@ -25,12 +25,12 @@ final readonly class QueryResult implements PagedResultInterface
     /**
      * @return self<object>
      */
-    public static function empty(int $page = 1, int $pageSize = 20): self
+    public static function empty(int $page = 1, int $limit = 20): self
     {
         return new self(
             [],
             0,
-            new PaginationDto($page, $pageSize, 0, 0),
+            new PaginationDto($page, $limit, 0, 0),
         );
     }
 
