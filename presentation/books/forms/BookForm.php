@@ -58,7 +58,7 @@ final class BookForm extends Model
     {
         return [
             [['title', 'year', 'isbn', 'authorIds'], 'required'],
-            [['year'], 'integer', 'min' => 1000, 'max' => (int)date('Y') + 1],
+            [['year'], 'integer', 'min' => 1000, 'max' => (int)date('Y') + 5],
             [['description'], 'string'],
             [['title'], 'string', 'max' => 255],
             [['isbn'], 'string', 'max' => 20],
