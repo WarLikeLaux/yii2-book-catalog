@@ -8,7 +8,6 @@ use app\application\ports\AuthServiceInterface;
 use app\presentation\auth\forms\LoginForm;
 use app\presentation\auth\handlers\AuthViewDataFactory;
 use app\presentation\books\handlers\BookSearchHandler;
-use app\presentation\common\dto\CatalogPaginationRequest;
 use app\presentation\common\enums\ActionName;
 use app\presentation\common\traits\HtmxDetectionTrait;
 use app\presentation\common\ViewModelRenderer;
@@ -71,10 +70,9 @@ final class SiteController extends BaseController
 
     public function actionIndex(): string
     {
-        $pagination = CatalogPaginationRequest::fromRequest($this->request);
         /** @var array<string, mixed> $params */
         $params = (array)$this->request->get();
-        $viewModel = $this->bookSearchHandler->prepareIndexViewModel($params, $pagination);
+        $viewModel = $this->bookSearchHandler->prepareIndexViewModel($params, $this->request);
 
         if ($this->isHtmxRequest()) {
             return $this->renderPartial('_book-cards', ['dataProvider' => $viewModel->dataProvider]);

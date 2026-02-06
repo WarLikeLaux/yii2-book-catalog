@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\presentation\books\handlers;
 
 use app\application\books\queries\BookReadDto;
-use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\dto\BookIndexViewModel;
@@ -13,6 +12,8 @@ use app\presentation\books\forms\BookSearchForm;
 use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\common\dto\CatalogPaginationRequest;
+use yii\web\Request;
 
 final readonly class BookSearchHandler
 {
@@ -27,8 +28,9 @@ final readonly class BookSearchHandler
     /**
      * @param array<string, mixed> $params
      */
-    public function prepareIndexViewModel(array $params, PaginationRequest $pagination): BookIndexViewModel
+    public function prepareIndexViewModel(array $params, Request $request): BookIndexViewModel
     {
+        $pagination = CatalogPaginationRequest::fromRequest($request);
         $form = new BookSearchForm();
         $form->load($params);
 
