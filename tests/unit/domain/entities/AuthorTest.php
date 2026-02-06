@@ -27,9 +27,9 @@ final class AuthorTest extends Unit
         $this->assertSame('New Name', $author->fio);
     }
 
-    public function testConstructor(): void
+    public function testReconstitute(): void
     {
-        $author = new Author(555, 'Direct Create');
+        $author = Author::reconstitute(555, 'Direct Create');
         $this->assertSame(555, $author->id);
         $this->assertSame('Direct Create', $author->fio);
     }
