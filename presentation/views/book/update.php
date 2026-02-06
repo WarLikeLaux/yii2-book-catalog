@@ -21,5 +21,6 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= $this->render('_form', [
         'model' => $viewModel->form,
         'authors' => $viewModel->authors,
+        'book' => $viewModel->book,
     ]) ?>
 </div>

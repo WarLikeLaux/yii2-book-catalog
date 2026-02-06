@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\common\exceptions\ApplicationException;
 use app\presentation\books\handlers\BookCommandHandler;
 use app\presentation\books\handlers\BookItemViewFactory;
 use app\presentation\books\handlers\BookListViewFactory;
@@ -11,6 +12,7 @@ use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\ViewModelRenderer;
 use Override;
+use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Response;
@@ -90,14 +92,14 @@ final class BookController extends BaseController
             return $this->renderer->render('create', $viewModel);
         }
 
-        $bookId = $this->commandHandler->createBook($form);
-
-        if ($bookId === null) {
+        try {
+            $bookId = $this->commandHandler->createBook($form);
+            return $this->redirect(['view', 'id' => $bookId]);
+        } catch (ApplicationException $e) {
+            $this->addFormError($form, $e);
             $viewModel = $this->itemViewFactory->getCreateViewModel($form);
             return $this->renderer->render('create', $viewModel);
         }
-
-        return $this->redirect(['view', 'id' => $bookId]);
     }
 
     /**
@@ -122,25 +124,35 @@ final class BookController extends BaseController
             return $this->renderer->render('update', $viewModel);
         }
 
-        $success = $this->commandHandler->updateBook($id, $form);
-
-        if (!$success) {
+        try {
+            $this->commandHandler->updateBook($id, $form);
+            return $this->redirect(['view', 'id' => $id]);
+        } catch (ApplicationException $e) {
+            $this->addFormError($form, $e);
             $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
             return $this->renderer->render('update', $viewModel);
         }
-
-        return $this->redirect(['view', 'id' => $id]);
     }
 
     public function actionDelete(int $id): Response
     {
-        $this->commandHandler->deleteBook($id);
+        try {
+            $this->commandHandler->deleteBook($id);
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
         return $this->redirect(['index']);
     }
 
     public function actionPublish(int $id): Response
     {
-        $this->commandHandler->publishBook($id);
+        try {
+            $this->commandHandler->publishBook($id);
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
         return $this->redirect(['view', 'id' => $id]);
     }
 }

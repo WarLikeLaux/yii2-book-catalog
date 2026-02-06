@@ -35,12 +35,6 @@ final class BookForm extends Model
 
     /** @var UploadedFile|string|null */
     public $cover;
-
-    /** @var array<int, string> */
-    public array $authorNames = [];
-    public ?string $coverUrl = null;
-    public bool $isPublished = false;
-    public ?string $fullTitle = null;
     public int $version = 1;
 
     #[CodeCoverageIgnore]

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\common\exceptions\ApplicationException;
 use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\handlers\AuthorItemViewFactory;
 use app\presentation\authors\handlers\AuthorListViewFactory;
@@ -12,6 +13,7 @@ use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\ViewModelRenderer;
 use Override;
+use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Response;
@@ -75,10 +77,11 @@ final class AuthorController extends BaseController
         $form = $this->itemViewFactory->createForm();
 
         if ($this->request->isPost && $form->loadFromRequest($this->request) && $form->validate()) {
-            $authorId = $this->commandHandler->createAuthor($form);
-
-            if ($authorId !== null) {
+            try {
+                $authorId = $this->commandHandler->createAuthor($form);
                 return $this->redirect(['view', 'id' => $authorId]);
+            } catch (ApplicationException $e) {
+                $this->addFormError($form, $e);
             }
         }
 
@@ -92,10 +95,11 @@ final class AuthorController extends BaseController
         $form = $this->itemViewFactory->getAuthorForUpdate($id);
 
         if ($this->request->isPost && $form->loadFromRequest($this->request) && $form->validate()) {
-            $success = $this->commandHandler->updateAuthor($id, $form);
-
-            if ($success) {
+            try {
+                $this->commandHandler->updateAuthor($id, $form);
                 return $this->redirect(['view', 'id' => $id]);
+            } catch (ApplicationException $e) {
+                $this->addFormError($form, $e);
             }
         }
 
@@ -106,7 +110,12 @@ final class AuthorController extends BaseController
 
     public function actionDelete(int $id): Response
     {
-        $this->commandHandler->deleteAuthor($id);
+        try {
+            $this->commandHandler->deleteAuthor($id);
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
         return $this->redirect(['index']);
     }
 
