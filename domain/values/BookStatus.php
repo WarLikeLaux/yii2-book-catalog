@@ -18,10 +18,6 @@ enum BookStatus: string
 
     public function canTransitionTo(self $target): bool
     {
-        if ($this === $target) {
-            return false;
-        }
-
         return in_array($target->value, self::TRANSITIONS[$this->value], true);
     }
 }
