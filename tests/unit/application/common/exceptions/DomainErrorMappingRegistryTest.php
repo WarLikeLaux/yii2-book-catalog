@@ -10,6 +10,7 @@ use app\application\common\exceptions\DomainErrorMappingRegistry;
 use app\application\common\exceptions\EntityNotFoundException;
 use app\application\common\exceptions\OperationFailedException;
 use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ErrorType;
 use Codeception\Test\Unit;
 
 final class DomainErrorMappingRegistryTest extends Unit
@@ -81,5 +82,23 @@ final class DomainErrorMappingRegistryTest extends Unit
         $this->assertNotNull($mapping, sprintf('Mapping for %s should exist', $code->name));
         $this->assertSame($expectedClass, $mapping[0], sprintf('Exception class for %s', $code->name));
         $this->assertSame($expectedField, $mapping[1], sprintf('Field for %s', $code->name));
+    }
+
+    public function testResolveExceptionClassReturnsCorrectClassForAllTypes(): void
+    {
+        $cases = [
+            [ErrorType::NotFound, EntityNotFoundException::class],
+            [ErrorType::AlreadyExists, AlreadyExistsException::class],
+            [ErrorType::OperationFailed, OperationFailedException::class],
+            [ErrorType::BusinessRule, BusinessRuleException::class],
+        ];
+
+        foreach ($cases as [$type, $expectedClass]) {
+            $this->assertSame(
+                $expectedClass,
+                DomainErrorMappingRegistry::resolveExceptionClass($type),
+                sprintf('resolveExceptionClass for %s', $type->name),
+            );
+        }
     }
 }

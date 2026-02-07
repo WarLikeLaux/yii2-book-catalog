@@ -274,7 +274,7 @@ final class UpdateBookUseCaseTest extends Unit
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
-            storedCover: ':284',
+            storedCover: null,
         );
 
         $existingBook = BookTestHelper::createBook(

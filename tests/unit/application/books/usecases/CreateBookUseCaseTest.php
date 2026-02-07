@@ -6,6 +6,7 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
+use app\application\common\exceptions\OperationFailedException;
 use app\application\common\values\AuthorIdCollection;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
@@ -144,8 +145,8 @@ final class CreateBookUseCaseTest extends Unit
             ->with($this->isInstanceOf(Book::class))
             ->willReturnCallback(static fn (Book $_book): int => 0);
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Failed to retrieve book ID after save');
+        $this->expectException(OperationFailedException::class);
+        $this->expectExceptionMessage('error.entity_id_missing');
 
         $this->useCase->execute($command);
     }

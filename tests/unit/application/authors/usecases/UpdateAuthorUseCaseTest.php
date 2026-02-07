@@ -46,7 +46,7 @@ final class UpdateAuthorUseCaseTest extends Unit
         $this->assertTrue(true);
     }
 
-    public function testExecuteThrowsApplicationExceptionWhenAuthorNotFound(): void
+    public function testExecuteThrowsEntityNotFoundExceptionWhenAuthorNotFound(): void
     {
         $command = new UpdateAuthorCommand(id: 999, fio: 'New Name');
 
@@ -63,7 +63,7 @@ final class UpdateAuthorUseCaseTest extends Unit
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsApplicationExceptionOnRepositoryError(): void
+    public function testExecuteThrowsRuntimeExceptionOnRepositoryError(): void
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'New Name');
 
@@ -83,7 +83,7 @@ final class UpdateAuthorUseCaseTest extends Unit
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsApplicationExceptionOnAlreadyExists(): void
+    public function testExecuteThrowsAlreadyExistsExceptionOnAlreadyExists(): void
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'Duplicated Name');
 

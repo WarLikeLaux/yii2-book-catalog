@@ -48,8 +48,8 @@ final class AuthorListViewFactoryTest extends Unit
 
         $request = $this->createMock(Request::class);
         $request->method('get')->willReturnMap([
-            ['page', null, null, 1],
-            ['limit', null, null, 20],
+            ['page', null, null],
+            ['limit', null, null],
         ]);
 
         $result = $this->factory->getListViewModel($request);

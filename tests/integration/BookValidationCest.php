@@ -142,6 +142,6 @@ final class BookValidationCest
         ]);
 
         $I->seeResponseCodeIs(200);
-        $I->see('не существует');
+        $I->see('не найдены');
     }
 }

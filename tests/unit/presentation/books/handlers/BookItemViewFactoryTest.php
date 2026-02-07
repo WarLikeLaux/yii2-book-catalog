@@ -74,7 +74,7 @@ final class BookItemViewFactoryTest extends Unit
 
         $authors = [];
 
-        $this->finder->expects($this->exactly(2)) // Called by getBookForUpdate (if no form) and getBookView
+        $this->finder->expects($this->once()) // Single query: reuse dto for form + view
             ->method('findById')
             ->with(1)
             ->willReturn($dto);

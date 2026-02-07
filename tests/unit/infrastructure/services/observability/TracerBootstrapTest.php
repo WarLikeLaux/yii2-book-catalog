@@ -89,27 +89,22 @@ final class TracerBootstrapTest extends Unit
 
     public function testStartRootSpanWithIgnoredPaths(): void
     {
-        $tracer = $this->createMock(TracerInterface::class);
-
-        // Inject mock tracer
         $reflection = new \ReflectionClass($this->bootstrap);
         $tracerProp = $reflection->getProperty('tracer');
         $tracerProp->setAccessible(true);
-        $tracerProp->setValue($this->bootstrap, $tracer);
 
-        // Test ignored paths
         $ignoredPaths = ['debug/default/index', 'gii/default/index', '.well-known/security.txt'];
 
         foreach ($ignoredPaths as $path) {
+            $tracer = $this->createMock(TracerInterface::class);
+            $tracerProp->setValue($this->bootstrap, $tracer);
+
             $app = $this->createMock(Application::class);
             $request = $this->createMock(Request::class);
 
             $request->method('getPathInfo')->willReturn($path);
-
             $app->method('getRequest')->willReturn($request);
-            // Also need to getComponents to avoid issues if implementation calls it? No.
 
-            // Tracer should NOT be called
             $tracer->expects($this->never())->method('startSpan');
 
             $method = $reflection->getMethod('startRootSpan');
