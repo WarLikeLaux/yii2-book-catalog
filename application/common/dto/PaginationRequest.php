@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\application\common\dto;
 
-readonly class PaginationRequest
+final readonly class PaginationRequest
 {
     private const int DEFAULT_PAGE = 1;
     private const int DEFAULT_LIMIT = 20;
