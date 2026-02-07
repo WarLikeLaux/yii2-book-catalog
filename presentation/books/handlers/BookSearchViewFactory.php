@@ -48,7 +48,7 @@ final readonly class BookSearchViewFactory
             );
         }
 
-        $result = $this->bookQueryService->search(
+        $result = $this->bookQueryService->searchPublished(
             $form->globalSearch,
             $pagination->page,
             $pagination->limit,

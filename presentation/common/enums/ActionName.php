@@ -12,6 +12,9 @@ enum ActionName: string
     case UPDATE = 'update';
     case DELETE = 'delete';
     case PUBLISH = 'publish';
+    case UNPUBLISH = 'unpublish';
+    case ARCHIVE = 'archive';
+    case RESTORE = 'restore';
     case LOGOUT = 'logout';
     case LOGIN = 'login';
     case SUBSCRIBE = 'subscribe';

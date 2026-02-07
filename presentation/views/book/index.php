@@ -47,6 +47,11 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value' => static fn (BookViewModel $model): string => implode(', ', $model->authorNames),
             ],
             [
+                'attribute' => 'status',
+                'label' => Yii::t('app', 'ui.status'),
+                'value' => static fn (BookViewModel $model): string => Yii::t('app', 'status_' . $model->status),
+            ],
+            [
                 'class' => 'yii\grid\ActionColumn',
             ],
         ],

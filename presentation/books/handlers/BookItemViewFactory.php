@@ -44,7 +44,7 @@ final readonly class BookItemViewFactory
         return new BookEditViewModel(
             $form ?? $this->populateFormFromDto($dto),
             $this->getAuthorsList(),
-            $this->viewModelMapper->map($this->urlResolver->resolveUrl($dto)),
+            $this->viewModelMapper->map($this->urlResolver->resolveRealUrl($dto)),
         );
     }
 
@@ -78,7 +78,7 @@ final readonly class BookItemViewFactory
     {
         $dto = $this->getBookById($id);
 
-        return $this->urlResolver->resolveUrl($dto);
+        return $this->urlResolver->resolveRealUrl($dto);
     }
 
     /**

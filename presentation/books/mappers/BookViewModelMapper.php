@@ -19,7 +19,7 @@ final readonly class BookViewModelMapper
             $dto->isbn,
             $dto->authorNames,
             $dto->coverUrl,
-            $dto->isPublished,
+            $dto->status,
         );
     }
 }

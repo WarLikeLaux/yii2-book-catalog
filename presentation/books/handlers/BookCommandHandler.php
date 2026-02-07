@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace app\presentation\books\handlers;
 
+use app\application\books\commands\ChangeBookStatusCommand;
 use app\application\books\commands\DeleteBookCommand;
-use app\application\books\commands\PublishBookCommand;
+use app\application\books\usecases\ChangeBookStatusUseCase;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
-use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\exceptions\OperationFailedException;
 use app\application\common\services\UploadedFileStorage;
@@ -30,7 +30,7 @@ final readonly class BookCommandHandler
         private CreateBookUseCase $createBookUseCase,
         private UpdateBookUseCase $updateBookUseCase,
         private DeleteBookUseCase $deleteBookUseCase,
-        private PublishBookUseCase $publishBookUseCase,
+        private ChangeBookStatusUseCase $changeBookStatusUseCase,
         private WebOperationRunner $operationRunner,
         private UploadedFileStorage $uploadedFileStorage,
         private UploadedFileAdapter $uploadedFileAdapter,
@@ -92,14 +92,14 @@ final readonly class BookCommandHandler
         );
     }
 
-    public function publishBook(int $id): void
+    public function changeBookStatus(int $id, string $targetStatus, string $successMessage): void
     {
-        $command = new PublishBookCommand($id);
+        $command = new ChangeBookStatusCommand($id, $targetStatus);
 
         $this->operationRunner->executeAndPropagate(
             $command,
-            $this->publishBookUseCase,
-            Yii::t('app', 'book.success.published'),
+            $this->changeBookStatusUseCase,
+            $successMessage,
         );
     }
 

@@ -52,6 +52,9 @@ final class BookController extends BaseController
                 'actions' => [
                     ActionName::DELETE->value => ['post'],
                     ActionName::PUBLISH->value => ['post'],
+                    ActionName::UNPUBLISH->value => ['post'],
+                    ActionName::ARCHIVE->value => ['post'],
+                    ActionName::RESTORE->value => ['post'],
                 ],
             ],
         ];
@@ -135,7 +138,40 @@ final class BookController extends BaseController
     public function actionPublish(int $id): Response
     {
         try {
-            $this->commandHandler->publishBook($id);
+            $this->commandHandler->changeBookStatus($id, 'published', Yii::t('app', 'book.success.published'));
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
+        return $this->redirect(['view', 'id' => $id]);
+    }
+
+    public function actionUnpublish(int $id): Response
+    {
+        try {
+            $this->commandHandler->changeBookStatus($id, 'draft', Yii::t('app', 'book.success.unpublished'));
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
+        return $this->redirect(['view', 'id' => $id]);
+    }
+
+    public function actionArchive(int $id): Response
+    {
+        try {
+            $this->commandHandler->changeBookStatus($id, 'archived', Yii::t('app', 'book.success.archived'));
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
+        return $this->redirect(['view', 'id' => $id]);
+    }
+
+    public function actionRestore(int $id): Response
+    {
+        try {
+            $this->commandHandler->changeBookStatus($id, 'draft', Yii::t('app', 'book.success.restored'));
         } catch (ApplicationException $e) {
             $this->flash('error', Yii::t('app', $e->errorCode));
         }

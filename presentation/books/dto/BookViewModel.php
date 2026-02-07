@@ -17,7 +17,7 @@ final readonly class BookViewModel
         public string $isbn,
         public array $authorNames,
         public string|null $coverUrl,
-        public bool $isPublished,
+        public string $status,
     ) {
     }
 }
