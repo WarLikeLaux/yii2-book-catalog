@@ -198,7 +198,8 @@ graph TD
 - **Rich Entities:** сущность `Book` управляет статусом и авторами, соблюдая бизнес-правила.
 - **Контроль изменяемости:** доменные сущности используют `private(set)` и меняются через методы.
 - **Value Objects:** `Isbn`, `BookYear` гарантируют валидность данных при создании.
-- **Domain Events:** `BookPublishedEvent`, `BookUpdatedEvent` связывают части системы без прямых зависимостей.
+- **Status FSM:** статус книги моделируется через `BookStatus` enum (черновик / опубликована / в архиве) с переходами через `transitionTo(target, policy)`.
+- **Domain Events:** `BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` связывают части системы без прямых зависимостей.
 - **Specifications:** поиск формализован через `domain/specifications`.
 
 [↑ К навигации](#-навигация)
@@ -325,7 +326,7 @@ public function createBook(BookForm $form): int|null
 
 - Строгая типизация (`declare(strict_types=1)`) во всех PHP-файлах.
 - PHPStan level 9, кастомные правила в `infrastructure/phpstan`.
-- PHPStan правила: `QueryPortsMustReturnDtoRule`, `NoActiveRecordInDomainOrApplicationRule`.
+- PHPStan правила: `QueryPortsMustReturnDtoRule`, `NoActiveRecordInDomainOrApplicationRule`, `DomainEntitiesMustBePureRule`, `DomainIsCleanRule`, `DisallowDateTimeRule`, `DisallowYiiTOutsideAdaptersRule`, `StrictRepositoryReturnTypeRule`, `UseCaseMustBeFinalRule`, `ValueObjectMustBeFinalRule`.
 - Rector для авто-рефакторинга и миграций синтаксиса.
 - Код-стайл через `phpcs.xml.dist`.
 - Архитектурные ограничения через Deptrac и Arkitect.
@@ -347,8 +348,8 @@ public function createBook(BookForm $form): int|null
 
 Чтобы тяжелые задачи не тормозили интерфейс:
 
-1. Use Case публикует доменное событие (`BookPublishedEvent`).
-2. `EventJobMappingRegistry` маппит событие в `NotifySubscribersJob`.
+1. Use Case публикует доменное событие (`BookStatusChangedEvent`).
+2. `EventJobMappingRegistry` маппит событие в `NotifySubscribersJob` условно (только если новый статус = `Published`).
 3. `NotifySubscribersHandler` создает отдельный `NotifySingleSubscriberJob` для каждого подписчика.
 
 Идемпотентность фоновой рассылки обеспечивается через `AsyncIdempotencyStorageInterface` внутри `NotifySingleSubscriberHandler`.

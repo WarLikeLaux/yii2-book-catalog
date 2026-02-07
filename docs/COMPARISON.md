@@ -266,11 +266,11 @@ public function createBook(BookForm $form): int|null
 ```
 
 ```php
-// application/books/usecases/PublishBookUseCase.php
+// application/books/usecases/ChangeBookStatusUseCase.php
 /**
- * @implements UseCaseInterface<PublishBookCommand, bool>
+ * @implements UseCaseInterface<ChangeBookStatusCommand, bool>
  */
-final readonly class PublishBookUseCase implements UseCaseInterface
+final readonly class ChangeBookStatusUseCase implements UseCaseInterface
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
@@ -280,19 +280,22 @@ final readonly class PublishBookUseCase implements UseCaseInterface
     }
 
     /**
-     * @param PublishBookCommand $command
+     * @param ChangeBookStatusCommand $command
      */
     public function execute(object $command): bool
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof PublishBookCommand);
         $book = $this->bookRepository->get($command->bookId);
+        $oldStatus = $book->status;
+        $targetStatus = BookStatus::tryFrom($command->targetStatus)
+        ?? throw new BusinessRuleException(DomainErrorCode::BookInvalidStatusTransition);
 
-        $book->publish($this->publicationPolicy);
+        $policy = $targetStatus === BookStatus::Published ? $this->publicationPolicy : null;
+        $book->transitionTo($targetStatus, $policy);
+
         $this->bookRepository->save($book);
 
         $this->eventPublisher->publishAfterCommit(
-            new BookPublishedEvent($command->bookId, $book->title, $book->year->value),
+            new BookStatusChangedEvent($command->bookId, $oldStatus, $targetStatus, $book->year->value),
         );
 
         return true;
@@ -546,7 +549,7 @@ Book::find()->where(['id' => $id])->one();
 // application/ports/BookRepositoryInterface.php
 interface BookRepositoryInterface
 {
-    public function save(Book $book): void;
+    public function save(Book $book): int;
     public function get(int $id): Book;
     public function getByIdAndVersion(int $id, int $expectedVersion): Book;
     public function delete(Book $book): void;
@@ -555,22 +558,29 @@ interface BookRepositoryInterface
 
 ```php
 // infrastructure/repositories/BookRepository.php
-public function save(BookEntity $book): void
+public function save(BookEntity $book): int
 {
-    $isNew = $book->id === null;
-    $ar = $isNew ? new Book() : $this->getArForEntity($book, Book::class, DomainErrorCode::BookNotFound);
-    $ar->version = $book->version;
+    /** @var int */
+    return $this->db->transaction(function () use ($book): int {
+        $isNew = $book->getId() === null;
+        $model = $isNew ? new Book() : $this->getArForEntity($book, Book::class, DomainErrorCode::BookNotFound);
+        $model->version = $book->version;
 
-    $this->hydrator->hydrate($ar, $book, [
-        'title',
-        'year',
-        'isbn',
-        'description',
-        'cover_url' => static fn(BookEntity $e): ?string => $e->coverImage?->getPath(),
-        'is_published' => static fn(BookEntity $e): int => $e->published ? 1 : 0,
-    ]);
+        $this->hydrator->hydrate($model, $book, [
+            'title',
+            'year',
+            'isbn',
+            'description',
+            'cover_url' => static fn(BookEntity $e): ?string => $e->coverImage?->getPath(),
+            'status' => static fn(BookEntity $e): string => $e->status->value,
+        ]);
 
-    $this->persist($ar, DomainErrorCode::BookIsbnExists);
+        $this->persist($model, DomainErrorCode::BookStaleData, DomainErrorCode::BookIsbnExists);
+
+        // ... identity assignment, author sync
+
+        return (int)$model->id;
+    });
 }
 ```
 
@@ -627,14 +637,15 @@ Yii::$app->queue->push(new NotifyJob($bookId));
 **Стало:**
 
 ```php
-// domain/events/BookPublishedEvent.php
-final readonly class BookPublishedEvent implements QueueableEvent
+// domain/events/BookStatusChangedEvent.php
+final readonly class BookStatusChangedEvent implements QueueableEvent
 {
-    public const string EVENT_TYPE = 'book.published';
+    public const string EVENT_TYPE = 'book.status_changed';
 
     public function __construct(
         public int $bookId,
-        public string $title,
+        public BookStatus $oldStatus,
+        public BookStatus $newStatus,
         public int $year,
     ) {
     }
@@ -643,7 +654,7 @@ final readonly class BookPublishedEvent implements QueueableEvent
 
 ```php
 $this->eventPublisher->publishAfterCommit(
-    new BookPublishedEvent($command->bookId, $book->title, $book->year->value),
+    new BookStatusChangedEvent($command->bookId, $oldStatus, $targetStatus, $book->year->value),
 );
 ```
 
@@ -668,11 +679,13 @@ if ($event instanceof BookPublishedEvent) {
 ```php
 // config/container/adapters.php
 EventJobMappingRegistry::class => static fn(): EventJobMappingRegistry => new EventJobMappingRegistry([
-    BookPublishedEvent::class => NotifySubscribersJob::class,
+    BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): ?NotifySubscribersJob => $e->newStatus === BookStatus::Published
+        ? new NotifySubscribersJob($e->bookId)
+        : null,
 ]),
 ```
 
-✅ **Результат:** маппинг событий централизован в конфигурации.
+✅ **Результат:** маппинг событий централизован в конфигурации с условной логикой.
 
 ---
 
@@ -731,10 +744,21 @@ class Book extends ActiveRecord
 // domain/entities/Book.php
 final class Book
 {
-    public function publish(BookPublicationPolicy $policy): void
+    public function transitionTo(BookStatus $target, ?BookPublicationPolicy $policy = null): void
     {
-        $policy->ensureCanPublish($this);
-        $this->published = true;
+        if (!$this->status->canTransitionTo($target)) {
+            throw new BusinessRuleException(DomainErrorCode::BookInvalidStatusTransition);
+        }
+
+        if ($this->status === BookStatus::Draft && $target === BookStatus::Published) {
+            if (!$policy instanceof BookPublicationPolicy) {
+                throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutPolicy);
+            }
+
+            $policy->ensureCanPublish($this);
+        }
+
+        $this->status = $target;
     }
 
     public function addAuthor(int $authorId): void
@@ -768,7 +792,7 @@ Yii::$app->queue->push(...);
 **Стало:**
 
 ```php
-final readonly class PublishBookUseCase implements UseCaseInterface
+final readonly class ChangeBookStatusUseCase implements UseCaseInterface
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
@@ -1034,8 +1058,9 @@ interface BookRepositoryInterface {
 ```php
 interface BookRepositoryInterface
 {
-    public function save(Book $book): void;
+    public function save(Book $book): int;
     public function get(int $id): Book;
+    public function getByIdAndVersion(int $id, int $expectedVersion): Book;
     public function delete(Book $book): void;
 }
 
@@ -1047,7 +1072,13 @@ interface BookFinderInterface
 
 interface BookSearcherInterface
 {
-    public function search(string $term, int $page, int $pageSize): PagedResultInterface;
+    public function search(string $term, int $page, int $limit): PagedResultInterface;
+    public function searchPublished(string $term, int $page, int $limit): PagedResultInterface;
+    public function searchBySpecification(
+        BookSpecificationInterface $specification,
+        int $page,
+        int $limit,
+    ): PagedResultInterface;
 }
 ```
 
