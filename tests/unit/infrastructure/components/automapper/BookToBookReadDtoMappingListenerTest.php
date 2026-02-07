@@ -32,7 +32,6 @@ final class BookToBookReadDtoMappingListenerTest extends Unit
         $this->assertArrayHasKey('authorIds', $event->properties);
         $this->assertArrayHasKey('authorNames', $event->properties);
         $this->assertArrayHasKey('coverUrl', $event->properties);
-        $this->assertArrayHasKey('isPublished', $event->properties);
     }
 
     public function testInvokeDoesNothingForOtherMappings(): void
@@ -84,16 +83,6 @@ final class BookToBookReadDtoMappingListenerTest extends Unit
         $this->assertNull($propertyEvent->transformer);
     }
 
-    public function testIsPublishedPropertyHasNoTransformer(): void
-    {
-        $event = $this->createEventForMapping(Book::class, BookReadDto::class);
-
-        ($this->listener)($event);
-
-        $propertyEvent = $event->properties['isPublished'];
-        $this->assertNull($propertyEvent->transformer);
-    }
-
     public function testDoesNotOverrideExistingProperties(): void
     {
         $event = $this->createEventForMapping(Book::class, BookReadDto::class);
@@ -104,7 +93,7 @@ final class BookToBookReadDtoMappingListenerTest extends Unit
         ($this->listener)($event);
 
         $this->assertSame($existingProperty, $event->properties['authorIds']);
-        $this->assertCount(4, $event->properties);
+        $this->assertCount(3, $event->properties);
     }
 
     public function testDoesNotOverrideExistingAuthorNamesProperty(): void
@@ -117,7 +106,7 @@ final class BookToBookReadDtoMappingListenerTest extends Unit
         ($this->listener)($event);
 
         $this->assertSame($existingProperty, $event->properties['authorNames']);
-        $this->assertCount(4, $event->properties);
+        $this->assertCount(3, $event->properties);
     }
 
     public function testDoesNotOverrideExistingCoverUrlProperty(): void
@@ -130,7 +119,7 @@ final class BookToBookReadDtoMappingListenerTest extends Unit
         ($this->listener)($event);
 
         $this->assertSame($existingProperty, $event->properties['coverUrl']);
-        $this->assertCount(4, $event->properties);
+        $this->assertCount(3, $event->properties);
     }
 
     /**

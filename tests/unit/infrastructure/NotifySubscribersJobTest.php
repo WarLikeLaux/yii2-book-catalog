@@ -17,7 +17,7 @@ final class NotifySubscribersJobTest extends Unit
 {
     private function createJob(): NotifySubscribersJob
     {
-        return new NotifySubscribersJob(1, 'Test');
+        return new NotifySubscribersJob(1);
     }
 
     public function testGetTtr(): void

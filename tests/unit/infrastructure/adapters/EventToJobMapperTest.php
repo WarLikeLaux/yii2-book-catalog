@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\adapters;
 
-use app\domain\events\BookPublishedEvent;
+use app\domain\events\BookStatusChangedEvent;
 use app\domain\events\QueueableEvent;
+use app\domain\values\BookStatus;
 use app\infrastructure\adapters\EventJobMappingRegistry;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\queue\NotifySubscribersJob;
 use Codeception\Test\Unit;
-use InvalidArgumentException;
 
 final class EventToJobMapperTest extends Unit
 {
@@ -19,24 +19,23 @@ final class EventToJobMapperTest extends Unit
     protected function _before(): void
     {
         $registry = new EventJobMappingRegistry([
-            BookPublishedEvent::class => NotifySubscribersJob::class,
+            BookStatusChangedEvent::class => NotifySubscribersJob::class,
         ]);
 
         $this->mapper = new EventToJobMapper($registry);
     }
 
-    public function testMapBookPublishedEventCreatesNotifySubscribersJob(): void
+    public function testMapBookStatusChangedCreatesNotifySubscribersJob(): void
     {
-        $event = new BookPublishedEvent(42, 'Test Book', 2024);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
 
         $job = $this->mapper->map($event);
 
         $this->assertInstanceOf(NotifySubscribersJob::class, $job);
         $this->assertSame(42, $job->bookId);
-        $this->assertSame('Test Book', $job->title);
     }
 
-    public function testMapUnknownEventThrowsException(): void
+    public function testMapUnknownEventReturnsNull(): void
     {
         $registry = new EventJobMappingRegistry([]);
         $mapper = new EventToJobMapper($registry);
@@ -53,9 +52,6 @@ final class EventToJobMapperTest extends Unit
             }
         };
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('No job mapping for event:');
-
-        $mapper->map($event);
+        $this->assertNull($mapper->map($event));
     }
 }

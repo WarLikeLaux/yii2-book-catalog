@@ -91,7 +91,7 @@ final class ReportQueryServiceTest extends Unit
         $book->year = 2024;
         $book->isbn = $this->generateUniqueIsbn();
         $book->description = 'Test description';
-        $book->is_published = false;
+        $book->status = 'draft';
         $book->save(false);
 
         Yii::$app->db->createCommand()
@@ -165,7 +165,7 @@ final class ReportQueryServiceTest extends Unit
         $book->year = $year;
         $book->isbn = $this->generateUniqueIsbn();
         $book->description = 'Test description';
-        $book->is_published = true;
+        $book->status = 'published';
         $book->save(false);
 
         Yii::$app->db->createCommand()

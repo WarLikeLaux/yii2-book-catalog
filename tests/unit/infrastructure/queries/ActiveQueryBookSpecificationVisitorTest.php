@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace app\tests\unit\infrastructure\queries;
 
+use app\domain\specifications\CompositeAndSpecification;
 use app\domain\specifications\CompositeOrSpecification;
 use app\domain\specifications\FullTextSpecification;
 use app\domain\specifications\IsbnPrefixSpecification;
+use app\domain\specifications\StatusSpecification;
 use app\domain\specifications\YearSpecification;
+use app\domain\values\BookStatus;
 use app\infrastructure\queries\ActiveQueryBookSpecificationVisitor;
 use Codeception\Test\Unit;
 use yii\db\ActiveQuery;
@@ -150,6 +153,48 @@ final class ActiveQueryBookSpecificationVisitorTest extends Unit
 
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
         $visitor->visitFullText(new FullTextSpecification('+++'));
+    }
+
+    public function testVisitStatusAddsWhereCondition(): void
+    {
+        $query = $this->createMock(ActiveQuery::class);
+        $query->expects($this->once())
+            ->method('andWhere')
+            ->with(['status' => 'published']);
+
+        $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
+        $visitor->visitStatus(new StatusSpecification(BookStatus::Published));
+    }
+
+    public function testVisitCompositeAndDelegatesAllChildren(): void
+    {
+        $query = $this->createMock(ActiveQuery::class);
+        $query->expects($this->exactly(2))
+            ->method('andWhere');
+
+        $composite = new CompositeAndSpecification([
+            new StatusSpecification(BookStatus::Published),
+            new YearSpecification(2024),
+        ]);
+
+        $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
+        $visitor->visitCompositeAnd($composite);
+    }
+
+    public function testVisitCompositeOrWithStatusSpecification(): void
+    {
+        $query = $this->createMock(ActiveQuery::class);
+        $query->expects($this->once())
+            ->method('andWhere')
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && count($conditions) >= 3));
+
+        $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
+        $visitor->visitCompositeOr(new CompositeOrSpecification([
+            new StatusSpecification(BookStatus::Published),
+            new YearSpecification(2024),
+        ]));
     }
 
     private function createConnection(string $driverName): Connection

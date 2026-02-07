@@ -9,6 +9,7 @@ use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
 use app\domain\exceptions\StaleDataException;
+use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
@@ -194,7 +195,7 @@ final class BaseActiveRecordRepositoryTest extends Unit
             'Valid description',
             new StoredFileReference('covers/test.jpg'),
             [],
-            false,
+            BookStatus::Draft,
             1,
         );
     }
