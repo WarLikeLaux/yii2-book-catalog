@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use app\presentation\books\dto\BookViewViewModel;
+use app\presentation\books\widgets\BookStatusActions;
+use app\presentation\books\widgets\BookStatusBadge;
 use yii\helpers\Html;
 
 /**
@@ -19,40 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?= Html::a(Yii::t('app', 'ui.update'), ['update', 'id' => $viewModel->book->id], ['class' => 'btn btn-primary']) ?>
-        <?php if ($viewModel->book->status === 'draft'): ?>
-            <?= Html::a(Yii::t('app', 'ui.publish'), ['publish', 'id' => $viewModel->book->id], [
-                'class' => 'btn btn-success',
-                'data' => [
-                    'confirm' => Yii::t('app', 'book.confirm.publish'),
-                    'method' => 'post',
-                ],
-            ]) ?>
-        <?php endif; ?>
-        <?php if ($viewModel->book->status === 'published'): ?>
-            <?= Html::a(Yii::t('app', 'ui.unpublish'), ['unpublish', 'id' => $viewModel->book->id], [
-                'class' => 'btn btn-warning',
-                'data' => [
-                    'confirm' => Yii::t('app', 'book.confirm.unpublish'),
-                    'method' => 'post',
-                ],
-            ]) ?>
-            <?= Html::a(Yii::t('app', 'ui.archive'), ['archive', 'id' => $viewModel->book->id], [
-                'class' => 'btn btn-secondary',
-                'data' => [
-                    'confirm' => Yii::t('app', 'book.confirm.archive'),
-                    'method' => 'post',
-                ],
-            ]) ?>
-        <?php endif; ?>
-        <?php if ($viewModel->book->status === 'archived'): ?>
-            <?= Html::a(Yii::t('app', 'ui.restore'), ['restore', 'id' => $viewModel->book->id], [
-                'class' => 'btn btn-info',
-                'data' => [
-                    'confirm' => Yii::t('app', 'book.confirm.restore'),
-                    'method' => 'post',
-                ],
-            ]) ?>
-        <?php endif; ?>
+        <?= BookStatusActions::widget(['bookId' => $viewModel->book->id, 'status' => $viewModel->book->status]) ?>
         <?= Html::a(Yii::t('app', 'ui.delete'), ['delete', 'id' => $viewModel->book->id], [
             'class' => 'btn btn-danger',
             'data' => [
@@ -65,15 +34,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <table class="table table-striped table-bordered">
         <tr>
             <th><?= Yii::t('app', 'ui.status') ?></th>
-            <td>
-                <?php if ($viewModel->book->status === 'published'): ?>
-                    <span class="badge bg-success"><?= Yii::t('app', 'ui.status_published') ?></span>
-                <?php elseif ($viewModel->book->status === 'archived'): ?>
-                    <span class="badge bg-dark"><?= Yii::t('app', 'ui.status_archived') ?></span>
-                <?php else: ?>
-                    <span class="badge bg-secondary"><?= Yii::t('app', 'ui.status_draft') ?></span>
-                <?php endif; ?>
-            </td>
+            <td><?= BookStatusBadge::widget(['status' => $viewModel->book->status]) ?></td>
         </tr>
         <tr>
             <th><?= Yii::t('app', 'ui.title') ?></th>

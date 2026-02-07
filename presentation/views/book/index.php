@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\dto\BookViewModel;
+use app\presentation\books\widgets\BookStatusBadge;
 use yii\bootstrap5\LinkPager;
 use yii\grid\GridView;
 use yii\helpers\Html;
@@ -49,7 +50,8 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'status',
                 'label' => Yii::t('app', 'ui.status'),
-                'value' => static fn (BookViewModel $model): string => Yii::t('app', 'status_' . $model->status),
+                'format' => 'raw',
+                'value' => static fn (BookViewModel $model): string => BookStatusBadge::widget(['status' => $model->status]),
             ],
             [
                 'class' => 'yii\grid\ActionColumn',
