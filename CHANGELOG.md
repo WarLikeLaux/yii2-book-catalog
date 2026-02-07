@@ -142,6 +142,8 @@
 - **#35** - рефакторинг PR скриптов: улучшен парсинг .env, обработка ошибок, добавлена проверка версии Node.js ([b727c64](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b727c64))
 - **#36** - стандартизованы JS-конвенции: node: imports, Number.parseInt, replaceAll, optional chaining ([8d1f1de](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8d1f1de))
 - **#36** - извлечены дублированные строковые литералы в константы в тестовых файлах ([a0d4ac8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a0d4ac8))
+- **#35** - удалён избыточный self-transition guard в BookStatus::canTransitionTo для уничтожения escaped мутанта ([52629b9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/52629b9))
+- **#35** - удалены лишние inline-комментарии из AutoDocService, fetch-pr-comments и resolve-pr-threads ([69fc946](https://github.com/WarLikeLaux/yii2-book-catalog/commit/69fc946))
 
 ### 🧪 Тестирование
 
@@ -193,6 +195,7 @@
 - **#34** - добавлен @codeCoverageIgnore к YiiAuthAdapter::login untestable branch ([4d54d94](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4d54d94))
 - **#34** - обновлен SubscriptionController::actionForm: добавлено HTMX detection, fallback на full view ([a2f7e32](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a2f7e32))
 - **#34** - добавлены ключи переводов i18n для error, login, api, index, report views ([0a4ea1c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0a4ea1c))
+- **#35** - рефакторинг list-comments в линтер комментариев с флагами --notes/--ignores/--all, добавлен в make dev ([ac9b5d5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ac9b5d5))
 
 ### 📝 Документация
 
