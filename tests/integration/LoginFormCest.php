@@ -13,7 +13,7 @@ class LoginFormCest
 
     public function openLoginPage(IntegrationTester $I)
     {
-        $I->see('Login', 'h1');
+        $I->see(Yii::t('app', 'ui.login'), 'h1');
     }
 
     public function internalLoginById(IntegrationTester $I)
