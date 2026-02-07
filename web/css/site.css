@@ -302,3 +302,31 @@ a.desc:after {
 .skeleton-text.short {
     width: 60%;
 }
+
+.book-cover-container {
+    height: 200px;
+    overflow: hidden;
+}
+
+.book-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.text-hint {
+    color: #999;
+}
+
+.col-narrow {
+    width: 50px;
+}
+
+.col-books-count {
+    width: 150px;
+}
+
+.footer-desc {
+    max-width: 400px;
+}
