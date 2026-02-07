@@ -14,7 +14,8 @@ use app\application\ports\SystemInfoProviderInterface;
 use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
-use app\domain\events\BookPublishedEvent;
+use app\domain\events\BookStatusChangedEvent;
+use app\domain\values\BookStatus;
 use app\infrastructure\adapters\decorators\QueueTracingDecorator;
 use app\infrastructure\adapters\EventJobMappingRegistry;
 use app\infrastructure\adapters\EventToJobMapper;
@@ -71,7 +72,9 @@ return static function (array $params): array {
             CacheInterface::class => YiiCacheAdapter::class,
 
             EventJobMappingRegistry::class => static fn(): EventJobMappingRegistry => new EventJobMappingRegistry([
-                BookPublishedEvent::class => NotifySubscribersJob::class,
+                BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): ?NotifySubscribersJob => $e->newStatus === BookStatus::Published
+                    ? new NotifySubscribersJob($e->bookId)
+                    : null,
             ]),
 
             EventToJobMapperInterface::class => EventToJobMapper::class,

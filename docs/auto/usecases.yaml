@@ -1,6 +1,9 @@
 meta:
   title: 'Application Use Cases'
 usecases:
+  ChangeBookStatusUseCase:
+    command: ChangeBookStatusCommand
+    module: books
   CreateAuthorUseCase:
     command: CreateAuthorCommand
     module: authors
@@ -12,9 +15,6 @@ usecases:
     module: authors
   DeleteBookUseCase:
     command: DeleteBookCommand
-    module: books
-  PublishBookUseCase:
-    command: PublishBookCommand
     module: books
   SubscribeUseCase:
     command: SubscribeCommand

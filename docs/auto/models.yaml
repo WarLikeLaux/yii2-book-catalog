@@ -45,7 +45,7 @@ models:
       - 'title (string)'
       - 'isbn (string)'
       - 'cover_url (string)'
-      - 'is_published (boolean)'
+      - 'status (string)'
   IdempotencyKey:
     name: IdempotencyKey
     class: app\infrastructure\persistence\IdempotencyKey

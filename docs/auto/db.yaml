@@ -123,6 +123,11 @@ tables:
         name: updated_at
         type: int
         nullable: false
+      -
+        name: status
+        type: varchar(20)
+        nullable: false
+        default: draft
     primary_key:
       - id
     foreign_keys: []
@@ -137,6 +142,11 @@ tables:
         columns:
           - isbn
         unique: true
+      -
+        name: idx_books_status
+        columns:
+          - status
+        unique: false
       -
         name: idx_books_title
         columns:

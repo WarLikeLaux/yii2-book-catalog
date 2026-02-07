@@ -10,6 +10,7 @@ use Arkitect\Expression\ForClasses\IsA;
 use Arkitect\Expression\ForClasses\IsFinal;
 use Arkitect\Expression\ForClasses\IsInterface;
 use Arkitect\Expression\ForClasses\IsNotAbstract;
+use Arkitect\Expression\ForClasses\IsNotEnum;
 use Arkitect\Expression\ForClasses\IsNotInterface;
 use Arkitect\Expression\ForClasses\IsNotTrait;
 use Arkitect\Expression\ForClasses\IsReadonly;
@@ -44,11 +45,13 @@ return static function (Config $config): void {
 
     $domainRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\domain\values'))
+        ->andThat(new IsNotEnum())
         ->should(new IsFinal())
         ->because('Value Objects должны быть final');
 
     $domainRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\domain\values'))
+        ->andThat(new IsNotEnum())
         ->should(new IsReadonly())
         ->because('Value Objects должны быть readonly');
 
