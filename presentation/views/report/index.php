@@ -10,7 +10,7 @@ use yii\helpers\Url;
  * @var ReportViewModel $viewModel
  */
 
-$this->title = 'ТОП-10 авторов за ' . $viewModel->year . ' год';
+$this->title = Yii::t('app', 'ui.report_title', ['year' => $viewModel->year]);
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
@@ -21,13 +21,13 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="card-body">
             <form method="get" action="<?= Url::to(['report/index']) ?>" class="row g-3 align-items-center">
                 <div class="col-auto">
-                    <label class="col-form-label">Выберите год:</label>
+                    <label class="col-form-label"><?= Yii::t('app', 'ui.report_select_year') ?></label>
                 </div>
                 <div class="col-auto">
                     <input type="number" name="year" value="<?= Html::encode($viewModel->year) ?>" class="form-control" min="1900" max="2100">
                 </div>
                 <div class="col-auto">
-                    <button type="submit" class="btn btn-primary">Показать</button>
+                    <button type="submit" class="btn btn-primary"><?= Yii::t('app', 'ui.report_show') ?></button>
                 </div>
             </form>
         </div>
@@ -35,15 +35,15 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?php if ($viewModel->topAuthors === []): ?>
         <div class="alert alert-warning">
-            Нет данных о книгах за <?= Html::encode($viewModel->year) ?> год. Попробуйте сгенерировать данные командой <code>php yii seed</code>.
+            <?= Yii::t('app', 'ui.report_no_data', ['year' => Html::encode($viewModel->year)]) ?>
         </div>
     <?php else: ?>
         <table class="table table-hover table-bordered">
             <thead class="table-light">
                 <tr>
-                    <th style="width: 50px">#</th>
-                    <th>Автор</th>
-                    <th style="width: 150px">Книг выпущено</th>
+                    <th class="col-narrow">#</th>
+                    <th><?= Yii::t('app', 'ui.author') ?></th>
+                    <th class="col-books-count"><?= Yii::t('app', 'ui.report_books_count') ?></th>
                 </tr>
             </thead>
             <tbody>

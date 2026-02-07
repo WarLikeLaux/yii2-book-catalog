@@ -57,7 +57,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             if (YII_ENV_DEV) {
                 $menuItems[] = [
                     'label' => Yii::t('app', 'ui.logs'),
-                    'url' => 'http://' . Yii::$app->request->serverName . ':' . Yii::$app->params['buggregatorUiPort'],
+                    'url' => (Yii::$app->request->isSecureConnection ? 'https://' : 'http://') . Yii::$app->request->serverName . ':' . Yii::$app->params['buggregatorUiPort'],
                     'linkOptions' => ['target' => '_blank'],
                 ];
             }
@@ -109,7 +109,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
                             <?= Yii::t('app', 'ui.footer_subtitle') ?>
                         </div>
                     </div>
-                    <p class="text-white-50 small mb-0" style="max-width: 400px;">
+                    <p class="text-white-50 small mb-0 footer-desc">
                         <?= Yii::t('app', 'ui.footer_description') ?>
                     </p>
                 </div>

@@ -12,14 +12,14 @@ use yii\helpers\Url;
  * @var BookIndexViewModel $viewModel
  */
 
-$this->title = 'Каталог книг';
+$this->title = Yii::t('app', 'ui.book_catalog');
 ?>
 
 <div class="site-index">
     <div class="jumbotron text-center bg-transparent py-4">
-        <h1 class="display-5">Библиотека</h1>
+        <h1 class="display-5"><?= Yii::t('app', 'ui.library') ?></h1>
         <?php if (!Yii::$app->user->isGuest): ?>
-            <p><?= Html::a('Управление книгами', ['book/index'], ['class' => 'btn btn-success']) ?></p>
+            <p><?= Html::a(Yii::t('app', 'ui.manage_books'), ['book/index'], ['class' => 'btn btn-success']) ?></p>
         <?php endif; ?>
     </div>
 
@@ -39,7 +39,7 @@ $this->title = 'Каталог книг';
         <div class="col-md-8 offset-md-2">
             <?= $form->field($viewModel->searchModel, 'globalSearch')
                 ->textInput([
-                    'placeholder' => 'Название, ISBN, Автор или Год...',
+                    'placeholder' => Yii::t('app', 'ui.search_placeholder'),
                     'id' => 'book-search-input',
                     'hx-get' => Url::to(['site/index']),
                     'hx-target' => '#book-list',
@@ -60,15 +60,34 @@ $this->title = 'Каталог книг';
 
 <?php
 Modal::begin([
-    'title' => 'Подписка на автора',
+    'title' => Yii::t('app', 'ui.subscription_title'),
     'id' => 'sub-modal',
     'size' => Modal::SIZE_DEFAULT,
 ]);
-echo '<div id="modal-content">Загрузка...</div>';
+echo '<div id="modal-content">' . Yii::t('app', 'ui.loading') . '</div>';
 Modal::end();
+?>
 
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container">
+    <div id="app-toast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toast-body"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+<?php
+$errorSubscription = Yii::t('app', 'ui.error_subscription');
+$errorRequest = Yii::t('app', 'ui.error_request');
 $subscriptionUrl = Url::to(['/subscription/form']);
 $js = <<<JS
+function showToast(message, bgClass) {
+    var toast = document.getElementById('app-toast');
+    var body = document.getElementById('toast-body');
+    toast.className = 'toast align-items-center border-0 ' + bgClass;
+    body.textContent = message;
+    bootstrap.Toast.getOrCreateInstance(toast).show();
+}
 if (typeof htmx !== 'undefined' && htmx.config) {
     htmx.config.headers = htmx.config.headers || {};
     htmx.config.headers['X-Requested-With'] = 'XMLHttpRequest';
@@ -92,15 +111,15 @@ $(document).on('beforeSubmit', '#subscription-form', function(e) {
         data: form.serialize(),
         success: function(data) {
             if (data.success) {
-                alert(data.message);
+                showToast(data.message, 'text-bg-success');
                 $('#sub-modal').modal('hide');
                 form[0].reset();
             } else {
-                alert(data.message || 'Ошибка при подписке');
+                showToast(data.message || '{$errorSubscription}', 'text-bg-danger');
             }
         },
         error: function() {
-            alert('Ошибка при отправке запроса');
+            showToast('{$errorRequest}', 'text-bg-danger');
         }
     });
     return false;
