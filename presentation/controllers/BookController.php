@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\controllers;
 
 use app\application\common\exceptions\ApplicationException;
+use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
 use app\presentation\books\handlers\BookItemViewFactory;
 use app\presentation\books\handlers\BookListViewFactory;
@@ -75,8 +76,7 @@ final class BookController extends BaseController
         $form = $this->itemViewFactory->createForm();
 
         if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
-            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
-            return $this->renderer->render('create', $viewModel);
+            return $this->renderCreateForm($form);
         }
 
         if ($this->request->isAjax) {
@@ -84,8 +84,7 @@ final class BookController extends BaseController
         }
 
         if (!$form->validate()) {
-            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
-            return $this->renderer->render('create', $viewModel);
+            return $this->renderCreateForm($form);
         }
 
         try {
@@ -93,8 +92,7 @@ final class BookController extends BaseController
             return $this->redirect(['view', 'id' => $bookId]);
         } catch (ApplicationException $e) {
             $this->addFormError($form, $e);
-            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
-            return $this->renderer->render('create', $viewModel);
+            return $this->renderCreateForm($form);
         }
     }
 
@@ -103,8 +101,7 @@ final class BookController extends BaseController
         $form = $this->itemViewFactory->getBookForUpdate($id);
 
         if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
-            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
-            return $this->renderer->render('update', $viewModel);
+            return $this->renderUpdateForm($id, $form);
         }
 
         if ($this->request->isAjax) {
@@ -112,8 +109,7 @@ final class BookController extends BaseController
         }
 
         if (!$form->validate()) {
-            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
-            return $this->renderer->render('update', $viewModel);
+            return $this->renderUpdateForm($id, $form);
         }
 
         try {
@@ -121,8 +117,7 @@ final class BookController extends BaseController
             return $this->redirect(['view', 'id' => $id]);
         } catch (ApplicationException $e) {
             $this->addFormError($form, $e);
-            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
-            return $this->renderer->render('update', $viewModel);
+            return $this->renderUpdateForm($id, $form);
         }
     }
 
@@ -146,5 +141,19 @@ final class BookController extends BaseController
         }
 
         return $this->redirect(['view', 'id' => $id]);
+    }
+
+    private function renderCreateForm(BookForm $form): string
+    {
+        $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+
+        return $this->renderer->render('create', $viewModel);
+    }
+
+    private function renderUpdateForm(int $id, BookForm $form): string
+    {
+        $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+
+        return $this->renderer->render('update', $viewModel);
     }
 }

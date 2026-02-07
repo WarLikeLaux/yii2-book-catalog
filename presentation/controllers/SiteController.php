@@ -74,7 +74,7 @@ final class SiteController extends BaseController
         $viewModel = $this->bookSearchViewFactory->prepareIndexViewModel($this->request);
 
         if ($this->isHtmxRequest()) {
-            return $this->renderPartial('_book-cards', ['dataProvider' => $viewModel->dataProvider]);
+            return $this->renderer->renderPartial('_book-cards', ['dataProvider' => $viewModel->dataProvider]);
         }
 
         return $this->renderer->render('index', $viewModel);
@@ -89,8 +89,7 @@ final class SiteController extends BaseController
         $form = new LoginForm();
 
         if (!$this->request->isPost) {
-            $viewModel = $this->authViewFactory->getLoginViewModel($form);
-            return $this->renderer->render('login', $viewModel);
+            return $this->renderLoginForm($form);
         }
 
         /** @var array<string, mixed> $postData */
@@ -98,8 +97,7 @@ final class SiteController extends BaseController
 
         if (!$form->load($postData) || !$form->validate()) {
             $form->password = '';
-            $viewModel = $this->authViewFactory->getLoginViewModel($form);
-            return $this->renderer->render('login', $viewModel);
+            return $this->renderLoginForm($form);
         }
 
         try {
@@ -108,8 +106,7 @@ final class SiteController extends BaseController
         } catch (ApplicationException $e) {
             $this->addFormError($form, $e);
             $form->password = '';
-            $viewModel = $this->authViewFactory->getLoginViewModel($form);
-            return $this->renderer->render('login', $viewModel);
+            return $this->renderLoginForm($form);
         }
     }
 
@@ -129,5 +126,12 @@ final class SiteController extends BaseController
         );
 
         return $this->renderer->render('api', $viewModel);
+    }
+
+    private function renderLoginForm(LoginForm $form): string
+    {
+        $viewModel = $this->authViewFactory->getLoginViewModel($form);
+
+        return $this->renderer->render('login', $viewModel);
     }
 }

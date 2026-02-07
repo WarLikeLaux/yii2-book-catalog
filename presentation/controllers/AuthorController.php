@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\controllers;
 
 use app\application\common\exceptions\ApplicationException;
+use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\handlers\AuthorItemViewFactory;
 use app\presentation\authors\handlers\AuthorListViewFactory;
@@ -78,8 +79,7 @@ final class AuthorController extends BaseController
         $form = $this->itemViewFactory->createForm();
 
         if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
-            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
-            return $this->renderer->render('create', $viewModel);
+            return $this->renderCreateForm($form);
         }
 
         if ($this->request->isAjax) {
@@ -87,8 +87,7 @@ final class AuthorController extends BaseController
         }
 
         if (!$form->validate()) {
-            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
-            return $this->renderer->render('create', $viewModel);
+            return $this->renderCreateForm($form);
         }
 
         try {
@@ -96,8 +95,7 @@ final class AuthorController extends BaseController
             return $this->redirect(['view', 'id' => $authorId]);
         } catch (ApplicationException $e) {
             $this->addFormError($form, $e);
-            $viewModel = $this->itemViewFactory->getCreateViewModel($form);
-            return $this->renderer->render('create', $viewModel);
+            return $this->renderCreateForm($form);
         }
     }
 
@@ -106,8 +104,7 @@ final class AuthorController extends BaseController
         $form = $this->itemViewFactory->getAuthorForUpdate($id);
 
         if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
-            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
-            return $this->renderer->render('update', $viewModel);
+            return $this->renderUpdateForm($id, $form);
         }
 
         if ($this->request->isAjax) {
@@ -115,8 +112,7 @@ final class AuthorController extends BaseController
         }
 
         if (!$form->validate()) {
-            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
-            return $this->renderer->render('update', $viewModel);
+            return $this->renderUpdateForm($id, $form);
         }
 
         try {
@@ -124,8 +120,7 @@ final class AuthorController extends BaseController
             return $this->redirect(['view', 'id' => $id]);
         } catch (ApplicationException $e) {
             $this->addFormError($form, $e);
-            $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
-            return $this->renderer->render('update', $viewModel);
+            return $this->renderUpdateForm($id, $form);
         }
     }
 
@@ -145,5 +140,19 @@ final class AuthorController extends BaseController
         /** @var array<string, mixed> $params */
         $params = $this->request->get();
         return $this->asJson($this->authorSearchViewFactory->search($params));
+    }
+
+    private function renderCreateForm(AuthorForm $form): string
+    {
+        $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+
+        return $this->renderer->render('create', $viewModel);
+    }
+
+    private function renderUpdateForm(int $id, AuthorForm $form): string
+    {
+        $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+
+        return $this->renderer->render('update', $viewModel);
     }
 }
