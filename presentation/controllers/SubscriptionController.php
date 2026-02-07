@@ -7,6 +7,7 @@ namespace app\presentation\controllers;
 use app\presentation\common\dto\ApiResponse;
 use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
+use app\presentation\common\traits\HtmxDetectionTrait;
 use app\presentation\common\ViewModelRenderer;
 use app\presentation\subscriptions\handlers\SubscriptionCommandHandler;
 use app\presentation\subscriptions\handlers\SubscriptionViewFactory;
@@ -17,6 +18,8 @@ use yii\web\Response;
 
 final class SubscriptionController extends BaseController
 {
+    use HtmxDetectionTrait;
+
     public function __construct(
         $id,
         $module,
@@ -63,8 +66,12 @@ final class SubscriptionController extends BaseController
     {
         $viewModel = $this->viewFactory->getSubscriptionViewModel($authorId);
 
-        return $this->renderPartial('_form', [
-            'viewModel' => $viewModel,
-        ]);
+        if ($this->isHtmxRequest()) {
+            return $this->renderer->renderPartial('_form', [
+                'viewModel' => $viewModel,
+            ]);
+        }
+
+        return $this->renderer->render('form', $viewModel);
     }
 }
