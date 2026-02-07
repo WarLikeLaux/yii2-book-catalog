@@ -23,6 +23,7 @@ use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\common\services\WebOperationRunner;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use RuntimeException;
 use yii\web\UploadedFile;
 
 final class BookCommandHandlerTest extends Unit
@@ -67,7 +68,7 @@ final class BookCommandHandlerTest extends Unit
 
         $command = $this->createMock(CreateBookCommand::class);
 
-        $this->operationRunner->expects($this->exactly(2))
+        $this->operationRunner->expects($this->once())
             ->method('runStep')
             ->willReturnCallback(static fn($operation) => $operation());
 
@@ -90,7 +91,7 @@ final class BookCommandHandlerTest extends Unit
 
         $createCommand = $this->createMock(CreateBookCommand::class);
 
-        $this->operationRunner->expects($this->exactly(2))
+        $this->operationRunner->expects($this->once())
             ->method('runStep')
             ->willReturnCallback(static fn($operation) => $operation());
 
@@ -113,12 +114,29 @@ final class BookCommandHandlerTest extends Unit
         $form->cover = null;
 
         $command = $this->createMock(CreateBookCommand::class);
-        $this->commandMapper->expects($this->once())->method('toCreateCommand')->willReturn($command);
 
         $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
+        $this->commandMapper->expects($this->once())->method('toCreateCommand')->willReturn($command);
 
         $this->expectException(ApplicationException::class);
         $this->mockOperationRunnerExecuteWithException();
+
+        $this->handler->createBook($form);
+    }
+
+    public function testCreateBookPropagatesMapperException(): void
+    {
+        $form = $this->createMock(BookForm::class);
+        $form->cover = null;
+
+        $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
+
+        $this->commandMapper->expects($this->once())
+            ->method('toCreateCommand')
+            ->willThrowException(new RuntimeException('mapper failed'));
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('mapper failed');
 
         $this->handler->createBook($form);
     }
@@ -137,8 +155,7 @@ final class BookCommandHandlerTest extends Unit
             ->with(123, $form, null)
             ->willReturn($command);
 
-        // Expect execute to be called
-        $this->mockOperationRunnerExecute(true); // Return value doesn't matter for void, but it shouldn't throw
+        $this->mockOperationRunnerExecute(true);
 
         $this->handler->updateBook(123, $form);
     }
@@ -179,33 +196,19 @@ final class BookCommandHandlerTest extends Unit
         $this->handler->updateBook(7, $form);
     }
 
-    public function testCreateBookThrowsOnMappingError(): void
+    public function testUpdateBookPropagatesMapperException(): void
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = null;
 
-        // runStep returns null if mapping failed (WebOperationRunner behavior simulated)
-        $this->operationRunner->expects($this->exactly(2))
-            ->method('runStep')
-            ->willReturnOnConsecutiveCalls(null, null);
+        $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
 
-        $this->expectException(ApplicationException::class);
-        $this->expectExceptionMessage('error.internal_mapper_failed');
+        $this->commandMapper->expects($this->once())
+            ->method('toUpdateCommand')
+            ->willThrowException(new RuntimeException('mapper failed'));
 
-        $this->handler->createBook($form);
-    }
-
-    public function testUpdateBookThrowsOnMappingError(): void
-    {
-        $form = $this->createMock(BookForm::class);
-        $form->cover = null;
-
-        $this->operationRunner->expects($this->exactly(2))
-            ->method('runStep')
-            ->willReturnOnConsecutiveCalls(null, null);
-
-        $this->expectException(ApplicationException::class);
-        $this->expectExceptionMessage('error.internal_mapper_failed');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('mapper failed');
 
         $this->handler->updateBook(1, $form);
     }
@@ -213,8 +216,7 @@ final class BookCommandHandlerTest extends Unit
     public function testUpdateBookThrowsOnCoverUploadError(): void
     {
         $form = $this->createMock(BookForm::class);
-        $file = $this->createUploadedFile();
-        $form->cover = $file;
+        $form->cover = $this->createUploadedFile();
 
         $this->operationRunner->expects($this->once())
             ->method('runStep')
@@ -228,8 +230,7 @@ final class BookCommandHandlerTest extends Unit
     public function testCreateBookThrowsOnCoverUploadError(): void
     {
         $form = $this->createMock(BookForm::class);
-        $file = $this->createUploadedFile();
-        $form->cover = $file;
+        $form->cover = $this->createUploadedFile();
 
         $this->operationRunner->expects($this->once())
             ->method('runStep')

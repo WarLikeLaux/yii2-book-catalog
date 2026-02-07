@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace app\presentation\books\handlers;
 
-use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\commands\PublishBookCommand;
-use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\application\common\exceptions\ApplicationException;
 use app\application\common\exceptions\OperationFailedException;
 use app\application\common\services\UploadedFileStorage;
 use app\presentation\books\forms\BookForm;
@@ -47,23 +44,11 @@ final readonly class BookCommandHandler
             'Failed to upload book cover',
         );
 
-        // runStep catches exceptions and returns null, but we want to fail hard if upload fails?
-        // Actually runStep swallows. But processCoverUpload MUST return null if no file.
-        // If file exists but upload failed... processCoverUpload logic below relies on adapter/storage which might throw.
-        // Wait, runStep catches Throwable. So if upload throws, cover is null.
-        // But if form has file, and cover is null -> error.
         if ($form->cover instanceof UploadedFile && $cover === null) {
             throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
         }
 
-        $command = $this->operationRunner->runStep(
-            fn(): CreateBookCommand => $this->commandMapper->toCreateCommand($form, $cover),
-            'Failed to map book form to CreateBookCommand',
-        );
-
-        if ($command === null) {
-            throw new ApplicationException('error.internal_mapper_failed');
-        }
+        $command = $this->commandMapper->toCreateCommand($form, $cover);
 
         /** @var int */
         return $this->operationRunner->executeAndPropagate(
@@ -85,17 +70,7 @@ final readonly class BookCommandHandler
             throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
         }
 
-        $command = $this->operationRunner->runStep(
-            fn(): UpdateBookCommand => $this->commandMapper->toUpdateCommand($id, $form, $cover),
-            'Failed to map book form to UpdateBookCommand',
-            ['book_id' => $id],
-        );
-
-        if ($command === null) {
-            // Using generic exception or Maybe create BookUpdateException?
-            // Reusing BookCreationException formapper failure is slightly confusing but acceptable for now or generic ApplicationException
-            throw new ApplicationException('error.internal_mapper_failed');
-        }
+        $command = $this->commandMapper->toUpdateCommand($id, $form, $cover);
 
         $this->operationRunner->executeAndPropagate(
             $command,
