@@ -126,21 +126,23 @@ final class BookCrudCest
         Yii::$container->set(UpdateBookUseCase::class, $mockUseCase);
         Yii::$container->set(BookItemViewFactory::class, $mockViewFactory);
 
-        $I->amOnRoute(self::ROUTE_BOOK_UPDATE, ['id' => $bookId]);
-        $I->sendPost('/index-test.php?r=book/update&id=' . $bookId, [
-            'BookForm' => [
-                'title' => 'New Title',
-                'year' => '2024',
-                'isbn' => '9783161484100',
-                'authorIds' => [$authorId],
-                'version' => 1,
-            ],
-        ]);
+        try {
+            $I->amOnRoute(self::ROUTE_BOOK_UPDATE, ['id' => $bookId]);
+            $I->sendPost('/index-test.php?r=book/update&id=' . $bookId, [
+                'BookForm' => [
+                    'title' => 'New Title',
+                    'year' => '2024',
+                    'isbn' => '9783161484100',
+                    'authorIds' => [$authorId],
+                    'version' => 1,
+                ],
+            ]);
 
-        $I->seeResponseCodeIs(200);
-        $I->see(Yii::t('app', 'book.error.stale_data'));
-
-        Yii::$container->clear(UpdateBookUseCase::class);
-        Yii::$container->clear(BookItemViewFactory::class);
+            $I->seeResponseCodeIs(200);
+            $I->see(Yii::t('app', 'book.error.stale_data'));
+        } finally {
+            Yii::$container->clear(UpdateBookUseCase::class);
+            Yii::$container->clear(BookItemViewFactory::class);
+        }
     }
 }

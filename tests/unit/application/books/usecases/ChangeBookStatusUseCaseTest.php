@@ -109,6 +109,13 @@ final class ChangeBookStatusUseCaseTest extends Unit
         $this->bookRepository->method('get')->willReturn($book);
         $this->bookRepository->expects($this->once())->method('save');
 
+        $this->eventPublisher->expects($this->once())->method('publishAfterCommit')
+            ->with($this->callback(static fn(object $event): bool => $event instanceof BookStatusChangedEvent
+                && $event->bookId === 1
+                && $event->oldStatus === BookStatus::Archived
+                && $event->newStatus === BookStatus::Draft
+                && $event->year === 2024));
+
         $result = $this->useCase->execute(new ChangeBookStatusCommand(1, 'draft'));
 
         $this->assertTrue($result);
