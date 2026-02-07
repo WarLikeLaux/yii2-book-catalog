@@ -11,6 +11,7 @@ use app\application\ports\BookRepositoryInterface;
 use app\domain\events\BookDeletedEvent;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\values\BookStatus;
 use BookTestHelper;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -40,7 +41,7 @@ final class DeleteBookUseCaseTest extends Unit
             title: 'Book to Delete',
             year: 2020,
             authorIds: [],
-            published: false,
+            status: BookStatus::Draft,
         );
 
         $this->bookRepository->expects($this->once())
@@ -87,7 +88,7 @@ final class DeleteBookUseCaseTest extends Unit
             title: 'Book to Delete',
             year: 2020,
             authorIds: [],
-            published: true,
+            status: BookStatus::Published,
         );
 
         $this->bookRepository->expects($this->once())

@@ -17,6 +17,7 @@ use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
+use app\domain\values\BookStatus;
 use app\domain\values\Isbn;
 use BookTestHelper;
 use Codeception\Test\Unit;
@@ -73,7 +74,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Old description',
             coverImage: '/uploads/old-cover.jpg',
             authorIds: [1],
-            published: false,
+            status: BookStatus::Draft,
             version: 1,
         );
 
@@ -93,7 +94,7 @@ final class UpdateBookUseCaseTest extends Unit
             ->with($this->callback(static fn (BookUpdatedEvent $event): bool => $event->bookId === 42
                 && $event->oldYear === 2020
                 && $event->newYear === 2024
-                && $event->isPublished === false));
+                && $event->status === BookStatus::Draft));
 
         $this->useCase->execute($command);
     }
@@ -138,7 +139,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2020,
             description: 'Description',
             authorIds: [1],
-            published: false,
+            status: BookStatus::Draft,
             version: 1,
         );
 
@@ -175,7 +176,7 @@ final class UpdateBookUseCaseTest extends Unit
             description: 'Old description',
             coverImage: '/uploads/old-cover.jpg',
             authorIds: [1],
-            published: false,
+            status: BookStatus::Draft,
             version: 1,
         );
 
@@ -211,7 +212,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2020,
             description: 'Description',
             authorIds: [1],
-            published: false,
+            status: BookStatus::Draft,
             version: 1,
         );
 
@@ -247,7 +248,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2020,
             description: 'Description',
             authorIds: [1],
-            published: false,
+            status: BookStatus::Draft,
             version: 1,
         );
 
@@ -283,7 +284,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2020,
             description: 'Old description',
             authorIds: [1],
-            published: false,
+            status: BookStatus::Draft,
             version: 1,
         );
 
@@ -318,7 +319,7 @@ final class UpdateBookUseCaseTest extends Unit
             year: 2020,
             description: 'Description',
             authorIds: [1],
-            published: false,
+            status: BookStatus::Draft,
             version: 1,
         );
 
