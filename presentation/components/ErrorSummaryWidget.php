@@ -32,7 +32,8 @@ final class ErrorSummaryWidget extends Widget
 
         Html::addCssClass($this->options, ['alert', 'alert-danger', 'error-summary']);
 
-        $lines = $this->collectLines($models, $encode);
+        $showAllErrors = $this->extractShowAllErrorsOption();
+        $lines = $this->collectLines($models, $encode, $showAllErrors);
         $this->applyEmptyStyles($lines);
 
         return $this->render('error-summary', [
@@ -105,16 +106,24 @@ final class ErrorSummaryWidget extends Widget
         return '';
     }
 
+    private function extractShowAllErrorsOption(): bool
+    {
+        $showAllErrors = (bool)($this->options['showAllErrors'] ?? $this->showAllErrors);
+        unset($this->options['showAllErrors']);
+
+        return $showAllErrors;
+    }
+
     /**
      * @param array<Model> $models
      * @return array<string>
      */
-    private function collectLines(array $models, bool $encode): array
+    private function collectLines(array $models, bool $encode, bool $showAllErrors): array
     {
         $lines = [];
 
         foreach ($models as $model) {
-            $lines = array_unique(array_merge($lines, $model->getErrorSummary($this->showAllErrors)));
+            $lines = array_unique(array_merge($lines, $model->getErrorSummary($showAllErrors)));
         }
 
         $lines = array_values($lines);
