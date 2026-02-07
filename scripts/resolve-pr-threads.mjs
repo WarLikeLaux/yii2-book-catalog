@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const envPath = path.resolve(process.cwd(), '.env');
 const env = { ...process.env };
@@ -82,7 +82,7 @@ async function main() {
 
 	console.log(`Найдено ${matches.length} выполненных задач для закрытия на GitHub...\n`);
 
-	const { createInterface } = await import('readline');
+	const { createInterface } = await import('node:readline');
 	const rl = createInterface({
 		input: process.stdin,
 		output: process.stdout,

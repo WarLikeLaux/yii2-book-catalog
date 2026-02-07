@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
-import { execSync } from 'child_process';
+import { execSync } from 'node:child_process';
 
 const envPath = path.resolve(process.cwd(), '.env');
 const env = { ...process.env };
@@ -24,7 +24,7 @@ if (fs.existsSync(envPath)) {
 }
 
 const token = env.GITHUB_TOKEN;
-const pullNumber = parseInt(env.PR_NUMBER, 10);
+const pullNumber = Number.parseInt(env.PR_NUMBER, 10);
 
 if (!token || !pullNumber || Number.isNaN(pullNumber)) {
 	console.error('Ошибка: GITHUB_TOKEN или корректный PR_NUMBER не найдены в .env');
@@ -97,7 +97,7 @@ function cleanBody(body) {
 	if (!body.includes('CodeRabbit')) return body.trim();
 
 	let mainPart = body.split(/<details|---|<!--/)[0].trim();
-	mainPart = mainPart.replace(/_⚠️ Potential issue_[\s|]*_[^_]*_\s*/g, '').trim();
+	mainPart = mainPart.replaceAll(/_⚠️ Potential issue_[\s|]*_[^_]*_\s*/g, '').trim();
 
 	if (mainPart.length > 0) {
 		const firstChar = mainPart[0];
@@ -118,7 +118,7 @@ function cleanBody(body) {
 			if (fenceEnd !== -1) {
 				const promptText = detailsChunk.slice(fenceStart + 3, fenceEnd).trim();
 				if (promptText !== '') {
-					cleanPrompt = `\n\n> 🤖 **Prompt:**\n> ${promptText.replace(/\n/g, '\n> ')}`;
+					cleanPrompt = `\n\n> 🤖 **Prompt:**\n> ${promptText.replaceAll(/\n/g, '\n> ')}`;
 				}
 			}
 		}
@@ -141,7 +141,7 @@ async function main() {
 		while (hasNextPage) {
 			const result = await fetchGraphQL(query, { owner, repo, pullNumber, cursor });
 
-			if (!result.repository || !result.repository.pullRequest) {
+			if (!result.repository?.pullRequest) {
 				console.error(`Ошибка: PR #${pullNumber} не найден в репозитории ${owner}/${repo}`);
 				process.exit(1);
 			}
@@ -223,7 +223,7 @@ async function main() {
 			}
 		}
 
-		fs.writeFileSync(outputPath, markdown.replace(/—/g, '-'));
+		fs.writeFileSync(outputPath, markdown.replaceAll(/—/g, '-'));
 
 		console.log(`\nГотово! Создан чеклист для ${threadsToProcess.length} веток обсуждения.`);
 		console.log(`Файл: ${outputPath}`);
@@ -234,7 +234,7 @@ async function main() {
 	}
 }
 
-const NODE_MAJOR = parseInt(process.versions.node.split('.')[0], 10);
+const NODE_MAJOR = Number.parseInt(process.versions.node.split('.')[0], 10);
 if (NODE_MAJOR < 18) {
 	console.error('❌ Ошибка: Требуется Node.js версии 18 или выше для работы глобального fetch().');
 	process.exit(1);
