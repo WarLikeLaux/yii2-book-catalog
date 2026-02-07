@@ -69,8 +69,6 @@ async function main() {
 
 	const content = fs.readFileSync(reviewPath, 'utf8');
 
-	// Находим все выполненные задачи с threadId
-	// Паттерн: <!-- threadId: ID --> после которого идёт - [x] **Задача:**
 	const threadPattern = /<!-- threadId: ([^\s]+) -->\r?\n- \[x\] \*\*Задача:\*\*/g;
 	const matches = [...content.matchAll(threadPattern)];
 

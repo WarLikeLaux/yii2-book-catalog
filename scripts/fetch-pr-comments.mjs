@@ -244,10 +244,8 @@ async function main() {
 				itemNumber++;
 				const threadId = thread.id;
 
-				// Preserve existing entry if available
 				if (existingEntries[threadId]) {
 					const existing = existingEntries[threadId];
-					// Update number and status, keep everything else
 					const status = thread.isResolved ? '✅ (RESOLVED)' : '⭕ (OPEN)';
 					const updatedEntry = existing
 						.replace(/^### #\d+/, `### #${itemNumber}`)

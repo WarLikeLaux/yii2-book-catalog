@@ -335,10 +335,8 @@ final readonly class AutoDocService
             return [];
         }
 
-        // Match string-literal keys: 'action' => ['method']
         $actions = $this->parseVerbActions("/'([a-zA-Z0-9_-]+)'\s*=>\s*\[(.*?)]/s", $block, false);
 
-        // Match enum expressions: ActionName::CASE->value => ['method']
         $enumActions = $this->parseVerbActions('/\w+::(\w+)->value\s*=>\s*\[(.*?)]/s', $block, true);
 
         return array_merge($actions, $enumActions);
