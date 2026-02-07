@@ -33,14 +33,14 @@ final class FileUrlResolverTest extends Unit
 
     public function testResolveCoverUrlReturnsExistingCoverUrl(): void
     {
-        $resolver = new FileUrlResolver('/uploads', 'https://picsum.photos/seed/{seed}/400/600');
+        $resolver = new FileUrlResolver('/uploads', 'https://placehold.jp/24/333333/ffffff/400x600.png?text=Book+{seed}');
         $this->assertSame('/uploads/cover.jpg', $resolver->resolveCoverUrl('cover.jpg', 123));
     }
 
     public function testResolveCoverUrlReturnsPlaceholderWhenCoverIsNull(): void
     {
-        $resolver = new FileUrlResolver('/uploads', 'https://picsum.photos/seed/{seed}/400/600');
-        $this->assertSame('https://picsum.photos/seed/123/400/600', $resolver->resolveCoverUrl(null, 123));
+        $resolver = new FileUrlResolver('/uploads', 'https://placehold.jp/24/333333/ffffff/400x600.png?text=Book+{seed}');
+        $this->assertSame('https://placehold.jp/24/333333/ffffff/400x600.png?text=Book+123', $resolver->resolveCoverUrl(null, 123));
     }
 
     public function testResolveCoverUrlReturnsEmptyWhenNoPlaceholderConfigured(): void
@@ -51,7 +51,7 @@ final class FileUrlResolverTest extends Unit
 
     public function testResolveCoverUrlReturnsPlaceholderWhenCoverIsEmpty(): void
     {
-        $resolver = new FileUrlResolver('/uploads', 'https://picsum.photos/seed/{seed}/400/600');
-        $this->assertSame('https://picsum.photos/seed/456/400/600', $resolver->resolveCoverUrl('', 456));
+        $resolver = new FileUrlResolver('/uploads', 'https://placehold.jp/24/333333/ffffff/400x600.png?text=Book+{seed}');
+        $this->assertSame('https://placehold.jp/24/333333/ffffff/400x600.png?text=Book+456', $resolver->resolveCoverUrl('', 456));
     }
 }
