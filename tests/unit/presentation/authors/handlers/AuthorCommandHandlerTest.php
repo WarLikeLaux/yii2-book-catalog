@@ -9,13 +9,13 @@ use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
 use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
-use app\application\common\exceptions\OperationFailedException;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\mappers\AuthorCommandMapper;
 use app\presentation\common\services\WebOperationRunner;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use RuntimeException;
 
 final class AuthorCommandHandlerTest extends Unit
 {
@@ -48,25 +48,28 @@ final class AuthorCommandHandlerTest extends Unit
         $form = $this->createMock(AuthorForm::class);
         $command = $this->createMock(CreateAuthorCommand::class);
 
-        $this->operationRunner->expects($this->once())
-            ->method('runStep')
+        $this->commandMapper->expects($this->once())
+            ->method('toCreateCommand')
+            ->with($form)
             ->willReturn($command);
 
-        $this->operationRunner->method('executeAndPropagate')->willReturn(123);
+        $this->operationRunner->expects($this->once())
+            ->method('executeAndPropagate')
+            ->willReturn(123);
 
         $this->assertSame(123, $this->handler->createAuthor($form));
     }
 
-    public function testCreateAuthorThrowsOnMappingError(): void
+    public function testCreateAuthorPropagatesMapperException(): void
     {
         $form = $this->createMock(AuthorForm::class);
 
-        $this->operationRunner->expects($this->once())
-            ->method('runStep')
-            ->willReturn(null);
+        $this->commandMapper->expects($this->once())
+            ->method('toCreateCommand')
+            ->willThrowException(new RuntimeException('mapper failed'));
 
-        $this->expectException(OperationFailedException::class);
-        $this->expectExceptionMessage('error.internal_mapper_failed');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('mapper failed');
 
         $this->handler->createAuthor($form);
     }
@@ -76,27 +79,27 @@ final class AuthorCommandHandlerTest extends Unit
         $form = $this->createMock(AuthorForm::class);
         $command = $this->createMock(UpdateAuthorCommand::class);
 
-        $this->operationRunner->expects($this->once())
-            ->method('runStep')
+        $this->commandMapper->expects($this->once())
+            ->method('toUpdateCommand')
+            ->with(1, $form)
             ->willReturn($command);
 
         $this->operationRunner->expects($this->once())
             ->method('executeAndPropagate');
 
         $this->handler->updateAuthor(1, $form);
-        $this->assertTrue(true);
     }
 
-    public function testUpdateAuthorThrowsOnMappingError(): void
+    public function testUpdateAuthorPropagatesMapperException(): void
     {
         $form = $this->createMock(AuthorForm::class);
 
-        $this->operationRunner->expects($this->once())
-            ->method('runStep')
-            ->willReturn(null);
+        $this->commandMapper->expects($this->once())
+            ->method('toUpdateCommand')
+            ->willThrowException(new RuntimeException('mapper failed'));
 
-        $this->expectException(OperationFailedException::class);
-        $this->expectExceptionMessage('error.internal_mapper_failed');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('mapper failed');
 
         $this->handler->updateAuthor(1, $form);
     }
@@ -107,6 +110,5 @@ final class AuthorCommandHandlerTest extends Unit
             ->method('executeAndPropagate');
 
         $this->handler->deleteAuthor(1);
-        $this->assertTrue(true);
     }
 }
