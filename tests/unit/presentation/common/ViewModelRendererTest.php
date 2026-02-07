@@ -40,4 +40,12 @@ final class ViewModelRendererTest extends Unit
 
         $this->renderer->render('index', $viewModel);
     }
+
+    public function testRenderPartialThrowsExceptionWhenControllerNotSet(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Controller not set in ViewModelRenderer');
+
+        $this->renderer->renderPartial('_form');
+    }
 }

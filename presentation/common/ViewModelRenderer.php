@@ -37,6 +37,20 @@ final class ViewModelRenderer
     /**
      * @param array<string, mixed> $params
      */
+    public function renderPartial(string $view, array $params = []): string
+    {
+        if (!$this->controller instanceof Controller) {
+            throw new LogicException('Controller not set in ViewModelRenderer');
+        }
+
+        // @codeCoverageIgnoreStart
+        return $this->controller->renderPartial($view, $params);
+        // @codeCoverageIgnoreEnd
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
     private function callRenderWithParams(string $view, array $params): string
     {
         if (!$this->controller instanceof BaseController) {
