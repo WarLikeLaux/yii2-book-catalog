@@ -99,7 +99,7 @@ final class SeedController extends Controller
                 'title' => $title,
                 'year' => $year,
                 'isbn' => $isbn,
-                'description' => "Автогенерированное описание для книги «$title» ($year). Эта книга является прекрасным примером литературного мастерства.",
+                'description' => "Автогенерированное описание для книги «{$title}» ({$year}). Эта книга является прекрасным примером литературного мастерства.",
                 'status' => $isPublished ? 'published' : 'draft',
             ]);
 

@@ -11,7 +11,7 @@ final class m260207_000001_add_book_status extends Migration
         $this->addColumn('books', 'status', $this->string(20)->notNull()->defaultValue('draft'));
 
         $this->execute(
-            "UPDATE books SET status = CASE WHEN is_published = 1 THEN 'published' ELSE 'draft' END",
+            "UPDATE books SET status = CASE WHEN is_published = TRUE THEN 'published' ELSE 'draft' END",
         );
 
         $this->createIndex('idx_books_status', 'books', 'status');
