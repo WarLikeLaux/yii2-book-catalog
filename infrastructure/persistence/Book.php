@@ -16,7 +16,7 @@ use yii\db\ActiveRecord;
  * @property string $isbn
  * @property string|null $description
  * @property string|null $cover_url
- * @property int $is_published
+ * @property string $status
  * @property int $version
  * @property int $created_at
  * @property int $updated_at
@@ -71,7 +71,7 @@ final class Book extends ActiveRecord
             [['title'], 'string', 'max' => 255],
             [['isbn'], 'string', 'max' => 20],
             [['cover_url'], 'string', 'max' => 500],
-            [['is_published'], 'boolean'],
+            [['status'], 'string', 'max' => 20],
         ];
     }
 
@@ -108,10 +108,5 @@ final class Book extends ActiveRecord
     public function getCoverUrl(): ?string
     {
         return $this->cover_url;
-    }
-
-    public function getIsPublished(): bool
-    {
-        return (bool)$this->is_published;
     }
 }

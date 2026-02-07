@@ -9,6 +9,7 @@ use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
+use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
@@ -49,7 +50,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
                 'isbn',
                 'description',
                 'cover_url' => static fn(BookEntity $e): ?string => $e->coverImage?->getPath(),
-                'is_published' => static fn(BookEntity $e): int => $e->published ? 1 : 0,
+                'status' => static fn(BookEntity $e): string => $e->status->value,
             ]);
 
             $this->persist($model, DomainErrorCode::BookStaleData, DomainErrorCode::BookIsbnExists);
@@ -141,7 +142,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             description: $ar->description,
             coverImage: $ar->cover_url !== null ? new StoredFileReference($ar->cover_url) : null,
             authorIds: $authorIds,
-            published: (bool)$ar->is_published,
+            status: BookStatus::from($ar->status),
             version: $ar->version,
         );
     }

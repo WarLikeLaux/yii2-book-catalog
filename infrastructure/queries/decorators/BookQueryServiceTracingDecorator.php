@@ -36,6 +36,14 @@ final readonly class BookQueryServiceTracingDecorator implements BookQueryServic
         );
     }
 
+    public function searchPublished(string $term, int $page, int $limit): PagedResultInterface
+    {
+        return $this->tracer->trace(
+            'BookQuery::' . __FUNCTION__,
+            fn(): PagedResultInterface => $this->service->searchPublished($term, $page, $limit),
+        );
+    }
+
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,

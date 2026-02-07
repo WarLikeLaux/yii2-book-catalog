@@ -43,7 +43,7 @@ final readonly class ReportQueryService implements ReportQueryServiceInterface
             ->from('{{%authors}} a')
             ->innerJoin('{{%book_authors}} ba', 'ba.author_id = a.id')
             ->innerJoin('{{%books}} b', 'b.id = ba.book_id')
-            ->where(['b.year' => $year, 'b.is_published' => true])
+            ->where(['b.year' => $year, 'b.status' => 'published'])
             ->groupBy(['a.id', 'a.fio'])
             ->orderBy(['books_count' => SORT_DESC])
             ->limit($limit)

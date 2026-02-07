@@ -19,7 +19,6 @@ final class BookToBookReadDtoMappingListener
         'authorIds' => 'getAuthorIds',
         'authorNames' => 'getAuthorNames',
         'coverUrl' => 'getCoverUrl',
-        'isPublished' => 'getIsPublished',
     ];
 
     public function __invoke(GenerateMapperEvent $event): void

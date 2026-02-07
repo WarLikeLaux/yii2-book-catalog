@@ -16,7 +16,6 @@ final readonly class NotifySubscribersJob implements JobInterface, RetryableJobI
 
     public function __construct(
         public int $bookId,
-        public string $title,
     ) {
     }
 

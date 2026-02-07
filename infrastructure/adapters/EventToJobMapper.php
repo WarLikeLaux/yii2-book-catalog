@@ -14,8 +14,12 @@ final readonly class EventToJobMapper implements EventToJobMapperInterface
     ) {
     }
 
-    public function map(QueueableEvent $event): JobInterface
+    public function map(QueueableEvent $event): ?JobInterface
     {
+        if (!$this->registry->has($event::class)) {
+            return null;
+        }
+
         return $this->registry->resolve($event);
     }
 }

@@ -9,6 +9,7 @@ use app\application\ports\EventPublisherInterface;
 use app\application\ports\QueueInterface;
 use app\domain\events\DomainEvent;
 use app\domain\events\QueueableEvent;
+use yii\queue\JobInterface;
 
 final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
 {
@@ -47,6 +48,11 @@ final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
         }
 
         $job = $this->jobMapper->map($event);
+
+        if (!$job instanceof JobInterface) {
+            return;
+        }
+
         $this->queue->push($job);
     }
 }

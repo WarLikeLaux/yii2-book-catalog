@@ -9,6 +9,9 @@ use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\specifications\BookSearchSpecificationFactory;
 use app\domain\specifications\BookSpecificationInterface;
+use app\domain\specifications\CompositeAndSpecification;
+use app\domain\specifications\StatusSpecification;
+use app\domain\values\BookStatus;
 use app\infrastructure\persistence\Book;
 
 final readonly class BookQueryService extends BaseQueryService implements BookQueryServiceInterface
@@ -35,6 +38,16 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
         $specification = $factory->createFromSearchTerm($term);
 
         return $this->searchBySpecification($specification, $page, $limit);
+    }
+
+    public function searchPublished(string $term, int $page, int $limit): PagedResultInterface
+    {
+        $factory = new BookSearchSpecificationFactory();
+        $searchSpec = $factory->createFromSearchTerm($term);
+        $publishedSpec = new StatusSpecification(BookStatus::Published);
+        $combinedSpec = new CompositeAndSpecification([$publishedSpec, $searchSpec]);
+
+        return $this->searchBySpecification($combinedSpec, $page, $limit);
     }
 
     public function searchBySpecification(
