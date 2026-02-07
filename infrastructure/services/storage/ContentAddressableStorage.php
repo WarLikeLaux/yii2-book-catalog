@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\infrastructure\services\storage;
 
+use app\application\common\config\StorageConfig;
 use app\application\ports\ContentStorageInterface;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;

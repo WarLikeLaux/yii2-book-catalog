@@ -42,7 +42,6 @@ use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use app\infrastructure\services\LogCategory;
 use app\infrastructure\services\NativeMimeTypeDetector;
 use app\infrastructure\services\storage\ContentAddressableStorage;
-use app\infrastructure\services\storage\StorageConfig as InfraStorageConfig;
 use app\infrastructure\services\YiiPsrLogger;
 use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\services\FileUrlResolver;
@@ -79,12 +78,11 @@ return static function (array $params): array {
             ContentStorageInterface::class => static function (Container $c): ContentStorageInterface {
                 $storageConfig = $c->get(AppStorageConfig::class);
 
-                $config = new InfraStorageConfig(
+                return new ContentAddressableStorage(new AppStorageConfig(
                     Yii::getAlias($storageConfig->basePath),
                     $storageConfig->baseUrl,
-                );
-
-                return new ContentAddressableStorage($config);
+                    $storageConfig->placeholderUrl,
+                ));
             },
 
             MimeTypeDetectorInterface::class => NativeMimeTypeDetector::class,

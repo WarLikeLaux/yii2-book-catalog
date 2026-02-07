@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\services\storage;
 
+use app\application\common\config\StorageConfig;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
 use app\domain\exceptions\ValidationException;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use app\infrastructure\services\storage\ContentAddressableStorage;
-use app\infrastructure\services\storage\StorageConfig;
 use Codeception\Test\Unit;
 use ReflectionMethod;
 use tests\_support\RemovesDirectoriesTrait;
@@ -39,7 +39,7 @@ final class ContentAddressableStorageTest extends Unit
         }
 
         $this->storage = new ContentAddressableStorage(
-            new StorageConfig($this->tempDir, self::UPLOAD_URL),
+            new StorageConfig($this->tempDir, self::UPLOAD_URL, '/placeholder.jpg'),
         );
     }
 
@@ -163,7 +163,7 @@ final class ContentAddressableStorageTest extends Unit
     {
         $nonExistentPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'nonexistent_' . uniqid('', true);
         $storage = new ContentAddressableStorage(
-            new StorageConfig($nonExistentPath, self::UPLOAD_URL),
+            new StorageConfig($nonExistentPath, self::UPLOAD_URL, '/placeholder.jpg'),
         );
 
         $keys = iterator_to_array($storage->listAllKeys());
