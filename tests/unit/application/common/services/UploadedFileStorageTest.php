@@ -27,7 +27,12 @@ final class UploadedFileStorageTest extends Unit
     public function testStoreReturnsExtendedPath(): void
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'upload-');
-        $filePath = $tempFile !== false ? $tempFile : '';
+
+        if ($tempFile === false) {
+            $this->fail('Failed to create temp file');
+        }
+
+        $filePath = $tempFile;
         file_put_contents($filePath, 'content');
 
         $payload = new UploadedFilePayload($filePath, 'txt', 'text/plain');
@@ -39,9 +44,9 @@ final class UploadedFileStorageTest extends Unit
             ->with($this->isInstanceOf(FileContent::class))
             ->willReturn($fileKey);
 
-        try {
-            $result = $this->service->store($payload);
-        } finally {
+        $result = $this->service->store($payload);
+
+        if (file_exists($filePath)) {
             unlink($filePath);
         }
 

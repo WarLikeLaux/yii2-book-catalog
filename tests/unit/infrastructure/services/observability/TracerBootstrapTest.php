@@ -93,19 +93,18 @@ final class TracerBootstrapTest extends Unit
         $tracerProp = $reflection->getProperty('tracer');
         $tracerProp->setAccessible(true);
 
+        $tracer = $this->createMock(TracerInterface::class);
+        $tracer->expects($this->never())->method('startSpan');
+        $tracerProp->setValue($this->bootstrap, $tracer);
+
         $ignoredPaths = ['debug/default/index', 'gii/default/index', '.well-known/security.txt'];
 
         foreach ($ignoredPaths as $path) {
-            $tracer = $this->createMock(TracerInterface::class);
-            $tracerProp->setValue($this->bootstrap, $tracer);
-
             $app = $this->createMock(Application::class);
             $request = $this->createMock(Request::class);
 
             $request->method('getPathInfo')->willReturn($path);
             $app->method('getRequest')->willReturn($request);
-
-            $tracer->expects($this->never())->method('startSpan');
 
             $method = $reflection->getMethod('startRootSpan');
             $method->setAccessible(true);

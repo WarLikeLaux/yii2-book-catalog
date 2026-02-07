@@ -93,7 +93,6 @@ final class BookCrudCest
             'version' => 1,
         ]);
 
-        // Mock UseCase to throw StaleDataException wrapped in ApplicationException
         $mockUseCase = Stub::make(UpdateBookUseCase::class, [
             'execute' => static function () {
                 throw ApplicationException::fromDomainException(
@@ -104,7 +103,6 @@ final class BookCrudCest
             },
         ]);
 
-        // Mock ViewFactory to avoid DB lookup after rollback
         $mockViewFactory = Stub::make(BookItemViewFactory::class, [
             'getBookForUpdate' => static fn() => new BookForm(),
             'getUpdateViewModel' => static fn ($id, $form) => new BookEditViewModel(
@@ -141,7 +139,6 @@ final class BookCrudCest
         $I->seeResponseCodeIs(200);
         $I->see(Yii::t('app', 'book.error.stale_data'));
 
-        // Restore container
         Yii::$container->clear(UpdateBookUseCase::class);
         Yii::$container->clear(BookItemViewFactory::class);
     }
