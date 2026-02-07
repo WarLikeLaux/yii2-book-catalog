@@ -15,4 +15,8 @@ interface BookSpecificationVisitorInterface
     public function visitAuthor(AuthorSpecification $spec): void;
 
     public function visitCompositeOr(CompositeOrSpecification $spec): void;
+
+    public function visitCompositeAnd(CompositeAndSpecification $spec): void;
+
+    public function visitStatus(StatusSpecification $spec): void;
 }
