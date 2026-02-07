@@ -20,6 +20,7 @@ final readonly class UpdateBookCommand implements CommandInterface
         public AuthorIdCollection $authorIds,
         public int $version,
         public string|null $storedCover = null,
+        public bool $removeCover = false,
     ) {
     }
 }

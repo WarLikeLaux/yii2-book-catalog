@@ -62,7 +62,9 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
         $book->correctIsbn(new Isbn($command->isbn));
         $book->updateDescription($command->description);
 
-        if ($command->storedCover !== null) {
+        if ($command->removeCover) {
+            $book->updateCover(null);
+        } elseif ($command->storedCover !== null) {
             $book->updateCover(new StoredFileReference($command->storedCover));
         }
 
