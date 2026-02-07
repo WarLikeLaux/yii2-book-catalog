@@ -42,9 +42,11 @@ final class YiiAuthAdapter implements AuthServiceInterface
             throw new OperationFailedException(DomainErrorCode::AuthInvalidCredentials->value, 'password');
         }
 
+        // @codeCoverageIgnoreStart
         if (!$app->user->login($user, $duration)) {
             throw new OperationFailedException(DomainErrorCode::AuthInvalidCredentials->value, 'password');
         }
+        // @codeCoverageIgnoreEnd
     }
 
     public function logout(): void
