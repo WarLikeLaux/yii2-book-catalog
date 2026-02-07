@@ -97,7 +97,7 @@ function cleanBody(body) {
 	if (!body.includes('CodeRabbit')) return body.trim();
 
 	let mainPart = body.split(/<details|---|<!--/)[0].trim();
-	mainPart = mainPart.replace(/_⚠️ Potential issue_ | _[^_]+_/, '').trim();
+	mainPart = mainPart.replace(/_⚠️ Potential issue_\s*\|?\s*_[^_]*_\s*/g, '').trim();
 
 	if (mainPart.length > 0) {
 		const firstChar = mainPart[0];
@@ -173,7 +173,7 @@ async function main() {
 		if (threadsToProcess.length === 0) {
 			console.log('Нет комментариев для обработки.');
 			if (resolvedThreads.length > 0 && !includeResolved) {
-				console.log('💡 Совет: Запустите с флагом ` --include-resolved`, чтобы включить разрешенные комментарии.');
+				console.log('💡 Совет: Запустите с флагом `--include-resolved`, чтобы включить разрешенные комментарии.');
 			}
 			const emptyMarkdown = `# Задачи по ревью PR - #${pullNumber}\n\n`;
 			fs.writeFileSync(outputPath, emptyMarkdown + '✅ Все комментарии закрыты!\n');

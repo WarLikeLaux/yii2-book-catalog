@@ -81,7 +81,7 @@ final class MultilineViewVarAnnotationRector extends AbstractRector
         foreach ($comments as $comment) {
             $text = $comment->getText();
 
-            if (str_starts_with($text, '/**') && str_contains($text, '@var')) {
+            if ($this->isSingleLineVarDoc($text)) {
                 $currentGroup = array_merge($currentGroup, $this->extractVarLines($text));
                 $hasChanged = true;
             } else {
@@ -99,6 +99,25 @@ final class MultilineViewVarAnnotationRector extends AbstractRector
         }
 
         return [$newComments, $hasChanged];
+    }
+
+    private function isSingleLineVarDoc(string $text): bool
+    {
+        if (!str_starts_with($text, '/**') || !str_contains($text, '@var')) {
+            return false;
+        }
+
+        $lines = array_filter(
+            explode("\n", $text),
+            static fn(string $line): bool => trim($line) !== '',
+        );
+
+        if (count($lines) !== 1) {
+            return false;
+        }
+
+        $content = trim($lines[array_key_first($lines)], "/* \t\r\n");
+        return str_starts_with($content, '@var');
     }
 
     /**

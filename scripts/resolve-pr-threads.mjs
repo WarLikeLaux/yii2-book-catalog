@@ -4,12 +4,19 @@ import fs from 'fs';
 import path from 'path';
 
 const envPath = path.resolve(process.cwd(), '.env');
-const env = fs.existsSync(envPath)
-	? Object.fromEntries(fs.readFileSync(envPath, 'utf8').split('\n').filter(Boolean).map(line => {
-		const parts = line.split('=');
-		return [parts[0].trim(), parts.slice(1).join('=').trim()];
-	}))
-	: process.env;
+const env = { ...process.env };
+
+if (fs.existsSync(envPath)) {
+	const content = fs.readFileSync(envPath, 'utf8');
+	content.split('\n').forEach(line => {
+		const trimmed = line.trim();
+		if (!trimmed || trimmed.startsWith('#') || !trimmed.includes('=')) return;
+		const parts = trimmed.split('=');
+		const key = parts[0].trim();
+		const value = parts.slice(1).join('=').trim();
+		if (key) env[key] = value;
+	});
+}
 
 const token = env.GITHUB_TOKEN;
 

@@ -38,21 +38,21 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->rule(MultilineViewVarAnnotationRector::class);
 
     $rectorConfig->skip([
-        __DIR__ . '/infrastructure/persistence/*',
-        __DIR__ . '/domain/entities/*',
+        __DIR__ . '/infrastructure/persistence',
+        __DIR__ . '/domain/entities',
         RemoveNonExistingVarAnnotationRector::class => [
-            __DIR__ . '/presentation/views/*',
-            __DIR__ . '/presentation/mail/*',
+            __DIR__ . '/presentation/views',
+            __DIR__ . '/presentation/mail',
         ],
         RemoveParentDelegatingConstructorRector::class => [
             __DIR__ . '/domain/exceptions/AlreadyExistsException.php',
             __DIR__ . '/domain/exceptions/StaleDataException.php',
         ],
         RemoveUnusedPrivateMethodParameterRector::class => [
-            __DIR__ . '/domain/values/*',
+            __DIR__ . '/domain/values',
         ],
         RemoveUnusedPublicMethodParameterRector::class => [
-            __DIR__ . '/domain/values/*',
+            __DIR__ . '/domain/values',
         ],
     ]);
 };

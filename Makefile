@@ -299,11 +299,11 @@ test-e2e: _test-init
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run e2e --ext DotReporter --no-colors
 
 test-coverage coverage cov:
-	@if [ ! -f tests/_output/coverage.xml ]; then $(MAKE) test; fi
+	@if [ ! -f tests/_output/coverage.xml ]; then $(MAKE) test-full; fi
 	@./bin/coverage-report
 
 test-infection infection inf:
-	@if [ ! -f tests/_output/coverage-phpunit.xml ]; then $(MAKE) test; fi
+	@if [ ! -f tests/_output/coverage-phpunit.xml ]; then $(MAKE) test-full; fi
 	@echo "🧟 Запуск мутационного тестирования..."
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=tests/_output --threads=max --test-framework-options="integration,unit --skip-group migration"
 
@@ -435,3 +435,5 @@ review-fetch:
 
 review-resolve:
 	@node scripts/resolve-pr-threads.mjs
+
+.PHONY: review-fetch review-resolve
