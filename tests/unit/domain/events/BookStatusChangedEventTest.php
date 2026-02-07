@@ -12,16 +12,18 @@ final class BookStatusChangedEventTest extends Unit
 {
     public function testEventTypeAndPayload(): void
     {
-        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2023);
 
         $this->assertSame(42, $event->bookId);
         $this->assertSame(BookStatus::Draft, $event->oldStatus);
         $this->assertSame(BookStatus::Published, $event->newStatus);
+        $this->assertSame(2023, $event->year);
         $this->assertSame(BookStatusChangedEvent::EVENT_TYPE, $event->getEventType());
         $this->assertSame([
             'bookId' => 42,
             'oldStatus' => 'draft',
             'newStatus' => 'published',
+            'year' => 2023,
         ], $event->getPayload());
     }
 }

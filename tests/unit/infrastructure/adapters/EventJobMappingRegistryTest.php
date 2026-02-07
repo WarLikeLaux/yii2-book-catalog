@@ -20,7 +20,7 @@ final class EventJobMappingRegistryTest extends Unit
         $registry = new EventJobMappingRegistry([
             BookStatusChangedEvent::class => NotifySubscribersJob::class,
         ]);
-        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $job = $registry->resolve($event);
 
@@ -35,7 +35,7 @@ final class EventJobMappingRegistryTest extends Unit
                 bookId: $e->bookId + 100,
             ),
         ]);
-        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $job = $registry->resolve($event);
 
@@ -50,7 +50,7 @@ final class EventJobMappingRegistryTest extends Unit
                 ? new NotifySubscribersJob($e->bookId)
                 : null,
         ]);
-        $event = new BookStatusChangedEvent(42, BookStatus::Published, BookStatus::Draft);
+        $event = new BookStatusChangedEvent(42, BookStatus::Published, BookStatus::Draft, 2024);
 
         $job = $registry->resolve($event);
 
@@ -85,7 +85,7 @@ final class EventJobMappingRegistryTest extends Unit
         $registry = new EventJobMappingRegistry([
             BookStatusChangedEvent::class => $jobClass,
         ]);
-        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage("Missing required parameter 'missingParam'");
@@ -99,7 +99,7 @@ final class EventJobMappingRegistryTest extends Unit
         $registry = new EventJobMappingRegistry([
             BookStatusChangedEvent::class => $jobClass,
         ]);
-        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $job = $registry->resolve($event);
 
@@ -114,7 +114,7 @@ final class EventJobMappingRegistryTest extends Unit
         $registry = new EventJobMappingRegistry([
             BookStatusChangedEvent::class => $jobClass,
         ]);
-        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $job = $registry->resolve($event);
 

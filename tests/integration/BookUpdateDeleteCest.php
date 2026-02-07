@@ -17,6 +17,7 @@ use Codeception\Stub;
 
 final class BookCrudCest
 {
+    private const ROUTE_BOOK_UPDATE = 'book/update';
     public function _before(IntegrationTester $I): void
     {
         DbCleaner::clear(['book_authors', 'books', 'authors']);
@@ -36,7 +37,7 @@ final class BookCrudCest
             ->insert('book_authors', ['book_id' => $bookId, 'author_id' => $authorId])
             ->execute();
 
-        $I->amOnRoute('book/update', ['id' => $bookId]);
+        $I->amOnRoute(self::ROUTE_BOOK_UPDATE, ['id' => $bookId]);
         $I->seeResponseCodeIs(200);
         $I->see(Yii::t('app', 'ui.book_update'));
         $I->seeInField('BookForm[title]', 'Book To Update');
@@ -51,7 +52,7 @@ final class BookCrudCest
             'isbn' => '9783161484100',
         ]);
 
-        $I->amOnRoute('book/update', ['id' => $bookId]);
+        $I->amOnRoute(self::ROUTE_BOOK_UPDATE, ['id' => $bookId]);
         $I->fillField('BookForm[title]', 'Updated Title');
         $I->fillField('BookForm[year]', '2025');
 
@@ -125,7 +126,7 @@ final class BookCrudCest
         Yii::$container->set(UpdateBookUseCase::class, $mockUseCase);
         Yii::$container->set(BookItemViewFactory::class, $mockViewFactory);
 
-        $I->amOnRoute('book/update', ['id' => $bookId]);
+        $I->amOnRoute(self::ROUTE_BOOK_UPDATE, ['id' => $bookId]);
         $I->sendPost('/index-test.php?r=book/update&id=' . $bookId, [
             'BookForm' => [
                 'title' => 'New Title',

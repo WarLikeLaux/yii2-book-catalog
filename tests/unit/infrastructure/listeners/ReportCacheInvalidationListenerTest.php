@@ -35,29 +35,29 @@ final class ReportCacheInvalidationListenerTest extends Unit
 
     public function testHandleStatusChangedToPublishedInvalidatesCache(): void
     {
-        $event = new BookStatusChangedEvent(1, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(1, BookStatus::Draft, BookStatus::Published, 2023);
 
         $this->cache->expects($this->once())
             ->method('delete')
-            ->with('report:top_authors:' . date('Y'));
+            ->with('report:top_authors:2023');
 
         $this->listener->handle($event);
     }
 
     public function testHandleStatusChangedFromPublishedInvalidatesCache(): void
     {
-        $event = new BookStatusChangedEvent(1, BookStatus::Published, BookStatus::Draft);
+        $event = new BookStatusChangedEvent(1, BookStatus::Published, BookStatus::Draft, 2021);
 
         $this->cache->expects($this->once())
             ->method('delete')
-            ->with('report:top_authors:' . date('Y'));
+            ->with('report:top_authors:2021');
 
         $this->listener->handle($event);
     }
 
     public function testHandleStatusChangedUnrelatedDoesNotInvalidateCache(): void
     {
-        $event = new BookStatusChangedEvent(1, BookStatus::Draft, BookStatus::Draft);
+        $event = new BookStatusChangedEvent(1, BookStatus::Draft, BookStatus::Draft, 2024);
 
         $this->cache->expects($this->never())->method('delete');
 

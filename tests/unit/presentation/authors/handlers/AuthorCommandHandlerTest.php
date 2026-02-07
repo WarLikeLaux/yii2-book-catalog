@@ -19,6 +19,7 @@ use RuntimeException;
 
 final class AuthorCommandHandlerTest extends Unit
 {
+    private const MSG_MAPPER_FAILED = 'mapper failed';
     private AuthorCommandMapper&MockObject $commandMapper;
     private CreateAuthorUseCase&MockObject $createAuthorUseCase;
     private UpdateAuthorUseCase&MockObject $updateAuthorUseCase;
@@ -66,10 +67,10 @@ final class AuthorCommandHandlerTest extends Unit
 
         $this->commandMapper->expects($this->once())
             ->method('toCreateCommand')
-            ->willThrowException(new RuntimeException('mapper failed'));
+            ->willThrowException(new RuntimeException(self::MSG_MAPPER_FAILED));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('mapper failed');
+        $this->expectExceptionMessage(self::MSG_MAPPER_FAILED);
 
         $this->handler->createAuthor($form);
     }
@@ -96,10 +97,10 @@ final class AuthorCommandHandlerTest extends Unit
 
         $this->commandMapper->expects($this->once())
             ->method('toUpdateCommand')
-            ->willThrowException(new RuntimeException('mapper failed'));
+            ->willThrowException(new RuntimeException(self::MSG_MAPPER_FAILED));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('mapper failed');
+        $this->expectExceptionMessage(self::MSG_MAPPER_FAILED);
 
         $this->handler->updateAuthor(1, $form);
     }

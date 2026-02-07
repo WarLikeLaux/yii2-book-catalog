@@ -27,7 +27,7 @@ final class EventToJobMapperTest extends Unit
 
     public function testMapBookStatusChangedCreatesNotifySubscribersJob(): void
     {
-        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $job = $this->mapper->map($event);
 

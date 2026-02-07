@@ -35,7 +35,7 @@ final class YiiEventPublisherAdapterTest extends Unit
     public function testPublishQueueableEventPushesToQueue(): void
     {
         $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper);
-        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $this->queue->expects($this->once())
             ->method('push')
@@ -52,7 +52,7 @@ final class YiiEventPublisherAdapterTest extends Unit
         $mapper = new EventToJobMapper($registry);
 
         $adapter = new YiiEventPublisherAdapter($this->queue, $mapper);
-        $event = new BookStatusChangedEvent(42, BookStatus::Published, BookStatus::Draft);
+        $event = new BookStatusChangedEvent(42, BookStatus::Published, BookStatus::Draft, 2024);
 
         $this->queue->expects($this->never())->method('push');
 
@@ -78,7 +78,7 @@ final class YiiEventPublisherAdapterTest extends Unit
             ->with($this->isInstanceOf(BookStatusChangedEvent::class));
 
         $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper, $listener);
-        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $adapter->publishEvent($event);
     }
@@ -90,7 +90,7 @@ final class YiiEventPublisherAdapterTest extends Unit
         $listener->expects($this->never())->method('handle');
 
         $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper, $listener);
-        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $adapter->publishEvent($event);
     }

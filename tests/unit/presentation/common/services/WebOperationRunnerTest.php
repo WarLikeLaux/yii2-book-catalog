@@ -19,6 +19,8 @@ use Psr\Log\LoggerInterface;
 
 final class WebOperationRunnerTest extends Unit
 {
+    private const ERROR_TITLE_EMPTY = 'book.error.title_empty';
+    private const ERROR_UNEXPECTED = 'error.unexpected';
     private NotificationInterface&MockObject $notifier;
     private LoggerInterface&MockObject $logger;
     private TranslatorInterface&MockObject $translator;
@@ -60,15 +62,15 @@ final class WebOperationRunnerTest extends Unit
         $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
         $pipeline->expects($this->once())
             ->method('execute')
-            ->willThrowException(new ApplicationException('book.error.title_empty'));
+            ->willThrowException(new ApplicationException(self::ERROR_TITLE_EMPTY));
 
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('app', 'book.error.title_empty')
-            ->willReturn('book.error.title_empty');
+            ->with('app', self::ERROR_TITLE_EMPTY)
+            ->willReturn(self::ERROR_TITLE_EMPTY);
         $this->notifier->expects($this->once())
             ->method('error')
-            ->with('book.error.title_empty');
+            ->with(self::ERROR_TITLE_EMPTY);
         $this->notifier->expects($this->never())->method('success');
 
         $result = $this->runner->execute($command, $useCase, 'ok');
@@ -89,9 +91,9 @@ final class WebOperationRunnerTest extends Unit
 
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('app', 'error.unexpected', [])
-            ->willReturn('error.unexpected');
-        $this->notifier->expects($this->once())->method('error')->with('error.unexpected');
+            ->with('app', self::ERROR_UNEXPECTED, [])
+            ->willReturn(self::ERROR_UNEXPECTED);
+        $this->notifier->expects($this->once())->method('error')->with(self::ERROR_UNEXPECTED);
 
         $this->logger->expects($this->once())
             ->method('error')
@@ -168,7 +170,7 @@ final class WebOperationRunnerTest extends Unit
         $command = $this->createMock(CommandInterface::class);
         $useCase = $this->createMock(UseCaseInterface::class);
         $pipeline = $this->createMock(PipelineInterface::class);
-        $exception = new ApplicationException('book.error.title_empty');
+        $exception = new ApplicationException(self::ERROR_TITLE_EMPTY);
 
         $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
         $pipeline->expects($this->once())->method('execute')->willThrowException($exception);
@@ -214,7 +216,7 @@ final class WebOperationRunnerTest extends Unit
 
         $this->translator->expects($this->once())
             ->method('translate')
-            ->with('app', 'error.unexpected')
+            ->with('app', self::ERROR_UNEXPECTED)
             ->willReturn('An unexpected error occurred');
 
         $this->notifier->expects($this->once())

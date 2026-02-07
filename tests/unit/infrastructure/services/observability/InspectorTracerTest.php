@@ -11,6 +11,12 @@ use ReflectionClass;
 
 final class InspectorTracerTest extends Unit
 {
+    private const CONTENT_TYPE_JSON = 'application/json';
+    private const CONTENT_TYPE_HTML = 'text/html';
+    private const QUERY_SELECT_1 = 'SELECT 1';
+    private const IP_PRIVATE = '10.0.0.1';
+    private const IP_LOOPBACK = '127.0.0.1';
+    private const API_URL = 'http://localhost/api';
     private InspectorTracer $tracer;
     private ReflectionClass $reflection;
 
@@ -114,7 +120,7 @@ final class InspectorTracerTest extends Unit
     public function testBuildCustomDataFiltersUnsafe(): void
     {
         $attributes = [
-            'db.query' => 'SELECT 1',
+            'db.query' => self::QUERY_SELECT_1,
             'cookie_data' => 'secret',
             'user_id' => 42,
         ];
@@ -142,9 +148,9 @@ final class InspectorTracerTest extends Unit
             'http.user_agent' => 'TestBot/1.0',
         ];
 
-        $result = $this->invokeBuildRequestTable($attributes, '10.0.0.1');
+        $result = $this->invokeBuildRequestTable($attributes, self::IP_PRIVATE);
 
-        $this->assertSame('10.0.0.1', $result['IP']);
+        $this->assertSame(self::IP_PRIVATE, $result['IP']);
         $this->assertSame('TestBot/1.0', $result['Agent']);
     }
 
@@ -155,11 +161,11 @@ final class InspectorTracerTest extends Unit
             'query_params' => json_encode(['page' => 1, 'sort' => 'name'], JSON_THROW_ON_ERROR),
         ];
 
-        $result = $this->invokeBuildRequestTable($attributes, '127.0.0.1');
+        $result = $this->invokeBuildRequestTable($attributes, self::IP_LOOPBACK);
 
         $this->assertSame(1, $result['page']);
         $this->assertSame('name', $result['sort']);
-        $this->assertSame('127.0.0.1', $result['IP']);
+        $this->assertSame(self::IP_LOOPBACK, $result['IP']);
     }
 
     public function testBuildRequestTableWithInvalidQueryParams(): void
@@ -169,9 +175,9 @@ final class InspectorTracerTest extends Unit
             'query_params' => 'not-json',
         ];
 
-        $result = $this->invokeBuildRequestTable($attributes, '127.0.0.1');
+        $result = $this->invokeBuildRequestTable($attributes, self::IP_LOOPBACK);
 
-        $this->assertSame('127.0.0.1', $result['IP']);
+        $this->assertSame(self::IP_LOOPBACK, $result['IP']);
         $this->assertSame('', $result['Agent']);
         $this->assertCount(2, $result);
     }
@@ -189,7 +195,7 @@ final class InspectorTracerTest extends Unit
             'http.target' => '/api/books',
             'http.user_agent' => 'TestBot',
             'http.headers' => json_encode(['Accept' => ['application/json']], JSON_THROW_ON_ERROR),
-            'db.query' => 'SELECT 1',
+            'db.query' => self::QUERY_SELECT_1,
         ];
 
         $this->invokeFillTransactionData($transaction, $attributes);
@@ -209,7 +215,7 @@ final class InspectorTracerTest extends Unit
 
         /** @var array<string, mixed> $customContext */
         $customContext = $transaction->getContext('Custom');
-        $this->assertSame('SELECT 1', $customContext['db.query']);
+        $this->assertSame(self::QUERY_SELECT_1, $customContext['db.query']);
     }
 
     public function testFillTransactionDataWithoutCustomData(): void
@@ -231,18 +237,18 @@ final class InspectorTracerTest extends Unit
 
         $this->invokeApplyHttpData(
             $transaction,
-            'http://localhost/api',
+            self::API_URL,
             'PUT',
-            '10.0.0.1',
+            self::IP_PRIVATE,
             ['http.target' => '/api'],
             ['Accept' => 'text/html'],
         );
 
-        $this->assertSame('http://localhost/api', $transaction->http->url->full);
+        $this->assertSame(self::API_URL, $transaction->http->url->full);
         $this->assertSame('/api', $transaction->http->url->path);
         $this->assertSame('PUT', $transaction->http->request->method);
         $this->assertSame(['Accept' => 'text/html'], $transaction->http->request->headers);
-        $this->assertSame('10.0.0.1', $transaction->http->request->socket->remote_address);
+        $this->assertSame(self::IP_PRIVATE, $transaction->http->request->socket->remote_address);
     }
 
     public function testApplyHttpDataWithoutHttp(): void
@@ -264,14 +270,14 @@ final class InspectorTracerTest extends Unit
 
         $this->invokeApplyHttpData(
             $transaction,
-            'http://localhost/api',
+            self::API_URL,
             'GET',
-            '10.0.0.1',
+            self::IP_PRIVATE,
             [],
             [],
         );
 
-        $this->assertSame('http://localhost/api', $transaction->http->url->full);
+        $this->assertSame(self::API_URL, $transaction->http->url->full);
         $this->assertNull($transaction->http->request->socket);
     }
 
@@ -285,7 +291,7 @@ final class InspectorTracerTest extends Unit
             $transaction,
             'http://localhost/books?page=1',
             'GET',
-            '127.0.0.1',
+            self::IP_LOOPBACK,
             [],
             [],
         );

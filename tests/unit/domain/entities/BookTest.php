@@ -15,6 +15,7 @@ use Codeception\Test\Unit;
 
 final class BookTest extends Unit
 {
+    private const ISBN_ALTERNATE = '979-10-90636-07-1';
     private function createBook(
         string $title = 'Title',
         int $year = 2023,
@@ -259,7 +260,7 @@ final class BookTest extends Unit
     public function testChangeIsbnOnDraftBookSucceeds(): void
     {
         $book = $this->createBook();
-        $newIsbn = new Isbn('979-10-90636-07-1');
+        $newIsbn = new Isbn(self::ISBN_ALTERNATE);
 
         $book->correctIsbn($newIsbn);
 
@@ -274,7 +275,7 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.isbn_change_published');
 
-        $book->correctIsbn(new Isbn('979-10-90636-07-1'));
+        $book->correctIsbn(new Isbn(self::ISBN_ALTERNATE));
     }
 
     public function testChangeIsbnOnArchivedBookThrows(): void
@@ -294,7 +295,7 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.isbn_change_published');
 
-        $book->correctIsbn(new Isbn('979-10-90636-07-1'));
+        $book->correctIsbn(new Isbn(self::ISBN_ALTERNATE));
     }
 
     public function testSameIsbnOnPublishedBookSucceeds(): void

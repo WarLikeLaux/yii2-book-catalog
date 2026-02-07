@@ -28,6 +28,8 @@ use yii\web\UploadedFile;
 
 final class BookCommandHandlerTest extends Unit
 {
+    private const COVER_PATH = 'covers/test.jpg';
+    private const MSG_MAPPER_FAILED = 'mapper failed';
     private BookCommandMapper&MockObject $commandMapper;
     private CreateBookUseCase&MockObject $createBookUseCase;
     private UpdateBookUseCase&MockObject $updateBookUseCase;
@@ -98,7 +100,7 @@ final class BookCommandHandlerTest extends Unit
         $this->mockContentStorageWithCover();
         $this->commandMapper->expects($this->once())
             ->method('toCreateCommand')
-            ->with($form, 'covers/test.jpg')
+            ->with($form, self::COVER_PATH)
             ->willReturn($createCommand);
 
         $this->mockOperationRunnerExecute(7);
@@ -133,10 +135,10 @@ final class BookCommandHandlerTest extends Unit
 
         $this->commandMapper->expects($this->once())
             ->method('toCreateCommand')
-            ->willThrowException(new RuntimeException('mapper failed'));
+            ->willThrowException(new RuntimeException(self::MSG_MAPPER_FAILED));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('mapper failed');
+        $this->expectExceptionMessage(self::MSG_MAPPER_FAILED);
 
         $this->handler->createBook($form);
     }
@@ -188,7 +190,7 @@ final class BookCommandHandlerTest extends Unit
         $this->mockContentStorageWithCover();
         $this->commandMapper->expects($this->once())
             ->method('toUpdateCommand')
-            ->with(7, $form, 'covers/test.jpg')
+            ->with(7, $form, self::COVER_PATH)
             ->willReturn($updateCommand);
 
         $this->mockOperationRunnerExecute(true);
@@ -205,10 +207,10 @@ final class BookCommandHandlerTest extends Unit
 
         $this->commandMapper->expects($this->once())
             ->method('toUpdateCommand')
-            ->willThrowException(new RuntimeException('mapper failed'));
+            ->willThrowException(new RuntimeException(self::MSG_MAPPER_FAILED));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('mapper failed');
+        $this->expectExceptionMessage(self::MSG_MAPPER_FAILED);
 
         $this->handler->updateBook(1, $form);
     }
@@ -293,7 +295,7 @@ final class BookCommandHandlerTest extends Unit
         $this->uploadedFileStorage->expects($this->once())
             ->method('store')
             ->with($this->equalTo($payload))
-            ->willReturn('covers/test.jpg');
+            ->willReturn(self::COVER_PATH);
     }
 
     private function mockOperationRunnerExecute(mixed $returnValue = null): void

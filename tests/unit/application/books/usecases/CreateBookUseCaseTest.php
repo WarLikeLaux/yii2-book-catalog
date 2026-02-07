@@ -23,6 +23,8 @@ use Psr\Clock\ClockInterface;
 
 final class CreateBookUseCaseTest extends Unit
 {
+    private const TITLE_CLEAN_CODE = 'Clean Code';
+    private const SUBTITLE_CLEAN_CODE = 'A Handbook of Agile Software Craftsmanship';
     private BookRepositoryInterface&MockObject $bookRepository;
     private BookQueryServiceInterface&MockObject $bookQueryService;
     private AuthorQueryServiceInterface&MockObject $authorQueryService;
@@ -50,9 +52,9 @@ final class CreateBookUseCaseTest extends Unit
     public function testExecuteCreatesBookSuccessfully(): void
     {
         $command = new CreateBookCommand(
-            title: 'Clean Code',
+            title: self::TITLE_CLEAN_CODE,
             year: 2008,
-            description: 'A Handbook of Agile Software Craftsmanship',
+            description: self::SUBTITLE_CLEAN_CODE,
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1, 2]),
             storedCover: '/uploads/cover.jpg',
@@ -60,7 +62,7 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->title === 'Clean Code'
+            ->with($this->callback(static fn (Book $book): bool => $book->title === self::TITLE_CLEAN_CODE
                     && $book->authorIds === [1, 2]))
             ->willReturnCallback(static function (Book $book): int {
                 BookTestHelper::assignBookId($book, 42);
@@ -184,9 +186,9 @@ final class CreateBookUseCaseTest extends Unit
         );
 
         $command = new CreateBookCommand(
-            title: 'Clean Code',
+            title: self::TITLE_CLEAN_CODE,
             year: 2008,
-            description: 'A Handbook of Agile Software Craftsmanship',
+            description: self::SUBTITLE_CLEAN_CODE,
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1]),
         );
@@ -213,9 +215,9 @@ final class CreateBookUseCaseTest extends Unit
         );
 
         $command = new CreateBookCommand(
-            title: 'Clean Code',
+            title: self::TITLE_CLEAN_CODE,
             year: 2008,
-            description: 'A Handbook of Agile Software Craftsmanship',
+            description: self::SUBTITLE_CLEAN_CODE,
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1, 999]),
         );

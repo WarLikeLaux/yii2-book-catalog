@@ -21,6 +21,7 @@ use yii\web\Request;
 
 final class BookSearchViewFactoryTest extends Unit
 {
+    private const ISBN_DEFAULT = '978-3-16-148410-0';
     private BookQueryServiceInterface&MockObject $bookQueryService;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private BookDtoUrlResolver&MockObject $urlResolver;
@@ -86,7 +87,7 @@ final class BookSearchViewFactoryTest extends Unit
             'Test Book',
             2021,
             'Description',
-            '978-3-16-148410-0',
+            self::ISBN_DEFAULT,
             [],
             [],
             'cover.jpg',

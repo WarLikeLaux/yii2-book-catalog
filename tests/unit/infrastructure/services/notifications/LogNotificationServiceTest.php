@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 
 final class LogNotificationServiceTest extends Unit
 {
+    private const NOTIFICATION_PREFIX = 'Notification: ';
     private LoggerInterface $logger;
     private LogNotificationService $service;
 
@@ -26,7 +27,7 @@ final class LogNotificationServiceTest extends Unit
         $this->logger->expects($this->once())
             ->method('info')
             ->with(
-                'Notification: ' . $message,
+                self::NOTIFICATION_PREFIX . $message,
                 ['type' => 'success'],
             );
 
@@ -40,7 +41,7 @@ final class LogNotificationServiceTest extends Unit
         $this->logger->expects($this->once())
             ->method('error')
             ->with(
-                'Notification: ' . $message,
+                self::NOTIFICATION_PREFIX . $message,
                 ['type' => 'error'],
             );
 
@@ -54,7 +55,7 @@ final class LogNotificationServiceTest extends Unit
         $this->logger->expects($this->once())
             ->method('info')
             ->with(
-                'Notification: ' . $message,
+                self::NOTIFICATION_PREFIX . $message,
                 ['type' => 'info'],
             );
 
@@ -68,7 +69,7 @@ final class LogNotificationServiceTest extends Unit
         $this->logger->expects($this->once())
             ->method('warning')
             ->with(
-                'Notification: ' . $message,
+                self::NOTIFICATION_PREFIX . $message,
                 ['type' => 'warning'],
             );
 

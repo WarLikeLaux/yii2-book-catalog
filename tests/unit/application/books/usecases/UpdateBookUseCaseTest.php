@@ -27,6 +27,7 @@ use Psr\Clock\ClockInterface;
 
 final class UpdateBookUseCaseTest extends Unit
 {
+    private const DESCRIPTION_NEW = 'New description';
     private BookRepositoryInterface&MockObject $bookRepository;
     private BookQueryServiceInterface&MockObject $bookQueryService;
     private AuthorQueryServiceInterface&MockObject $authorQueryService;
@@ -60,7 +61,7 @@ final class UpdateBookUseCaseTest extends Unit
             id: 42,
             title: 'Updated Title',
             year: 2024,
-            description: 'New description',
+            description: self::DESCRIPTION_NEW,
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1, 2]),
             version: 1,
@@ -163,7 +164,7 @@ final class UpdateBookUseCaseTest extends Unit
             id: 42,
             title: 'Updated Title',
             year: 2024,
-            description: 'New description',
+            description: self::DESCRIPTION_NEW,
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
@@ -354,7 +355,7 @@ final class UpdateBookUseCaseTest extends Unit
             id: 42,
             title: 'Updated Title',
             year: 2024,
-            description: 'New description',
+            description: self::DESCRIPTION_NEW,
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1]),
             version: 1,
@@ -386,7 +387,7 @@ final class UpdateBookUseCaseTest extends Unit
             id: 42,
             title: 'Updated Title',
             year: 2024,
-            description: 'New description',
+            description: self::DESCRIPTION_NEW,
             isbn: '9780132350884',
             authorIds: AuthorIdCollection::fromArray([1, 999]),
             version: 1,

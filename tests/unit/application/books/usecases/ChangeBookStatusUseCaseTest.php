@@ -53,7 +53,8 @@ final class ChangeBookStatusUseCaseTest extends Unit
             ->with($this->callback(static fn(object $event): bool => $event instanceof BookStatusChangedEvent
                 && $event->bookId === 1
                 && $event->oldStatus === BookStatus::Draft
-                && $event->newStatus === BookStatus::Published));
+                && $event->newStatus === BookStatus::Published
+                && $event->year === 2024));
 
         $result = $this->useCase->execute(new ChangeBookStatusCommand(1, 'published'));
 

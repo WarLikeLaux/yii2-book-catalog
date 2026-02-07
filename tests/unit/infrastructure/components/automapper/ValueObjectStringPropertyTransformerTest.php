@@ -21,13 +21,14 @@ use Stringable;
 
 final class ValueObjectStringPropertyTransformerTest extends Unit
 {
+    private const COVER_PATH = '/files/cover.jpg';
     public function testSupportsCoverValueObject(): void
     {
         $transformer = new ValueObjectStringPropertyTransformer();
         $types = new TypesMatching();
         $source = new SourcePropertyMetadata('storedCover');
         $target = new TargetPropertyMetadata('storedCover');
-        $command = new class (new StoredFileReference('/files/cover.jpg')) {
+        $command = new class (new StoredFileReference(self::COVER_PATH)) {
             public function __construct(public StoredFileReference $storedCover)
             {
             }
@@ -43,7 +44,7 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
         $types = new TypesMatching();
         $source = new SourcePropertyMetadata('storedCover');
         $target = new TargetPropertyMetadata('storedCover');
-        $command = new class (new StoredFileReference('/files/cover.jpg')) {
+        $command = new class (new StoredFileReference(self::COVER_PATH)) {
             public function __construct(public StoredFileReference $storedCover)
             {
             }
@@ -52,7 +53,7 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
 
         $this->assertTrue($transformer->supports($types, $source, $target, $metadata));
 
-        $value = new StoredFileReference('/files/cover.jpg');
+        $value = new StoredFileReference(self::COVER_PATH);
 
         $this->assertSame($value, $transformer->transform($value, [], []));
     }
@@ -63,7 +64,7 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
         $types = new TypesMatching();
         $source = new SourcePropertyMetadata('storedCover');
         $target = new TargetPropertyMetadata('storedCover');
-        $command = new class (new StoredFileReference('/files/cover.jpg')) {
+        $command = new class (new StoredFileReference(self::COVER_PATH)) {
             public function __construct(public StoredFileReference $storedCover)
             {
             }
@@ -122,7 +123,7 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
         $types = new TypesMatching();
         $source = new SourcePropertyMetadata('missing');
         $target = new TargetPropertyMetadata('missing');
-        $command = new class (new StoredFileReference('/files/cover.jpg')) {
+        $command = new class (new StoredFileReference(self::COVER_PATH)) {
             public function __construct(public StoredFileReference $cover)
             {
             }
@@ -183,7 +184,7 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
         $types = new TypesMatching();
         $source = new SourcePropertyMetadata('cover');
         $target = new TargetPropertyMetadata('cover');
-        $command = new class (new StoredFileReference('/files/cover.jpg')) {
+        $command = new class (new StoredFileReference(self::COVER_PATH)) {
             public function __construct(public StoredFileReference|Isbn $cover)
             {
             }
