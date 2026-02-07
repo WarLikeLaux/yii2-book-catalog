@@ -116,7 +116,11 @@ function cleanBody(body) {
 		if (fenceStart !== -1) {
 			const fenceEnd = detailsChunk.indexOf('```', fenceStart + 3);
 			if (fenceEnd !== -1) {
-				const promptText = detailsChunk.slice(fenceStart + 3, fenceEnd).trim();
+				let promptText = detailsChunk.slice(fenceStart + 3, fenceEnd).trim();
+				const firstNewline = promptText.indexOf('\n');
+				if (firstNewline !== -1) {
+					promptText = promptText.slice(firstNewline + 1).trim();
+				}
 				if (promptText !== '') {
 					cleanPrompt = `\n\n> 🤖 **Prompt:**\n> ${promptText.replaceAll(/\n/g, '\n> ')}`;
 				}
@@ -125,6 +129,33 @@ function cleanBody(body) {
 	}
 
 	return `${mainPart}${cleanPrompt}`;
+}
+
+/**
+ * Parse existing REVIEW.md and extract entries by threadId.
+ * Returns a map: threadId → full entry block (from ### heading to next ### or ##).
+ */
+function parseExistingReview(filePath) {
+	const entries = {};
+
+	if (!fs.existsSync(filePath)) {
+		return entries;
+	}
+
+	const content = fs.readFileSync(filePath, 'utf8');
+	// Split by ### headings, keeping the delimiter
+	const sections = content.split(/(?=^### #\d+)/m);
+
+	for (const section of sections) {
+		const threadMatch = section.match(/<!-- threadId: ([^\s]+) -->/);
+		if (!threadMatch) continue;
+
+		const threadId = threadMatch[1];
+		// Trim trailing whitespace but keep content intact
+		entries[threadId] = section.trimEnd();
+	}
+
+	return entries;
 }
 
 async function main() {
@@ -170,6 +201,13 @@ async function main() {
 
 		const outputPath = path.resolve(process.cwd(), 'docs/REVIEW.md');
 
+		// Parse existing REVIEW.md to preserve analysis
+		const existingEntries = parseExistingReview(outputPath);
+		const preservedCount = Object.keys(existingEntries).length;
+		if (preservedCount > 0) {
+			console.log(`Найдено ${preservedCount} существующих записей для сохранения.`);
+		}
+
 		if (threadsToProcess.length === 0) {
 			console.log('Нет комментариев для обработки.');
 			if (resolvedThreads.length > 0 && !includeResolved) {
@@ -189,8 +227,11 @@ async function main() {
 		markdown += `> [!NOTE]
 `;
 		markdown += `> Этот файл создан автоматически. Отмечайте выполненные пункты как [x].
+> Скрипт \`make review-resolve\` закроет на GitHub все треды, у которых главный чекбокс \`[x]\`.
 
 `;
+
+		let itemNumber = 0;
 
 		const threadsByFile = threadsToProcess.reduce((acc, thread) => {
 			const file = thread.path || 'Общие замечания';
@@ -206,20 +247,33 @@ async function main() {
 				const firstComment = thread.comments?.nodes?.[0];
 				if (!firstComment) continue;
 
-				const rawBody = firstComment.body;
-				const body = cleanBody(rawBody);
-				const line = thread.line || 'diff';
-				const url = firstComment.url;
+				itemNumber++;
 				const threadId = thread.id;
-				const status = thread.isResolved ? '✅ (RESOLVED)' : '⭕ (OPEN)';
 
-				markdown += `### 💬 Комментарий на строке ${line} ${status}\n`;
-				markdown += `<!-- threadId: ${threadId} -->\n`;
-				markdown += `- [ ] **Задача:** ${body}\n`;
-				markdown += `  - **Перевод:** [ждет вашего описания]\n`;
-				markdown += `  - **Оценка сложности (1-10):** [ ]\n`;
-				markdown += `  - **Стоит ли исправлять:** [ ] да / [ ] нет / [ ] обсудить\n`;
-				markdown += `  - [Посмотреть на GitHub](${url})\n\n`;
+				// Preserve existing entry if available
+				if (existingEntries[threadId]) {
+					const existing = existingEntries[threadId];
+					// Update number and status, keep everything else
+					const status = thread.isResolved ? '✅ (RESOLVED)' : '⭕ (OPEN)';
+					const updatedEntry = existing
+						.replace(/^### #\d+/, `### #${itemNumber}`)
+						.replace(/[⭕✅] \((?:OPEN|RESOLVED)\)/, status);
+					markdown += updatedEntry + '\n';
+				} else {
+					const rawBody = firstComment.body;
+					const body = cleanBody(rawBody);
+					const line = thread.line || 'diff';
+					const url = firstComment.url;
+					const status = thread.isResolved ? '✅ (RESOLVED)' : '⭕ (OPEN)';
+
+					markdown += `### #${itemNumber} 💬 Комментарий на строке ${line} ${status}\n`;
+					markdown += `<!-- threadId: ${threadId} -->\n`;
+					markdown += `- [ ] **Задача:** ${body}\n`;
+					markdown += `  - **Перевод:** [ждет вашего описания]\n`;
+					markdown += `  - **Оценка сложности (1-10):** [ ]\n`;
+					markdown += `  - **Стоит ли исправлять:** [ ] да / [ ] нет / [ ] обсудить\n`;
+					markdown += `  - [Посмотреть на GitHub](${url})\n\n`;
+				}
 			}
 		}
 
