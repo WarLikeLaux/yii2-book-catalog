@@ -131,10 +131,6 @@ function cleanBody(body) {
 	return `${mainPart}${cleanPrompt}`;
 }
 
-/**
- * Parse existing REVIEW.md and extract entries by threadId.
- * Returns a map: threadId → full entry block (from ### heading to next ### or ##).
- */
 function parseExistingReview(filePath) {
 	const entries = {};
 
@@ -143,7 +139,6 @@ function parseExistingReview(filePath) {
 	}
 
 	const content = fs.readFileSync(filePath, 'utf8');
-	// Split by ### headings, keeping the delimiter
 	const sections = content.split(/(?=^### #\d+)/m);
 
 	for (const section of sections) {
@@ -151,7 +146,6 @@ function parseExistingReview(filePath) {
 		if (!threadMatch) continue;
 
 		const threadId = threadMatch[1];
-		// Trim trailing whitespace but keep content intact
 		entries[threadId] = section.trimEnd();
 	}
 
@@ -200,8 +194,8 @@ async function main() {
 		const threadsToProcess = includeResolved ? threads : unresolvedThreads;
 
 		const outputPath = path.resolve(process.cwd(), 'docs/REVIEW.md');
+		fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
-		// Parse existing REVIEW.md to preserve analysis
 		const existingEntries = parseExistingReview(outputPath);
 		const preservedCount = Object.keys(existingEntries).length;
 		if (preservedCount > 0) {
