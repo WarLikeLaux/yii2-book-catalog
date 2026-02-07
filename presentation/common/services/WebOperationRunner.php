@@ -25,9 +25,6 @@ final readonly class WebOperationRunner
     }
 
     /**
-     * Выполняет вспомогательный шаг (маппинг, загрузку).
-     * Логирует ошибку и возвращает null, если что-то пошло не так.
-     *
      * @template T
      * @param callable(): T $operation
      * @param array<string, mixed> $logContext

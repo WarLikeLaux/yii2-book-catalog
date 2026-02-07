@@ -10,9 +10,6 @@ use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
-/**
- * Custom rule to convert single-line @var PHPDoc to multi-line format.
- */
 final class MultilineViewVarAnnotationRector extends AbstractRector
 {
     public function getRuleDefinition(): RuleDefinition
@@ -54,7 +51,6 @@ final class MultilineViewVarAnnotationRector extends AbstractRector
             return null;
         }
 
-        // Avoid infinite loops by comparing text
         $oldText = implode('', array_map(static fn($c) => $c->getText(), $comments));
         $newText = implode('', array_map(static fn($c) => $c->getText(), $newComments));
 
@@ -131,7 +127,6 @@ final class MultilineViewVarAnnotationRector extends AbstractRector
      */
     private function createCombinedDocBlock(array $lines): Doc
     {
-        // Добавляем \n в конце для отступа от кода
         $text = "/**\n * " . implode("\n * ", $lines) . "\n */\n";
         return new Doc($text);
     }
