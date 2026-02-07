@@ -38,8 +38,9 @@ routes:
     action: author/delete
     controller: AuthorController
     methods:
-      - GET
+      - POST
     guards:
+      - Idempotency
       - Auth
   -
     path: /author/search
@@ -80,8 +81,9 @@ routes:
     action: book/archive
     controller: BookController
     methods:
-      - GET
+      - POST
     guards:
+      - Idempotency
       - Auth
   -
     path: /book/create
@@ -98,32 +100,36 @@ routes:
     action: book/delete
     controller: BookController
     methods:
-      - GET
+      - POST
     guards:
+      - Idempotency
       - Auth
   -
     path: /book/publish
     action: book/publish
     controller: BookController
     methods:
-      - GET
+      - POST
     guards:
+      - Idempotency
       - Auth
   -
     path: /book/restore
     action: book/restore
     controller: BookController
     methods:
-      - GET
+      - POST
     guards:
+      - Idempotency
       - Auth
   -
     path: /book/unpublish
     action: book/unpublish
     controller: BookController
     methods:
-      - GET
+      - POST
     guards:
+      - Idempotency
       - Auth
   -
     path: /book/update
@@ -171,7 +177,7 @@ routes:
     action: site/logout
     controller: SiteController
     methods:
-      - GET
+      - POST
     guards:
       - Auth
   -
@@ -185,7 +191,6 @@ routes:
     action: subscription/subscribe
     controller: SubscriptionController
     methods:
-      - GET
       - POST
     guards:
       - Idempotency

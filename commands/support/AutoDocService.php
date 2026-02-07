@@ -307,7 +307,6 @@ final readonly class AutoDocService
 
     private function extractVerbMap(string $content): array
     {
-        $actions = [];
         $pos = strpos($content, 'VerbFilter::class');
 
         if ($pos === false) {
@@ -336,10 +335,25 @@ final readonly class AutoDocService
             return [];
         }
 
-        preg_match_all("/'([a-zA-Z0-9_-]+)'\s*=>\s*\[(.*?)]/s", $block, $actionMatches, PREG_SET_ORDER);
+        // Match string-literal keys: 'action' => ['method']
+        $actions = $this->parseVerbActions("/'([a-zA-Z0-9_-]+)'\s*=>\s*\[(.*?)]/s", $block, false);
 
-        foreach ($actionMatches as $match) {
-            $action = $match[1];
+        // Match enum expressions: ActionName::CASE->value => ['method']
+        $enumActions = $this->parseVerbActions('/\w+::(\w+)->value\s*=>\s*\[(.*?)]/s', $block, true);
+
+        return array_merge($actions, $enumActions);
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    private function parseVerbActions(string $pattern, string $block, bool $camelToId): array
+    {
+        $actions = [];
+        preg_match_all($pattern, $block, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            $action = $camelToId ? Inflector::camel2id($match[1]) : $match[1];
             preg_match_all("/'([a-zA-Z]+)'/", $match[2], $methodMatches);
             $methods = array_map('strtoupper', $methodMatches[1] ?? []);
 
