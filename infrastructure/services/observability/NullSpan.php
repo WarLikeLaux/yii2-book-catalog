@@ -8,7 +8,7 @@ use app\application\ports\SpanInterface;
 use Override;
 use Throwable;
 
-final class NullSpan implements SpanInterface
+final readonly class NullSpan implements SpanInterface
 {
     /**
      * @param non-empty-string $_key

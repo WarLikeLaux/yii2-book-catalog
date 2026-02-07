@@ -8,7 +8,7 @@ use app\application\ports\SpanInterface;
 use app\application\ports\TracerInterface;
 use Override;
 
-final class NullTracer implements TracerInterface
+final readonly class NullTracer implements TracerInterface
 {
     /**
      * @param non-empty-string $_name
