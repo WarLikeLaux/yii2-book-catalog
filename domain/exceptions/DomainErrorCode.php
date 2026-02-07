@@ -30,6 +30,12 @@ enum DomainErrorCode: string
     #[ErrorMapping(ErrorType::BusinessRule)]
     case BookPublishShortDescription = 'book.error.publish_short_description';
 
+    #[ErrorMapping(ErrorType::BusinessRule)]
+    case BookInvalidStatusTransition = 'book.error.invalid_status_transition';
+
+    #[ErrorMapping(ErrorType::BusinessRule)]
+    case BookPublishWithoutPolicy = 'book.error.publish_without_policy';
+
     #[ErrorMapping(ErrorType::OperationFailed)]
     case BookStaleData = 'book.error.stale_data';
 

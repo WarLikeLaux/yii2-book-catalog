@@ -9,6 +9,7 @@ use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
 use app\domain\services\BookPublicationPolicy;
+use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
@@ -45,7 +46,7 @@ final class Book implements IdentifiableEntityInterface
         public private(set) ?string $description,
         public private(set) ?StoredFileReference $coverImage,
         array $authorIds,
-        public private(set) bool $published,
+        public private(set) BookStatus $status,
         public private(set) int $version,
     ) {
         $this->title = $title;
@@ -67,7 +68,7 @@ final class Book implements IdentifiableEntityInterface
             description: $description,
             coverImage: $coverImage,
             authorIds: [],
-            published: false,
+            status: BookStatus::Draft,
             version: 1,
         );
     }
@@ -83,7 +84,7 @@ final class Book implements IdentifiableEntityInterface
         ?string $description,
         ?StoredFileReference $coverImage,
         array $authorIds,
-        bool $published,
+        BookStatus $status,
         int $version,
     ): self {
         return new self(
@@ -94,7 +95,7 @@ final class Book implements IdentifiableEntityInterface
             description: $description,
             coverImage: $coverImage,
             authorIds: $authorIds,
-            published: $published,
+            status: $status,
             version: $version,
         );
     }
@@ -120,7 +121,7 @@ final class Book implements IdentifiableEntityInterface
             return;
         }
 
-        if ($this->published) {
+        if ($this->status !== BookStatus::Draft) {
             throw new BusinessRuleException(DomainErrorCode::BookIsbnChangePublished);
         }
 
@@ -182,10 +183,21 @@ final class Book implements IdentifiableEntityInterface
     /**
      * @throws ValidationException|BusinessRuleException
      */
-    public function publish(BookPublicationPolicy $policy): void
+    public function transitionTo(BookStatus $target, ?BookPublicationPolicy $policy = null): void
     {
-        $policy->ensureCanPublish($this);
-        $this->published = true;
+        if (!$this->status->canTransitionTo($target)) {
+            throw new BusinessRuleException(DomainErrorCode::BookInvalidStatusTransition);
+        }
+
+        if ($this->status === BookStatus::Draft && $target === BookStatus::Published) {
+            if (!$policy instanceof BookPublicationPolicy) {
+                throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutPolicy);
+            }
+
+            $policy->ensureCanPublish($this);
+        }
+
+        $this->status = $target;
     }
 
     /**
