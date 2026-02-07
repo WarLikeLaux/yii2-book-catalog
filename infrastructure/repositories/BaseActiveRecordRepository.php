@@ -14,6 +14,7 @@ use app\infrastructure\persistence\DatabaseErrorCode;
 use RuntimeException;
 use WeakMap;
 use yii\db\ActiveRecord;
+use yii\db\Connection;
 use yii\db\IntegrityException;
 use yii\db\StaleObjectException;
 
@@ -158,5 +159,51 @@ abstract readonly class BaseActiveRecordRepository
                 break;
             }
         }
+    }
+
+    /**
+     * @param int[] $currentIds
+     */
+    protected function syncManyToMany(
+        Connection $db,
+        string $table,
+        string $ownerColumn,
+        string $relatedColumn,
+        int $ownerId,
+        array $currentIds,
+    ): void {
+        $storedIds = array_map(
+            intval(...),
+            $db->createCommand(
+                "SELECT {$relatedColumn} FROM {$table} WHERE {$ownerColumn} = :ownerId",
+            )->bindValue(':ownerId', $ownerId)->queryColumn(),
+        );
+
+        $toDelete = array_values(array_diff($storedIds, $currentIds));
+        $toAdd = array_values(array_diff($currentIds, $storedIds));
+        sort($toDelete);
+        sort($toAdd);
+
+        if ($toDelete !== []) {
+            $db->createCommand()->delete($table, [
+                'and',
+                [$ownerColumn => $ownerId],
+                ['in', $relatedColumn, $toDelete],
+            ])->execute();
+        }
+
+        if ($toAdd === []) {
+            return;
+        }
+
+        $rows = array_map(
+            static fn(int $relatedId): array => [$ownerId, $relatedId],
+            $toAdd,
+        );
+        $db->createCommand()->batchInsert(
+            $table,
+            [$ownerColumn, $relatedColumn],
+            $rows,
+        )->execute();
     }
 }

@@ -158,51 +158,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             return;
         }
 
-        $storedAuthorIds = $this->getStoredAuthorIds($bookId);
-        $currentAuthorIds = $book->authorIds;
-
-        $toDelete = array_values(array_diff($storedAuthorIds, $currentAuthorIds));
-        $toAdd = array_values(array_diff($currentAuthorIds, $storedAuthorIds));
-        sort($toDelete);
-        sort($toAdd);
-
-        if ($toDelete !== []) {
-            $this->db->createCommand()->delete('book_authors', [
-                'and',
-                ['book_id' => $bookId],
-                ['in', 'author_id', $toDelete],
-            ])->execute();
-        }
-
-        if ($toAdd === []) {
-            $this->updateAuthorSnapshot($book);
-
-            return;
-        }
-
-        $rows = array_map(
-            static fn(int $authorId): array => [$bookId, $authorId],
-            $toAdd,
-        );
-        $this->db->createCommand()->batchInsert(
-            'book_authors',
-            ['book_id', 'author_id'],
-            $rows,
-        )->execute();
-
+        $this->syncManyToMany($this->db, 'book_authors', 'book_id', 'author_id', $bookId, $book->authorIds);
         $this->updateAuthorSnapshot($book);
-    }
-
-    /**
-     * @return int[]
-     */
-    private function getStoredAuthorIds(int $bookId): array
-    {
-        $ids = $this->db->createCommand(
-            'SELECT author_id FROM book_authors WHERE book_id = :bookId',
-        )->bindValue(':bookId', $bookId)->queryColumn();
-
-        return array_map(intval(...), $ids);
     }
 
     private function hasAuthorsChanged(BookEntity $book): bool
