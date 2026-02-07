@@ -152,6 +152,37 @@ final class BookTest extends Unit
         $this->assertSame([1, 2, 3], $book->authorIds);
     }
 
+    public function testReplaceAuthorsWithEmptyArrayOnDraftBookSucceeds(): void
+    {
+        $book = $this->createBookWithAuthors(1, 2);
+        $book->replaceAuthors([]);
+
+        $this->assertSame([], $book->authorIds);
+    }
+
+    public function testReplaceAuthorsWithEmptyArrayOnPublishedBookThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_authors');
+
+        $book->replaceAuthors([]);
+    }
+
+    public function testReplaceAuthorsWithEmptyArrayOnArchivedBookThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_authors');
+
+        $book->replaceAuthors([]);
+    }
+
     public function testIncrementVersion(): void
     {
         $book = Book::reconstitute(

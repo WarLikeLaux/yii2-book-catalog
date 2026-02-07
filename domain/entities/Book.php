@@ -173,6 +173,10 @@ final class Book implements IdentifiableEntityInterface
      */
     public function replaceAuthors(array $authorIds): void
     {
+        if ($authorIds === [] && $this->status !== BookStatus::Draft) {
+            throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutAuthors);
+        }
+
         $this->authorIds = [];
 
         foreach ($authorIds as $authorId) {
