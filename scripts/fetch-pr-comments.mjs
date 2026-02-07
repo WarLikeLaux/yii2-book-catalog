@@ -7,17 +7,20 @@ import { execSync } from 'child_process';
 
 const envPath = path.resolve(process.cwd(), '.env');
 const env = { ...process.env };
-
 if (fs.existsSync(envPath)) {
-	const content = fs.readFileSync(envPath, 'utf8');
-	content.split('\n').forEach(line => {
-		const trimmed = line.trim();
-		if (!trimmed || trimmed.startsWith('#') || !trimmed.includes('=')) return;
-		const parts = trimmed.split('=');
-		const key = parts[0].trim();
-		const value = parts.slice(1).join('=').trim();
-		if (key) env[key] = value;
-	});
+  fs.readFileSync(envPath, "utf8")
+    .split("\n")
+    .filter(line => line.trim() && !line.startsWith("#"))
+    .forEach((line) => {
+      const [key, ...valueParts] = line.split("=");
+      if (key && valueParts.length > 0) {
+        let value = valueParts.join("=").trim();
+        if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
+        }
+        env[key.trim()] = value;
+      }
+    });
 }
 
 const token = env.GITHUB_TOKEN;
@@ -31,12 +34,9 @@ if (!token || !pullNumber || Number.isNaN(pullNumber)) {
 let owner, repo;
 
 try {
-	const remoteUrl = execSync('/usr/bin/git remote get-url origin', {
+	const remoteUrl = execSync('git remote get-url origin', {
 		encoding: 'utf8',
-		env: {
-			...process.env,
-			PATH: '/usr/bin:/bin',
-		},
+		env: process.env,
 	}).trim();
 	const repoMatch = remoteUrl.match(/github\.com[:/]([^/]+)\/([^/.]+?)(?:\.git)?$/);
 	if (!repoMatch) throw new Error('Не удалось разобрать URL репозитория');
@@ -85,7 +85,7 @@ async function fetchGraphQL(query, variables) {
 	});
 
 	const data = await response.json();
-	if (!response.ok || data.errors) {
+	if (!response.ok || (data.errors && data.errors.length > 0)) {
 		const errorMsg = data.errors ? data.errors[0].message : response.statusText;
 		throw new Error(`Ошибка GraphQL API: ${errorMsg}`);
 	}
@@ -232,6 +232,12 @@ async function main() {
 		console.error(`\nОшибка при выполнении: ${error.message}`);
 		process.exit(1);
 	}
+}
+
+const NODE_MAJOR = parseInt(process.versions.node.split('.')[0], 10);
+if (NODE_MAJOR < 18) {
+	console.error('❌ Ошибка: Требуется Node.js версии 18 или выше для работы глобального fetch().');
+	process.exit(1);
 }
 
 main();

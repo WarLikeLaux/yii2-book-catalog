@@ -5,17 +5,20 @@ import path from 'path';
 
 const envPath = path.resolve(process.cwd(), '.env');
 const env = { ...process.env };
-
 if (fs.existsSync(envPath)) {
-	const content = fs.readFileSync(envPath, 'utf8');
-	content.split('\n').forEach(line => {
-		const trimmed = line.trim();
-		if (!trimmed || trimmed.startsWith('#') || !trimmed.includes('=')) return;
-		const parts = trimmed.split('=');
-		const key = parts[0].trim();
-		const value = parts.slice(1).join('=').trim();
-		if (key) env[key] = value;
-	});
+  fs.readFileSync(envPath, "utf8")
+    .split("\n")
+    .filter(line => line.trim() && !line.startsWith("#"))
+    .forEach((line) => {
+      const [key, ...valueParts] = line.split("=");
+      if (key && valueParts.length > 0) {
+        let value = valueParts.join("=").trim();
+        if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
+        }
+        env[key.trim()] = value;
+      }
+    });
 }
 
 const token = env.GITHUB_TOKEN;
@@ -46,13 +49,14 @@ async function resolveThread(threadId) {
 		body: JSON.stringify({ query: resolveMutation, variables: { threadId } }),
 	});
 
-	const data = await response.json();
-	if (!response.ok || data.errors) {
-		const errorMsg = data.errors ? data.errors[0].message : response.statusText;
-		throw new Error(`Ошибка при закрытии треда: ${errorMsg}`);
-	}
-
-	return data.data.resolveReviewThread.thread;
+	    const data = await response.json();
+    if (data.errors) {
+      return { isResolved: false, message: data.errors[0]?.message || "GraphQL error" };
+    }
+    if (!data.data?.resolveReviewThread?.thread) {
+      return { isResolved: false, message: "Failed to resolve thread: missing data in response" };
+    }
+    return { isResolved: true, thread: data.data.resolveReviewThread.thread };
 }
 
 async function main() {
@@ -103,11 +107,14 @@ async function main() {
 	for (const match of matches) {
 		const threadId = match[1];
 		try {
-			const result = await resolveThread(threadId);
-			if (result.isResolved) {
-				console.log(`✅ Закрыт тред: ${threadId}`);
-				resolved++;
-			}
+      const result = await resolveThread(threadId);
+      if (result.isResolved) {
+        console.log(`✅ Тред ${threadId} закрыт.`);
+        resolved++;
+      } else {
+        console.error(`❌ Ошибка закрытия треда ${threadId}: ${result.message}`);
+        failed++;
+      }
 		} catch (error) {
 			console.error(`❌ Ошибка для ${threadId}: ${error.message}`);
 			failed++;
