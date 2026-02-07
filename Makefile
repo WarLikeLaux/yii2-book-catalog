@@ -52,8 +52,8 @@ help:
 	@echo "  pr               🚀 Полная проверка (check + e2e + infection)"
 	@echo ""
 	@echo "💻 РАЗРАБОТКА:"
-	@echo "  dev              🛠️  Полный цикл (Prettier + CS Fixer + Rector + PHPStan)"
-	@echo "  dev [FILE]       🔍 Быстрая проверка файла (только CS Fixer)"
+	@echo "  dev              🛠️  Полный цикл (PHPCS Fixer + Rector)"
+	@echo "  dev [FILE]       🔍 Быстрая проверка файла (только PHPCS Fixer)"
 	@echo "  comments         📝 Показать TODO и заметки"
 	@echo "  tree             🌳 Показать структуру проекта"
 	@echo ""
@@ -274,7 +274,7 @@ test-full:
 		exit 1; \
 	fi; \
 	$(MAKE) _test-init; \
-	echo "🚀 Запуск всех тестов (unit + integration + e2e) с генерацией отчетов..."; \
+	echo "🚀 Запуск всех тестов (unit + integration) с генерацией coverage..."; \
 	$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app -d pcov.exclude="~/(vendor|tests|runtime|web/assets)/~" ./vendor/bin/codecept run integration,unit \
 		--ext DotReporter \
 		--skip-group migration \
