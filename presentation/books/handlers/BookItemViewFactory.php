@@ -39,10 +39,12 @@ final readonly class BookItemViewFactory
 
     public function getUpdateViewModel(int $id, BookForm|null $form = null): BookEditViewModel
     {
+        $dto = $this->getBookById($id);
+
         return new BookEditViewModel(
-            $form ?? $this->getBookForUpdate($id),
+            $form ?? $this->populateFormFromDto($dto),
             $this->getAuthorsList(),
-            $this->viewModelMapper->map($this->getBookView($id)),
+            $this->viewModelMapper->map($this->urlResolver->resolveUrl($dto)),
         );
     }
 
@@ -55,7 +57,11 @@ final readonly class BookItemViewFactory
 
     public function getBookForUpdate(int $id): BookForm
     {
-        $dto = $this->getBookById($id);
+        return $this->populateFormFromDto($this->getBookById($id));
+    }
+
+    private function populateFormFromDto(BookReadDto $dto): BookForm
+    {
         $form = new BookForm();
         $form->id = $dto->id;
         $form->title = $dto->title;

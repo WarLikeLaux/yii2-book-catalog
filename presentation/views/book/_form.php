@@ -13,7 +13,7 @@ use yii\web\JsExpression;
  * @var yii\web\View $this
  * @var app\presentation\books\forms\BookForm $model
  * @var array $authors
- * @var yii\bootstrap5\ActiveForm $form
+ * @var app\presentation\components\ActiveForm $form
  */
 
 ?>

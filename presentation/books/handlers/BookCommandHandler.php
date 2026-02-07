@@ -50,12 +50,14 @@ final readonly class BookCommandHandler
 
         $command = $this->commandMapper->toCreateCommand($form, $cover);
 
-        /** @var int */
-        return $this->operationRunner->executeAndPropagate(
+        $result = $this->operationRunner->executeAndPropagate(
             $command,
             $this->createBookUseCase,
             Yii::t('app', 'book.success.created'),
         );
+        assert(is_int($result));
+
+        return $result;
     }
 
     public function updateBook(int $id, BookForm $form): void

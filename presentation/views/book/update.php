@@ -11,7 +11,11 @@ use yii\helpers\Html;
 
 $this->title = Yii::t('app', 'ui.book_update');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.books'), 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $viewModel->book->title, 'url' => ['view', 'id' => $viewModel->book->id]];
+
+if ($viewModel->book !== null) {
+    $this->params['breadcrumbs'][] = ['label' => $viewModel->book->title, 'url' => ['view', 'id' => $viewModel->book->id]];
+}
+
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 

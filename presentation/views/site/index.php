@@ -88,10 +88,9 @@ function showToast(message, bgClass) {
     body.textContent = message;
     bootstrap.Toast.getOrCreateInstance(toast).show();
 }
-if (typeof htmx !== 'undefined' && htmx.config) {
-    htmx.config.headers = htmx.config.headers || {};
-    htmx.config.headers['X-Requested-With'] = 'XMLHttpRequest';
-}
+document.body.addEventListener('htmx:configRequest', function(evt) {
+    evt.detail.headers['X-Requested-With'] = 'XMLHttpRequest';
+});
 document.addEventListener('click', function(e) {
     let link = e.target.closest('.sub-link');
     if (!link) return;
@@ -109,6 +108,7 @@ $(document).on('beforeSubmit', '#subscription-form', function(e) {
         url: form.attr('action'),
         type: 'POST',
         data: form.serialize(),
+        dataType: 'json',
         success: function(data) {
             if (data.success) {
                 showToast(data.message, 'text-bg-success');

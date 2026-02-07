@@ -21,6 +21,7 @@ final class ErrorSummaryWidget extends Widget
      * @var array<string, mixed>
      */
     public array $options = [];
+    public bool $showAllErrors = true;
 
     public function run(): string
     {
@@ -113,7 +114,7 @@ final class ErrorSummaryWidget extends Widget
         $lines = [];
 
         foreach ($models as $model) {
-            $lines = array_unique(array_merge($lines, $model->getErrorSummary(true)));
+            $lines = array_unique(array_merge($lines, $model->getErrorSummary($this->showAllErrors)));
         }
 
         $lines = array_values($lines);
