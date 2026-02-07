@@ -98,7 +98,7 @@ routes:
     action: book/publish
     controller: BookController
     methods:
-      - GET
+      - POST
     guards:
       - Auth
   -
@@ -161,7 +161,6 @@ routes:
     action: subscription/subscribe
     controller: SubscriptionController
     methods:
-      - GET
       - POST
     guards:
       - Idempotency

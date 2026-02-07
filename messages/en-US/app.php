@@ -81,7 +81,7 @@ return [
     'book.error.publish_short_description' => 'Book description must be at least 50 characters to publish',
     'book.error.isbn_change_published' => 'Cannot change ISBN of published book',
     'book.error.stale_data' => 'Book data is stale. Please refresh the page.',
-    'book.error.authors_not_found' => 'Author does not exist',
+    'book.error.authors_not_found' => 'One or more authors do not exist',
     'book.error.invalid_author_id' => 'Invalid author ID',
     'subscription.error.already_subscribed' => 'You are already subscribed to this author',
     'subscription.error.create_failed' => 'Could not create subscription. Please try again later.',
@@ -133,4 +133,7 @@ return [
     'ui.report_show' => 'Show',
     'ui.report_no_data' => 'No book data for {year}. Try generating data with <code>php yii seed</code>.',
     'ui.report_books_count' => 'Books Published',
+    'ui.username' => 'Username',
+    'ui.password' => 'Password',
+    'ui.remember_me' => 'Remember Me',
 ];
