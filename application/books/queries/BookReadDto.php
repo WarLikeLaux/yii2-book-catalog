@@ -21,9 +21,14 @@ final readonly class BookReadDto implements JsonSerializable
         public array $authorIds,
         public array $authorNames = [],
         public string|null $coverUrl = null,
-        public bool $isPublished = false,
+        public string $status = 'draft',
         public int $version = 1,
     ) {
+    }
+
+    public function getIsPublished(): bool
+    {
+        return $this->status === 'published';
     }
 
     public function getFullTitle(): string
@@ -42,7 +47,7 @@ final readonly class BookReadDto implements JsonSerializable
             $this->authorIds,
             $this->authorNames,
             $coverUrl,
-            $this->isPublished,
+            $this->status,
             $this->version,
         );
     }
@@ -59,7 +64,8 @@ final readonly class BookReadDto implements JsonSerializable
             'authorIds' => $this->authorIds,
             'authorNames' => $this->authorNames,
             'coverUrl' => $this->coverUrl,
-            'isPublished' => $this->isPublished,
+            'isPublished' => $this->getIsPublished(),
+            'status' => $this->status,
             'version' => $this->version,
         ];
     }

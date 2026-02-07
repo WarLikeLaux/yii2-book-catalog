@@ -56,7 +56,6 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
 
         $book = $this->bookRepository->getByIdAndVersion($command->id, $command->version);
         $oldYear = $book->year->value;
-        $isPublished = $book->published;
 
         $book->rename($command->title);
         $book->changeYear(new BookYear($command->year, $currentYear));
@@ -72,7 +71,7 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
         $this->bookRepository->save($book);
 
         $this->eventPublisher->publishAfterCommit(
-            new BookUpdatedEvent($command->id, $oldYear, $command->year, $isPublished),
+            new BookUpdatedEvent($command->id, $oldYear, $command->year, $book->status),
         );
 
         return true;

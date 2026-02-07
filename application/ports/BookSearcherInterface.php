@@ -10,6 +10,8 @@ interface BookSearcherInterface
 {
     public function search(string $term, int $page, int $limit): PagedResultInterface;
 
+    public function searchPublished(string $term, int $page, int $limit): PagedResultInterface;
+
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
