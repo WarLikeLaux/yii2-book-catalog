@@ -78,7 +78,7 @@ final class CreateBookUseCaseCest
         $I->assertEquals(0, $jobCount, 'No job should be published on book creation (draft)');
 
         $book = Book::findOne($bookId);
-        $I->assertEquals(0, $book->is_published, 'Book should be unpublished (draft)');
+        $I->assertSame('draft', $book->status, 'Book should be draft');
     }
 
     public function testValidatesUniqueIsbn(IntegrationTester $I): void

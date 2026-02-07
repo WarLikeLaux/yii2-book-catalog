@@ -46,7 +46,7 @@ final class BookListViewFactoryTest extends Unit
 
     public function testGetListViewModelReturnsModel(): void
     {
-        $dto = new BookReadDto(1, 'T', 2020, null, 'ISBN', [], [], null, false, 1);
+        $dto = new BookReadDto(1, 'T', 2020, null, 'ISBN', [], [], null, 'draft', 1);
         $queryResult = new QueryResult([$dto], 1, new PaginationDto(1, 20, 1, 1));
         $dataProvider = $this->createMock(DataProviderInterface::class);
 

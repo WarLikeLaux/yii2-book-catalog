@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\books\handlers;
 
+use app\application\books\commands\ChangeBookStatusCommand;
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\DeleteBookCommand;
-use app\application\books\commands\PublishBookCommand;
 use app\application\books\commands\UpdateBookCommand;
+use app\application\books\usecases\ChangeBookStatusUseCase;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
-use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\dto\UploadedFilePayload;
 use app\application\common\exceptions\ApplicationException;
@@ -32,7 +32,7 @@ final class BookCommandHandlerTest extends Unit
     private CreateBookUseCase&MockObject $createBookUseCase;
     private UpdateBookUseCase&MockObject $updateBookUseCase;
     private DeleteBookUseCase&MockObject $deleteBookUseCase;
-    private PublishBookUseCase&MockObject $publishBookUseCase;
+    private ChangeBookStatusUseCase&MockObject $changeBookStatusUseCase;
     private WebOperationRunner&MockObject $operationRunner;
     private UploadedFileStorage&MockObject $uploadedFileStorage;
     private UploadedFileAdapter&MockObject $uploadedFileAdapter;
@@ -44,7 +44,7 @@ final class BookCommandHandlerTest extends Unit
         $this->createBookUseCase = $this->createMock(CreateBookUseCase::class);
         $this->updateBookUseCase = $this->createMock(UpdateBookUseCase::class);
         $this->deleteBookUseCase = $this->createMock(DeleteBookUseCase::class);
-        $this->publishBookUseCase = $this->createMock(PublishBookUseCase::class);
+        $this->changeBookStatusUseCase = $this->createMock(ChangeBookStatusUseCase::class);
         $this->operationRunner = $this->createMock(WebOperationRunner::class);
         $this->uploadedFileStorage = $this->createMock(UploadedFileStorage::class);
         $this->uploadedFileAdapter = $this->createMock(UploadedFileAdapter::class);
@@ -54,7 +54,7 @@ final class BookCommandHandlerTest extends Unit
             $this->createBookUseCase,
             $this->updateBookUseCase,
             $this->deleteBookUseCase,
-            $this->publishBookUseCase,
+            $this->changeBookStatusUseCase,
             $this->operationRunner,
             $this->uploadedFileStorage,
             $this->uploadedFileAdapter,
@@ -241,20 +241,20 @@ final class BookCommandHandlerTest extends Unit
         $this->handler->createBook($form);
     }
 
-    public function testPublishBookExecutesUseCase(): void
+    public function testChangeBookStatusExecutesUseCase(): void
     {
         $bookId = 123;
 
         $this->operationRunner->expects($this->once())
             ->method('executeAndPropagate')
             ->with(
-                $this->isInstanceOf(PublishBookCommand::class),
-                $this->isInstanceOf(PublishBookUseCase::class),
+                $this->isInstanceOf(ChangeBookStatusCommand::class),
+                $this->isInstanceOf(ChangeBookStatusUseCase::class),
                 $this->anything(),
             )
             ->willReturn(true);
 
-        $this->handler->publishBook($bookId);
+        $this->handler->changeBookStatus($bookId, 'published', 'Published!');
     }
 
     public function testDeleteBookExecutesUseCase(): void

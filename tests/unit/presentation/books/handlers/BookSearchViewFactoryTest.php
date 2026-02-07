@@ -59,7 +59,7 @@ final class BookSearchViewFactoryTest extends Unit
             ->method('create')
             ->willReturn(new ArrayDataProvider(['allModels' => []]));
 
-        $this->bookQueryService->expects($this->never())->method('search');
+        $this->bookQueryService->expects($this->never())->method('searchPublished');
 
         $result = $this->viewFactory->prepareIndexViewModel($request);
 
@@ -98,7 +98,7 @@ final class BookSearchViewFactoryTest extends Unit
         $pagedResult->method('getPagination')->willReturn(new PaginationDto(1, 9, 1, 1));
 
         $this->bookQueryService->expects($this->once())
-            ->method('search')
+            ->method('searchPublished')
             ->with('query', 1, 9)
             ->willReturn($pagedResult);
 

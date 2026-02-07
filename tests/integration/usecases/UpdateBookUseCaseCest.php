@@ -15,6 +15,8 @@ final class UpdateBookUseCaseCest
 {
     public function _before(IntegrationTester $I): void
     {
+        DbCleaner::clear(['book_authors', 'books', 'authors']);
+        Yii::$container->clear(UpdateBookUseCase::class);
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 

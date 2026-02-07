@@ -22,7 +22,7 @@ final class BookDtoUrlResolverTest extends Unit
 
     public function testResolveUrlReturnsDtoWithResolvedCover(): void
     {
-        $dto = new BookReadDto(1, 'Title', 2020, null, 'ISBN', [], [], 'cover.jpg', false, 1);
+        $dto = new BookReadDto(1, 'Title', 2020, null, 'ISBN', [], [], 'cover.jpg', 'draft', 1);
 
         $result = $this->resolver->resolveUrl($dto);
 
@@ -31,7 +31,7 @@ final class BookDtoUrlResolverTest extends Unit
 
     public function testResolveUrlReturnsPlaceholderWhenEmpty(): void
     {
-        $dto = new BookReadDto(1, 'Title', 2020, null, 'ISBN', [], [], null, false, 1);
+        $dto = new BookReadDto(1, 'Title', 2020, null, 'ISBN', [], [], null, 'draft', 1);
 
         $result = $this->resolver->resolveUrl($dto);
 

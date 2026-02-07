@@ -68,7 +68,7 @@ final class BookItemViewFactoryTest extends Unit
             [],
             [],
             null,
-            false,
+            'draft',
             1,
         );
 

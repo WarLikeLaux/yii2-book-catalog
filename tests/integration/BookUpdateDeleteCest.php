@@ -118,7 +118,7 @@ final class BookCrudCest
                     '978-3-16-148410-0',
                     [],
                     null,
-                    false,
+                    'draft',
                 ),
             ),
         ]);
