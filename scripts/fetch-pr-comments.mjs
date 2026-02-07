@@ -97,7 +97,7 @@ function cleanBody(body) {
 	if (!body.includes('CodeRabbit')) return body.trim();
 
 	let mainPart = body.split(/<details|---|<!--/)[0].trim();
-	mainPart = mainPart.replace(/_⚠️ Potential issue_\s*\|?\s*_[^_]*_\s*/g, '').trim();
+	mainPart = mainPart.replace(/_⚠️ Potential issue_[\s|]*_[^_]*_\s*/g, '').trim();
 
 	if (mainPart.length > 0) {
 		const firstChar = mainPart[0];
