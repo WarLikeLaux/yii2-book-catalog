@@ -73,7 +73,7 @@ final readonly class ReportCacheInvalidationListener implements EventListenerInt
             return;
         }
 
-        $this->cache->delete(sprintf(self::CACHE_KEY_FORMAT, (int)date('Y')));
+        $this->invalidateYear($event->year);
     }
 
     private function invalidateYear(int $year): void

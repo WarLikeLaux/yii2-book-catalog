@@ -14,6 +14,7 @@ final readonly class BookStatusChangedEvent implements QueueableEvent
         public int $bookId,
         public BookStatus $oldStatus,
         public BookStatus $newStatus,
+        public int $year,
     ) {
     }
 
@@ -31,6 +32,7 @@ final readonly class BookStatusChangedEvent implements QueueableEvent
             'bookId' => $this->bookId,
             'oldStatus' => $this->oldStatus->value,
             'newStatus' => $this->newStatus->value,
+            'year' => $this->year,
         ];
     }
 }

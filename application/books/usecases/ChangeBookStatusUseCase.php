@@ -42,7 +42,7 @@ final readonly class ChangeBookStatusUseCase implements UseCaseInterface
         $this->bookRepository->save($book);
 
         $this->eventPublisher->publishAfterCommit(
-            new BookStatusChangedEvent($command->bookId, $oldStatus, $targetStatus),
+            new BookStatusChangedEvent($command->bookId, $oldStatus, $targetStatus, $book->year->value),
         );
 
         return true;
