@@ -15,7 +15,7 @@ use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookItemViewFactory;
 use Codeception\Stub;
 
-final class BookCrudCest
+final class BookUpdateDeleteCest
 {
     private const ROUTE_BOOK_UPDATE = 'book/update';
     public function _before(IntegrationTester $I): void
