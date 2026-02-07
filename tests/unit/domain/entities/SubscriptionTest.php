@@ -19,9 +19,9 @@ final class SubscriptionTest extends Unit
         $this->assertSame(10, $subscription->authorId);
     }
 
-    public function testConstructor(): void
+    public function testReconstitute(): void
     {
-        $subscription = new Subscription(5, '79008889900', 5);
+        $subscription = Subscription::reconstitute(5, '79008889900', 5);
         $this->assertSame(5, $subscription->id);
         $this->assertSame(5, $subscription->getId());
         $this->assertSame('79008889900', $subscription->phone);
