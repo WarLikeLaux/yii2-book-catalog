@@ -12,9 +12,9 @@ use app\domain\entities\Subscription;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\OperationFailedException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use RuntimeException;
 
 final class SubscribeUseCaseTest extends Unit
 {
@@ -60,15 +60,15 @@ final class SubscribeUseCaseTest extends Unit
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsOperationFailedExceptionOnRepositoryError(): void
+    public function testExecuteThrowsRuntimeExceptionOnRepositoryError(): void
     {
         $command = new SubscribeCommand('79001112233', 1);
 
         $this->queryService->method('exists')->willReturn(false);
-        $this->repository->method('save')->willThrowException(new \RuntimeException('DB Error'));
+        $this->repository->method('save')->willThrowException(new RuntimeException('DB Error'));
 
-        $this->expectException(OperationFailedException::class);
-        $this->expectExceptionMessage('subscription.error.create_failed');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('DB Error');
 
         $this->useCase->execute($command);
     }
