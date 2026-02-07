@@ -106,11 +106,11 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
                     <div class="mb-3">
                         <?= Html::a('Yii 2 Book Catalog', Yii::$app->homeUrl, ['class' => 'fw-bold text-white text-decoration-none h5 footer-brand']) ?>
                         <div class="text-white-50 small mt-1">
-                            <?= Yii::t('app', 'ui.footer_subtitle') ?>
+                            <?= Html::decode(Yii::t('app', 'ui.footer_subtitle')) ?>
                         </div>
                     </div>
                     <p class="text-white-50 small mb-0 footer-desc">
-                        <?= Yii::t('app', 'ui.footer_description') ?>
+                        <?= Html::decode(Yii::t('app', 'ui.footer_description')) ?>
                     </p>
                 </div>
                 <div class="col-md-6">

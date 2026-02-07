@@ -51,7 +51,10 @@ $this->params['breadcrumbs'][] = $this->title;
             <?php ActiveForm::end(); ?>
 
             <div class="text-hint">
-                <?= Yii::t('app', 'ui.login_demo_hint') ?>
+                <?= Html::decode(Yii::t('app', 'ui.login_demo_hint', [
+                    'admin' => YII_ENV_DEV ? '<strong>admin/admin</strong>' : 'admin',
+                    'demo' => YII_ENV_DEV ? '<strong>demo/demo</strong>' : 'demo',
+                ])) ?>
             </div>
 
         </div>

@@ -43,7 +43,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             'isbn',
             [
-                'attribute' => 'authors',
+                'attribute' => 'authorNames',
                 'label' => Yii::t('app', 'ui.authors'),
                 'value' => static fn (BookViewModel $model): string => implode(', ', $model->authorNames),
             ],
