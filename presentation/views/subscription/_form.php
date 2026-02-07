@@ -23,7 +23,7 @@ $form = ActiveForm::begin([
 <?= $form->errorSummary($viewModel->form) ?>
 
 <div class="form-group">
-    <label>Подписка на автора: <strong><?= Html::encode($viewModel->author->fio) ?></strong></label>
+    <span class="form-label">Подписка на автора: <strong><?= Html::encode($viewModel->author->fio) ?></strong></span>
 </div>
 
 <?= $form->field($viewModel->form, 'phone')->textInput(['placeholder' => '+79001234567']) ?>

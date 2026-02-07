@@ -68,7 +68,7 @@ use yii\web\JsExpression;
 
 <?php if (isset($book) && $book->coverUrl): ?>
     <div class="form-group">
-        <label><?= Yii::t('app', 'ui.current_cover') ?></label><br>
+        <span class="form-label"><?= Yii::t('app', 'ui.current_cover') ?></span><br>
         <?= Html::img($book->coverUrl, ['alt' => $book->title, 'style' => 'max-width: 200px;']) ?>
     </div>
 <?php endif; ?>
