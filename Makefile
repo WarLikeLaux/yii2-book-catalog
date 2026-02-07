@@ -206,7 +206,7 @@ dev:
 	else \
 		$(MAKE) _dev_file; \
 	fi
-_dev_full: lint-fix rector-fix
+_dev_full: lint-fix rector-fix comments
 _dev_file:
 	@echo "🔍 Проверяем: $(FILE_ARG)"
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf $(FILE_ARG) || true

@@ -3,65 +3,79 @@
 
 declare(strict_types=1);
 
-/**
- * Утилита для поиска и красивого вывода комментариев.
- */
-
-final class CommentLister
+final class CommentLinter
 {
     private const array EXCLUDE_DIRS = [
         'vendor',
         'tests',
         'runtime',
-        'web/assets',
+        'web',
+        'node_modules',
+        'config',
+        'docs',
         '.git',
         '.idea',
         'db-data',
         'db-data-pgsql',
     ];
-
+    private const array EXCLUDE_FILES = ['phparkitect.php'];
+    private const array SUPPORTED_EXTENSIONS = ['php', 'js', 'mjs'];
     private const string C_RESET = "\033[0m";
     private const string C_RED = "\033[31m";
     private const string C_GREEN = "\033[32m";
-    private const string C_YELLOW = "\033[33m";
     private const string C_BLUE = "\033[34m";
     private const string C_CYAN = "\033[36m";
     private const string C_GRAY = "\033[90m";
     private const string C_BOLD = "\033[1m";
 
-    private array $todos = [];
-    private array $ignores = [];
+    /** @var list<array{file: string, line: int, text: string}> */
+    private array $violations = [];
+    /** @var list<array{file: string, line: int, text: string}> */
     private array $notes = [];
+    /** @var list<array{file: string, line: int, text: string}> */
+    private array $ignores = [];
 
     public function __construct(
-        private readonly string $rootPath
+        private readonly string $rootPath,
+        private readonly bool $showNotes,
+        private readonly bool $showIgnores,
     ) {
     }
 
-    public function run(): void
+    public function run(): int
     {
         $iterator = new RecursiveIteratorIterator(
             new RecursiveCallbackFilterIterator(
                 new RecursiveDirectoryIterator($this->rootPath, RecursiveDirectoryIterator::SKIP_DOTS),
-                function (SplFileInfo $current): bool {
+                static function (SplFileInfo $current): bool {
                     if ($current->isDir()) {
                         return !in_array($current->getFilename(), self::EXCLUDE_DIRS, true);
                     }
-                    return $current->getExtension() === 'php';
-                }
-            )
+
+                    if (in_array($current->getFilename(), self::EXCLUDE_FILES, true)) {
+                        return false;
+                    }
+
+                    return in_array($current->getExtension(), self::SUPPORTED_EXTENSIONS, true);
+                },
+            ),
         );
 
         foreach ($iterator as $file) {
-            $this->processFile($file);
+            if ($file->getExtension() === 'php') {
+                $this->processPhpFile($file);
+            } else {
+                $this->processJsFile($file);
+            }
         }
 
-        $this->renderOutput();
+        return $this->renderOutput();
     }
 
-    private function processFile(SplFileInfo $file): void
+    private function processPhpFile(SplFileInfo $file): void
     {
         $content = file_get_contents($file->getPathname());
+
         if ($content === false) {
             return;
         }
@@ -72,18 +86,26 @@ final class CommentLister
             return;
         }
 
+        $relativePath = str_replace($this->rootPath . '/', '', $file->getPathname());
+
         foreach ($tokens as $token) {
-            if (!$this->isCommentToken($token)) {
+            if (!is_array($token) || ($token[0] !== T_COMMENT && $token[0] !== T_DOC_COMMENT)) {
                 continue;
             }
 
             [$id, $text, $line] = $token;
 
-            if ($this->shouldSkip($text, $id)) {
+            if (str_starts_with($text, '#[')
+                || str_contains($text, 'region')
+                || str_contains($text, 'endregion')
+            ) {
                 continue;
             }
 
-            $relativePath = str_replace($this->rootPath . '/', '', $file->getPathname());
+            if ($id === T_DOC_COMMENT && $this->isTechnicalPhpDoc($text)) {
+                continue;
+            }
+
             $cleanText = $this->extractCleanText($text);
 
             if ($cleanText === '') {
@@ -94,87 +116,181 @@ final class CommentLister
         }
     }
 
+    private function processJsFile(SplFileInfo $file): void
+    {
+        $content = file_get_contents($file->getPathname());
+
+        if ($content === false) {
+            return;
+        }
+
+        $relativePath = str_replace($this->rootPath . '/', '', $file->getPathname());
+
+        if (preg_match_all('~/\*(.+?)\*/~s', $content, $matches, PREG_OFFSET_CAPTURE)) {
+            foreach ($matches[1] as [$text, $offset]) {
+                $line = substr_count($content, "\n", 0, $offset) + 1;
+                $cleanText = $this->extractCleanText('/*' . $text . '*/');
+
+                if ($cleanText !== '') {
+                    $this->categorize($relativePath, $line, $cleanText);
+                }
+            }
+        }
+
+        if (preg_match_all('~^\s*//(.*)$~m', $content, $matches, PREG_OFFSET_CAPTURE)) {
+            foreach ($matches[1] as [$text, $offset]) {
+                $line = substr_count($content, "\n", 0, $offset) + 1;
+                $trimmed = trim($text);
+
+                if ($trimmed !== '' && !str_starts_with($trimmed, '!')) {
+                    $this->categorize($relativePath, $line, $trimmed);
+                }
+            }
+        }
+    }
+
     private function categorize(string $file, int $line, string $text): void
     {
         $item = ['file' => $file, 'line' => $line, 'text' => $text];
 
-        if (stripos($text, 'TODO') !== false || stripos($text, 'FIXME') !== false) {
-            $this->todos[] = $item;
-        } elseif (stripos($text, 'codeCoverageIgnore') !== false) {
+        if (stripos($text, 'codeCoverageIgnore') !== false) {
             $this->ignores[] = $item;
-        } else {
-            $this->notes[] = $item;
-        }
-    }
-
-    private function renderOutput(): void
-    {
-        $this->printSection("🔴 TODOs & FIXMEs", $this->todos, self::C_RED);
-        $this->printSection("📝 General Notes", $this->notes, self::C_CYAN);
-        $this->printSection("🙈 Code Coverage Ignores", $this->ignores, self::C_GRAY);
-    }
-
-    private function printSection(string $title, array $items, string $color): void
-    {
-        if (empty($items)) {
             return;
         }
 
-        echo "\n" . self::C_BOLD . $color . "--- {$title} (" . count($items) . ") ---" . self::C_RESET . "\n";
+        if (stripos($text, 'NOTE:') !== false || str_starts_with($text, '@see')) {
+            $this->notes[] = $item;
+            return;
+        }
 
-        foreach ($items as $item) {
-            echo self::C_BLUE . $item['file'] . ":" . $item['line'] . self::C_RESET . "\n";
-            
-            $lines = explode("\n", $item['text']);
-            foreach ($lines as $line) {
-                echo "  " . $line . "\n";
+        if ($this->isTechnicalInlineAnnotation($text)) {
+            return;
+        }
+
+        $this->violations[] = $item;
+    }
+
+    private function isTechnicalInlineAnnotation(string $text): bool
+    {
+        $prefixes = [
+            '@phpcsSuppress',
+            '@phpcs:disable',
+            '@phpcs:enable',
+            '@phpstan-ignore',
+            '@phpstan-param',
+            '@phpstan-return',
+            '@phpstan-type',
+            '@phpstan-import-type',
+            '@template',
+            '@implements',
+            '@noRector',
+            '@internal',
+            'phpcs:disable',
+            'phpcs:enable',
+            'phpcs:ignore',
+            'phpcs:ignoreFile',
+        ];
+
+        foreach ($prefixes as $prefix) {
+            if (str_starts_with($text, $prefix)) {
+                return true;
             }
-            echo "\n";
-        }
-    }
-
-    private function isCommentToken(string|array $token): bool
-    {
-        return is_array($token) && ($token[0] === T_COMMENT || $token[0] === T_DOC_COMMENT);
-    }
-
-    private function shouldSkip(string $text, int $tokenId): bool
-    {
-        if (str_starts_with($text, '#[')) {
-            return true;
-        }
-
-        if (str_contains($text, 'region') || str_contains($text, 'endregion')) {
-            return true;
-        }
-
-        if ($tokenId === T_DOC_COMMENT) {
-            return $this->isTechnicalPhpDoc($text);
         }
 
         return false;
     }
 
+    private function renderOutput(): int
+    {
+        if ($this->violations !== []) {
+            $count = count($this->violations);
+            echo "\n" . self::C_BOLD . self::C_RED
+                . "❌ НАЙДЕНО {$count} ЛИШНИХ КОММЕНТАРИЕВ"
+                . self::C_RESET . "\n";
+
+            foreach ($this->violations as $item) {
+                echo self::C_RED . $item['file'] . ':' . $item['line'] . self::C_RESET . "\n";
+
+                foreach (explode("\n", $item['text']) as $line) {
+                    echo '  ' . $line . "\n";
+                }
+
+                echo "\n";
+            }
+        }
+
+        if ($this->showNotes && $this->notes !== []) {
+            $count = count($this->notes);
+            echo "\n" . self::C_BOLD . self::C_CYAN
+                . "📝 NOTE-комментарии ({$count})"
+                . self::C_RESET . "\n";
+
+            $this->printItems($this->notes);
+        }
+
+        if ($this->showIgnores && $this->ignores !== []) {
+            $count = count($this->ignores);
+            echo "\n" . self::C_BOLD . self::C_GRAY
+                . "🙈 Code Coverage Ignores ({$count})"
+                . self::C_RESET . "\n";
+
+            $this->printItems($this->ignores);
+        }
+
+        if ($this->violations !== []) {
+            echo self::C_BOLD . self::C_RED
+                . "Удалите лишние комментарии. Допускаются только NOTE: и технические аннотации."
+                . self::C_RESET . "\n";
+
+            return 1;
+        }
+
+        echo "\n" . self::C_BOLD . self::C_GREEN . "✅ Лишних комментариев не найдено." . self::C_RESET . "\n";
+
+        return 0;
+    }
+
+    /** @param list<array{file: string, line: int, text: string}> $items */
+    private function printItems(array $items): void
+    {
+        foreach ($items as $item) {
+            echo self::C_BLUE . $item['file'] . ':' . $item['line'] . self::C_RESET . "\n";
+
+            foreach (explode("\n", $item['text']) as $line) {
+                echo '  ' . $line . "\n";
+            }
+
+            echo "\n";
+        }
+    }
+
     private function isTechnicalPhpDoc(string $text): bool
     {
         $clean = $this->extractCleanText($text);
+
         if ($clean === '') {
             return true;
         }
 
-        $lines = explode("\n", $clean);
-        foreach ($lines as $line) {
-            if ($line === '') continue;
-            
-            if (str_contains($line, '{@inheritdoc}') || str_contains($line, '@inheritdoc')) continue;
-            if (str_contains($line, '@copyright') || str_contains($line, '@license') || str_contains($line, '@author')) continue;
+        foreach (explode("\n", $clean) as $line) {
+            if ($line === '') {
+                continue;
+            }
+
+            if (str_contains($line, '{@inheritdoc}') || str_contains($line, '@inheritdoc')) {
+                continue;
+            }
+
+            if (str_contains($line, '@copyright') || str_contains($line, '@license') || str_contains($line, '@author')) {
+                continue;
+            }
 
             if (!preg_match('/^@(?:var|param|return|throws|property|deprecated|mixin|method|extends|implements|use|link|codeCoverageIgnore)/', $line)) {
                 return false;
             }
-            
+
             if (str_starts_with($line, '@codeCoverageIgnore') && strlen($line) > 20) {
-                 return false;
+                return false;
             }
         }
 
@@ -184,33 +300,42 @@ final class CommentLister
     private function extractCleanText(string $text): string
     {
         $clean = preg_replace('~^(\s*(\/\*\*|\*\/|\*|\/\/|#)\s*)+~m', '', $text);
-        
         $lines = explode("\n", (string)$clean);
         $result = [];
+
         foreach ($lines as $line) {
             $trimmed = trim($line);
-            if ($trimmed !== '') {
-                if ($this->shouldSkipLineInsideComment($trimmed)) {
-                    continue;
-                }
-                $result[] = $trimmed;
+
+            if ($trimmed === '') {
+                continue;
             }
+
+            if ($this->shouldSkipLineInsideComment($trimmed)) {
+                continue;
+            }
+
+            $result[] = $trimmed;
         }
-        
+
         return implode("\n", $result);
     }
 
     private function shouldSkipLineInsideComment(string $line): bool
     {
-        if (str_contains($line, '{@inheritdoc}') || str_contains($line, '@inheritdoc')) return true;
-        if (str_starts_with($line, '@copyright')) return true;
-        
-        if (preg_match('/^@(?:var|param|return|throws|property|method|mixin|link)/', $line)) {
+        if (str_contains($line, '{@inheritdoc}') || str_contains($line, '@inheritdoc')) {
             return true;
         }
-        
-        return false;
+
+        if (str_starts_with($line, '@copyright')) {
+            return true;
+        }
+
+        return (bool)preg_match('/^@(?:var|param|return|throws|property|method|mixin|link)/', $line);
     }
 }
 
-(new CommentLister(__DIR__ . '/..'))->run();
+$flags = array_slice($argv, 1);
+$showNotes = in_array('--notes', $flags, true) || in_array('--all', $flags, true);
+$showIgnores = in_array('--ignores', $flags, true) || in_array('--all', $flags, true);
+$linter = new CommentLinter(__DIR__ . '/..', $showNotes, $showIgnores);
+exit($linter->run());
