@@ -49,14 +49,14 @@ async function resolveThread(threadId) {
 		body: JSON.stringify({ query: resolveMutation, variables: { threadId } }),
 	});
 
-	    const data = await response.json();
-    if (data.errors) {
-      return { isResolved: false, message: data.errors[0]?.message || "GraphQL error" };
-    }
-    if (!data.data?.resolveReviewThread?.thread) {
-      return { isResolved: false, message: "Failed to resolve thread: missing data in response" };
-    }
-    return { isResolved: true, thread: data.data.resolveReviewThread.thread };
+	const data = await response.json();
+	if (data.errors && data.errors.length > 0) {
+		return { isResolved: false, message: data.errors[0].message || "GraphQL error" };
+	}
+	if (!data.data?.resolveReviewThread?.thread) {
+		return { isResolved: false, message: "Failed to resolve thread: missing data in response" };
+	}
+	return { isResolved: true, thread: data.data.resolveReviewThread.thread };
 }
 
 async function main() {
@@ -107,14 +107,14 @@ async function main() {
 	for (const match of matches) {
 		const threadId = match[1];
 		try {
-      const result = await resolveThread(threadId);
-      if (result.isResolved) {
-        console.log(`✅ Тред ${threadId} закрыт.`);
-        resolved++;
-      } else {
-        console.error(`❌ Ошибка закрытия треда ${threadId}: ${result.message}`);
-        failed++;
-      }
+			const result = await resolveThread(threadId);
+			if (result.isResolved) {
+				console.log(`✅ Тред ${threadId} закрыт.`);
+				resolved++;
+			} else {
+				console.error(`❌ Ошибка закрытия треда ${threadId}: ${result.message}`);
+				failed++;
+			}
 		} catch (error) {
 			console.error(`❌ Ошибка для ${threadId}: ${error.message}`);
 			failed++;
@@ -122,6 +122,12 @@ async function main() {
 	}
 
 	console.log(`\nГотово! Закрыто: ${resolved}, ошибок: ${failed}`);
+}
+
+const NODE_MAJOR = Number.parseInt(process.versions.node.split('.')[0], 10);
+if (NODE_MAJOR < 18) {
+	console.error('❌ Ошибка: Требуется Node.js версии 18 или выше для работы глобального fetch().');
+	process.exit(1);
 }
 
 main();
