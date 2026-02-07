@@ -106,11 +106,6 @@ tables:
         type: varchar(500)
         nullable: true
       -
-        name: is_published
-        type: tinyint(1)
-        nullable: false
-        default: 0
-      -
         name: version
         type: int
         nullable: false
