@@ -7,7 +7,7 @@ namespace app\presentation\books\mappers;
 use app\application\books\queries\BookReadDto;
 use app\presentation\books\dto\BookViewModel;
 
-final class BookViewModelMapper
+final readonly class BookViewModelMapper
 {
     public function map(BookReadDto $dto): BookViewModel
     {

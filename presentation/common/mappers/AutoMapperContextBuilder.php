@@ -6,7 +6,7 @@ namespace app\presentation\common\mappers;
 
 use AutoMapper\MapperContext;
 
-final class AutoMapperContextBuilder
+final readonly class AutoMapperContextBuilder
 {
     /**
      * @param array<class-string, array<string, mixed>> $arguments

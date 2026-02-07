@@ -7,7 +7,7 @@ namespace app\presentation\reports\mappers;
 use app\application\reports\queries\ReportCriteria;
 use app\presentation\reports\forms\ReportFilterForm;
 
-final class ReportCriteriaMapper
+final readonly class ReportCriteriaMapper
 {
     public function toCriteria(ReportFilterForm $form): ReportCriteria
     {
