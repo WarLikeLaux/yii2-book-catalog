@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
+use app\application\common\exceptions\OperationFailedException;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookRepositoryInterface;
@@ -17,7 +18,6 @@ use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
 use Psr\Clock\ClockInterface;
-use RuntimeException;
 
 /**
  * @implements UseCaseInterface<CreateBookCommand, int>
@@ -66,7 +66,7 @@ final readonly class CreateBookUseCase implements UseCaseInterface
         $bookId = $this->bookRepository->save($book);
 
         if ($bookId === 0) {
-            throw new RuntimeException('Failed to retrieve book ID after save');
+            throw new OperationFailedException('error.entity_id_missing');
         }
 
         return $bookId;

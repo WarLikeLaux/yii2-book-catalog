@@ -6,7 +6,9 @@ namespace app\application\common\exceptions;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ErrorMapping;
+use app\domain\exceptions\ErrorType;
 use ReflectionEnum;
+use RuntimeException;
 
 final class DomainErrorMappingRegistry
 {
@@ -39,14 +41,28 @@ final class DomainErrorMappingRegistry
             $errorCode = $case->getValue();
             assert($errorCode instanceof DomainErrorCode);
 
+            $exceptionClass = self::resolveExceptionClass($mapping->type);
+
             $registry->register(
                 $errorCode,
-                self::TYPE_MAP[$mapping->type->name],
+                $exceptionClass,
                 $mapping->field,
             );
         }
 
         return $registry;
+    }
+
+    /**
+     * @return class-string<ApplicationException>
+     */
+    public static function resolveExceptionClass(ErrorType $type): string
+    {
+        if (!array_key_exists($type->name, self::TYPE_MAP)) {
+            throw new RuntimeException("Unknown ErrorType: {$type->name}"); // @codeCoverageIgnore
+        }
+
+        return self::TYPE_MAP[$type->name];
     }
 
     /**

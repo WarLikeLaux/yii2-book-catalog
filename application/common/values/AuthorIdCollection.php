@@ -43,7 +43,7 @@ final readonly class AuthorIdCollection
                 continue;
             }
 
-            if (is_string($rawId) && !is_numeric($rawId)) {
+            if (is_string($rawId) && !ctype_digit($rawId)) {
                 continue;
             }
 
