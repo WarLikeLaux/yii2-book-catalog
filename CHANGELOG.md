@@ -174,6 +174,7 @@
 - **#36** - обновлены infrastructure тесты для BookStatus, nullable job mapping и status-aware listeners ([76353d3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/76353d3))
 - **#36** - обновлены presentation и integration тесты для BookStatus workflow ([d691044](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d691044))
 - **#36** - добавлены try/finally для очистки контейнера и недостающий ассерт BookStatusChangedEvent ([e1fc77b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e1fc77b))
+- **#36** - добавлен тест ветки removeCover в UpdateBookUseCaseTest для восстановления 100% покрытия ([50a7d8c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/50a7d8c))
 
 ### ⚙️ Инфраструктура
 
@@ -196,6 +197,10 @@
 - **#34** - обновлен SubscriptionController::actionForm: добавлено HTMX detection, fallback на full view ([a2f7e32](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a2f7e32))
 - **#34** - добавлены ключи переводов i18n для error, login, api, index, report views ([0a4ea1c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0a4ea1c))
 - **#35** - рефакторинг list-comments в линтер комментариев с флагами --notes/--ignores/--all, добавлен в make dev ([ac9b5d5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ac9b5d5))
+- **#36** - исправлена перезапись REVIEW.md при наличии существующих записей и нормализованы разделители ([bad4281](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bad4281))
+- **#36** - обновлен readme workflow: замена make test на make test-full ([7565751](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7565751))
+- **#36** - синхронизирована структура проекта и обновлены метрики в README.md и ARCHITECTURE.md ([db30e2a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/db30e2a))
+- **#36** - синхронизирован docs/structure.yaml с файловой системой: удалён фантомный logging, добавлены отсутствующие поддиректории модулей ([38f5fac](https://github.com/WarLikeLaux/yii2-book-catalog/commit/38f5fac))
 
 ### 📝 Документация
 
@@ -219,6 +224,9 @@
 - **#35** - добавлен guard создания директории перед записью REVIEW.md ([688a451](https://github.com/WarLikeLaux/yii2-book-catalog/commit/688a451))
 - **#36** - добавлены миграции status, обновлен container config, seed, arkitect rules и auto-generated docs ([2721c7a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2721c7a))
 - **#36** - добавлена логика слияния для сохранения существующих записей REVIEW.md при повторном fetch ([f9b7564](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f9b7564))
+- **#36** - обновлена документация (ARCHITECTURE, COMPARISON, DECISIONS, README) ([b652585](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b652585))
+- **#36** - исправлены метрики README.md по результатам bin/validate-docs ([1c01659](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1c01659))
+- **#36** - обновлен help текст Makefile и таблица фич README для согласованности ([0b1f30f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0b1f30f))
 
 </details>
 
