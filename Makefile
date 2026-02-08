@@ -52,7 +52,7 @@ help:
 	@echo "  pr               🚀 Полная проверка (check + e2e + infection)"
 	@echo ""
 	@echo "💻 РАЗРАБОТКА:"
-	@echo "  dev              🛠️  Полный цикл (PHPCS Fixer + Rector)"
+	@echo "  dev              🛠️  Полный цикл (PHPCS Fixer + Rector + Comments)"
 	@echo "  dev [FILE]       🔍 Быстрая проверка файла (только PHPCS Fixer)"
 	@echo "  comments         📝 Показать TODO и заметки"
 	@echo "  tree             🌳 Показать структуру проекта"
