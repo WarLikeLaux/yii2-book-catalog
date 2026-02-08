@@ -21,7 +21,7 @@ final class JobHandlerRegistryTest extends Unit
         $handler = $this->createMock(NotifySubscribersHandler::class);
         $container = $this->createMock(Container::class);
         $queue = $this->createMock(Queue::class);
-        $job = new NotifySubscribersJob(10, 'Title');
+        $job = new NotifySubscribersJob(10);
 
         $container->expects($this->once())
             ->method('get')
@@ -30,7 +30,7 @@ final class JobHandlerRegistryTest extends Unit
 
         $handler->expects($this->once())
             ->method('handle')
-            ->with(10, 'Title', $queue);
+            ->with(10, $queue);
 
         $registry = new JobHandlerRegistry($container);
         $registry->handle($job, $queue);

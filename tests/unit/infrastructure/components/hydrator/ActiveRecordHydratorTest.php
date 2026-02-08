@@ -85,10 +85,10 @@ final class ActiveRecordHydratorTest extends Unit
         };
 
         $this->hydrator->hydrate($ar, $source, [
-            'is_published' => static fn(object $e): int => $e->published ? 1 : 0,
+            'is_active' => static fn(object $e): int => $e->published ? 1 : 0,
         ]);
 
-        $this->assertSame(1, $ar->is_published);
+        $this->assertSame(1, $ar->is_active);
     }
 
     public function testClosureTransformationWithFalseValue(): void
@@ -99,10 +99,10 @@ final class ActiveRecordHydratorTest extends Unit
         };
 
         $this->hydrator->hydrate($ar, $source, [
-            'is_published' => static fn(object $e): int => $e->published ? 1 : 0,
+            'is_active' => static fn(object $e): int => $e->published ? 1 : 0,
         ]);
 
-        $this->assertSame(0, $ar->is_published);
+        $this->assertSame(0, $ar->is_active);
     }
 
     public function testNullableValueDirectCopy(): void
@@ -179,13 +179,13 @@ final class ActiveRecordHydratorTest extends Unit
             'title',
             'description' => 'bookName',
             'year',
-            'is_published' => static fn(object $e): int => $e->published ? 1 : 0,
+            'is_active' => static fn(object $e): int => $e->published ? 1 : 0,
         ]);
 
         $this->assertSame('Title', $ar->title);
         $this->assertSame('Alternative Name', $ar->description);
         $this->assertSame(2024, $ar->year);
-        $this->assertSame(1, $ar->is_published);
+        $this->assertSame(1, $ar->is_active);
     }
 
     public function testSmartUnboxingWithStringBackedEnum(): void
@@ -242,7 +242,7 @@ final class ActiveRecordHydratorTest extends Unit
     }
 
     /**
-     * @return ActiveRecord&object{title: string, description: ?string, year: int, status: int|string, is_published: int, cover_url: ?string, data: mixed}
+     * @return ActiveRecord&object{title: string, description: ?string, year: int, status: int|string, is_active: int, cover_url: ?string, data: mixed}
      */
     private function createMockActiveRecord(): ActiveRecord
     {
@@ -253,7 +253,7 @@ final class ActiveRecordHydratorTest extends Unit
 
             /** @var int|string */
             public int|string $status = 0;
-            public int $is_published = 0;
+            public int $is_active = 0;
             public ?string $cover_url = null;
             public mixed $data = null;
         };

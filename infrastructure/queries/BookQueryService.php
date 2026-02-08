@@ -9,6 +9,9 @@ use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\specifications\BookSearchSpecificationFactory;
 use app\domain\specifications\BookSpecificationInterface;
+use app\domain\specifications\CompositeAndSpecification;
+use app\domain\specifications\StatusSpecification;
+use app\domain\values\BookStatus;
 use app\infrastructure\persistence\Book;
 
 final readonly class BookQueryService extends BaseQueryService implements BookQueryServiceInterface
@@ -29,25 +32,35 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
         return $this->mapToDto($book, BookReadDto::class);
     }
 
-    public function search(string $term, int $page, int $pageSize): PagedResultInterface
+    public function search(string $term, int $page, int $limit): PagedResultInterface
     {
         $factory = new BookSearchSpecificationFactory();
         $specification = $factory->createFromSearchTerm($term);
 
-        return $this->searchBySpecification($specification, $page, $pageSize);
+        return $this->searchBySpecification($specification, $page, $limit);
+    }
+
+    public function searchPublished(string $term, int $page, int $limit): PagedResultInterface
+    {
+        $factory = new BookSearchSpecificationFactory();
+        $searchSpec = $factory->createFromSearchTerm($term);
+        $publishedSpec = new StatusSpecification(BookStatus::Published);
+        $combinedSpec = new CompositeAndSpecification([$publishedSpec, $searchSpec]);
+
+        return $this->searchBySpecification($combinedSpec, $page, $limit);
     }
 
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
-        int $pageSize,
+        int $limit,
     ): PagedResultInterface {
         $query = Book::find()->withAuthors()->orderedByCreatedAt();
 
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->db);
         $specification->accept($visitor);
 
-        return $this->getPagedResult($query, $page, $pageSize, BookReadDto::class);
+        return $this->getPagedResult($query, $page, $limit, BookReadDto::class);
     }
 
     public function existsByIsbn(string $isbn, ?int $excludeId = null): bool

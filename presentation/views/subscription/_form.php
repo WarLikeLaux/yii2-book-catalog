@@ -2,9 +2,14 @@
 
 declare(strict_types=1);
 
-use yii\bootstrap5\ActiveForm;
+use app\presentation\components\ActiveForm;
+use app\presentation\subscriptions\dto\SubscriptionViewModel;
 use yii\helpers\Html;
 use yii\helpers\Url;
+
+/**
+ * @var SubscriptionViewModel $viewModel
+ */
 
 $form = ActiveForm::begin([
     'id' => 'subscription-form',
@@ -13,44 +18,18 @@ $form = ActiveForm::begin([
 ]);
 ?>
 
-<?= Html::hiddenInput('SubscriptionForm[authorId]', $authorId) ?>
+<?= Html::hiddenInput('SubscriptionForm[authorId]', $viewModel->author->id) ?>
+
+<?= $form->errorSummary($viewModel->form) ?>
 
 <div class="form-group">
-    <label>Подписка на автора: <strong><?= Html::encode($author->fio) ?></strong></label>
+    <span class="form-label">Подписка на автора: <strong><?= Html::encode($viewModel->author->fio) ?></strong></span>
 </div>
 
-<?= $form->field($model, 'phone')->textInput(['placeholder' => '+79001234567']) ?>
+<?= $form->field($viewModel->form, 'phone')->textInput(['placeholder' => '+79001234567']) ?>
 
 <div class="form-group">
     <?= Html::submitButton('Подписаться', ['class' => 'btn btn-primary']) ?>
 </div>
 
 <?php ActiveForm::end(); ?>
-
-<?php
-$js = <<<JS
-$('#subscription-form').on('beforeSubmit', function(e) {
-    e.preventDefault();
-    var form = $(this);
-    $.ajax({
-        url: form.attr('action'),
-        type: 'POST',
-        data: form.serialize(),
-        success: function(data) {
-            if (data.success) {
-                alert(data.message);
-                $('#sub-modal').modal('hide');
-                form[0].reset();
-            } else {
-                alert(data.message || 'Ошибка при подписке');
-            }
-        },
-        error: function() {
-            alert('Ошибка при отправке запроса');
-        }
-    });
-    return false;
-});
-JS;
-$this->registerJs($js);
-?>

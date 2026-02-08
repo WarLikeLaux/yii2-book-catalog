@@ -49,6 +49,6 @@ final class BookCest
         $I->waitForText('Вход', 10);
 
         $I->amOnPage('/book/index');
-        $I->see('Login', 'h1');
+        $I->see('Вход', 'h1');
     }
 }

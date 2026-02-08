@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers\api\v1;
 
-use app\presentation\books\handlers\BookViewDataFactory;
-use app\presentation\common\dto\CrudPaginationRequest;
+use app\presentation\books\handlers\BookListViewFactory;
 use app\presentation\common\filters\IdempotencyFilter;
 use app\presentation\common\filters\RateLimitFilter;
 use OpenApi\Attributes as OA;
+use Override;
 use yii\data\DataProviderInterface;
-use yii\filters\AccessControl;
 
 #[OA\Tag(name: 'API Books', description: 'REST API для работы с книгами')]
 final class BookController extends BaseApiController
@@ -18,14 +17,14 @@ final class BookController extends BaseApiController
     public function __construct(
         $id,
         $module,
-        private readonly BookViewDataFactory $viewDataFactory,
+        private readonly BookListViewFactory $listViewFactory,
         array $config = [],
     ) {
         parent::__construct($id, $module, $config);
     }
 
     /** @return array<int|string, mixed> */
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();
@@ -37,16 +36,6 @@ final class BookController extends BaseApiController
         $behaviors['idempotency'] = [
             'class' => IdempotencyFilter::class,
         ];
-        $behaviors['access'] = [
-            'class' => AccessControl::class,
-            'rules' => [
-                [
-                    'actions' => ['index'],
-                    'allow' => true,
-                    'roles' => ['?', '@'],
-                ],
-            ],
-        ];
 
         return $behaviors;
     }
@@ -57,7 +46,7 @@ final class BookController extends BaseApiController
         tags: ['API Books'],
         parameters: [
             new OA\Parameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'pageSize', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'limit', in: 'query', schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
             new OA\Response(
@@ -79,11 +68,6 @@ final class BookController extends BaseApiController
     )]
     public function actionIndex(): DataProviderInterface
     {
-        $pagination = CrudPaginationRequest::fromRequest($this->request);
-
-        return $this->viewDataFactory->getIndexDataProvider(
-            $pagination->page,
-            $pagination->limit,
-        );
+        return $this->listViewFactory->getListViewModel($this->request)->dataProvider;
     }
 }

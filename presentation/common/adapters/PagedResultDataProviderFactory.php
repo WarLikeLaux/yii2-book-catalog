@@ -7,7 +7,7 @@ namespace app\presentation\common\adapters;
 use app\application\ports\PagedResultInterface;
 use yii\data\DataProviderInterface;
 
-final class PagedResultDataProviderFactory
+final readonly class PagedResultDataProviderFactory
 {
     public function create(PagedResultInterface $result): DataProviderInterface
     {

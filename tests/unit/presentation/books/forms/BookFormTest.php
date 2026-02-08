@@ -9,12 +9,13 @@ use Codeception\Test\Unit;
 
 final class BookFormTest extends Unit
 {
+    private const AUTHOR_NAME = 'Author 1';
     public function testGetAuthorInitValueTextReturnsEmptyWhenAuthorIdsIsNull(): void
     {
         $form = new BookForm();
         $form->authorIds = null;
 
-        $result = $form->getAuthorInitValueText([1 => 'Author 1']);
+        $result = $form->getAuthorInitValueText([1 => self::AUTHOR_NAME]);
 
         $this->assertSame([], $result);
     }
@@ -24,18 +25,31 @@ final class BookFormTest extends Unit
         $form = new BookForm();
         $form->authorIds = ['abc', 0, -2];
 
-        $result = $form->getAuthorInitValueText([1 => 'Author 1']);
+        $result = $form->getAuthorInitValueText([1 => self::AUTHOR_NAME]);
 
         $this->assertSame([], $result);
     }
 
-    public function testValidateAuthorsExistSkipsInvalidIds(): void
+    public function testGetAuthorInitValueTextReturnsAuthorNamesForValidIds(): void
     {
         $form = new BookForm();
-        $form->authorIds = ['0', '-1', ''];
+        $form->authorIds = [1, 2];
 
-        $form->validateAuthorsExist('authorIds');
+        $result = $form->getAuthorInitValueText([
+            1 => self::AUTHOR_NAME,
+            2 => 'Author 2',
+        ]);
 
-        $this->assertFalse($form->hasErrors('authorIds'));
+        $this->assertSame([self::AUTHOR_NAME, 'Author 2'], $result);
+    }
+
+    public function testGetAuthorInitValueTextUsesIdStringWhenAuthorNotFound(): void
+    {
+        $form = new BookForm();
+        $form->authorIds = [1, 999];
+
+        $result = $form->getAuthorInitValueText([1 => self::AUTHOR_NAME]);
+
+        $this->assertSame([self::AUTHOR_NAME, '999'], $result);
     }
 }

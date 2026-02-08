@@ -8,6 +8,7 @@ use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
@@ -65,7 +66,7 @@ final class BookRepositoryTest extends Unit
             null,
             null,
             [],
-            false,
+            BookStatus::Draft,
             1,
         );
 
@@ -242,7 +243,7 @@ final class BookRepositoryTest extends Unit
             'New desc',
             null,
             [],
-            false,
+            BookStatus::Draft,
             $version,
         );
 

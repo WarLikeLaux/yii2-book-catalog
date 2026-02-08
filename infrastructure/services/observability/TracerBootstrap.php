@@ -6,14 +6,13 @@ namespace app\infrastructure\services\observability;
 
 use app\application\ports\SpanInterface;
 use app\application\ports\TracerInterface;
+use Override;
+use Yii;
 use yii\base\Application;
 use yii\base\BootstrapInterface;
 use yii\base\Component;
 use yii\web\Application as WebApplication;
 
-/**
- * @codeCoverageIgnore Интеграционный компонент Yii2
- */
 final class TracerBootstrap extends Component implements BootstrapInterface
 {
     public bool $enabled = true;
@@ -26,7 +25,7 @@ final class TracerBootstrap extends Component implements BootstrapInterface
     /**
      * @param \yii\base\Application $app
      */
-    #[\Override]
+    #[Override]
     public function bootstrap($app): void
     {
         if (!$this->enabled) {
@@ -49,7 +48,7 @@ final class TracerBootstrap extends Component implements BootstrapInterface
 
     private function registerTracer(): void
     {
-        \Yii::$container->setSingleton(TracerInterface::class, fn(): TracerInterface|null => $this->tracer);
+        Yii::$container->setSingleton(TracerInterface::class, fn(): TracerInterface|null => $this->tracer);
     }
 
     private function startRootSpan(Application $app): void

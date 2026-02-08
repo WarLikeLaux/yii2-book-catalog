@@ -64,7 +64,7 @@ final class BookQueryServiceTest extends Unit
 
     public function testSearch(): void
     {
-        $criteria = new BookSearchCriteria(globalSearch: 'term', page: 1, pageSize: 10);
+        $criteria = new BookSearchCriteria(globalSearch: 'term', page: 1, limit: 10);
         $this->searcher->expects($this->once())
             ->method('search')
             ->with('term', 1, 10)

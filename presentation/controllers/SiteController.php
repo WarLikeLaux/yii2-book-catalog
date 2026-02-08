@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\common\exceptions\ApplicationException;
 use app\application\ports\AuthServiceInterface;
-use app\presentation\auth\handlers\AuthViewDataFactory;
-use app\presentation\books\handlers\BookSearchHandler;
-use app\presentation\common\dto\CatalogPaginationRequest;
+use app\presentation\auth\forms\LoginForm;
+use app\presentation\auth\handlers\AuthViewFactory;
+use app\presentation\books\handlers\BookSearchViewFactory;
+use app\presentation\common\enums\ActionName;
 use app\presentation\common\traits\HtmxDetectionTrait;
+use app\presentation\common\ViewModelRenderer;
+use Override;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\ErrorAction;
 use yii\web\Response;
 
-final class SiteController extends Controller
+final class SiteController extends BaseController
 {
     use HtmxDetectionTrait;
 
@@ -24,23 +27,24 @@ final class SiteController extends Controller
         $id,
         $module,
         private readonly AuthServiceInterface $authService,
-        private readonly BookSearchHandler $bookSearchHandler,
-        private readonly AuthViewDataFactory $authViewDataFactory,
+        private readonly BookSearchViewFactory $bookSearchViewFactory,
+        private readonly AuthViewFactory $authViewFactory,
+        ViewModelRenderer $renderer,
         $config = [],
     ) {
-        parent::__construct($id, $module, $config);
+        parent::__construct($id, $module, $renderer, $config);
     }
 
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['logout'],
+                'only' => [ActionName::LOGOUT->value],
                 'rules' => [
                     [
-                        'actions' => ['logout'],
+                        'actions' => [ActionName::LOGOUT->value],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -49,13 +53,13 @@ final class SiteController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'logout' => ['post'],
+                    ActionName::LOGOUT->value => ['post'],
                 ],
             ],
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function actions(): array
     {
         return [
@@ -67,16 +71,13 @@ final class SiteController extends Controller
 
     public function actionIndex(): string
     {
-        $pagination = CatalogPaginationRequest::fromRequest($this->request);
-        /** @var array<string, mixed> $params */
-        $params = (array)$this->request->get();
-        $viewData = $this->bookSearchHandler->prepareIndexViewData($params, $pagination);
+        $viewModel = $this->bookSearchViewFactory->prepareIndexViewModel($this->request);
 
         if ($this->isHtmxRequest()) {
-            return $this->renderPartial('_book-cards', $viewData);
+            return $this->renderer->renderPartial('_book-cards', ['dataProvider' => $viewModel->dataProvider]);
         }
 
-        return $this->render('index', $viewData);
+        return $this->renderer->render('index', $viewModel);
     }
 
     public function actionLogin(): Response|string
@@ -85,10 +86,10 @@ final class SiteController extends Controller
             return $this->goHome();
         }
 
-        $form = $this->authViewDataFactory->createLoginForm();
+        $form = new LoginForm();
 
         if (!$this->request->isPost) {
-            return $this->render('login', ['model' => $form]);
+            return $this->renderLoginForm($form);
         }
 
         /** @var array<string, mixed> $postData */
@@ -96,17 +97,17 @@ final class SiteController extends Controller
 
         if (!$form->load($postData) || !$form->validate()) {
             $form->password = '';
-            return $this->render('login', ['model' => $form]);
+            return $this->renderLoginForm($form);
         }
 
-        if ($this->authService->login($form->username, $form->password, $form->rememberMe)) {
+        try {
+            $this->authService->login($form->username, $form->password, $form->rememberMe);
             return $this->goBack();
+        } catch (ApplicationException $e) {
+            $this->addFormError($form, $e);
+            $form->password = '';
+            return $this->renderLoginForm($form);
         }
-
-        $form->addError('password', Yii::t('app', 'auth.error.invalid_credentials'));
-        $form->password = '';
-
-        return $this->render('login', ['model' => $form]);
     }
 
     public function actionLogout(): Response
@@ -118,10 +119,19 @@ final class SiteController extends Controller
 
     public function actionApi(): string
     {
-        return $this->render('api', [
-            'swaggerPort' => Yii::$app->params['swaggerPort'],
-            'appPort' => Yii::$app->params['appPort'],
-            'host' => $this->request->serverName,
-        ]);
+        $viewModel = $this->authViewFactory->getApiInfoViewModel(
+            (int)Yii::$app->params['swaggerPort'],
+            (int)Yii::$app->params['appPort'],
+            (string)$this->request->serverName,
+        );
+
+        return $this->renderer->render('api', $viewModel);
+    }
+
+    private function renderLoginForm(LoginForm $form): string
+    {
+        $viewModel = $this->authViewFactory->getLoginViewModel($form);
+
+        return $this->renderer->render('login', $viewModel);
     }
 }

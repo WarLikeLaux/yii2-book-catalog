@@ -10,7 +10,6 @@ use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\DomainException;
 use app\domain\exceptions\EntityNotFoundException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -30,7 +29,7 @@ final class UpdateAuthorUseCaseTest extends Unit
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'Новое ФИО');
 
-        $existingAuthor = new Author(id: 42, fio: 'Старое ФИО');
+        $existingAuthor = Author::reconstitute(id: 42, fio: 'Старое ФИО');
 
         $this->authorRepository->expects($this->once())
             ->method('get')
@@ -39,14 +38,15 @@ final class UpdateAuthorUseCaseTest extends Unit
 
         $this->authorRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Author $author) => $author->id === 42 && $author->fio === 'Новое ФИО'));
+            ->with($this->callback(static fn (Author $author) => $author->id === 42 && $author->fio === 'Новое ФИО'))
+            ->willReturn(42);
 
-        $result = $this->useCase->execute($command);
+        $this->useCase->execute($command);
 
-        $this->assertTrue($result);
+        $this->assertTrue(true);
     }
 
-    public function testExecuteThrowsExceptionWhenAuthorNotFound(): void
+    public function testExecuteThrowsEntityNotFoundExceptionWhenAuthorNotFound(): void
     {
         $command = new UpdateAuthorCommand(id: 999, fio: 'New Name');
 
@@ -63,11 +63,11 @@ final class UpdateAuthorUseCaseTest extends Unit
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsDomainExceptionOnRepositoryError(): void
+    public function testExecuteThrowsRuntimeExceptionOnRepositoryError(): void
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'New Name');
 
-        $existingAuthor = new Author(id: 42, fio: 'Old Name');
+        $existingAuthor = Author::reconstitute(id: 42, fio: 'Old Name');
 
         $this->authorRepository->expects($this->once())
             ->method('get')
@@ -77,18 +77,17 @@ final class UpdateAuthorUseCaseTest extends Unit
             ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
 
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('author.error.update_failed');
-        $this->expectExceptionCode(0);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('DB error');
 
         $this->useCase->execute($command);
     }
 
-    public function testExecuteRethrowsAlreadyExistsException(): void
+    public function testExecuteThrowsAlreadyExistsExceptionOnAlreadyExists(): void
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'Duplicated Name');
 
-        $existingAuthor = new Author(id: 42, fio: 'Old Name');
+        $existingAuthor = Author::reconstitute(id: 42, fio: 'Old Name');
 
         $this->authorRepository->expects($this->once())
             ->method('get')

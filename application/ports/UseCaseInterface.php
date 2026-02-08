@@ -14,5 +14,5 @@ interface UseCaseInterface
      * @param TCommand $command
      * @return TResult
      */
-    public function execute(object $command): mixed;
+    public function execute(object $command);
 }

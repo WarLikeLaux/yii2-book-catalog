@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace app\presentation\authors\forms;
 
 use app\application\ports\AuthorQueryServiceInterface;
-use app\presentation\common\forms\RepositoryAwareForm;
+use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
+use yii\base\Model;
+use yii\web\Request;
 
-final class AuthorForm extends RepositoryAwareForm
+final class AuthorForm extends Model
 {
     /** @var int|string|null */
     public $id;
@@ -17,7 +19,14 @@ final class AuthorForm extends RepositoryAwareForm
     /** @var string|int|null */
     public $fio = '';
 
-    #[\Override]
+    public function __construct(
+        private readonly AuthorQueryServiceInterface $queryService,
+        array $config = [],
+    ) {
+        parent::__construct($config);
+    }
+
+    #[Override]
     #[CodeCoverageIgnore]
     public function rules(): array
     {
@@ -29,7 +38,7 @@ final class AuthorForm extends RepositoryAwareForm
         ];
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function attributeLabels(): array
     {
@@ -43,16 +52,21 @@ final class AuthorForm extends RepositoryAwareForm
         $value = $this->$attribute;
 
         if (!is_string($value)) {
-            return; // @codeCoverageIgnore
+            return;
         }
 
         $excludeId = $this->id !== null ? (int)$this->id : null;
-        $queryService = $this->resolve(AuthorQueryServiceInterface::class);
 
-        if (!$queryService->existsByFio($value, $excludeId)) {
+        if (!$this->queryService->existsByFio($value, $excludeId)) {
             return;
         }
 
         $this->addError($attribute, Yii::t('app', 'author.error.fio_exists'));
+    }
+
+    #[CodeCoverageIgnore]
+    public function loadFromRequest(Request $request): bool
+    {
+        return $this->load((array)$request->post());
     }
 }

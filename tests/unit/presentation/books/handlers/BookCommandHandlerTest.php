@@ -4,68 +4,62 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\books\handlers;
 
+use app\application\books\commands\ChangeBookStatusCommand;
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\DeleteBookCommand;
-use app\application\books\commands\PublishBookCommand;
 use app\application\books\commands\UpdateBookCommand;
+use app\application\books\usecases\ChangeBookStatusUseCase;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
-use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\application\ports\ContentStorageInterface;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\ValidationException;
-use app\domain\values\FileContent;
-use app\domain\values\FileKey;
-use app\domain\values\StoredFileReference;
+use app\application\common\dto\UploadedFilePayload;
+use app\application\common\exceptions\ApplicationException;
+use app\application\common\exceptions\OperationFailedException;
+use app\application\common\services\UploadedFileStorage;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
+use app\presentation\books\mappers\BookCommandMapper;
 use app\presentation\common\adapters\UploadedFileAdapter;
-use app\presentation\common\services\WebUseCaseRunner;
-use AutoMapper\AutoMapperInterface;
+use app\presentation\common\services\WebOperationRunner;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
-use Psr\Log\LoggerInterface;
+use RuntimeException;
 use yii\web\UploadedFile;
 
 final class BookCommandHandlerTest extends Unit
 {
-    private const string TEST_HASH = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-
-    private AutoMapperInterface&MockObject $autoMapper;
+    private const COVER_PATH = 'covers/test.jpg';
+    private const MSG_MAPPER_FAILED = 'mapper failed';
+    private BookCommandMapper&MockObject $commandMapper;
     private CreateBookUseCase&MockObject $createBookUseCase;
     private UpdateBookUseCase&MockObject $updateBookUseCase;
     private DeleteBookUseCase&MockObject $deleteBookUseCase;
-    private PublishBookUseCase&MockObject $publishBookUseCase;
-    private WebUseCaseRunner&MockObject $useCaseRunner;
-    private ContentStorageInterface&MockObject $contentStorage;
+    private ChangeBookStatusUseCase&MockObject $changeBookStatusUseCase;
+    private WebOperationRunner&MockObject $operationRunner;
+    private UploadedFileStorage&MockObject $uploadedFileStorage;
     private UploadedFileAdapter&MockObject $uploadedFileAdapter;
-    private LoggerInterface&MockObject $logger;
     private BookCommandHandler $handler;
 
     protected function _before(): void
     {
-        $this->autoMapper = $this->createMock(AutoMapperInterface::class);
+        $this->commandMapper = $this->createMock(BookCommandMapper::class);
         $this->createBookUseCase = $this->createMock(CreateBookUseCase::class);
         $this->updateBookUseCase = $this->createMock(UpdateBookUseCase::class);
         $this->deleteBookUseCase = $this->createMock(DeleteBookUseCase::class);
-        $this->publishBookUseCase = $this->createMock(PublishBookUseCase::class);
-        $this->useCaseRunner = $this->createMock(WebUseCaseRunner::class);
-        $this->contentStorage = $this->createMock(ContentStorageInterface::class);
+        $this->changeBookStatusUseCase = $this->createMock(ChangeBookStatusUseCase::class);
+        $this->operationRunner = $this->createMock(WebOperationRunner::class);
+        $this->uploadedFileStorage = $this->createMock(UploadedFileStorage::class);
         $this->uploadedFileAdapter = $this->createMock(UploadedFileAdapter::class);
 
-        $this->logger = $this->createMock(LoggerInterface::class);
-
         $this->handler = new BookCommandHandler(
-            $this->autoMapper,
+            $this->commandMapper,
             $this->createBookUseCase,
             $this->updateBookUseCase,
             $this->deleteBookUseCase,
-            $this->publishBookUseCase,
-            $this->useCaseRunner,
-            $this->contentStorage,
+            $this->changeBookStatusUseCase,
+            $this->operationRunner,
+            $this->uploadedFileStorage,
             $this->uploadedFileAdapter,
-            $this->logger,
         );
     }
 
@@ -76,14 +70,16 @@ final class BookCommandHandlerTest extends Unit
 
         $command = $this->createMock(CreateBookCommand::class);
 
-        $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
+            ->willReturnCallback(static fn($operation) => $operation());
 
-        $this->autoMapper->expects($this->once())
-            ->method('map')
-            ->with($this->callback(static fn($args) => $args['title'] === 'Test' && $args['cover'] === null), CreateBookCommand::class)
+        $this->commandMapper->expects($this->once())
+            ->method('toCreateCommand')
+            ->with($form, null)
             ->willReturn($command);
 
-        $this->mockUseCaseRunnerSimple(42);
+        $this->mockOperationRunnerExecute(42);
 
         $result = $this->handler->createBook($form);
 
@@ -96,143 +92,90 @@ final class BookCommandHandlerTest extends Unit
         $form->cover = $this->createUploadedFile();
 
         $createCommand = $this->createMock(CreateBookCommand::class);
+
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
+            ->willReturnCallback(static fn($operation) => $operation());
+
         $this->mockContentStorageWithCover();
-
-        $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
-
-        $this->autoMapper->expects($this->once())
-            ->method('map')
-            ->with($this->callback(static fn($args) => $args['title'] === 'Test' && $args['cover'] instanceof StoredFileReference), CreateBookCommand::class)
+        $this->commandMapper->expects($this->once())
+            ->method('toCreateCommand')
+            ->with($form, self::COVER_PATH)
             ->willReturn($createCommand);
 
-        $this->mockUseCaseRunnerSimple(7);
+        $this->mockOperationRunnerExecute(7);
 
         $result = $this->handler->createBook($form);
 
         $this->assertSame(7, $result);
     }
 
-    public function testCreateBookWithDomainExceptionReturnsNull(): void
-    {
-        $form = $this->createMock(BookForm::class);
-        $form->cover = $this->createUploadedFile();
-        $form->method('attributes')->willReturn(['title']);
-
-        $this->mockContentStorageWithCover();
-
-        $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
-
-        $command = $this->createMock(CreateBookCommand::class);
-        $this->autoMapper->expects($this->once())->method('map')->willReturn($command);
-
-        $this->mockUseCaseRunnerWithException();
-
-        $result = $this->handler->createBook($form);
-
-        $this->assertNull($result);
-    }
-
-    public function testCreateBookWithDomainExceptionAddsFormError(): void
+    public function testCreateBookPropagatesApplicationException(): void
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = null;
-        $form->method('attributes')->willReturn(['isbn']);
 
         $command = $this->createMock(CreateBookCommand::class);
-        $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
 
-        $this->autoMapper->expects($this->once())
-            ->method('map')
-            ->willReturn($command);
+        $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
+        $this->commandMapper->expects($this->once())->method('toCreateCommand')->willReturn($command);
 
-        $exception = new ValidationException(DomainErrorCode::IsbnInvalidFormat);
+        $this->expectException(ApplicationException::class);
+        $this->mockOperationRunnerExecuteWithException();
 
-        $form->expects($this->once())
-            ->method('addError')
-            ->with('isbn', $this->anything());
-
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
-                $onDomainError($exception);
-                return null;
-            });
-
-        $result = $this->handler->createBook($form);
-
-        $this->assertNull($result);
+        $this->handler->createBook($form);
     }
 
-    public function testCreateBookWithUnknownDomainExceptionAddsDefaultFormError(): void
+    public function testCreateBookPropagatesMapperException(): void
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = null;
-        $form->method('attributes')->willReturn(['title', 'description']);
 
-        $command = $this->createMock(CreateBookCommand::class);
-        $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
+        $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
 
-        $this->autoMapper->expects($this->once())
-            ->method('map')
-            ->willReturn($command);
+        $this->commandMapper->expects($this->once())
+            ->method('toCreateCommand')
+            ->willThrowException(new RuntimeException(self::MSG_MAPPER_FAILED));
 
-        $exception = new ValidationException(DomainErrorCode::EntityAlreadyExists);
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(self::MSG_MAPPER_FAILED);
 
-        $form->expects($this->once())
-            ->method('addError')
-            ->with('title', $this->anything());
-
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static function (mixed $_, mixed $__, mixed $___, $onDomainError) use ($exception) {
-                $onDomainError($exception);
-                return null;
-            });
-
-        $result = $this->handler->createBook($form);
-
-        $this->assertNull($result);
+        $this->handler->createBook($form);
     }
 
-    public function testUpdateBookReturnsTrueOnSuccess(): void
+    public function testUpdateBookSucceeds(): void
     {
         $form = $this->createMock(BookForm::class);
         $form->cover = null;
 
         $command = $this->createMock(UpdateBookCommand::class);
 
-        $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
+        $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
 
-        $this->autoMapper->expects($this->once())
-            ->method('map')
-            ->with($this->callback(static fn($args) => $args['title'] === 'Test' && $args['id'] === 123), UpdateBookCommand::class)
+        $this->commandMapper->expects($this->once())
+            ->method('toUpdateCommand')
+            ->with(123, $form, null)
             ->willReturn($command);
 
-        $this->mockUseCaseRunnerSimple(true);
+        $this->mockOperationRunnerExecute(true);
 
-        $result = $this->handler->updateBook(123, $form);
-
-        $this->assertTrue($result);
+        $this->handler->updateBook(123, $form);
     }
 
-    public function testUpdateBookWithDomainExceptionReturnsFalse(): void
+    public function testUpdateBookPropagatesException(): void
     {
         $form = $this->createMock(BookForm::class);
-        $form->cover = $this->createUploadedFile();
-        $form->method('attributes')->willReturn(['title']);
-
-        $this->mockContentStorageWithCover();
-
-        $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
+        $form->cover = null;
 
         $command = $this->createMock(UpdateBookCommand::class);
-        $this->autoMapper->expects($this->once())->method('map')->willReturn($command);
 
-        $this->mockUseCaseRunnerWithException();
+        $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
+        $this->commandMapper->expects($this->once())->method('toUpdateCommand')->willReturn($command);
 
-        $result = $this->handler->updateBook(123, $form);
+        $this->expectException(ApplicationException::class);
+        $this->mockOperationRunnerExecuteWithException();
 
-        $this->assertFalse($result);
+        $this->handler->updateBook(123, $form);
     }
 
     public function testUpdateBookSavesCoverToCas(): void
@@ -241,112 +184,95 @@ final class BookCommandHandlerTest extends Unit
         $form->cover = $this->createUploadedFile();
 
         $updateCommand = $this->createMock(UpdateBookCommand::class);
+
+        $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
+
         $this->mockContentStorageWithCover();
-
-        $form->expects($this->once())->method('toArray')->willReturn(['title' => 'Test', 'description' => '']);
-
-        $this->autoMapper->expects($this->once())
-            ->method('map')
-            ->with($this->callback(static fn($args) => $args['title'] === 'Test' && $args['id'] === 7 && $args['cover'] instanceof StoredFileReference), UpdateBookCommand::class)
+        $this->commandMapper->expects($this->once())
+            ->method('toUpdateCommand')
+            ->with(7, $form, self::COVER_PATH)
             ->willReturn($updateCommand);
 
-        $this->mockUseCaseRunnerSimple(true);
+        $this->mockOperationRunnerExecute(true);
 
-        $result = $this->handler->updateBook(7, $form);
-
-        $this->assertTrue($result);
+        $this->handler->updateBook(7, $form);
     }
 
-    public function testCreateBookReturnsNullOnMappingError(): void
+    public function testUpdateBookPropagatesMapperException(): void
     {
         $form = $this->createMock(BookForm::class);
-        $form->method('toArray')->willReturn([]);
-        $form->method('attributes')->willReturn(['title']);
-        $this->autoMapper->method('map')->willThrowException(new \RuntimeException('Fail'));
+        $form->cover = null;
 
-        $form->expects($this->once())->method('addError');
+        $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
 
-        $this->assertNull($this->handler->createBook($form));
+        $this->commandMapper->expects($this->once())
+            ->method('toUpdateCommand')
+            ->willThrowException(new RuntimeException(self::MSG_MAPPER_FAILED));
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(self::MSG_MAPPER_FAILED);
+
+        $this->handler->updateBook(1, $form);
     }
 
-    public function testUpdateBookReturnsFalseOnMappingError(): void
+    public function testUpdateBookThrowsOnCoverUploadError(): void
     {
         $form = $this->createMock(BookForm::class);
-        $form->method('toArray')->willReturn([]);
-        $form->method('attributes')->willReturn(['title']);
-        $this->autoMapper->method('map')->willThrowException(new \RuntimeException('Fail'));
+        $form->cover = $this->createUploadedFile();
 
-        $form->expects($this->once())->method('addError');
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
+            ->willReturn(null);
 
-        $this->assertFalse($this->handler->updateBook(1, $form));
+        $this->expectException(OperationFailedException::class);
+
+        $this->handler->updateBook(1, $form);
     }
 
-    public function testProcessCoverUploadThrowsOnError(): void
+    public function testCreateBookThrowsOnCoverUploadError(): void
     {
         $form = $this->createMock(BookForm::class);
-        $form->method('attributes')->willReturn(['title']);
-        $file = $this->createUploadedFile();
-        $form->cover = $file;
+        $form->cover = $this->createUploadedFile();
 
-        $this->uploadedFileAdapter->method('toFileContent')->willThrowException(new \RuntimeException('Disk error'));
-        $this->contentStorage->expects($this->never())->method('save');
-        $form->expects($this->atLeastOnce())->method('addError');
+        $this->operationRunner->expects($this->once())
+            ->method('runStep')
+            ->willReturn(null);
 
-        $this->assertFalse($this->handler->updateBook(1, $form));
+        $this->expectException(OperationFailedException::class);
+
+        $this->handler->createBook($form);
     }
 
-    public function testCreateBookReturnsNullOnCoverUploadError(): void
-    {
-        $form = $this->createMock(BookForm::class);
-        $form->method('attributes')->willReturn(['title']);
-        $file = $this->createUploadedFile();
-        $form->cover = $file;
-
-        $this->uploadedFileAdapter->method('toFileContent')->willThrowException(new \RuntimeException('Disk error'));
-        $this->contentStorage->expects($this->never())->method('save');
-
-        $this->logger->expects($this->once())->method('error');
-        $form->expects($this->atLeastOnce())->method('addError')->with('cover', $this->anything());
-
-        $this->assertNull($this->handler->createBook($form));
-    }
-
-    public function testPublishBookExecutesUseCase(): void
+    public function testChangeBookStatusExecutesUseCase(): void
     {
         $bookId = 123;
 
-        $this->useCaseRunner->expects($this->once())
-            ->method('execute')
+        $this->operationRunner->expects($this->once())
+            ->method('executeAndPropagate')
             ->with(
-                $this->isInstanceOf(PublishBookCommand::class),
-                $this->isInstanceOf(PublishBookUseCase::class),
-                $this->anything(),
+                $this->isInstanceOf(ChangeBookStatusCommand::class),
+                $this->isInstanceOf(ChangeBookStatusUseCase::class),
                 $this->anything(),
             )
             ->willReturn(true);
 
-        $result = $this->handler->publishBook($bookId);
-
-        $this->assertTrue($result);
+        $this->handler->changeBookStatus($bookId, 'published', 'Published!');
     }
 
     public function testDeleteBookExecutesUseCase(): void
     {
         $bookId = 456;
 
-        $this->useCaseRunner->expects($this->once())
-            ->method('execute')
+        $this->operationRunner->expects($this->once())
+            ->method('executeAndPropagate')
             ->with(
                 $this->isInstanceOf(DeleteBookCommand::class),
                 $this->isInstanceOf(DeleteBookUseCase::class),
                 $this->anything(),
-                $this->anything(),
             )
             ->willReturn(true);
 
-        $result = $this->handler->deleteBook($bookId);
-
-        $this->assertTrue($result);
+        $this->handler->deleteBook($bookId);
     }
 
     private function createUploadedFile(string $name = 'test.jpg', string $tempPath = '/tmp/test.jpg'): UploadedFile
@@ -359,40 +285,30 @@ final class BookCommandHandlerTest extends Unit
 
     private function mockContentStorageWithCover(): void
     {
-        $stream = fopen('php://memory', 'r+b');
-        $this->assertIsResource($stream);
-
-        fwrite($stream, 'test content');
-        rewind($stream);
-
-        $fileContent = new FileContent($stream, 'jpg', 'image/jpeg');
-        $fileKey = new FileKey(self::TEST_HASH);
+        $payload = new UploadedFilePayload('/tmp/test.jpg', 'jpg', 'image/jpeg');
 
         $this->uploadedFileAdapter->expects($this->once())
-            ->method('toFileContent')
+            ->method('toPayload')
             ->with($this->callback(static fn($arg) => $arg instanceof UploadedFile))
-            ->willReturn($fileContent);
+            ->willReturn($payload);
 
-        $this->contentStorage->expects($this->once())
-            ->method('save')
-            ->with($this->equalTo($fileContent))
-            ->willReturn($fileKey);
+        $this->uploadedFileStorage->expects($this->once())
+            ->method('store')
+            ->with($this->equalTo($payload))
+            ->willReturn(self::COVER_PATH);
     }
 
-    private function mockUseCaseRunnerSimple(mixed $returnValue = null): void
+    private function mockOperationRunnerExecute(mixed $returnValue = null): void
     {
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
+        $this->operationRunner->expects($this->once())
+            ->method('executeAndPropagate')
             ->willReturn($returnValue);
     }
 
-    private function mockUseCaseRunnerWithException(): void
+    private function mockOperationRunnerExecuteWithException(): void
     {
-        $this->useCaseRunner->expects($this->once())
-            ->method('executeWithFormErrors')
-            ->willReturnCallback(static function ($_command, $_useCase, $_msg, $onDomainError, $_onError) {
-                $onDomainError(new ValidationException(DomainErrorCode::BookTitleEmpty));
-                return null;
-            });
+        $this->operationRunner->expects($this->once())
+            ->method('executeAndPropagate')
+            ->willThrowException(new ApplicationException('book.error.title_empty'));
     }
 }

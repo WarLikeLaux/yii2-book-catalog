@@ -28,7 +28,12 @@ deptrac:
     - name: Infrastructure
       collectors:
         - type: directory
-          value: infrastructure/.*
+          value: infrastructure/(adapters|services|queries|repositories|phpstan|queue|components|factories|listeners|mapping)/.*
+
+    - name: Persistence
+      collectors:
+        - type: directory
+          value: infrastructure/persistence/.*
     
     - name: Presentation
       collectors:
@@ -48,7 +53,7 @@ deptrac:
     - name: Vendor
       collectors:
         - type: classLike
-          value: ^(Ramsey\\|Psr\\|Symfony\\|Doctrine\\).*  
+          value: ^(Ramsey\\|Psr\\|Symfony\\|Doctrine\\).*
 
   ruleset:
     DomainEntities:
@@ -64,6 +69,14 @@ deptrac:
       - Vendor
     
     Infrastructure:
+      - Persistence
+      - DomainEntities
+      - DomainShared
+      - Application
+      - Vendor
+      - Framework
+
+    Persistence:
       - DomainEntities
       - DomainShared
       - Application
@@ -71,13 +84,12 @@ deptrac:
       - Framework
 
     Presentation:
-      - DomainShared
       - Application
       - Vendor
       - Framework
       - GlobalState
 
-  skip_violations:   
+  skip_violations:
     # Адаптеры (разрешен доступ к Yii)
     app\infrastructure\adapters\YiiTranslatorAdapter:
       - Yii

@@ -7,9 +7,11 @@ namespace app\infrastructure\queries;
 use app\domain\specifications\AuthorSpecification;
 use app\domain\specifications\BookSpecificationInterface;
 use app\domain\specifications\BookSpecificationVisitorInterface;
+use app\domain\specifications\CompositeAndSpecification;
 use app\domain\specifications\CompositeOrSpecification;
 use app\domain\specifications\FullTextSpecification;
 use app\domain\specifications\IsbnPrefixSpecification;
+use app\domain\specifications\StatusSpecification;
 use app\domain\specifications\YearSpecification;
 use app\infrastructure\persistence\Author;
 use yii\db\ActiveQuery;
@@ -71,6 +73,18 @@ final readonly class ActiveQueryBookSpecificationVisitor implements BookSpecific
         $this->query->andWhere($conditions);
     }
 
+    public function visitCompositeAnd(CompositeAndSpecification $spec): void
+    {
+        foreach ($spec->getSpecifications() as $childSpec) {
+            $childSpec->accept($this);
+        }
+    }
+
+    public function visitStatus(StatusSpecification $spec): void
+    {
+        $this->query->andWhere(['status' => $spec->getStatus()->value]);
+    }
+
     /**
      * @return array<int|string, mixed>|null
      */
@@ -81,6 +95,7 @@ final readonly class ActiveQueryBookSpecificationVisitor implements BookSpecific
             $spec instanceof IsbnPrefixSpecification => ['like', 'isbn', $spec->getPrefix() . '%', false],
             $spec instanceof FullTextSpecification => $this->buildFullTextCondition($spec->getQuery()),
             $spec instanceof AuthorSpecification => $this->buildAuthorCondition($spec->getAuthorName()),
+            $spec instanceof StatusSpecification => ['status' => $spec->getStatus()->value],
             default => null, // @codeCoverageIgnore
         };
     }

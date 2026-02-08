@@ -8,9 +8,6 @@ use app\application\authors\commands\CreateAuthorCommand;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\entities\Author;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\OperationFailedException;
-use Throwable;
 
 /**
  * @implements UseCaseInterface<CreateAuthorCommand, int>
@@ -27,16 +24,7 @@ final readonly class CreateAuthorUseCase implements UseCaseInterface
      */
     public function execute(object $command): int
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof CreateAuthorCommand);
-
-        try {
-            $author = Author::create($command->fio);
-            $this->authorRepository->save($author);
-
-            return (int)$author->id;
-        } catch (Throwable $e) {
-            throw new OperationFailedException(DomainErrorCode::AuthorCreateFailed, 0, $e);
-        }
+        $author = Author::create($command->fio);
+        return $this->authorRepository->save($author);
     }
 }

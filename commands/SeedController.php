@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\commands;
 
+use app\domain\values\BookStatus;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use RuntimeException;
@@ -99,8 +100,8 @@ final class SeedController extends Controller
                 'title' => $title,
                 'year' => $year,
                 'isbn' => $isbn,
-                'description' => "Автогенерированное описание для книги $title ($year).",
-                'is_published' => $isPublished,
+                'description' => "Автогенерированное описание для книги «{$title}» ({$year}). Эта книга является прекрасным примером литературного мастерства.",
+                'status' => $isPublished ? BookStatus::Published->value : BookStatus::Draft->value,
             ]);
 
             if (!$book->save()) {

@@ -7,6 +7,7 @@ namespace app\infrastructure\repositories\decorators;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\TracerInterface;
 use app\domain\entities\Subscription;
+use Override;
 
 final readonly class SubscriptionRepositoryTracingDecorator implements SubscriptionRepositoryInterface
 {
@@ -16,9 +17,9 @@ final readonly class SubscriptionRepositoryTracingDecorator implements Subscript
     ) {
     }
 
-    #[\Override]
-    public function save(Subscription $subscription): void
+    #[Override]
+    public function save(Subscription $subscription): int
     {
-        $this->tracer->trace('SubRepo::' . __FUNCTION__, fn() => $this->repository->save($subscription));
+        return $this->tracer->trace('SubRepo::' . __FUNCTION__, fn(): int => $this->repository->save($subscription));
     }
 }

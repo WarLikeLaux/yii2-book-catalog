@@ -7,6 +7,7 @@ namespace app\infrastructure\phpstan\Rules;
 use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\StaticPropertyFetch;
+use PhpParser\Node\Name;
 use PhpParser\NodeFinder;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\InClassNode;
@@ -37,11 +38,11 @@ final readonly class DomainIsCleanRule implements Rule
 
         /** @var array<StaticCall|StaticPropertyFetch> $usages */
         $usages = $nodeFinder->find($originalNode->stmts, static function (Node $n): bool {
-            if ($n instanceof StaticPropertyFetch && $n->class instanceof Node\Name) {
+            if ($n instanceof StaticPropertyFetch && $n->class instanceof Name) {
                 return $n->class->toString() === 'Yii';
             }
 
-            if ($n instanceof StaticCall && $n->class instanceof Node\Name) {
+            if ($n instanceof StaticCall && $n->class instanceof Name) {
                 return $n->class->toString() === 'Yii';
             }
 

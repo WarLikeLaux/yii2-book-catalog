@@ -4,36 +4,42 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\common\exceptions\ApplicationException;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
-use app\presentation\books\handlers\BookViewDataFactory;
-use app\presentation\common\dto\CrudPaginationRequest;
+use app\presentation\books\handlers\BookItemViewFactory;
+use app\presentation\books\handlers\BookListViewFactory;
+use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
+use app\presentation\common\ViewModelRenderer;
+use Override;
+use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\Response;
 use yii\widgets\ActiveForm;
 
-final class BookController extends Controller
+final class BookController extends BaseController
 {
     public function __construct(
         $id,
         $module,
         private readonly BookCommandHandler $commandHandler,
-        private readonly BookViewDataFactory $viewDataFactory,
+        private readonly BookListViewFactory $listViewFactory,
+        private readonly BookItemViewFactory $itemViewFactory,
+        ViewModelRenderer $renderer,
         $config = [],
     ) {
-        parent::__construct($id, $module, $config);
+        parent::__construct($id, $module, $renderer, $config);
     }
 
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         return [
             'idempotency' => [
                 'class' => IdempotencyFilter::class,
-                'only' => ['create', 'update'],
+                'only' => [ActionName::CREATE->value, ActionName::UPDATE->value],
             ],
             'access' => [
                 'class' => AccessControl::class,
@@ -44,8 +50,11 @@ final class BookController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'delete' => ['post'],
-                    'publish' => ['post'],
+                    ActionName::DELETE->value => ['post'],
+                    ActionName::PUBLISH->value => ['post'],
+                    ActionName::UNPUBLISH->value => ['post'],
+                    ActionName::ARCHIVE->value => ['post'],
+                    ActionName::RESTORE->value => ['post'],
                 ],
             ],
         ];
@@ -53,98 +62,134 @@ final class BookController extends Controller
 
     public function actionIndex(): string
     {
-        $pagination = CrudPaginationRequest::fromRequest($this->request);
+        $viewModel = $this->listViewFactory->getListViewModel($this->request);
 
-        $dataProvider = $this->viewDataFactory->getIndexDataProvider(
-            $pagination->page,
-            $pagination->limit,
-        );
-
-        return $this->render('index', [
-            'dataProvider' => $dataProvider,
-        ]);
+        return $this->renderer->render('index', $viewModel);
     }
 
     public function actionView(int $id): string
     {
-        $book = $this->viewDataFactory->getBookView($id);
+        $viewModel = $this->itemViewFactory->getBookViewModel($id);
 
-        return $this->render('view', [
-            'book' => $book,
-        ]);
+        return $this->renderer->render('view', $viewModel);
     }
 
-    /**
-     * @return string|Response|array<string, mixed>
-     */
-    public function actionCreate(): string|Response|array
+    public function actionCreate(): string|Response
     {
-        $form = new BookForm();
+        $form = $this->itemViewFactory->createForm();
 
-        if ($this->request->isPost && $form->loadFromRequest($this->request)) {
-            if ($this->request->isAjax) {
-                $this->response->format = Response::FORMAT_JSON;
-                return ActiveForm::validate($form);
-            }
-
-            if ($form->validate()) {
-                $bookId = $this->commandHandler->createBook($form);
-
-                if ($bookId !== null) {
-                    return $this->redirect(['view', 'id' => $bookId]);
-                }
-            }
+        if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
+            return $this->renderCreateForm($form);
         }
 
-        $authors = $this->viewDataFactory->getAuthorsList();
+        if ($this->request->isAjax) {
+            return $this->asJson(ActiveForm::validate($form));
+        }
 
-        return $this->render('create', [
-            'model' => $form,
-            'authors' => $authors,
-        ]);
+        if (!$form->validate()) {
+            return $this->renderCreateForm($form);
+        }
+
+        try {
+            $bookId = $this->commandHandler->createBook($form);
+            return $this->redirect(['view', 'id' => $bookId]);
+        } catch (ApplicationException $e) {
+            $this->addFormError($form, $e);
+            return $this->renderCreateForm($form);
+        }
     }
 
-    /**
-     * @return string|Response|array<string, mixed>
-     */
-    public function actionUpdate(int $id): string|Response|array
+    public function actionUpdate(int $id): string|Response
     {
-        $form = $this->viewDataFactory->getBookForUpdate($id);
+        $form = $this->itemViewFactory->getBookForUpdate($id);
 
-        if ($this->request->isPost && $form->loadFromRequest($this->request)) {
-            if ($this->request->isAjax) {
-                $this->response->format = Response::FORMAT_JSON;
-                return ActiveForm::validate($form);
-            }
-
-            if ($form->validate()) {
-                $success = $this->commandHandler->updateBook($id, $form);
-
-                if ($success) {
-                    return $this->redirect(['view', 'id' => $id]);
-                }
-            }
+        if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
+            return $this->renderUpdateForm($id, $form);
         }
 
-        $authors = $this->viewDataFactory->getAuthorsList();
-        $bookDto = $this->viewDataFactory->getBookView($id);
+        if ($this->request->isAjax) {
+            return $this->asJson(ActiveForm::validate($form));
+        }
 
-        return $this->render('update', [
-            'model' => $form,
-            'authors' => $authors,
-            'book' => $bookDto,
-        ]);
+        if (!$form->validate()) {
+            return $this->renderUpdateForm($id, $form);
+        }
+
+        try {
+            $this->commandHandler->updateBook($id, $form);
+            return $this->redirect(['view', 'id' => $id]);
+        } catch (ApplicationException $e) {
+            $this->addFormError($form, $e);
+            return $this->renderUpdateForm($id, $form);
+        }
     }
 
     public function actionDelete(int $id): Response
     {
-        $this->commandHandler->deleteBook($id);
+        try {
+            $this->commandHandler->deleteBook($id);
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
         return $this->redirect(['index']);
     }
 
     public function actionPublish(int $id): Response
     {
-        $this->commandHandler->publishBook($id);
+        try {
+            $this->commandHandler->changeBookStatus($id, 'published', Yii::t('app', 'book.success.published'));
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
         return $this->redirect(['view', 'id' => $id]);
+    }
+
+    public function actionUnpublish(int $id): Response
+    {
+        try {
+            $this->commandHandler->changeBookStatus($id, 'draft', Yii::t('app', 'book.success.unpublished'));
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
+        return $this->redirect(['view', 'id' => $id]);
+    }
+
+    public function actionArchive(int $id): Response
+    {
+        try {
+            $this->commandHandler->changeBookStatus($id, 'archived', Yii::t('app', 'book.success.archived'));
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
+        return $this->redirect(['view', 'id' => $id]);
+    }
+
+    public function actionRestore(int $id): Response
+    {
+        try {
+            $this->commandHandler->changeBookStatus($id, 'draft', Yii::t('app', 'book.success.restored'));
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
+        return $this->redirect(['view', 'id' => $id]);
+    }
+
+    private function renderCreateForm(BookForm $form): string
+    {
+        $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+
+        return $this->renderer->render('create', $viewModel);
+    }
+
+    private function renderUpdateForm(int $id, BookForm $form): string
+    {
+        $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+
+        return $this->renderer->render('update', $viewModel);
     }
 }

@@ -7,6 +7,7 @@ namespace tests\unit\domain\entities;
 use app\domain\entities\Book;
 use app\domain\exceptions\DomainException;
 use app\domain\services\BookPublicationPolicy;
+use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
@@ -14,6 +15,7 @@ use Codeception\Test\Unit;
 
 final class BookTest extends Unit
 {
+    private const ISBN_ALTERNATE = '979-10-90636-07-1';
     private function createBook(
         string $title = 'Title',
         int $year = 2023,
@@ -63,7 +65,7 @@ final class BookTest extends Unit
 
         $this->assertNull($book->id);
         $this->assertSame('Title', $book->title);
-        $this->assertFalse($book->published);
+        $this->assertSame(BookStatus::Draft, $book->status);
         $this->assertSame(1, $book->version);
         $this->assertSame([], $book->authorIds);
     }
@@ -78,7 +80,7 @@ final class BookTest extends Unit
             null,
             null,
             [],
-            false,
+            BookStatus::Draft,
             1,
         );
 
@@ -150,6 +152,37 @@ final class BookTest extends Unit
         $this->assertSame([1, 2, 3], $book->authorIds);
     }
 
+    public function testReplaceAuthorsWithEmptyArrayOnDraftBookSucceeds(): void
+    {
+        $book = $this->createBookWithAuthors(1, 2);
+        $book->replaceAuthors([]);
+
+        $this->assertSame([], $book->authorIds);
+    }
+
+    public function testReplaceAuthorsWithEmptyArrayOnPublishedBookThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_authors');
+
+        $book->replaceAuthors([]);
+    }
+
+    public function testReplaceAuthorsWithEmptyArrayOnArchivedBookThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_authors');
+
+        $book->replaceAuthors([]);
+    }
+
     public function testIncrementVersion(): void
     {
         $book = Book::reconstitute(
@@ -160,7 +193,7 @@ final class BookTest extends Unit
             null,
             null,
             [],
-            false,
+            BookStatus::Draft,
             5,
         );
 
@@ -169,28 +202,96 @@ final class BookTest extends Unit
         $this->assertSame(6, $book->version);
     }
 
-    public function testPublishRequiresAuthors(): void
+    public function testTransitionDraftToPublishedRequiresAuthors(): void
     {
         $book = $this->createBook();
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_without_authors');
 
-        $book->publish(new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
     }
 
-    public function testPublishWithAuthorsSucceeds(): void
+    public function testTransitionDraftToPublishedSucceeds(): void
     {
         $book = $this->createPublishableBook(1, 2);
-        $book->publish(new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
 
-        $this->assertTrue($book->published);
+        $this->assertSame(BookStatus::Published, $book->status);
+    }
+
+    public function testTransitionDraftToPublishedWithoutPolicyThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_policy');
+
+        $book->transitionTo(BookStatus::Published);
+    }
+
+    public function testTransitionPublishedToDraft(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Draft);
+
+        $this->assertSame(BookStatus::Draft, $book->status);
+    }
+
+    public function testTransitionPublishedToArchived(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->assertSame(BookStatus::Archived, $book->status);
+    }
+
+    public function testTransitionArchivedToDraft(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+        $book->transitionTo(BookStatus::Draft);
+
+        $this->assertSame(BookStatus::Draft, $book->status);
+    }
+
+    public function testTransitionDraftToArchivedForbidden(): void
+    {
+        $book = $this->createBook();
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.invalid_status_transition');
+
+        $book->transitionTo(BookStatus::Archived);
+    }
+
+    public function testTransitionArchivedToPublishedForbidden(): void
+    {
+        $book = Book::reconstitute(
+            1,
+            'Archived',
+            new BookYear(2024),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null,
+            [],
+            BookStatus::Archived,
+            1,
+        );
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.invalid_status_transition');
+
+        $book->transitionTo(BookStatus::Published);
     }
 
     public function testChangeIsbnOnDraftBookSucceeds(): void
     {
         $book = $this->createBook();
-        $newIsbn = new Isbn('979-10-90636-07-1');
+        $newIsbn = new Isbn(self::ISBN_ALTERNATE);
 
         $book->correctIsbn($newIsbn);
 
@@ -200,18 +301,38 @@ final class BookTest extends Unit
     public function testChangeIsbnOnPublishedBookThrows(): void
     {
         $book = $this->createPublishableBook(1);
-        $book->publish(new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.isbn_change_published');
 
-        $book->correctIsbn(new Isbn('979-10-90636-07-1'));
+        $book->correctIsbn(new Isbn(self::ISBN_ALTERNATE));
+    }
+
+    public function testChangeIsbnOnArchivedBookThrows(): void
+    {
+        $book = Book::reconstitute(
+            1,
+            'Archived',
+            new BookYear(2024),
+            new Isbn('978-3-16-148410-0'),
+            'This is a valid description that is long enough to pass the minimum requirement of 50 characters.',
+            new StoredFileReference('covers/test.jpg'),
+            [1],
+            BookStatus::Archived,
+            1,
+        );
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.isbn_change_published');
+
+        $book->correctIsbn(new Isbn(self::ISBN_ALTERNATE));
     }
 
     public function testSameIsbnOnPublishedBookSucceeds(): void
     {
         $book = $this->createPublishableBook(1);
-        $book->publish(new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
         $book->rename('New Title');
 
         $this->assertSame('New Title', $book->title);
@@ -251,11 +372,5 @@ final class BookTest extends Unit
         $this->expectExceptionMessage('book.error.title_too_long');
 
         $book->rename(str_repeat('X', 256));
-    }
-
-    private function assignBookId(Book $book, int $id): void
-    {
-        $property = new \ReflectionProperty(Book::class, 'id');
-        $property->setValue($book, $id);
     }
 }

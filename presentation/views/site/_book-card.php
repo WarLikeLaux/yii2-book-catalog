@@ -6,7 +6,7 @@ use yii\helpers\Html;
 
 /**
  * @var yii\web\View $this
- * @var app\application\books\queries\BookReadDto $book
+ * @var app\presentation\books\dto\BookViewModel $book
  */
 
 $coverUrl = $book->coverUrl ?? '';
@@ -15,9 +15,9 @@ $coverUrl = $book->coverUrl ?? '';
 <div class="col-md-4 mb-4">
     <div class="card h-100 shadow-sm">
         <?php if ($coverUrl !== ''): ?>
-        <div style="height: 200px; overflow: hidden;">
+        <div class="book-cover-container">
             <?= Html::a(
-                Html::img($coverUrl, ['class' => 'card-img-top', 'alt' => $book->title, 'style' => 'width: 100%; height: 100%; object-fit: cover; cursor: pointer;', 'loading' => 'lazy']),
+                Html::img($coverUrl, ['class' => 'card-img-top book-cover-img', 'alt' => $book->title, 'loading' => 'lazy']),
                 $coverUrl,
                 ['class' => 'glightbox', 'data-gallery' => 'books-gallery', 'data-type' => 'image'],
             ) ?>
@@ -39,7 +39,7 @@ $coverUrl = $book->coverUrl ?? '';
             </div>
 
             <?php if ($book->description): ?>
-                <p class="small"><?= Html::encode(mb_substr($book->description, 0, 100)) ?>...</p>
+                <p class="small"><?= Html::encode(mb_substr((string) $book->description, 0, 100)) ?>...</p>
             <?php endif; ?>
         </div>
     </div>

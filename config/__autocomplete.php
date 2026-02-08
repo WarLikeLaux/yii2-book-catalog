@@ -31,7 +31,7 @@ class __Application
 }
 
 /**
- * @property app\models\User $identity
+ * @property app\infrastructure\persistence\User $identity
  */
 class __WebUser
 {

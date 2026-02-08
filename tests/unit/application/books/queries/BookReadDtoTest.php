@@ -50,7 +50,8 @@ final class BookReadDtoTest extends Unit
             authorIds: [],
         );
 
-        $this->assertFalse($dto->isPublished);
+        $this->assertFalse($dto->getIsPublished());
+        $this->assertSame('draft', $dto->status);
         $this->assertSame(1, $dto->version);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\auth\forms;
 
+use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
 use Yii;
 use yii\base\Model;
@@ -14,7 +15,7 @@ final class LoginForm extends Model
     public string $password = '';
     public bool $rememberMe = true;
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function rules(): array
     {
@@ -24,7 +25,7 @@ final class LoginForm extends Model
         ];
     }
 
-    #[\Override]
+    #[Override]
     #[CodeCoverageIgnore]
     public function attributeLabels(): array
     {

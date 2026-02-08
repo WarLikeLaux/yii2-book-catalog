@@ -7,10 +7,13 @@ namespace tests\unit\domain\specifications;
 use app\domain\specifications\AuthorSpecification;
 use app\domain\specifications\BookSearchSpecificationFactory;
 use app\domain\specifications\BookSpecificationVisitorInterface;
+use app\domain\specifications\CompositeAndSpecification;
 use app\domain\specifications\CompositeOrSpecification;
 use app\domain\specifications\FullTextSpecification;
 use app\domain\specifications\IsbnPrefixSpecification;
+use app\domain\specifications\StatusSpecification;
 use app\domain\specifications\YearSpecification;
+use app\domain\values\BookStatus;
 use Codeception\Test\Unit;
 
 final class BookSpecificationsTest extends Unit
@@ -73,6 +76,33 @@ final class BookSpecificationsTest extends Unit
         $visitor = $this->createMock(BookSpecificationVisitorInterface::class);
         $visitor->expects($this->once())->method('visitCompositeOr')->with($composite);
         $composite->accept($visitor);
+    }
+
+    public function testCompositeAndSpecificationGetterAndAccept(): void
+    {
+        $statusSpec = new StatusSpecification(BookStatus::Published);
+        $fullTextSpec = new FullTextSpecification('clean');
+        $composite = new CompositeAndSpecification([$statusSpec, $fullTextSpec]);
+
+        $specs = $composite->getSpecifications();
+        $this->assertCount(2, $specs);
+        $this->assertSame($statusSpec, $specs[0]);
+        $this->assertSame($fullTextSpec, $specs[1]);
+
+        $visitor = $this->createMock(BookSpecificationVisitorInterface::class);
+        $visitor->expects($this->once())->method('visitCompositeAnd')->with($composite);
+        $composite->accept($visitor);
+    }
+
+    public function testStatusSpecificationGetterAndAccept(): void
+    {
+        $spec = new StatusSpecification(BookStatus::Published);
+
+        $this->assertSame(BookStatus::Published, $spec->getStatus());
+
+        $visitor = $this->createMock(BookSpecificationVisitorInterface::class);
+        $visitor->expects($this->once())->method('visitStatus')->with($spec);
+        $spec->accept($visitor);
     }
 
     public function testFactoryCreatesYearSpecForFourDigitNumber(): void

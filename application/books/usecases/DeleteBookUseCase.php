@@ -9,6 +9,7 @@ use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\events\BookDeletedEvent;
+use app\domain\values\BookStatus;
 
 /**
  * @implements UseCaseInterface<DeleteBookCommand, bool>
@@ -26,11 +27,9 @@ final readonly class DeleteBookUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof DeleteBookCommand);
         $book = $this->bookRepository->get($command->id);
         $year = $book->year->value;
-        $wasPublished = $book->published;
+        $wasPublished = $book->status === BookStatus::Published;
 
         $this->bookRepository->delete($book);
 

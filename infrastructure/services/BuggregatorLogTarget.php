@@ -5,20 +5,19 @@ declare(strict_types=1);
 namespace app\infrastructure\services;
 
 use app\infrastructure\services\observability\RequestIdProvider;
+use Override;
 use Throwable;
 use yii\helpers\Json;
 use yii\log\Logger;
 use yii\log\Target;
 
-/**
- * @codeCoverageIgnore
- */
 final class BuggregatorLogTarget extends Target
 {
     public string $host = 'buggregator';
     public int $port = 9913;
 
-    #[\Override]
+    /** @codeCoverageIgnore */
+    #[Override]
     public function export(): void
     {
         $socket = @fsockopen($this->host, $this->port, $errno, $errstr, 2);

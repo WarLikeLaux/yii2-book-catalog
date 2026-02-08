@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\User;
-use app\presentation\subscriptions\handlers\SubscriptionViewDataFactory;
+use app\presentation\subscriptions\handlers\SubscriptionViewFactory;
 
 final class SubscriptionViewCest
 {
@@ -17,9 +17,9 @@ final class SubscriptionViewCest
     {
         $authorId = $I->haveRecord(Author::class, ['fio' => 'View Service Author']);
 
-        $factory = Yii::$container->get(SubscriptionViewDataFactory::class);
-        $author = $factory->getAuthor($authorId);
+        $factory = Yii::$container->get(SubscriptionViewFactory::class);
+        $viewModel = $factory->getSubscriptionViewModel($authorId);
 
-        $I->assertSame('View Service Author', $author->fio);
+        $I->assertSame('View Service Author', $viewModel->author->fio);
     }
 }

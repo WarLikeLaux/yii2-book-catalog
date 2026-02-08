@@ -4,25 +4,18 @@ declare(strict_types=1);
 
 namespace app\presentation\books\handlers;
 
-use app\application\books\commands\CreateBookCommand;
+use app\application\books\commands\ChangeBookStatusCommand;
 use app\application\books\commands\DeleteBookCommand;
-use app\application\books\commands\PublishBookCommand;
-use app\application\books\commands\UpdateBookCommand;
+use app\application\books\usecases\ChangeBookStatusUseCase;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
-use app\application\books\usecases\PublishBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\application\ports\ContentStorageInterface;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\DomainException;
-use app\domain\exceptions\OperationFailedException;
-use app\domain\values\StoredFileReference;
+use app\application\common\exceptions\OperationFailedException;
+use app\application\common\services\UploadedFileStorage;
 use app\presentation\books\forms\BookForm;
+use app\presentation\books\mappers\BookCommandMapper;
 use app\presentation\common\adapters\UploadedFileAdapter;
-use app\presentation\common\handlers\UseCaseHandlerTrait;
-use app\presentation\common\services\WebUseCaseRunner;
-use AutoMapper\AutoMapperInterface;
-use Psr\Log\LoggerInterface;
+use app\presentation\common\services\WebOperationRunner;
 use Yii;
 use yii\web\UploadedFile;
 
@@ -32,147 +25,91 @@ use yii\web\UploadedFile;
  */
 final readonly class BookCommandHandler
 {
-    use UseCaseHandlerTrait;
-
     public function __construct(
-        private AutoMapperInterface $autoMapper,
+        private BookCommandMapper $commandMapper,
         private CreateBookUseCase $createBookUseCase,
         private UpdateBookUseCase $updateBookUseCase,
         private DeleteBookUseCase $deleteBookUseCase,
-        private PublishBookUseCase $publishBookUseCase,
-        private WebUseCaseRunner $useCaseRunner,
-        private ContentStorageInterface $contentStorage,
+        private ChangeBookStatusUseCase $changeBookStatusUseCase,
+        private WebOperationRunner $operationRunner,
+        private UploadedFileStorage $uploadedFileStorage,
         private UploadedFileAdapter $uploadedFileAdapter,
-        private LoggerInterface $logger,
     ) {
     }
 
-    /**
-     * @return array<string, string>
-     */
-    protected function getErrorFieldMap(): array
+    public function createBook(BookForm $form): int
     {
-        return [
-            'isbn.error.invalid_format' => 'isbn',
-            'year.error.too_old' => 'year',
-            'year.error.future' => 'year',
-            'book.error.title_empty' => 'title',
-            'book.error.title_too_long' => 'title',
-            'book.error.isbn_change_published' => 'isbn',
-            'book.error.invalid_author_id' => 'authorIds',
-            'book.error.publish_without_authors' => 'authorIds',
-        ];
-    }
+        $cover = $this->operationRunner->runStep(
+            fn(): ?string => $this->processCoverUpload($form),
+            'Failed to upload book cover',
+        );
 
-    public function createBook(BookForm $form): int|null
-    {
-        try {
-            $cover = $this->processCoverUpload($form);
-        } catch (\Throwable $e) {
-            $this->logger->error('Failed to upload book cover', ['exception' => $e]);
-            $form->addError('cover', Yii::t('app', 'file.error.storage_operation_failed'));
-            return null;
+        if ($form->cover instanceof UploadedFile && $cover === null) {
+            throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
         }
 
-        try {
-            $data = $this->prepareCommandData($form, $cover);
-            /** @var CreateBookCommand $command */
-            $command = $this->autoMapper->map($data, CreateBookCommand::class);
-        } catch (\Throwable $e) {
-            $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 0, $e));
-            return null;
-        }
+        $command = $this->commandMapper->toCreateCommand($form, $cover);
 
-        /** @var int|null */
-        return $this->executeWithForm(
-            $this->useCaseRunner,
-            $form,
+        $result = $this->operationRunner->executeAndPropagate(
             $command,
             $this->createBookUseCase,
             Yii::t('app', 'book.success.created'),
         );
+        assert(is_int($result));
+
+        return $result;
     }
 
-    public function updateBook(int $id, BookForm $form): bool
+    public function updateBook(int $id, BookForm $form): void
     {
-        try {
-            $cover = $this->processCoverUpload($form);
-        } catch (\Throwable $e) {
-            $this->logger->error('Failed to upload book cover', ['exception' => $e, 'book_id' => $id]);
-            $form->addError('cover', Yii::t('app', 'file.error.storage_operation_failed'));
-            return false;
+        $cover = $this->operationRunner->runStep(
+            fn(): ?string => $this->processCoverUpload($form),
+            'Failed to upload book cover',
+            ['book_id' => $id],
+        );
+
+        if ($form->cover instanceof UploadedFile && $cover === null) {
+            throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
         }
 
-        try {
-            $data = $this->prepareCommandData($form, $cover);
-            $data['id'] = $id;
-            /** @var UpdateBookCommand $command */
-            $command = $this->autoMapper->map($data, UpdateBookCommand::class);
-        } catch (\Throwable $e) {
-            $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 0, $e));
-            return false;
-        }
+        $command = $this->commandMapper->toUpdateCommand($id, $form, $cover);
 
-        return $this->executeWithForm(
-            $this->useCaseRunner,
-            $form,
+        $this->operationRunner->executeAndPropagate(
             $command,
             $this->updateBookUseCase,
             Yii::t('app', 'book.success.updated'),
-        ) !== null;
+        );
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function prepareCommandData(BookForm $form, StoredFileReference|null $cover = null): array
-    {
-        $data = $form->toArray();
-        $data['cover'] = $cover;
-        $data['description'] = ($data['description'] ?? '') !== '' ? $data['description'] : null;
-
-        $authorIds = (array)($form->authorIds ?? []);
-        $data['authorIds'] = array_map(intval(...), array_filter($authorIds, is_numeric(...)));
-
-        return $data;
-    }
-
-    public function deleteBook(int $id): bool
+    public function deleteBook(int $id): void
     {
         $command = new DeleteBookCommand($id);
 
-        $result = $this->useCaseRunner->execute(
+        $this->operationRunner->executeAndPropagate(
             $command,
             $this->deleteBookUseCase,
             Yii::t('app', 'book.success.deleted'),
-            ['book_id' => $id],
         );
-
-        return (bool)$result;
     }
 
-    public function publishBook(int $id): bool
+    public function changeBookStatus(int $id, string $targetStatus, string $successMessage): void
     {
-        $command = new PublishBookCommand($id);
+        $command = new ChangeBookStatusCommand($id, $targetStatus);
 
-        $result = $this->useCaseRunner->execute(
+        $this->operationRunner->executeAndPropagate(
             $command,
-            $this->publishBookUseCase,
-            Yii::t('app', 'book.success.published'),
-            ['book_id' => $id],
+            $this->changeBookStatusUseCase,
+            $successMessage,
         );
-
-        return (bool)$result;
     }
 
-    private function processCoverUpload(BookForm $form): StoredFileReference|null
+    private function processCoverUpload(BookForm $form): string|null
     {
         if (!$form->cover instanceof UploadedFile) {
             return null;
         }
 
-        $fileContent = $this->uploadedFileAdapter->toFileContent($form->cover);
-        $fileKey = $this->contentStorage->save($fileContent);
-        return new StoredFileReference($fileKey->getExtendedPath($fileContent->extension));
+        $payload = $this->uploadedFileAdapter->toPayload($form->cover);
+        return $this->uploadedFileStorage->store($payload);
     }
 }

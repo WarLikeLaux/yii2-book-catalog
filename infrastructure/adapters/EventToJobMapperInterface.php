@@ -9,5 +9,5 @@ use yii\queue\JobInterface;
 
 interface EventToJobMapperInterface
 {
-    public function map(QueueableEvent $event): JobInterface;
+    public function map(QueueableEvent $event): ?JobInterface;
 }

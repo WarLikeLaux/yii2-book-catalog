@@ -31,7 +31,7 @@ final class Author implements IdentifiableEntityInterface
     }
     // phpcs:enable
 
-    public function __construct(
+    private function __construct(
         public private(set) ?int $id,
         string $fio,
     ) {
@@ -41,6 +41,11 @@ final class Author implements IdentifiableEntityInterface
     public static function create(string $fio): self
     {
         return new self(null, $fio);
+    }
+
+    public static function reconstitute(int $id, string $fio): self
+    {
+        return new self($id, $fio);
     }
 
     public function update(string $fio): void

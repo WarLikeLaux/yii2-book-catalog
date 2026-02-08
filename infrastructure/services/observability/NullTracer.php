@@ -6,14 +6,15 @@ namespace app\infrastructure\services\observability;
 
 use app\application\ports\SpanInterface;
 use app\application\ports\TracerInterface;
+use Override;
 
-final class NullTracer implements TracerInterface
+final readonly class NullTracer implements TracerInterface
 {
     /**
      * @param non-empty-string $_name
      * @param array<non-empty-string, string|int|float|bool> $_attributes
      */
-    #[\Override]
+    #[Override]
     public function startSpan(string $_name, array $_attributes = []): SpanInterface
     {
         return new NullSpan();
@@ -22,19 +23,19 @@ final class NullTracer implements TracerInterface
     /**
      * @param array<string, mixed> $_attributes
      */
-    #[\Override]
+    #[Override]
     public function trace(string $_name, callable $callback, array $_attributes = []): mixed
     {
         return $callback();
     }
 
-    #[\Override]
+    #[Override]
     public function activeSpan(): SpanInterface|null
     {
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function flush(): void
     {
     }

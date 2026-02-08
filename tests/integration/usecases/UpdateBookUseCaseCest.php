@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\UpdateBookUseCase;
+use app\application\common\values\AuthorIdCollection;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
 use app\infrastructure\persistence\Author;
@@ -14,6 +15,8 @@ final class UpdateBookUseCaseCest
 {
     public function _before(IntegrationTester $I): void
     {
+        DbCleaner::clear(['book_authors', 'books', 'authors']);
+        Yii::$container->clear(UpdateBookUseCase::class);
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
@@ -25,6 +28,7 @@ final class UpdateBookUseCaseCest
             'year' => 2020,
             'isbn' => '9783161484100',
             'description' => 'Original description',
+            'version' => 1,
         ]);
         Yii::$app->db->createCommand()
             ->insert('book_authors', ['book_id' => $bookId, 'author_id' => $authorId])
@@ -36,9 +40,9 @@ final class UpdateBookUseCaseCest
             year: 2024,
             isbn: '9783161484100',
             description: 'Updated description',
-            authorIds: [$authorId],
+            authorIds: AuthorIdCollection::fromArray([$authorId]),
             version: 1,
-            cover: null,
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);
@@ -71,9 +75,9 @@ final class UpdateBookUseCaseCest
             year: 2024,
             isbn: '9783161484101',
             description: 'Updated description',
-            authorIds: [$authorId],
+            authorIds: AuthorIdCollection::fromArray([$authorId]),
             version: 1,
-            cover: null,
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);
@@ -96,9 +100,9 @@ final class UpdateBookUseCaseCest
             year: 2024,
             isbn: '9783161484102',
             description: 'Updated description',
-            authorIds: [],
+            authorIds: AuthorIdCollection::fromArray([]),
             version: 1,
-            cover: null,
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(UpdateBookUseCase::class);

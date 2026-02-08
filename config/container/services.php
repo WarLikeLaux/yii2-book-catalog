@@ -22,6 +22,7 @@ use app\application\ports\CacheInterface;
 use app\application\ports\ContentStorageInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\IdempotencyInterface;
+use app\application\ports\MimeTypeDetectorInterface;
 use app\application\ports\MutexInterface;
 use app\application\ports\RateLimitInterface;
 use app\application\ports\ReportQueryServiceInterface;
@@ -29,8 +30,6 @@ use app\application\ports\SmsSenderInterface;
 use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
-use app\domain\services\MimeTypeDetectorInterface;
-use app\domain\services\NativeMimeTypeDetector;
 use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\queries\AuthorQueryService;
 use app\infrastructure\queries\BookQueryService;
@@ -41,8 +40,8 @@ use app\infrastructure\queries\SubscriptionQueryService as InfraSubscriptionQuer
 use app\infrastructure\queue\handlers\NotifySingleSubscriberHandler;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use app\infrastructure\services\LogCategory;
+use app\infrastructure\services\NativeMimeTypeDetector;
 use app\infrastructure\services\storage\ContentAddressableStorage;
-use app\infrastructure\services\storage\StorageConfig as InfraStorageConfig;
 use app\infrastructure\services\YiiPsrLogger;
 use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\services\FileUrlResolver;
@@ -79,12 +78,11 @@ return static function (array $params): array {
             ContentStorageInterface::class => static function (Container $c): ContentStorageInterface {
                 $storageConfig = $c->get(AppStorageConfig::class);
 
-                $config = new InfraStorageConfig(
+                return new ContentAddressableStorage(new AppStorageConfig(
                     Yii::getAlias($storageConfig->basePath),
                     $storageConfig->baseUrl,
-                );
-
-                return new ContentAddressableStorage($config);
+                    $storageConfig->placeholderUrl,
+                ));
             },
 
             MimeTypeDetectorInterface::class => NativeMimeTypeDetector::class,

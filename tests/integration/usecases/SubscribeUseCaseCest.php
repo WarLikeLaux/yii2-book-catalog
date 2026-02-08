@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\application\subscriptions\usecases\SubscribeUseCase;
-use app\domain\exceptions\DomainException;
+use app\domain\exceptions\BusinessRuleException;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Subscription;
 
@@ -48,7 +48,7 @@ final class SubscribeUseCaseCest
 
         $useCase = Yii::$container->get(SubscribeUseCase::class);
 
-        $I->expectThrowable(DomainException::class, static function () use ($useCase, $command): void {
+        $I->expectThrowable(BusinessRuleException::class, static function () use ($useCase, $command): void {
             $useCase->execute($command);
         });
 

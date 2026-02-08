@@ -7,7 +7,7 @@ namespace app\presentation\subscriptions\mappers;
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\presentation\subscriptions\forms\SubscriptionForm;
 
-final class SubscriptionFormMapper
+final readonly class SubscriptionFormMapper
 {
     public function toCommand(SubscriptionForm $form): SubscribeCommand
     {

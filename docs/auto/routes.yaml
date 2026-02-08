@@ -15,8 +15,6 @@ routes:
     controller: api/v1/BookController
     methods:
       - GET
-    guards:
-      - Auth
   -
     path: /author
     action: author/index
@@ -79,6 +77,15 @@ routes:
     guards:
       - Auth
   -
+    path: /book/archive
+    action: book/archive
+    controller: BookController
+    methods:
+      - POST
+    guards:
+      - Idempotency
+      - Auth
+  -
     path: /book/create
     action: book/create
     controller: BookController
@@ -100,6 +107,24 @@ routes:
   -
     path: /book/publish
     action: book/publish
+    controller: BookController
+    methods:
+      - POST
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /book/restore
+    action: book/restore
+    controller: BookController
+    methods:
+      - POST
+    guards:
+      - Idempotency
+      - Auth
+  -
+    path: /book/unpublish
+    action: book/unpublish
     controller: BookController
     methods:
       - POST
@@ -161,8 +186,6 @@ routes:
     controller: SubscriptionController
     methods:
       - GET
-    guards:
-      - Auth
   -
     path: /subscription/subscribe
     action: subscription/subscribe
@@ -171,4 +194,3 @@ routes:
       - POST
     guards:
       - Idempotency
-      - Auth

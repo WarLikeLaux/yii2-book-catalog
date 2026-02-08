@@ -9,7 +9,7 @@ use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 
 /**
- * @implements UseCaseInterface<DeleteAuthorCommand, bool>
+ * @implements UseCaseInterface<DeleteAuthorCommand, void>
  */
 final readonly class DeleteAuthorUseCase implements UseCaseInterface
 {
@@ -21,14 +21,10 @@ final readonly class DeleteAuthorUseCase implements UseCaseInterface
     /**
      * @param DeleteAuthorCommand $command
      */
-    public function execute(object $command): bool
+    public function execute(object $command): void
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof DeleteAuthorCommand);
         $author = $this->authorRepository->get($command->id);
 
         $this->authorRepository->delete($author);
-
-        return true;
     }
 }

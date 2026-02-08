@@ -6,6 +6,7 @@ namespace app\presentation\common\filters;
 
 use app\application\common\config\RateLimitConfig;
 use app\application\common\RateLimitServiceInterface;
+use Override;
 use Yii;
 use yii\base\ActionFilter;
 use yii\web\Request;
@@ -27,7 +28,7 @@ final class RateLimitFilter extends ActionFilter
         parent::__construct($config);
     }
 
-    #[\Override]
+    #[Override]
     public function beforeAction($_action): bool
     {
         $request = Yii::$app->request;

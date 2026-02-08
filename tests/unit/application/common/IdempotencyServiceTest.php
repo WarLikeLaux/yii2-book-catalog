@@ -199,7 +199,7 @@ final class IdempotencyServiceTest extends Unit
             authorIds: [1, 2],
             authorNames: [1 => 'Author One', 2 => 'Author Two'],
             coverUrl: '/covers/test.jpg',
-            isPublished: true,
+            status: 'published',
             version: 1,
         );
         $ttl = 3600;
@@ -214,6 +214,7 @@ final class IdempotencyServiceTest extends Unit
             'authorNames' => [1 => 'Author One', 2 => 'Author Two'],
             'coverUrl' => '/covers/test.jpg',
             'isPublished' => true,
+            'status' => 'published',
             'version' => 1,
         ];
 

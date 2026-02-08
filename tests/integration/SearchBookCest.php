@@ -49,6 +49,7 @@ class SearchBookCest
             'isbn' => '0-306-40615-2',
             'year' => 2020,
             'description' => 'ISBN desc 1',
+            'status' => 'published',
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
@@ -57,6 +58,7 @@ class SearchBookCest
             'isbn' => '978-0-545-01022-1',
             'year' => 2021,
             'description' => 'ISBN desc 2',
+            'status' => 'published',
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
@@ -83,6 +85,7 @@ class SearchBookCest
             'isbn' => $isbn,
             'year' => 2023,
             'description' => 'Test desc',
+            'status' => 'published',
             'created_at' => date('Y-m-d H:i:s'),
         ]);
         $book = $I->grabRecord(Book::class, ['isbn' => $isbn]);

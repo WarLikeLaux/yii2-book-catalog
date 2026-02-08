@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\presentation\books\validators;
 
-use app\domain\values\Isbn;
-use Exception;
+use app\application\common\services\IsbnFormatValidator;
+use Override;
 use Yii;
 use yii\validators\Validator;
 
@@ -13,10 +13,12 @@ final class IsbnValidator extends Validator
 {
     public $message;
 
-    /**
-     * @codeCoverageIgnore Yii2 framework инициализация валидатора
-     */
-    #[\Override]
+    public function __construct(private readonly IsbnFormatValidator $formatValidator, array $config = [])
+    {
+        parent::__construct($config);
+    }
+
+    #[Override]
     public function init(): void
     {
         parent::init();
@@ -28,7 +30,7 @@ final class IsbnValidator extends Validator
         $this->message = Yii::t('app', 'isbn.error.invalid_format_hint');
     }
 
-    #[\Override]
+    #[Override]
     public function validateAttribute($model, $attribute): void
     {
         $value = $model->$attribute;
@@ -38,10 +40,10 @@ final class IsbnValidator extends Validator
             return;
         }
 
-        try {
-            new Isbn($value);
-        } catch (Exception) {
-            $this->addError($model, $attribute, (string)$this->message);
+        if ($this->formatValidator->isValid($value)) {
+            return;
         }
+
+        $this->addError($model, $attribute, (string)$this->message);
     }
 }

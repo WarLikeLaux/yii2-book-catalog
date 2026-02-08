@@ -9,6 +9,7 @@ use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
+use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
@@ -17,6 +18,7 @@ use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use RuntimeException;
 use WeakMap;
+use yii\base\InvalidConfigException;
 use yii\db\Connection;
 
 final readonly class BookRepository extends BaseActiveRecordRepository implements BookRepositoryInterface
@@ -34,9 +36,10 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         $this->authorSnapshots = new WeakMap();
     }
 
-    public function save(BookEntity $book): void
+    public function save(BookEntity $book): int
     {
-        $this->db->transaction(function () use ($book): void {
+        /** @var int */
+        return $this->db->transaction(function () use ($book): int {
             $isNew = $book->getId() === null;
             $model = $isNew ? new Book() : $this->getArForEntity($book, Book::class, DomainErrorCode::BookNotFound);
             $model->version = $book->version;
@@ -47,7 +50,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
                 'isbn',
                 'description',
                 'cover_url' => static fn(BookEntity $e): ?string => $e->coverImage?->getPath(),
-                'is_published' => static fn(BookEntity $e): int => $e->published ? 1 : 0,
+                'status' => static fn(BookEntity $e): string => $e->status->value,
             ]);
 
             $this->persist($model, DomainErrorCode::BookStaleData, DomainErrorCode::BookIsbnExists);
@@ -65,6 +68,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             $this->registerIdentity($book, $model);
 
             $this->syncAuthors($book);
+
+            return (int)$model->id;
         });
     }
 
@@ -84,8 +89,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     }
 
     /**
-     * @throws \app\domain\exceptions\EntityNotFoundException
-     * @throws \app\domain\exceptions\StaleDataException
+     * @throws EntityNotFoundException
+     * @throws StaleDataException
      */
     public function getByIdAndVersion(int $id, int $expectedVersion): BookEntity
     {
@@ -107,8 +112,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     }
 
     /**
-     * @throws \app\domain\exceptions\EntityNotFoundException
-     * @throws \yii\base\InvalidConfigException
+     * @throws EntityNotFoundException
+     * @throws InvalidConfigException
      */
     public function delete(BookEntity $book): void
     {
@@ -137,7 +142,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             description: $ar->description,
             coverImage: $ar->cover_url !== null ? new StoredFileReference($ar->cover_url) : null,
             authorIds: $authorIds,
-            published: (bool)$ar->is_published,
+            status: BookStatus::from($ar->status),
             version: $ar->version,
         );
     }
@@ -154,51 +159,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             return;
         }
 
-        $storedAuthorIds = $this->getStoredAuthorIds($bookId);
-        $currentAuthorIds = $book->authorIds;
-
-        $toDelete = array_values(array_diff($storedAuthorIds, $currentAuthorIds));
-        $toAdd = array_values(array_diff($currentAuthorIds, $storedAuthorIds));
-        sort($toDelete);
-        sort($toAdd);
-
-        if ($toDelete !== []) {
-            $this->db->createCommand()->delete('book_authors', [
-                'and',
-                ['book_id' => $bookId],
-                ['in', 'author_id', $toDelete],
-            ])->execute();
-        }
-
-        if ($toAdd === []) {
-            $this->updateAuthorSnapshot($book);
-
-            return;
-        }
-
-        $rows = array_map(
-            static fn(int $authorId): array => [$bookId, $authorId],
-            $toAdd,
-        );
-        $this->db->createCommand()->batchInsert(
-            'book_authors',
-            ['book_id', 'author_id'],
-            $rows,
-        )->execute();
-
+        $this->syncManyToMany($this->db, 'book_authors', 'book_id', 'author_id', $bookId, $book->authorIds);
         $this->updateAuthorSnapshot($book);
-    }
-
-    /**
-     * @return int[]
-     */
-    private function getStoredAuthorIds(int $bookId): array
-    {
-        $ids = $this->db->createCommand(
-            'SELECT author_id FROM book_authors WHERE book_id = :bookId',
-        )->bindValue(':bookId', $bookId)->queryColumn();
-
-        return array_map(intval(...), $ids);
     }
 
     private function hasAuthorsChanged(BookEntity $book): bool

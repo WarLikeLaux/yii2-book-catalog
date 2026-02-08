@@ -67,4 +67,12 @@ final class PaginationRequestTest extends Unit
         $this->assertSame(1, $request->page);
         $this->assertSame(20, $request->limit);
     }
+
+    public function testCustomDefaultLimit(): void
+    {
+        $request = new PaginationRequest(null, null, 9);
+
+        $this->assertSame(1, $request->page);
+        $this->assertSame(9, $request->limit);
+    }
 }

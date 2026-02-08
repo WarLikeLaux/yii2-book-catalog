@@ -26,7 +26,6 @@ final readonly class JobHandlerRegistry
         if ($job instanceof NotifySubscribersJob) {
             $this->container->get(NotifySubscribersHandler::class)->handle(
                 $job->bookId,
-                $job->title,
                 $queue,
             );
             return;

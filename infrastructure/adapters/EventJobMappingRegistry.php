@@ -22,7 +22,7 @@ final readonly class EventJobMappingRegistry
     {
     }
 
-    public function resolve(QueueableEvent $event): JobInterface
+    public function resolve(QueueableEvent $event): ?JobInterface
     {
         $eventClass = $event::class;
 

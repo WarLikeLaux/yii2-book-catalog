@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace app\infrastructure\persistence;
 
-use app\application\books\queries\BookReadDto;
-use AutoMapper\Attribute\MapTo;
 use yii\behaviors\OptimisticLockBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveQuery;
@@ -18,7 +16,7 @@ use yii\db\ActiveRecord;
  * @property string $isbn
  * @property string|null $description
  * @property string|null $cover_url
- * @property int $is_published
+ * @property string $status
  * @property int $version
  * @property int $created_at
  * @property int $updated_at
@@ -34,6 +32,18 @@ final class Book extends ActiveRecord
     public static function tableName(): string
     {
         return 'books';
+    }
+
+    /**
+     * @param mixed $_value
+     * @param object|array<string, mixed> $_source
+     * @param array<string, mixed> $_context
+     * @return array<int, string>
+     */
+    public static function mapAuthorNames(mixed $_value, object|array $_source, array $_context): array
+    {
+        /** @var array<int, string> */
+        return is_array($_value) ? $_value : [];
     }
 
     public function behaviors(): array
@@ -61,26 +71,11 @@ final class Book extends ActiveRecord
             [['title'], 'string', 'max' => 255],
             [['isbn'], 'string', 'max' => 20],
             [['cover_url'], 'string', 'max' => 500],
-            [['is_published'], 'boolean'],
-        ];
-    }
-
-    public function attributeLabels(): array
-    {
-        return [
-            'id' => 'ID',
-            'title' => 'Название',
-            'year' => 'Год выпуска',
-            'description' => 'Описание',
-            'isbn' => 'ISBN',
-            'cover_url' => 'Обложка',
-            'created_at' => 'Создано',
-            'updated_at' => 'Обновлено',
+            [['status'], 'string', 'max' => 20],
         ];
     }
 
     /** @return int[] */
-    #[MapTo(target: BookReadDto::class, property: 'authorIds')]
     public function getAuthorIds(): array
     {
         $ids = [];
@@ -93,7 +88,6 @@ final class Book extends ActiveRecord
     }
 
     /** @return array<int, string> */
-    #[MapTo(target: BookReadDto::class, property: 'authorNames')]
     public function getAuthorNames(): array
     {
         $names = [];
@@ -111,15 +105,8 @@ final class Book extends ActiveRecord
             ->viaTable('book_authors', ['book_id' => 'id']);
     }
 
-    #[MapTo(target: BookReadDto::class, property: 'coverUrl')]
     public function getCoverUrl(): ?string
     {
         return $this->cover_url;
-    }
-
-    #[MapTo(target: BookReadDto::class, property: 'isPublished')]
-    public function getIsPublished(): bool
-    {
-        return (bool)$this->is_published;
     }
 }

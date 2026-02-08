@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\adapters;
 
+use app\application\common\exceptions\OperationFailedException;
 use app\infrastructure\adapters\YiiAuthAdapter;
 use Codeception\Test\Unit;
 use Yii;
@@ -33,11 +34,12 @@ final class YiiAuthAdapterTest extends Unit
         $this->assertTrue($this->adapter->isGuest());
     }
 
-    public function testLoginReturnsFalseWhenNoWebApplication(): void
+    public function testLoginThrowsExceptionWhenNoWebApplication(): void
     {
         $this->setConsoleApp();
 
-        $this->assertFalse($this->adapter->login('admin', 'admin', false));
+        $this->expectException(OperationFailedException::class);
+        $this->adapter->login('admin', 'admin', false);
     }
 
     public function testLogoutDoesNothingWhenNoWebApplication(): void

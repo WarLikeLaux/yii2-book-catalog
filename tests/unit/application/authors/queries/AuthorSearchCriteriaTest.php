@@ -14,6 +14,6 @@ final class AuthorSearchCriteriaTest extends Unit
         $criteria = new AuthorSearchCriteria();
         $this->assertSame('', $criteria->search);
         $this->assertSame(1, $criteria->page);
-        $this->assertSame(20, $criteria->pageSize);
+        $this->assertSame(20, $criteria->limit);
     }
 }

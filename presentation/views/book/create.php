@@ -2,10 +2,15 @@
 
 declare(strict_types=1);
 
+use app\presentation\books\dto\BookEditViewModel;
 use yii\helpers\Html;
 
-$this->title = 'Создать книгу';
-$this->params['breadcrumbs'][] = ['label' => 'Книги', 'url' => ['index']];
+/**
+ * @var BookEditViewModel $viewModel
+ */
+
+$this->title = Yii::t('app', 'ui.book_create');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.books'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
@@ -13,7 +18,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?= $this->render('_form', [
-        'model' => $model,
-        'authors' => $authors ?? [],
+        'model' => $viewModel->form,
+        'authors' => $viewModel->authors,
+        'book' => $viewModel->book,
     ]) ?>
 </div>

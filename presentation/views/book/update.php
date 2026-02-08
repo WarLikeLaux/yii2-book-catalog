@@ -2,15 +2,20 @@
 
 declare(strict_types=1);
 
-/** @var app\application\books\queries\BookReadDto $book */
-/** @var app\presentation\books\forms\BookForm $model */
-/** @var array<int, string> $authors */
-
+use app\presentation\books\dto\BookEditViewModel;
 use yii\helpers\Html;
 
-$this->title = 'Обновить книгу';
-$this->params['breadcrumbs'][] = ['label' => 'Книги', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $book->title, 'url' => ['view', 'id' => $book->id]];
+/**
+ * @var BookEditViewModel $viewModel
+ */
+
+$this->title = Yii::t('app', 'ui.book_update');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.books'), 'url' => ['index']];
+
+if ($viewModel->book !== null) {
+    $this->params['breadcrumbs'][] = ['label' => $viewModel->book->title, 'url' => ['view', 'id' => $viewModel->book->id]];
+}
+
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
@@ -18,7 +23,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?= $this->render('_form', [
-        'model' => $model,
-        'authors' => $authors,
+        'model' => $viewModel->form,
+        'authors' => $viewModel->authors,
+        'book' => $viewModel->book,
     ]) ?>
 </div>

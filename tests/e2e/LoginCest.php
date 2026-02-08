@@ -14,7 +14,7 @@ final class LoginCest
     public function testLoginPageDisplaysForm(\E2eTester $I): void
     {
         $I->amOnPage('/site/login');
-        $I->see('Login', 'h1');
+        $I->see('Вход', 'h1');
         $I->seeElement('#login-form');
         $I->seeElement('input[name="LoginForm[username]"]');
         $I->seeElement('input[name="LoginForm[password]"]');

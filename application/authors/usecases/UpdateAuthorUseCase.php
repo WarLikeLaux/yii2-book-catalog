@@ -7,13 +7,9 @@ namespace app\application\authors\usecases;
 use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\UseCaseInterface;
-use app\domain\exceptions\AlreadyExistsException;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\OperationFailedException;
-use Throwable;
 
 /**
- * @implements UseCaseInterface<UpdateAuthorCommand, bool>
+ * @implements UseCaseInterface<UpdateAuthorCommand, void>
  */
 final readonly class UpdateAuthorUseCase implements UseCaseInterface
 {
@@ -25,21 +21,11 @@ final readonly class UpdateAuthorUseCase implements UseCaseInterface
     /**
      * @param UpdateAuthorCommand $command
      */
-    public function execute(object $command): bool
+    public function execute(object $command): void
     {
-        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
-        assert($command instanceof UpdateAuthorCommand);
         $author = $this->authorRepository->get($command->id);
 
-        try {
-            $author->update($command->fio);
-            $this->authorRepository->save($author);
-
-            return true;
-        } catch (AlreadyExistsException $e) {
-            throw $e;
-        } catch (Throwable $e) {
-            throw new OperationFailedException(DomainErrorCode::AuthorUpdateFailed, 0, $e);
-        }
+        $author->update($command->fio);
+        $this->authorRepository->save($author);
     }
 }

@@ -6,8 +6,9 @@ namespace tests\unit\infrastructure\listeners;
 
 use app\application\ports\CacheInterface;
 use app\domain\events\BookDeletedEvent;
-use app\domain\events\BookPublishedEvent;
+use app\domain\events\BookStatusChangedEvent;
 use app\domain\events\BookUpdatedEvent;
+use app\domain\values\BookStatus;
 use app\infrastructure\listeners\ReportCacheInvalidationListener;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -29,23 +30,43 @@ final class ReportCacheInvalidationListenerTest extends Unit
 
         $this->assertContains(BookUpdatedEvent::class, $events);
         $this->assertContains(BookDeletedEvent::class, $events);
-        $this->assertContains(BookPublishedEvent::class, $events);
+        $this->assertContains(BookStatusChangedEvent::class, $events);
     }
 
-    public function testHandleBookPublishedEventInvalidatesCache(): void
+    public function testHandleStatusChangedToPublishedInvalidatesCache(): void
     {
-        $event = new BookPublishedEvent(1, 'Test Book', 2024);
+        $event = new BookStatusChangedEvent(1, BookStatus::Draft, BookStatus::Published, 2023);
 
         $this->cache->expects($this->once())
             ->method('delete')
-            ->with('report:top_authors:2024');
+            ->with('report:top_authors:2023');
+
+        $this->listener->handle($event);
+    }
+
+    public function testHandleStatusChangedFromPublishedInvalidatesCache(): void
+    {
+        $event = new BookStatusChangedEvent(1, BookStatus::Published, BookStatus::Draft, 2021);
+
+        $this->cache->expects($this->once())
+            ->method('delete')
+            ->with('report:top_authors:2021');
+
+        $this->listener->handle($event);
+    }
+
+    public function testHandleStatusChangedUnrelatedDoesNotInvalidateCache(): void
+    {
+        $event = new BookStatusChangedEvent(1, BookStatus::Draft, BookStatus::Draft, 2024);
+
+        $this->cache->expects($this->never())->method('delete');
 
         $this->listener->handle($event);
     }
 
     public function testHandleBookUpdatedEventInvalidatesCacheWhenPublished(): void
     {
-        $event = new BookUpdatedEvent(1, 2023, 2024, true);
+        $event = new BookUpdatedEvent(1, 2023, 2024, BookStatus::Published);
 
         $this->cache->expects($this->exactly(2))
             ->method('delete')
@@ -61,7 +82,7 @@ final class ReportCacheInvalidationListenerTest extends Unit
 
     public function testHandleBookUpdatedEventDoesNotInvalidateCacheWhenNotPublished(): void
     {
-        $event = new BookUpdatedEvent(1, 2023, 2024, false);
+        $event = new BookUpdatedEvent(1, 2023, 2024, BookStatus::Draft);
 
         $this->cache->expects($this->never())->method('delete');
 
@@ -70,7 +91,7 @@ final class ReportCacheInvalidationListenerTest extends Unit
 
     public function testHandleBookUpdatedEventInvalidatesOnlyOneYearWhenSameYear(): void
     {
-        $event = new BookUpdatedEvent(1, 2024, 2024, true);
+        $event = new BookUpdatedEvent(1, 2024, 2024, BookStatus::Published);
 
         $this->cache->expects($this->once())
             ->method('delete')

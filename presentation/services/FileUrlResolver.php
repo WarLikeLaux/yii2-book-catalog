@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace app\presentation\services;
 
-use app\domain\values\StoredFileReference;
-
 final readonly class FileUrlResolver
 {
     private const int PLACEHOLDER_SEED_MOD = 1000;
@@ -16,9 +14,9 @@ final readonly class FileUrlResolver
     ) {
     }
 
-    public function resolve(string|StoredFileReference|null $path): ?string
+    public function resolve(string|null $path): ?string
     {
-        if ($path === null || (string)$path === '') {
+        if ($path === null || $path === '') {
             return null;
         }
 

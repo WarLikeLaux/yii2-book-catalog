@@ -12,8 +12,10 @@ use yii\bootstrap5\Nav;
 use yii\bootstrap5\NavBar;
 use yii\helpers\Url;
 
-/** @var View $this */
-/** @var string $content */
+/**
+ * @var View $this
+ * @var string $content
+ */
 
 AppAsset::register($this);
 
@@ -44,29 +46,29 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top'],
         ]);
         $menuItems = [
-            ['label' => 'Каталог', 'url' => ['/site/index']],
-            ['label' => 'Отчет', 'url' => ['/report/index']],
+            ['label' => Yii::t('app', 'ui.catalog'), 'url' => ['/site/index']],
+            ['label' => Yii::t('app', 'ui.report'), 'url' => ['/report/index']],
             ['label' => 'API', 'url' => ['/site/api']],
         ];
 
         if (!Yii::$app->user->isGuest) {
-            $menuItems[] = ['label' => 'Книги', 'url' => ['/book/index']];
-            $menuItems[] = ['label' => 'Авторы', 'url' => ['/author/index']];
+            $menuItems[] = ['label' => Yii::t('app', 'ui.books'), 'url' => ['/book/index']];
+            $menuItems[] = ['label' => Yii::t('app', 'ui.authors'), 'url' => ['/author/index']];
             if (YII_ENV_DEV) {
                 $menuItems[] = [
-                    'label' => 'Логи',
-                    'url' => 'http://' . Yii::$app->request->serverName . ':' . Yii::$app->params['buggregatorUiPort'],
+                    'label' => Yii::t('app', 'ui.logs'),
+                    'url' => (Yii::$app->request->isSecureConnection ? 'https://' : 'http://') . Yii::$app->request->serverName . ':' . Yii::$app->params['buggregatorUiPort'],
                     'linkOptions' => ['target' => '_blank'],
                 ];
             }
         }
 
         $menuItems[] = Yii::$app->user->isGuest
-            ? ['label' => 'Вход', 'url' => ['/site/login']]
+            ? ['label' => Yii::t('app', 'ui.login'), 'url' => ['/site/login']]
             : '<li class="nav-item">'
             . Html::beginForm(['/site/logout'])
             . Html::submitButton(
-                'Выход (' . Yii::$app->user->identity->username . ')',
+                Yii::t('app', 'ui.logout', ['username' => Yii::$app->user->identity->username]),
                 ['class' => 'nav-link btn btn-link logout'],
             )
             . Html::endForm()
@@ -86,7 +88,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             <?php if ($breadcrumbs !== []): ?>
                 <?= Breadcrumbs::widget([
                     'homeLink' => [
-                        'label' => 'Каталог',
+                        'label' => Yii::t('app', 'ui.catalog'),
                         'url' => Yii::$app->homeUrl,
                     ],
                     'links' => $breadcrumbs,
@@ -104,21 +106,21 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
                     <div class="mb-3">
                         <?= Html::a('Yii 2 Book Catalog', Yii::$app->homeUrl, ['class' => 'fw-bold text-white text-decoration-none h5 footer-brand']) ?>
                         <div class="text-white-50 small mt-1">
-                            Демонстрационный проект на базе <strong class="text-white">Clean Architecture</strong> и <strong class="text-white">DDD</strong>.
+                            <?= Html::decode(Yii::t('app', 'ui.footer_subtitle')) ?>
                         </div>
                     </div>
-                    <p class="text-white-50 small mb-0" style="max-width: 400px;">
-                        Пример реализации сложной архитектуры на PHP. Разделение слоев, инверсия зависимостей, богатая доменная модель и строгая типизация.
+                    <p class="text-white-50 small mb-0 footer-desc">
+                        <?= Html::decode(Yii::t('app', 'ui.footer_description')) ?>
                     </p>
                 </div>
                 <div class="col-md-6">
                     <div class="row">
                         <div class="col-6 text-center text-md-end">
-                            <h6 class="text-white text-uppercase small fw-bold opacity-75 mb-3">Проект</h6>
+                            <h6 class="text-white text-uppercase small fw-bold opacity-75 mb-3"><?= Yii::t('app', 'ui.footer_project') ?></h6>
                             <ul class="list-unstyled mb-0 d-grid gap-2">
                                 <li>
                                     <a href="https://github.com/WarLikeLaux/yii2-book-catalog" target="_blank" class="text-white-50 text-decoration-none hover-white small">
-                                        <i class="bi bi-github me-1"></i> Репозиторий
+                                        <i class="bi bi-github me-1"></i> <?= Yii::t('app', 'ui.footer_repo') ?>
                                     </a>
                                 </li>
                                 <li>
@@ -129,11 +131,11 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
                             </ul>
                         </div>
                         <div class="col-6 text-center text-md-end">
-                            <h6 class="text-white text-uppercase small fw-bold opacity-75 mb-3">Ресурсы</h6>
+                            <h6 class="text-white text-uppercase small fw-bold opacity-75 mb-3"><?= Yii::t('app', 'ui.footer_resources') ?></h6>
                             <ul class="list-unstyled mb-0 d-grid gap-2">
                                 <li>
                                     <a href="https://refactoring.guru/ru/design-patterns" target="_blank" class="text-white-50 text-decoration-none hover-white small">
-                                        <i class="bi bi-diagram-3 me-1"></i> Паттерны (Guru)
+                                        <i class="bi bi-diagram-3 me-1"></i> <?= Yii::t('app', 'ui.footer_patterns') ?>
                                     </a>
                                 </li>
                                 <li>

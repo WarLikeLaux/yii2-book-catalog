@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
+use app\application\common\exceptions\ApplicationException;
 use app\application\common\pipeline\PipelineFactory;
-use app\domain\exceptions\AlreadyExistsException;
+use app\application\common\values\AuthorIdCollection;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use yii\db\Query;
@@ -28,8 +29,8 @@ final class CreateBookUseCaseCest
             year: 2024,
             isbn: '9783161484100',
             description: 'Test description',
-            authorIds: [$author1Id, $author2Id],
-            cover: null,
+            authorIds: AuthorIdCollection::fromArray([$author1Id, $author2Id]),
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
@@ -58,8 +59,8 @@ final class CreateBookUseCaseCest
             year: 2024,
             isbn: '9780306406157',
             description: 'Test',
-            authorIds: [$authorId],
-            cover: null,
+            authorIds: AuthorIdCollection::fromArray([$authorId]),
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
@@ -77,7 +78,7 @@ final class CreateBookUseCaseCest
         $I->assertEquals(0, $jobCount, 'No job should be published on book creation (draft)');
 
         $book = Book::findOne($bookId);
-        $I->assertEquals(0, $book->is_published, 'Book should be unpublished (draft)');
+        $I->assertSame('draft', $book->status, 'Book should be draft');
     }
 
     public function testValidatesUniqueIsbn(IntegrationTester $I): void
@@ -95,14 +96,14 @@ final class CreateBookUseCaseCest
             year: 2024,
             isbn: '9783161484100',
             description: 'Should fail',
-            authorIds: [$authorId],
-            cover: null,
+            authorIds: AuthorIdCollection::fromArray([$authorId]),
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);
         $pipelineFactory = Yii::$container->get(PipelineFactory::class);
 
-        $I->expectThrowable(AlreadyExistsException::class, static function () use ($pipelineFactory, $useCase, $command): void {
+        $I->expectThrowable(ApplicationException::class, static function () use ($pipelineFactory, $useCase, $command): void {
             $pipelineFactory->createDefault()->execute($command, $useCase);
         });
     }
@@ -118,8 +119,8 @@ final class CreateBookUseCaseCest
             year: 2024,
             isbn: '9780306406157',
             description: 'Test',
-            authorIds: [99999],
-            cover: null,
+            authorIds: AuthorIdCollection::fromArray([99999]),
+            storedCover: null,
         );
 
         $useCase = Yii::$container->get(CreateBookUseCase::class);

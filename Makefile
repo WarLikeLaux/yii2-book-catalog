@@ -52,8 +52,8 @@ help:
 	@echo "  pr               🚀 Полная проверка (check + e2e + infection)"
 	@echo ""
 	@echo "💻 РАЗРАБОТКА:"
-	@echo "  dev              🛠️  Полный цикл (Prettier + CS Fixer + Rector + PHPStan)"
-	@echo "  dev [FILE]       🔍 Быстрая проверка файла (только CS Fixer)"
+	@echo "  dev              🛠️  Полный цикл (PHPCS Fixer + Rector + Comments)"
+	@echo "  dev [FILE]       🔍 Быстрая проверка файла (только PHPCS Fixer)"
 	@echo "  comments         📝 Показать TODO и заметки"
 	@echo "  tree             🌳 Показать структуру проекта"
 	@echo ""
@@ -183,8 +183,8 @@ req-dev require-dev:
 # 🛡️ КОНТРОЛЬ КАЧЕСТВА (QA)
 # =================================================================================================
 
-ci: lint analyze
-fix: prettier-fix lint-fix rector-fix
+ci: analyze
+fix: lint-fix rector-fix
 dev:
 	@lockdir="$(CURDIR)/.dev.lock"; \
 	pidfile="$$lockdir/pid"; \
@@ -206,7 +206,7 @@ dev:
 	else \
 		$(MAKE) _dev_file; \
 	fi
-_dev_full: fix ci
+_dev_full: lint-fix rector-fix comments
 _dev_file:
 	@echo "🔍 Проверяем: $(FILE_ARG)"
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf $(FILE_ARG) || true
@@ -214,8 +214,7 @@ _dev_file:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs $(FILE_ARG) || true
 	@echo "✅ Готово"
 
-check: dev arch test
-pr: docs check test-e2e infection
+pr: dev prettier-fix analyze test-full docs
 
 lint:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs
@@ -229,7 +228,7 @@ rector:
 rector-fix:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process
 
-analyze:
+analyze: lint arch
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan analyse --memory-limit=2G
 
 prettier:
@@ -256,7 +255,9 @@ audit:
 _test-init:
 	@DB_DRIVER=$(DB_DRIVER) DB_TEST_NAME=$(DB_TEST_NAME) COMPOSE="$(COMPOSE)" ./bin/test-db-prepare
 
-test:
+test: test-unit
+
+test-full:
 	@lockdir="$(CURDIR)/.test.lock"; \
 	pidfile="$$lockdir/pid"; \
 	cleanup() { rm -rf "$$lockdir"; }; \
@@ -273,13 +274,14 @@ test:
 		exit 1; \
 	fi; \
 	$(MAKE) _test-init; \
-	echo "🚀 Запуск всех тестов с генерацией отчетов..."; \
-	$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app ./vendor/bin/codecept run integration,unit \
+	echo "🚀 Запуск всех тестов (unit + integration) с генерацией coverage..."; \
+	$(COMPOSE) exec $(PHP_CONTAINER) php -d memory_limit=2G -d pcov.directory=/app -d pcov.exclude="~/(vendor|tests|runtime|web/assets)/~" ./vendor/bin/codecept run integration,unit \
 		--ext DotReporter \
 		--skip-group migration \
-		--coverage-text --coverage-xml --coverage-html \
-		--coverage-phpunit --xml=junit.xml --no-colors; \
-	sed -i 's|/app/|$(CURDIR)/|g' tests/_output/coverage.xml; \
+		--coverage-text \
+		--coverage-xml \
+		--coverage-phpunit --xml=junit.xml --no-colors && \
+	sed -i "s|/app/|$(CURDIR)/|g" tests/_output/coverage.xml && \
 	$(MAKE) cov
 
 test-unit:
@@ -297,11 +299,11 @@ test-e2e: _test-init
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run e2e --ext DotReporter --no-colors
 
 test-coverage coverage cov:
-	@if [ ! -f tests/_output/coverage.xml ]; then $(MAKE) test; fi
+	@if [ ! -f tests/_output/coverage.xml ]; then $(MAKE) test-full; fi
 	@./bin/coverage-report
 
 test-infection infection inf:
-	@if [ ! -f tests/_output/coverage-phpunit.xml ]; then $(MAKE) test; fi
+	@if [ ! -f tests/_output/coverage-phpunit.xml ]; then $(MAKE) test-full; fi
 	@echo "🧟 Запуск мутационного тестирования..."
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/infection --coverage=tests/_output --threads=max --test-framework-options="integration,unit --skip-group migration"
 
@@ -423,3 +425,15 @@ ghr:
 .PHONY: test-migration
 test-migration:
 	bin/test-migration
+
+# =================================================================================================
+# 🔍 PR REVIEW
+# =================================================================================================
+
+review-fetch:
+	@node scripts/fetch-pr-comments.mjs
+
+review-resolve:
+	@node scripts/resolve-pr-threads.mjs
+
+.PHONY: review-fetch review-resolve

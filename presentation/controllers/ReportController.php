@@ -4,25 +4,26 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\presentation\reports\handlers\ReportHandler;
-use yii\web\Controller;
+use app\presentation\common\ViewModelRenderer;
+use app\presentation\reports\handlers\ReportViewFactory;
 
-final class ReportController extends Controller
+final class ReportController extends BaseController
 {
     public function __construct(
         $id,
         $module,
-        private readonly ReportHandler $reportHandler,
+        private readonly ReportViewFactory $reportViewFactory,
+        ViewModelRenderer $renderer,
         $config = [],
     ) {
-        parent::__construct($id, $module, $config);
+        parent::__construct($id, $module, $renderer, $config);
     }
 
     public function actionIndex(): string
     {
         /** @var array<string, mixed> $params */
         $params = $this->request->get();
-        $viewData = $this->reportHandler->prepareIndexViewData($params);
-        return $this->render('index', $viewData);
+        $viewModel = $this->reportViewFactory->prepareIndexViewModel($params);
+        return $this->renderer->render('index', $viewModel);
     }
 }

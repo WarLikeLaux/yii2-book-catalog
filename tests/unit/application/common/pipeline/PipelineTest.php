@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace tests\unit\application\common\pipeline;
 
+use app\application\common\exceptions\ApplicationException;
 use app\application\common\pipeline\Pipeline;
 use app\application\ports\CommandInterface;
 use app\application\ports\MiddlewareInterface;
 use app\application\ports\UseCaseInterface;
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ValidationException;
 use Codeception\Test\Unit;
 
 final class PipelineTest extends Unit
@@ -132,6 +135,21 @@ final class PipelineTest extends Unit
         $result = $pipeline->execute($command, $useCase);
 
         $this->assertSame('original-modified', $result);
+    }
+
+    public function testExecuteWrapsDomainException(): void
+    {
+        $pipeline = new Pipeline();
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+
+        $useCase->method('execute')
+            ->willThrowException(new ValidationException(DomainErrorCode::BookTitleEmpty));
+
+        $this->expectException(ApplicationException::class);
+        $this->expectExceptionMessage(DomainErrorCode::BookTitleEmpty->value);
+
+        $pipeline->execute($command, $useCase);
     }
 
     /**

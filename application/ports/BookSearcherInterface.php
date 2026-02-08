@@ -8,11 +8,13 @@ use app\domain\specifications\BookSpecificationInterface;
 
 interface BookSearcherInterface
 {
-    public function search(string $term, int $page, int $pageSize): PagedResultInterface;
+    public function search(string $term, int $page, int $limit): PagedResultInterface;
+
+    public function searchPublished(string $term, int $page, int $limit): PagedResultInterface;
 
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
-        int $pageSize,
+        int $limit,
     ): PagedResultInterface;
 }

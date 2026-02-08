@@ -6,6 +6,7 @@ namespace app\infrastructure\adapters\decorators;
 
 use app\application\ports\QueueInterface;
 use app\application\ports\TracerInterface;
+use Override;
 
 final readonly class QueueTracingDecorator implements QueueInterface
 {
@@ -15,7 +16,7 @@ final readonly class QueueTracingDecorator implements QueueInterface
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function push(object $job): void
     {
         $this->tracer->trace(

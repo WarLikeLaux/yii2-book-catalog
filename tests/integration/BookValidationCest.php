@@ -119,13 +119,14 @@ final class BookValidationCest
         $I->sendPost('/index-test.php?r=book/create', [
             'BookForm' => [
                 'title' => 'Book from Future',
-                'year' => '2030',
+                'year' => (string)(date('Y') + 2),
                 'isbn' => '9783161484100',
                 'authorIds' => [$authorId],
             ],
         ]);
 
         $I->seeResponseCodeIs(200);
+        $I->see('Год не может быть в будущем');
     }
 
     public function testCreateBookWithNonExistentAuthor(IntegrationTester $I): void
@@ -141,6 +142,6 @@ final class BookValidationCest
         ]);
 
         $I->seeResponseCodeIs(200);
-        $I->see('не существует');
+        $I->see('не найдены');
     }
 }

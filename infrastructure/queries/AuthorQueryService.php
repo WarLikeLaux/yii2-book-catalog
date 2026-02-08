@@ -35,7 +35,7 @@ final readonly class AuthorQueryService extends BaseQueryService implements Auth
         );
     }
 
-    public function search(string $search, int $page, int $pageSize): PagedResultInterface
+    public function search(string $search, int $page, int $limit): PagedResultInterface
     {
         $query = Author::find()->orderBy(['fio' => SORT_ASC]);
 
@@ -43,7 +43,7 @@ final readonly class AuthorQueryService extends BaseQueryService implements Auth
             $query->andWhere(['like', 'fio', $search]);
         }
 
-        return $this->getPagedResult($query, $page, $pageSize, AuthorReadDto::class);
+        return $this->getPagedResult($query, $page, $limit, AuthorReadDto::class);
     }
 
     /**

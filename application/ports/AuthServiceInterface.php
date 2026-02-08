@@ -8,7 +8,7 @@ interface AuthServiceInterface
 {
     public function isGuest(): bool;
 
-    public function login(string $username, string $password, bool $rememberMe): bool;
+    public function login(string $username, string $password, bool $rememberMe): void;
 
     public function logout(): void;
 }

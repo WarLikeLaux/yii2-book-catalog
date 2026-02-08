@@ -4,8 +4,8 @@ events:
   BookDeletedEvent:
     type: book.deleted
     payload: []
-  BookPublishedEvent:
-    type: book.published
+  BookStatusChangedEvent:
+    type: book.status_changed
     payload: []
   BookUpdatedEvent:
     type: book.updated

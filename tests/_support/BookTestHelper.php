@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use app\domain\entities\Book;
+use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
@@ -17,7 +18,7 @@ final class BookTestHelper
         string $description = 'Test description',
         ?string $coverImage = null,
         array $authorIds = [1],
-        bool $published = false,
+        BookStatus $status = BookStatus::Draft,
         int $version = 1,
     ): Book {
         return Book::reconstitute(
@@ -28,7 +29,7 @@ final class BookTestHelper
             description: $description,
             coverImage: $coverImage ? new StoredFileReference($coverImage) : null,
             authorIds: $authorIds,
-            published: $published,
+            status: $status,
             version: $version,
         );
     }

@@ -28,7 +28,7 @@ final class DeleteAuthorUseCaseTest extends Unit
     {
         $command = new DeleteAuthorCommand(id: 42);
 
-        $existingAuthor = new Author(id: 42, fio: 'Test Author');
+        $existingAuthor = Author::reconstitute(id: 42, fio: 'Test Author');
 
         $this->authorRepository->expects($this->once())
             ->method('get')
@@ -39,9 +39,7 @@ final class DeleteAuthorUseCaseTest extends Unit
             ->method('delete')
             ->with($existingAuthor);
 
-        $result = $this->useCase->execute($command);
-
-        $this->assertTrue($result);
+        $this->useCase->execute($command);
     }
 
     public function testExecuteThrowsExceptionWhenAuthorNotFound(): void
@@ -56,7 +54,6 @@ final class DeleteAuthorUseCaseTest extends Unit
         $this->authorRepository->expects($this->never())->method('delete');
 
         $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage(DomainErrorCode::AuthorNotFound->value);
 
         $this->useCase->execute($command);
     }

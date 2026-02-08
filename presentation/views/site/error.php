@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-/** @var yii\web\View $this */
-/** @var string $name */
-/** @var string $message */
-/** @var Exception $exception */
+/**
+ * @var yii\web\View $this
+ * @var string $name
+ * @var string $message
+ * @var Exception $exception
+ */
 
 use yii\helpers\Html;
 
@@ -20,10 +22,10 @@ $this->title = $name;
     </div>
 
     <p>
-        The above error occurred while the Web server was processing your request.
+        <?= Yii::t('app', 'ui.error_description') ?>
     </p>
     <p>
-        Please contact us if you think this is a server error. Thank you.
+        <?= Yii::t('app', 'ui.error_contact') ?>
     </p>
 
 </div>

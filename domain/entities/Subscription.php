@@ -8,7 +8,7 @@ use app\domain\common\IdentifiableEntityInterface;
 
 final class Subscription implements IdentifiableEntityInterface
 {
-    public function __construct(
+    private function __construct(
         public private(set) ?int $id,
         public private(set) string $phone,
         public private(set) int $authorId,
@@ -18,6 +18,11 @@ final class Subscription implements IdentifiableEntityInterface
     public static function create(string $phone, int $authorId): self
     {
         return new self(null, $phone, $authorId);
+    }
+
+    public static function reconstitute(int $id, string $phone, int $authorId): self
+    {
+        return new self($id, $phone, $authorId);
     }
 
     public function getId(): ?int

@@ -7,7 +7,8 @@ namespace tests\unit\infrastructure\adapters;
 use app\application\ports\EventListenerInterface;
 use app\application\ports\QueueInterface;
 use app\domain\events\BookDeletedEvent;
-use app\domain\events\BookPublishedEvent;
+use app\domain\events\BookStatusChangedEvent;
+use app\domain\values\BookStatus;
 use app\infrastructure\adapters\EventJobMappingRegistry;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
@@ -26,7 +27,7 @@ final class YiiEventPublisherAdapterTest extends Unit
         $this->queue = $this->createMock(QueueInterface::class);
 
         $registry = new EventJobMappingRegistry([
-            BookPublishedEvent::class => NotifySubscribersJob::class,
+            BookStatusChangedEvent::class => NotifySubscribersJob::class,
         ]);
         $this->jobMapper = new EventToJobMapper($registry);
     }
@@ -34,12 +35,26 @@ final class YiiEventPublisherAdapterTest extends Unit
     public function testPublishQueueableEventPushesToQueue(): void
     {
         $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper);
-        $event = new BookPublishedEvent(42, 'Test Book', 2024);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $this->queue->expects($this->once())
             ->method('push')
-            ->with($this->callback(static fn (NotifySubscribersJob $job) => $job->bookId === 42
-                && $job->title === 'Test Book'));
+            ->with($this->callback(static fn(NotifySubscribersJob $job): bool => $job->bookId === 42));
+
+        $adapter->publishEvent($event);
+    }
+
+    public function testPublishQueueableEventWithNullJobDoesNotPush(): void
+    {
+        $registry = new EventJobMappingRegistry([
+            BookStatusChangedEvent::class => static fn(): ?NotifySubscribersJob => null,
+        ]);
+        $mapper = new EventToJobMapper($registry);
+
+        $adapter = new YiiEventPublisherAdapter($this->queue, $mapper);
+        $event = new BookStatusChangedEvent(42, BookStatus::Published, BookStatus::Draft, 2024);
+
+        $this->queue->expects($this->never())->method('push');
 
         $adapter->publishEvent($event);
     }
@@ -57,13 +72,13 @@ final class YiiEventPublisherAdapterTest extends Unit
     public function testPublishEventDispatchesToListeners(): void
     {
         $listener = $this->createMock(EventListenerInterface::class);
-        $listener->method('subscribedEvents')->willReturn([BookPublishedEvent::class]);
+        $listener->method('subscribedEvents')->willReturn([BookStatusChangedEvent::class]);
         $listener->expects($this->once())
             ->method('handle')
-            ->with($this->isInstanceOf(BookPublishedEvent::class));
+            ->with($this->isInstanceOf(BookStatusChangedEvent::class));
 
         $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper, $listener);
-        $event = new BookPublishedEvent(42, 'Test Book', 2024);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $adapter->publishEvent($event);
     }
@@ -75,7 +90,7 @@ final class YiiEventPublisherAdapterTest extends Unit
         $listener->expects($this->never())->method('handle');
 
         $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper, $listener);
-        $event = new BookPublishedEvent(42, 'Test Book', 2024);
+        $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $adapter->publishEvent($event);
     }

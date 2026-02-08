@@ -4,46 +4,48 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\common\exceptions\ApplicationException;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
-use app\presentation\authors\handlers\AuthorSearchHandler;
-use app\presentation\authors\handlers\AuthorViewDataFactory;
-use app\presentation\common\dto\CrudPaginationRequest;
+use app\presentation\authors\handlers\AuthorItemViewFactory;
+use app\presentation\authors\handlers\AuthorListViewFactory;
+use app\presentation\authors\handlers\AuthorSearchViewFactory;
+use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
+use app\presentation\common\ViewModelRenderer;
+use Override;
+use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\Response;
+use yii\widgets\ActiveForm;
 
-final class AuthorController extends Controller
+final class AuthorController extends BaseController
 {
     public function __construct(
         $id,
         $module,
         private readonly AuthorCommandHandler $commandHandler,
-        private readonly AuthorViewDataFactory $viewDataFactory,
-        private readonly AuthorSearchHandler $authorSearchHandler,
+        private readonly AuthorListViewFactory $listViewFactory,
+        private readonly AuthorItemViewFactory $itemViewFactory,
+        private readonly AuthorSearchViewFactory $authorSearchViewFactory,
+        ViewModelRenderer $renderer,
         $config = [],
     ) {
-        parent::__construct($id, $module, $config);
+        parent::__construct($id, $module, $renderer, $config);
     }
 
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         return [
             'idempotency' => [
                 'class' => IdempotencyFilter::class,
-                'only' => ['create', 'update'],
+                'only' => [ActionName::CREATE->value, ActionName::UPDATE->value],
             ],
             'access' => [
                 'class' => AccessControl::class,
                 'rules' => [
-                    [
-                        'allow' => true,
-                        'actions' => ['search'],
-                        'roles' => ['@'],
-                    ],
                     [
                         'allow' => true,
                         'roles' => ['@'],
@@ -53,7 +55,7 @@ final class AuthorController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'delete' => ['post'],
+                    ActionName::DELETE->value => ['post'],
                 ],
             ],
         ];
@@ -61,68 +63,96 @@ final class AuthorController extends Controller
 
     public function actionIndex(): string
     {
-        $pagination = CrudPaginationRequest::fromRequest($this->request);
-        $dataProvider = $this->viewDataFactory->getIndexDataProvider($pagination->page, $pagination->limit);
+        $viewModel = $this->listViewFactory->getListViewModel($this->request);
 
-        return $this->render('index', [
-            'dataProvider' => $dataProvider,
-        ]);
+        return $this->renderer->render('index', $viewModel);
     }
 
     public function actionView(int $id): string
     {
-        $viewData = $this->viewDataFactory->getAuthorView($id);
-        return $this->render('view', ['model' => $viewData]);
+        $viewModel = $this->itemViewFactory->getAuthorViewModel($id);
+        return $this->renderer->render('view', $viewModel);
     }
 
     public function actionCreate(): string|Response
     {
-        $form = new AuthorForm();
+        $form = $this->itemViewFactory->createForm();
 
-        if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
-            $authorId = $this->commandHandler->createAuthor($form);
-
-            if ($authorId !== null) {
-                return $this->redirect(['view', 'id' => $authorId]);
-            }
+        if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
+            return $this->renderCreateForm($form);
         }
 
-        return $this->render('create', ['model' => $form]);
+        if ($this->request->isAjax) {
+            return $this->asJson(ActiveForm::validate($form));
+        }
+
+        if (!$form->validate()) {
+            return $this->renderCreateForm($form);
+        }
+
+        try {
+            $authorId = $this->commandHandler->createAuthor($form);
+            return $this->redirect(['view', 'id' => $authorId]);
+        } catch (ApplicationException $e) {
+            $this->addFormError($form, $e);
+            return $this->renderCreateForm($form);
+        }
     }
 
     public function actionUpdate(int $id): string|Response
     {
-        $form = $this->viewDataFactory->getAuthorForUpdate($id);
+        $form = $this->itemViewFactory->getAuthorForUpdate($id);
 
-        if ($this->request->isPost && $form->load((array)$this->request->post()) && $form->validate()) {
-            $success = $this->commandHandler->updateAuthor($id, $form);
-
-            if ($success) {
-                return $this->redirect(['view', 'id' => $id]);
-            }
+        if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
+            return $this->renderUpdateForm($id, $form);
         }
 
-        $authorDto = $this->viewDataFactory->getAuthorView($id);
-        return $this->render('update', [
-            'model' => $form,
-            'author' => $authorDto,
-        ]);
+        if ($this->request->isAjax) {
+            return $this->asJson(ActiveForm::validate($form));
+        }
+
+        if (!$form->validate()) {
+            return $this->renderUpdateForm($id, $form);
+        }
+
+        try {
+            $this->commandHandler->updateAuthor($id, $form);
+            return $this->redirect(['view', 'id' => $id]);
+        } catch (ApplicationException $e) {
+            $this->addFormError($form, $e);
+            return $this->renderUpdateForm($id, $form);
+        }
     }
 
     public function actionDelete(int $id): Response
     {
-        $this->commandHandler->deleteAuthor($id);
+        try {
+            $this->commandHandler->deleteAuthor($id);
+        } catch (ApplicationException $e) {
+            $this->flash('error', Yii::t('app', $e->errorCode));
+        }
+
         return $this->redirect(['index']);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function actionSearch(): array
+    public function actionSearch(): Response
     {
-        $this->response->format = Response::FORMAT_JSON;
         /** @var array<string, mixed> $params */
         $params = $this->request->get();
-        return $this->authorSearchHandler->search($params);
+        return $this->asJson($this->authorSearchViewFactory->search($params));
+    }
+
+    private function renderCreateForm(AuthorForm $form): string
+    {
+        $viewModel = $this->itemViewFactory->getCreateViewModel($form);
+
+        return $this->renderer->render('create', $viewModel);
+    }
+
+    private function renderUpdateForm(int $id, AuthorForm $form): string
+    {
+        $viewModel = $this->itemViewFactory->getUpdateViewModel($id, $form);
+
+        return $this->renderer->render('update', $viewModel);
     }
 }

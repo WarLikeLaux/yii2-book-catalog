@@ -68,7 +68,7 @@ final class QueryResultTest extends Unit
         $pagination = $result->getPagination();
         $this->assertNotNull($pagination);
         $this->assertSame(3, $pagination->page);
-        $this->assertSame(25, $pagination->pageSize);
+        $this->assertSame(25, $pagination->limit);
         $this->assertSame(0, $pagination->totalCount);
         $this->assertSame(0, $pagination->totalPages);
     }

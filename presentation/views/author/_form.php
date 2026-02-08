@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 use app\presentation\components\ActiveField;
-use yii\bootstrap5\ActiveForm;
+use app\presentation\components\ActiveForm;
 use yii\helpers\Html;
 
-/** @var yii\web\View $this */
-/** @var app\models\forms\AuthorForm $model */
-/** @var yii\bootstrap5\ActiveForm $form */
+/**
+ * @var yii\web\View $this
+ * @var app\presentation\authors\forms\AuthorForm $model
+ */
 
 ?>
 
@@ -16,9 +17,11 @@ use yii\helpers\Html;
     'fieldClass' => ActiveField::class,
 ]); ?>
 
+<?= $form->errorSummary($model) ?>
+
 <?= $form->field($model, 'fio')
     ->textInput(['maxlength' => true])
-    ->withRandomGenerator('fio', ['title' => 'Сгенерировать ФИО']) ?>
+    ->withRandomGenerator('fio', ['title' => Yii::t('app', 'ui.generate_fio')]) ?>
 
 <div class="form-group">
     <?= Html::submitButton(Yii::t('app', 'ui.save'), ['class' => 'btn btn-success']) ?>

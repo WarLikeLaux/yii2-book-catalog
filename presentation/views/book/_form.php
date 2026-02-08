@@ -3,16 +3,18 @@
 declare(strict_types=1);
 
 use app\presentation\components\ActiveField;
+use app\presentation\components\ActiveForm;
 use kartik\select2\Select2;
-use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\JsExpression;
 
-/** @var yii\web\View $this */
-/** @var app\presentation\books\forms\BookForm $model */
-/** @var array $authors */
-/** @var yii\bootstrap5\ActiveForm $form */
+/**
+ * @var yii\web\View $this
+ * @var app\presentation\books\forms\BookForm $model
+ * @var array $authors
+ * @var app\presentation\components\ActiveForm $form
+ */
 
 ?>
 
@@ -26,25 +28,27 @@ use yii\web\JsExpression;
     <?= Html::hiddenInput('BookForm[version]', $model->version) ?>
 <?php endif; ?>
 
+<?= $form->errorSummary($model) ?>
+
 <?= $form->field($model, 'title')
     ->textInput(['maxlength' => true])
-    ->withRandomGenerator('title', ['title' => 'Сгенерировать название']) ?>
+    ->withRandomGenerator('title', ['title' => Yii::t('app', 'ui.generate_title')]) ?>
 
 <?= $form->field($model, 'year')
     ->textInput(['type' => 'number'])
-    ->withRandomGenerator('year', ['title' => 'Сгенерировать год']) ?>
+    ->withRandomGenerator('year', ['title' => Yii::t('app', 'ui.generate_year')]) ?>
 
 <?= $form->field($model, 'isbn')
     ->textInput(['maxlength' => true])
-    ->withRandomGenerator('isbn', ['title' => 'Сгенерировать ISBN']) ?>
+    ->withRandomGenerator('isbn', ['title' => Yii::t('app', 'ui.generate_isbn')]) ?>
 
 <?= $form->field($model, 'description')
     ->textarea(['rows' => 6])
-    ->withRandomGenerator('description', ['title' => 'Сгенерировать описание']) ?>
+    ->withRandomGenerator('description', ['title' => Yii::t('app', 'ui.generate_description')]) ?>
 
 <?= $form->field($model, 'authorIds')->widget(Select2::class, [
     'initValueText' => $model->getAuthorInitValueText($authors),
-    'options' => ['placeholder' => 'Начните вводить имя автора...', 'multiple' => true],
+    'options' => ['placeholder' => Yii::t('app', 'ui.placeholder_authors'), 'multiple' => true],
     'bsVersion' => '5',
     'theme' => Select2::THEME_KRAJEE_BS3,
     'pluginOptions' => [
@@ -64,13 +68,13 @@ use yii\web\JsExpression;
 
 <?php if (isset($book) && $book->coverUrl): ?>
     <div class="form-group">
-        <label>Текущая обложка</label><br>
+        <span class="form-label"><?= Yii::t('app', 'ui.current_cover') ?></span><br>
         <?= Html::img($book->coverUrl, ['alt' => $book->title, 'style' => 'max-width: 200px;']) ?>
     </div>
 <?php endif; ?>
 
 <div class="form-group">
-    <?= Html::submitButton(isset($book) ? 'Сохранить' : 'Создать', ['class' => 'btn btn-success']) ?>
+    <?= Html::submitButton(isset($book) ? Yii::t('app', 'ui.save') : Yii::t('app', 'ui.create'), ['class' => 'btn btn-success']) ?>
 </div>
 
 <?php ActiveForm::end(); ?>

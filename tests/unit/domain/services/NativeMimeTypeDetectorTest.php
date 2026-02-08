@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace tests\unit\domain\services;
 
-use app\domain\services\FinfoFunctions;
-use app\domain\services\NativeMimeTypeDetector;
+use app\infrastructure\services\FinfoFunctions;
+use app\infrastructure\services\NativeMimeTypeDetector;
 use Codeception\Test\Unit;
 
 final class NativeMimeTypeDetectorTest extends Unit

@@ -15,7 +15,7 @@ interface AuthorQueryServiceInterface
      */
     public function findAllOrderedByFio(): array;
 
-    public function search(string $search, int $page, int $pageSize): PagedResultInterface;
+    public function search(string $search, int $page, int $limit): PagedResultInterface;
 
     /**
      * @param array<int> $ids

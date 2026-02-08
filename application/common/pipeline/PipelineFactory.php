@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\application\common\pipeline;
 
 use app\application\common\IdempotencyServiceInterface;
+use app\application\common\middleware\DomainExceptionTranslationMiddleware;
 use app\application\common\middleware\IdempotencyMiddleware;
 use app\application\common\middleware\TracingMiddleware;
 use app\application\common\middleware\TransactionMiddleware;
@@ -18,6 +19,7 @@ final readonly class PipelineFactory
         private TracerInterface $tracer,
         private TransactionInterface $transaction,
         private IdempotencyServiceInterface $idempotencyService,
+        private DomainExceptionTranslationMiddleware $exceptionTranslationMiddleware,
     ) {
     }
 
@@ -25,6 +27,7 @@ final readonly class PipelineFactory
     {
         return (new Pipeline())
             ->pipe(new TracingMiddleware($this->tracer))
+            ->pipe($this->exceptionTranslationMiddleware)
             ->pipe(new IdempotencyMiddleware($this->idempotencyService))
             ->pipe(new TransactionMiddleware($this->transaction));
     }
@@ -33,6 +36,7 @@ final readonly class PipelineFactory
     {
         return (new Pipeline())
             ->pipe(new TracingMiddleware($this->tracer))
+            ->pipe($this->exceptionTranslationMiddleware)
             ->pipe(new TransactionMiddleware($this->transaction));
     }
 }

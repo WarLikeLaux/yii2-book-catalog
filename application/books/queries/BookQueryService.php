@@ -18,9 +18,9 @@ final readonly class BookQueryService
     ) {
     }
 
-    public function getIndexProvider(int $page = 1, int $pageSize = 20): PagedResultInterface
+    public function getIndexProvider(int $page = 1, int $limit = 20): PagedResultInterface
     {
-        return $this->searcher->search('', $page, $pageSize);
+        return $this->searcher->search('', $page, $limit);
     }
 
     public function getById(int $id): BookReadDto
@@ -39,7 +39,7 @@ final readonly class BookQueryService
         return $this->searcher->search(
             $criteria->globalSearch,
             $criteria->page,
-            $criteria->pageSize,
+            $criteria->limit,
         );
     }
 }

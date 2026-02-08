@@ -4,78 +4,74 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\presentation\common\dto\ApiResponse;
+use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
-use app\presentation\subscriptions\forms\SubscriptionForm;
+use app\presentation\common\traits\HtmxDetectionTrait;
+use app\presentation\common\ViewModelRenderer;
 use app\presentation\subscriptions\handlers\SubscriptionCommandHandler;
-use app\presentation\subscriptions\handlers\SubscriptionViewDataFactory;
-use yii\filters\AccessControl;
+use app\presentation\subscriptions\handlers\SubscriptionViewFactory;
+use Override;
+use Yii;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\Response;
 
-final class SubscriptionController extends Controller
+final class SubscriptionController extends BaseController
 {
+    use HtmxDetectionTrait;
+
     public function __construct(
         $id,
         $module,
         private readonly SubscriptionCommandHandler $commandHandler,
-        private readonly SubscriptionViewDataFactory $viewDataFactory,
+        private readonly SubscriptionViewFactory $viewFactory,
+        ViewModelRenderer $renderer,
         $config = [],
     ) {
-        parent::__construct($id, $module, $config);
+        parent::__construct($id, $module, $renderer, $config);
     }
 
-    #[\Override]
+    #[Override]
     public function behaviors(): array
     {
         return [
             'idempotency' => [
                 'class' => IdempotencyFilter::class,
-                'only' => ['subscribe'],
-            ],
-            'access' => [
-                'class' => AccessControl::class,
-                'rules' => [
-                    [
-                        'allow' => true,
-                        'actions' => ['form', 'subscribe'],
-                        'roles' => ['?', '@'],
-                    ],
-                ],
+                'only' => [ActionName::SUBSCRIBE->value],
             ],
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'subscribe' => ['post'],
+                    ActionName::SUBSCRIBE->value => ['post'],
                 ],
             ],
         ];
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function actionSubscribe(): array
+    public function actionSubscribe(): Response
     {
-        $this->response->format = Response::FORMAT_JSON;
-        $form = new SubscriptionForm();
+        $form = $this->viewFactory->createForm();
 
-        if ($form->load((array)$this->request->post()) && $form->validate()) {
-            return $this->commandHandler->subscribe($form);
+        if ($this->request->isPost && $form->loadFromRequest($this->request) && $form->validate()) {
+            return $this->asJson($this->commandHandler->subscribe($form));
         }
 
-        return ['success' => false, 'errors' => $form->errors];
+        return $this->asJson(ApiResponse::failure(
+            Yii::t('app', 'error.validation'),
+            $form->errors,
+        ));
     }
 
     public function actionForm(int $authorId): string
     {
-        $author = $this->viewDataFactory->getAuthor($authorId);
-        $form = new SubscriptionForm();
+        $viewModel = $this->viewFactory->getSubscriptionViewModel($authorId);
 
-        return $this->renderAjax('_form', [
-            'model' => $form,
-            'author' => $author,
-            'authorId' => $authorId,
-        ]);
+        if ($this->isHtmxRequest()) {
+            return $this->renderer->renderPartial('_form', [
+                'viewModel' => $viewModel,
+            ]);
+        }
+
+        return $this->renderer->render('form', $viewModel);
     }
 }

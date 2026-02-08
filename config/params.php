@@ -13,7 +13,7 @@ return [
     'storage' => [
         'basePath' => '@app/web/uploads',
         'baseUrl' => '/uploads',
-        'placeholderUrl' => 'https://picsum.photos/seed/{seed}/400/600',
+        'placeholderUrl' => 'https://placehold.jp/24/333333/ffffff/400x600.png?text=Book+{seed}',
     ],
     'idempotency' => [
         'ttl' => (int)env('IDEMPOTENCY_TTL', 86400),

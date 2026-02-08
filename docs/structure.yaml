@@ -22,6 +22,7 @@ layers:
     type: "modules"
     modules_exclude:
       - common
+      - mappers
       - ports
     children:
       ports: "Интерфейсы (Ports)"
@@ -30,6 +31,9 @@ layers:
       usecases: "Классы Use Case (execute)"
       commands: "DTO команд (Write)"
       queries: "DTO чтения (Read)"
+      exceptions: "Исключения модуля"
+      factories: "Фабрики модуля"
+      mappers: "Mappers модуля"
 
   infrastructure:
     description: "Инфраструктурный слой (Framework Logic)"
@@ -39,7 +43,7 @@ layers:
       adapters: "Адаптеры инфраструктуры"
       queue: "Обработчики очередей"
       services: "Внешние сервисы"
-      logging: "Конфигурация логов"
+
       listeners: "Event Listeners"
       components: "Вспомогательные компоненты"
       factories: "Фабрики инфраструктуры"
@@ -54,12 +58,13 @@ layers:
       - common
       - assets
       - components
-      - mail
-      - views
-      - widgets
       - controllers
       - dto
+      - mail
       - mappers
+      - services
+      - views
+      - widgets
     children:
       controllers: "Общие контроллеры"
       views: "Шаблоны представлений"
@@ -68,16 +73,23 @@ layers:
       components: "UI компоненты"
       dto: "DTO уровня представления"
       mail: "Шаблоны писем"
+      services: "Общие сервисы представления"
     module_structure:
-      controllers: "Контроллеры модуля"
-      forms: "Формы валидации"
       dto: "DTO уровня представления"
+      forms: "Формы валидации"
+      handlers: "Обработчики запросов"
+      mappers: "Mappers модуля"
+      validators: "Валидаторы модуля"
+      services: "Сервисы модуля"
+      widgets: "Виджеты модуля"
 
   assets:
     description: "Frontend assets"
 
   bin:
     description: "CLI утилиты"
+    children:
+      lib: "Библиотеки CLI утилит"
 
   commands:
     description: "Console контроллеры"

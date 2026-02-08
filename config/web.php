@@ -41,7 +41,7 @@ $config = [
         ],
         'response' => [
             'on beforeSend' => static function ($event): void {
-                $event->sender->headers->add('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.simpleicons.org https://picsum.photos https://fastly.picsum.photos; frame-src 'self' https://picsum.photos https://fastly.picsum.photos; font-src 'self' data:;");
+                $event->sender->headers->add('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.simpleicons.org https://placehold.jp; frame-src 'self' https://placehold.jp; font-src 'self' data:;");
                 $event->sender->headers->add('X-Frame-Options', 'SAMEORIGIN');
                 $event->sender->headers->add('X-Content-Type-Options', 'nosniff');
                 $event->sender->headers->add('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -66,6 +66,18 @@ $config = [
         'user' => [
             'identityClass' => 'app\infrastructure\persistence\User',
             'enableAutoLogin' => true,
+        ],
+        'i18n' => [
+            'translations' => [
+                'app*' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@app/messages',
+                    'sourceLanguage' => 'en-US',
+                    'fileMap' => [
+                        'app' => 'app.php',
+                    ],
+                ],
+            ],
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',

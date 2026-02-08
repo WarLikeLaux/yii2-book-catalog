@@ -9,7 +9,7 @@ use Yii;
 use yii\web\Application;
 use yii\web\Session;
 
-final class FlashNotificationService implements NotificationInterface
+final readonly class FlashNotificationService implements NotificationInterface
 {
     public function success(string $message): void
     {

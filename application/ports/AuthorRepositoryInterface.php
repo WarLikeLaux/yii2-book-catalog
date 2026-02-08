@@ -8,7 +8,7 @@ use app\domain\entities\Author;
 
 interface AuthorRepositoryInterface
 {
-    public function save(Author $author): void;
+    public function save(Author $author): int;
 
     public function get(int $id): Author;
 

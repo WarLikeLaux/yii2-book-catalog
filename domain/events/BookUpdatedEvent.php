@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace app\domain\events;
 
+use app\domain\values\BookStatus;
+
 final readonly class BookUpdatedEvent implements DomainEvent
 {
     public const string EVENT_TYPE = 'book.updated';
@@ -12,7 +14,7 @@ final readonly class BookUpdatedEvent implements DomainEvent
         public int $bookId,
         public int $oldYear,
         public int $newYear,
-        public bool $isPublished,
+        public BookStatus $status,
     ) {
     }
 
@@ -30,7 +32,7 @@ final readonly class BookUpdatedEvent implements DomainEvent
             'bookId' => $this->bookId,
             'oldYear' => $this->oldYear,
             'newYear' => $this->newYear,
-            'isPublished' => $this->isPublished,
+            'status' => $this->status->value,
         ];
     }
 }

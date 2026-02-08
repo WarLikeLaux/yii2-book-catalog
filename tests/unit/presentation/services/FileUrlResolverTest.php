@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\services;
 
-use app\domain\values\StoredFileReference;
 use app\presentation\services\FileUrlResolver;
 use Codeception\Test\Unit;
 
 final class FileUrlResolverTest extends Unit
 {
+    private const PLACEHOLDER_URL = 'https://placehold.jp/24/333333/ffffff/400x600.png?text=Book+{seed}';
     private FileUrlResolver $resolver;
 
     protected function _before(): void
@@ -32,22 +32,16 @@ final class FileUrlResolverTest extends Unit
         $this->assertSame('/uploads/image.jpg', $this->resolver->resolve('image.jpg'));
     }
 
-    public function testResolveReturnsFullUrlForStoredFileReference(): void
-    {
-        $ref = new StoredFileReference('covers/book.png');
-        $this->assertSame('/uploads/covers/book.png', $this->resolver->resolve($ref));
-    }
-
     public function testResolveCoverUrlReturnsExistingCoverUrl(): void
     {
-        $resolver = new FileUrlResolver('/uploads', 'https://picsum.photos/seed/{seed}/400/600');
+        $resolver = new FileUrlResolver('/uploads', self::PLACEHOLDER_URL);
         $this->assertSame('/uploads/cover.jpg', $resolver->resolveCoverUrl('cover.jpg', 123));
     }
 
     public function testResolveCoverUrlReturnsPlaceholderWhenCoverIsNull(): void
     {
-        $resolver = new FileUrlResolver('/uploads', 'https://picsum.photos/seed/{seed}/400/600');
-        $this->assertSame('https://picsum.photos/seed/123/400/600', $resolver->resolveCoverUrl(null, 123));
+        $resolver = new FileUrlResolver('/uploads', self::PLACEHOLDER_URL);
+        $this->assertSame('https://placehold.jp/24/333333/ffffff/400x600.png?text=Book+123', $resolver->resolveCoverUrl(null, 123));
     }
 
     public function testResolveCoverUrlReturnsEmptyWhenNoPlaceholderConfigured(): void
@@ -58,7 +52,7 @@ final class FileUrlResolverTest extends Unit
 
     public function testResolveCoverUrlReturnsPlaceholderWhenCoverIsEmpty(): void
     {
-        $resolver = new FileUrlResolver('/uploads', 'https://picsum.photos/seed/{seed}/400/600');
-        $this->assertSame('https://picsum.photos/seed/456/400/600', $resolver->resolveCoverUrl('', 456));
+        $resolver = new FileUrlResolver('/uploads', self::PLACEHOLDER_URL);
+        $this->assertSame('https://placehold.jp/24/333333/ffffff/400x600.png?text=Book+456', $resolver->resolveCoverUrl('', 456));
     }
 }
