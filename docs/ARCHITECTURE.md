@@ -195,12 +195,13 @@ graph TD
 
 Здесь находится бизнес-суть приложения без привязки к вебу и базе данных:
 
-- **Rich Entities:** сущность `Book` управляет статусом и авторами, соблюдая бизнес-правила.
+- **Rich Entities:** сущность `Book` управляет статусом и авторами, соблюдая бизнес-правила. Конструктор приватный — создание через `Book::create()`, восстановление из БД через `Book::reconstitute()`.
 - **Контроль изменяемости:** доменные сущности используют `private(set)` и меняются через методы.
-- **Value Objects:** `Isbn`, `BookYear` гарантируют валидность данных при создании.
+- **Value Objects:** `Isbn`, `BookYear`, `StoredFileReference`, `FileContent`, `FileKey` гарантируют валидность данных при создании.
 - **Status FSM:** статус книги моделируется через `BookStatus` enum (черновик / опубликована / в архиве) с переходами через `transitionTo(target, policy)`.
 - **Domain Events:** `BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` связывают части системы без прямых зависимостей.
-- **Specifications:** поиск формализован через `domain/specifications`.
+- **Domain Guards:** `replaceAuthors()` запрещает убирать всех авторов у опубликованных/архивных книг.
+- **Specifications:** поиск формализован через `domain/specifications` (`FullTextSpecification`, `IsbnPrefixSpecification`, `AuthorSpecification`, `StatusSpecification`, `YearSpecification`, `CompositeAndSpecification`, `CompositeOrSpecification`).
 
 [↑ К навигации](#-навигация)
 
@@ -208,12 +209,12 @@ graph TD
 
 Слой отвечает за UI, HTTP и сценарии пользователя:
 
-- **Контроллеры:** максимально тонкие.
+- **Контроллеры:** максимально тонкие, ошибки обрабатываются через try/catch `ApplicationException`.
 - **Формы:** валидация HTTP-ввода в `presentation/*/forms`.
 - **Handlers & view factories:** обработка команд и подготовка данных для UI.
 - **Read DTO:** чтение отделено от отображения через `BookReadDto`.
 - **Фильтры:** идемпотентность и rate limit оформлены отдельными фильтрами.
-- **WebUseCaseRunner:** централизованный запуск Use Cases и обработка ошибок.
+- **WebOperationRunner:** централизованный запуск Use Cases, работа с pipeline и обработка ошибок.
 - **Command Pipeline:** транзакции, идемпотентность и трассировка вынесены в middleware.
 - **HTMX:** фронт использует HTMX для бесшовной подгрузки и фильтрации.
 
@@ -229,7 +230,7 @@ graph TD
 
 **Слой представления** разделен на Handlers и view factories:
 
-- **Command Handlers:** маппят форму в команду и вызывают Use Case.
+- **Command Handlers:** маппят форму в команду через `CommandMapper` и вызывают Use Case через `WebOperationRunner`.
 - **View factories:** подготавливают данные для отображения.
 - **Контроллер:** координирует HTTP и делегирует работу.
 
@@ -237,58 +238,55 @@ graph TD
 
 ```php
 // presentation/controllers/BookController.php
-/**
- * @return string|Response|array<string, mixed>
- */
-public function actionCreate(): string|Response|array
+public function actionCreate(): string|Response
 {
     $form = $this->itemViewFactory->createForm();
 
-    if ($this->request->isPost && $form->loadFromRequest($this->request)) {
-        if ($this->request->isAjax) {
-            $this->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($form);
-        }
-
-        if ($form->validate()) {
-            $bookId = $this->commandHandler->createBook($form);
-
-            if ($bookId !== null) {
-                return $this->redirect(['view', 'id' => $bookId]);
-            }
-        }
+    if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
+        return $this->renderCreateForm($form);
     }
 
-    $authors = $this->viewDataFactory->getAuthorsList();
+    if ($this->request->isAjax) {
+        return $this->asJson(ActiveForm::validate($form));
+    }
 
-    return $this->render('create', [
-        'model' => $form,
-        'authors' => $authors,
-    ]);
+    if (!$form->validate()) {
+        return $this->renderCreateForm($form);
+    }
+
+    try {
+        $bookId = $this->commandHandler->createBook($form);
+        return $this->redirect(['view', 'id' => $bookId]);
+    } catch (ApplicationException $e) {
+        $this->addFormError($form, $e);
+        return $this->renderCreateForm($form);
+    }
 }
 ```
 
 ```php
 // presentation/books/handlers/BookCommandHandler.php
-public function createBook(BookForm $form): int|null
+public function createBook(BookForm $form): int
 {
-    try {
-        $data = $this->prepareCommandData($form);
-        /** @var CreateBookCommand $command */
-        $command = $this->autoMapper->map($data, CreateBookCommand::class);
-    } catch (\Throwable $e) {
-        $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 400, $e));
-        return null;
+    $cover = $this->operationRunner->runStep(
+        fn(): ?string => $this->processCoverUpload($form),
+        'Failed to upload book cover',
+    );
+
+    if ($form->cover instanceof UploadedFile && $cover === null) {
+        throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
     }
 
-    /** @var int|null */
-    return $this->executeWithForm(
-        $this->useCaseRunner,
-        $form,
+    $command = $this->commandMapper->toCreateCommand($form, $cover);
+
+    $result = $this->operationRunner->executeAndPropagate(
         $command,
         $this->createBookUseCase,
         Yii::t('app', 'book.success.created'),
     );
+    assert(is_int($result));
+
+    return $result;
 }
 ```
 
@@ -318,7 +316,7 @@ public function createBook(BookForm $form): int|null
 - ActiveRecord модели размещены в `infrastructure/persistence` и используются только внутри инфраструктуры.
 - Репозитории и Query Services реализуют порты в `infrastructure/repositories` и `infrastructure/queries`.
 - События публикуются через `YiiEventPublisherAdapter`, маппинг в jobs делает `EventToJobMapper`.
-- Оптимистическая блокировка включена в `infrastructure/persistence/Book.php` через `OptimisticLockBehavior`.
+- Оптимистическая блокировка включена в `infrastructure/persistence/Book.php` через `OptimisticLockBehavior`, конфликты версий транслируются в `StaleDataException`.
 
 [↑ К навигации](#-навигация)
 
@@ -336,10 +334,12 @@ public function createBook(BookForm $form): int|null
 ### 9. Гибридный поиск (Specification)
 
 - Критерии поиска формируются в `BookSearchSpecificationFactory`.
-- Спецификации (`FullTextSpecification`, `IsbnPrefixSpecification`, `AuthorSpecification`) живут в `domain/specifications`.
+- Спецификации (`FullTextSpecification`, `IsbnPrefixSpecification`, `AuthorSpecification`, `StatusSpecification`, `YearSpecification`) живут в `domain/specifications`.
+- Композитные спецификации (`CompositeAndSpecification`, `CompositeOrSpecification`) позволяют комбинировать критерии.
 - `ActiveQueryBookSpecificationVisitor` строит запросы под MySQL/PgSQL и делает fallback на `LIKE`.
-- Для ISBN используется префиксный поиск, для года - точное совпадение.
+- Для ISBN используется префиксный поиск, для года — точное совпадение.
 - Поиск по авторам идет через отдельную спецификацию и подзапрос.
+- Публичный каталог использует `searchPublished()` — поиск только среди опубликованных книг через `StatusSpecification`.
 - В UI используется HTMX для фильтрации без полной перезагрузки страницы.
 
 [↑ К навигации](#-навигация)
@@ -395,7 +395,7 @@ public function createBook(BookForm $form): int|null
 
 ### 15. Инфраструктурное ядро
 
-- `BaseActiveRecordRepository` содержит Identity Map на основе `WeakMap` и переводит ошибки БД в доменные исключения.
+- `BaseActiveRecordRepository` содержит Identity Map на основе `WeakMap`, переводит ошибки БД в доменные исключения и обрабатывает `StaleObjectException` → `StaleDataException`.
 - `BaseQueryService` стандартизирует пагинацию и маппинг в DTO.
 
 [↑ К навигации](#-навигация)

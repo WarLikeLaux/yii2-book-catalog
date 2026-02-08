@@ -211,57 +211,55 @@ class BookService
 
 ```php
 // presentation/controllers/BookController.php
-/**
- * @return string|Response|array<string, mixed>
- */
-public function actionCreate(): string|Response|array
+public function actionCreate(): string|Response
 {
     $form = $this->itemViewFactory->createForm();
 
-    if ($this->request->isPost && $form->loadFromRequest($this->request)) {
-        if ($this->request->isAjax) {
-            $this->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($form);
-        }
-
-        if ($form->validate()) {
-            $bookId = $this->commandHandler->createBook($form);
-            if ($bookId !== null) {
-                return $this->redirect(['view', 'id' => $bookId]);
-            }
-        }
+    if (!$this->request->isPost || !$form->loadFromRequest($this->request)) {
+        return $this->renderCreateForm($form);
     }
 
-    $authors = $this->viewDataFactory->getAuthorsList();
+    if ($this->request->isAjax) {
+        return $this->asJson(ActiveForm::validate($form));
+    }
 
-    return $this->render('create', [
-        'model' => $form,
-        'authors' => $authors,
-    ]);
+    if (!$form->validate()) {
+        return $this->renderCreateForm($form);
+    }
+
+    try {
+        $bookId = $this->commandHandler->createBook($form);
+        return $this->redirect(['view', 'id' => $bookId]);
+    } catch (ApplicationException $e) {
+        $this->addFormError($form, $e);
+        return $this->renderCreateForm($form);
+    }
 }
 ```
 
 ```php
 // presentation/books/handlers/BookCommandHandler.php
-public function createBook(BookForm $form): int|null
+public function createBook(BookForm $form): int
 {
-    try {
-        $data = $this->prepareCommandData($form);
-        /** @var CreateBookCommand $command */
-        $command = $this->autoMapper->map($data, CreateBookCommand::class);
-    } catch (\Throwable $e) {
-        $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 400, $e));
-        return null;
+    $cover = $this->operationRunner->runStep(
+        fn(): ?string => $this->processCoverUpload($form),
+        'Failed to upload book cover',
+    );
+
+    if ($form->cover instanceof UploadedFile && $cover === null) {
+        throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
     }
 
-    /** @var int|null */
-    return $this->executeWithForm(
-        $this->useCaseRunner,
-        $form,
+    $command = $this->commandMapper->toCreateCommand($form, $cover);
+
+    $result = $this->operationRunner->executeAndPropagate(
         $command,
         $this->createBookUseCase,
         Yii::t('app', 'book.success.created'),
     );
+    assert(is_int($result));
+
+    return $result;
 }
 ```
 
@@ -397,14 +395,6 @@ class Book extends ActiveRecord
 // presentation/books/forms/BookForm.php
 final class BookForm extends Model
 {
-    public function __construct(
-        private readonly BookQueryServiceInterface $bookQueryService,
-        private readonly AuthorQueryServiceInterface $authorQueryService,
-        array $config = [],
-    ) {
-        parent::__construct($config);
-    }
-
     /** @var int|string|null */
     public $id;
 
@@ -423,8 +413,9 @@ final class BookForm extends Model
     /** @var array<int>|string|null */
     public $authorIds = [];
 
-    /** @var \yii\web\UploadedFile|string|null */
+    /** @var UploadedFile|string|null */
     public $cover;
+    public int $version = 1;
 }
 ```
 
@@ -479,12 +470,10 @@ $command = new CreateBookCommand(
 **Стало:**
 
 ```php
-$data = $this->prepareCommandData($form);
-/** @var CreateBookCommand $command */
-$command = $this->autoMapper->map($data, CreateBookCommand::class);
+$command = $this->commandMapper->toCreateCommand($form, $cover);
 ```
 
-✅ **Результат:** единый маппинг и меньше рутины.
+✅ **Результат:** типизированный маппинг через выделенный `CommandMapper` и меньше рутины.
 
 ---
 
@@ -507,22 +496,36 @@ public function actionCreate()
 // application/books/usecases/CreateBookUseCase.php
 public function execute(object $command): int
 {
+    $authorIds = $command->authorIds->toArray();
+
+    if ($this->bookQueryService->existsByIsbn($command->isbn)) {
+        throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
+    }
+
+    if ($authorIds !== []) {
+        $missingIds = $this->authorQueryService->findMissingIds($authorIds);
+
+        if ($missingIds !== []) {
+            throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
+        }
+    }
+
     $currentYear = (int) $this->clock->now()->format('Y');
+    $coverImage = $command->storedCover !== null ? new StoredFileReference($command->storedCover) : null;
 
     $book = Book::create(
         title: $command->title,
         year: new BookYear($command->year, $currentYear),
         isbn: new Isbn($command->isbn),
         description: $command->description,
-        coverImage: $command->cover,
+        coverImage: $coverImage,
     );
-    $book->replaceAuthors($command->authorIds);
+    $book->replaceAuthors($authorIds);
 
-    $this->bookRepository->save($book);
-    $bookId = $book->id;
+    $bookId = $this->bookRepository->save($book);
 
-    if ($bookId === null) {
-        throw new RuntimeException('Failed to retrieve book ID after save');
+    if ($bookId === 0) {
+        throw new OperationFailedException('error.entity_id_missing');
     }
 
     return $bookId;
@@ -742,8 +745,33 @@ class Book extends ActiveRecord
 
 ```php
 // domain/entities/Book.php
-final class Book
+final class Book implements IdentifiableEntityInterface
 {
+    private function __construct(
+        public private(set) ?int $id,
+        string $title,
+        public private(set) BookYear $year,
+        public private(set) Isbn $isbn,
+        public private(set) ?string $description,
+        public private(set) ?StoredFileReference $coverImage,
+        array $authorIds,
+        public private(set) BookStatus $status,
+        public private(set) int $version,
+    ) {
+        $this->title = $title;
+        $this->authorIds = array_map(intval(...), $authorIds);
+    }
+
+    public static function create(/* ... */): self
+    {
+        return new self(id: null, /* ... */, status: BookStatus::Draft, version: 1);
+    }
+
+    public static function reconstitute(/* все поля */): self
+    {
+        return new self(/* ... */);
+    }
+
     public function transitionTo(BookStatus $target, ?BookPublicationPolicy $policy = null): void
     {
         if (!$this->status->canTransitionTo($target)) {
@@ -759,6 +787,22 @@ final class Book
         }
 
         $this->status = $target;
+    }
+
+    /**
+     * @param int[] $authorIds
+     */
+    public function replaceAuthors(array $authorIds): void
+    {
+        if ($authorIds === [] && $this->status !== BookStatus::Draft) {
+            throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutAuthors);
+        }
+
+        $this->authorIds = [];
+
+        foreach ($authorIds as $authorId) {
+            $this->addAuthor($authorId);
+        }
     }
 
     public function addAuthor(int $authorId): void
@@ -837,8 +881,8 @@ public function optimisticLock(): string
 
 ```php
 // infrastructure/repositories/BookRepository.php
-$ar->version = $book->version;
-$this->persist($ar, DomainErrorCode::BookIsbnExists);
+$model->version = $book->version;
+$this->persist($model, DomainErrorCode::BookStaleData, DomainErrorCode::BookIsbnExists);
 ```
 
 ✅ **Результат:** конфликт версий ловится и превращается в доменное исключение.
@@ -878,7 +922,7 @@ public function createDefault(): PipelineInterface
 ```
 
 ```php
-// presentation/common/services/WebUseCaseRunner.php
+// presentation/common/services/WebOperationRunner.php
 $result = $this->pipelineFactory->createDefault()->execute($command, $useCase);
 ```
 
@@ -898,25 +942,27 @@ $result = $this->pipelineFactory->createDefault()->execute($command, $useCase);
 
 ```php
 // presentation/books/handlers/BookCommandHandler.php
-public function createBook(BookForm $form): int|null
+public function createBook(BookForm $form): int
 {
-    try {
-        $data = $this->prepareCommandData($form);
-        /** @var CreateBookCommand $command */
-        $command = $this->autoMapper->map($data, CreateBookCommand::class);
-    } catch (\Throwable $e) {
-        $this->addFormError($form, $e instanceof DomainException ? $e : new OperationFailedException(DomainErrorCode::MapperFailed, 400, $e));
-        return null;
+    $cover = $this->operationRunner->runStep(
+        fn(): ?string => $this->processCoverUpload($form),
+        'Failed to upload book cover',
+    );
+
+    if ($form->cover instanceof UploadedFile && $cover === null) {
+        throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
     }
 
-    /** @var int|null */
-    return $this->executeWithForm(
-        $this->useCaseRunner,
-        $form,
+    $command = $this->commandMapper->toCreateCommand($form, $cover);
+
+    $result = $this->operationRunner->executeAndPropagate(
         $command,
         $this->createBookUseCase,
         Yii::t('app', 'book.success.created'),
     );
+    assert(is_int($result));
+
+    return $result;
 }
 ```
 
@@ -935,33 +981,40 @@ public function createBook(BookForm $form): int|null
 **Стало:**
 
 ```php
-// presentation/books/forms/BookForm.php
-public function validateIsbnUnique(string $attribute): void
+// presentation/books/forms/BookForm.php — правила формы
+#[Override]
+public function rules(): array
 {
-    $value = $this->$attribute;
-
-    if (!is_string($value)) {
-        return;
-    }
-
-    $excludeId = $this->id !== null ? (int)$this->id : null;
-
-    if (!$this->bookQueryService->existsByIsbn($value, $excludeId)) {
-        return;
-    }
-
-    $this->addError($attribute, Yii::t('app', 'book.error.isbn_exists'));
+    return [
+        [['title', 'year', 'isbn', 'authorIds'], 'required'],
+        [['year'], 'integer', 'min' => 1000, 'max' => (int)date('Y') + 5],
+        [['description'], 'string'],
+        [['title'], 'string', 'max' => 255],
+        [['isbn'], 'string', 'max' => 20],
+        [['isbn'], IsbnValidator::class],
+        [['authorIds'], 'each', 'rule' => ['integer']],
+        // ...
+    ];
 }
 ```
 
 ```php
 // infrastructure/repositories/BaseActiveRecordRepository.php
-protected function persist(ActiveRecord $model, ?DomainErrorCode $duplicateError = null): void
-{
+protected function persist(
+    ActiveRecord $model,
+    ?DomainErrorCode $staleError,
+    ?DomainErrorCode $duplicateError = null,
+): void {
     try {
         if (!$model->save(false)) {
             throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
         }
+    } catch (StaleObjectException) {
+        if (!$staleError instanceof DomainErrorCode) {
+            throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
+        }
+
+        throw new StaleDataException($staleError);
     } catch (IntegrityException $e) {
         if ($this->isDuplicateError($e)) {
             if ($duplicateError instanceof DomainErrorCode) {
