@@ -1,5 +1,5 @@
 <div align="center">
-<img src="docs/assets/hero-banner.png" alt="Yii2 Book Catalog: DDD, CQRS, Clean Architecture, CQS" width="800">
+<img src="docs/assets/hero-banner.png" alt="Yii2 Book Catalog: DDD, CQS, Clean Architecture" width="800">
 
 # Yii2 Book Catalog
 
