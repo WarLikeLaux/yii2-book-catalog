@@ -266,6 +266,43 @@ final class UpdateBookUseCaseTest extends Unit
         $this->useCase->execute($command);
     }
 
+    public function testExecuteRemovesCoverWhenRemoveCoverIsTrue(): void
+    {
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Title',
+            year: 2024,
+            description: 'Description',
+            isbn: '9780132350884',
+            authorIds: AuthorIdCollection::fromArray([1]),
+            version: 1,
+            removeCover: true,
+        );
+
+        $existingBook = BookTestHelper::createBook(
+            id: 42,
+            title: 'Title',
+            year: 2020,
+            description: 'Description',
+            coverImage: '/uploads/old-cover.jpg',
+            authorIds: [1],
+            status: BookStatus::Draft,
+            version: 1,
+        );
+
+        $this->bookRepository->expects($this->once())
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
+            ->willReturn($existingBook);
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
+            ->with($this->callback(static fn (Book $book): bool => $book->coverImage === null))
+            ->willReturn(42);
+
+        $this->useCase->execute($command);
+    }
+
     public function testExecuteUpdatesDescriptionCorrectly(): void
     {
         $command = new UpdateBookCommand(
