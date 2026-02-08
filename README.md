@@ -9,7 +9,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL_/_PgSQL-Multi_DB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-745_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-949_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![AI Governance](https://img.shields.io/badge/AI-Governance-8A2BE2?style=for-the-badge&logo=googlegemini&logoColor=white)](docs/AI_WORKFLOW.md)
@@ -88,7 +88,7 @@
 | 🔹 **CAS (File Storage)**<br>Контентно-адресуемое хранилище           | ⚡ **HTMX**<br>Infinite Scroll и реактивные формы               |
 | 🔹 **Доменные события**<br>`BookStatusChangedEvent`, fan-out          | 🤖 **AI Governance**<br>Контракты и автоматизация              |
 | **🧪 Качество кода**                                                  | **🐳 DevOps Ready**                                            |
-| ✅ **745+ тестов** (1746+ assertions)<br>100% покрытие кода тестами   | 🐳 **Docker Compose**<br>Полный стек одной командой            |
+| ✅ **949+ тестов** (2236+ assertions)<br>100% покрытие кода тестами   | 🐳 **Docker Compose**<br>Полный стек одной командой            |
 | ✅ **PHPStan Level 9**<br>9 кастомных правил (Custom Rules)           | 🛠 **Makefile**<br>Автоматизация рутины                        |
 | ✅ **Мутационное тестирование**<br>Infection PHP (MSI 100%)           | 📚 **Генерация документации**<br>Yii2 API + OpenAPI            |
 | ✅ **Авто-рефакторинг**<br>Rector                                     | 🏗 **Контроль архитектуры**<br>Deptrac + Arkitect              |
@@ -236,10 +236,10 @@ make env   # или make configure
 
 <table>
 <tr>
-<td align="center"><b>745</b><br>Tests</td>
-<td align="center"><b>1746</b><br>Assertions</td>
+<td align="center"><b>949</b><br>Tests</td>
+<td align="center"><b>2236</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~18.4s</b><br>Runtime</td>
+<td align="center"><b>~18.2s</b><br>Runtime</td>
 </tr>
 </table>
 
@@ -289,6 +289,9 @@ application/            - Слой приложения (Application Logic)
   ├── ports/            - Интерфейсы (Ports)
   ├── {{module}}/
   │   ├── commands/     - DTO команд (Write)
+  │   ├── exceptions/   - Исключения модуля
+  │   ├── factories/    - Фабрики модуля
+  │   ├── mappers/      - Mappers модуля
   │   ├── queries/      - DTO чтения (Read)
   │   ├── usecases/     - Классы Use Case (execute)
 infrastructure/         - Инфраструктурный слой (Framework Logic)
@@ -296,7 +299,6 @@ infrastructure/         - Инфраструктурный слой (Framework L
   ├── components/       - Вспомогательные компоненты
   ├── factories/        - Фабрики инфраструктуры
   ├── listeners/        - Event Listeners
-  ├── logging/          - Конфигурация логов
   ├── mapping/          - Настройки маппинга
   ├── persistence/      - ActiveRecord модели (Mapping)
   ├── phpstan/          - Расширения и правила PHPStan
@@ -310,13 +312,20 @@ presentation/           - Слой представления (UI/API)
   ├── controllers/      - Общие контроллеры
   ├── dto/              - DTO уровня представления
   ├── mail/             - Шаблоны писем
+  ├── services/         - Общие сервисы представления
   ├── views/            - Шаблоны представлений
   ├── widgets/          - UI виджеты
   ├── {{module}}/
-  │   ├── controllers/  - Контроллеры модуля
   │   ├── dto/          - DTO уровня представления
   │   ├── forms/        - Формы валидации
+  │   ├── handlers/     - Обработчики запросов
+  │   ├── mappers/      - Mappers модуля
+  │   ├── services/     - Сервисы модуля
+  │   ├── validators/   - Валидаторы модуля
+  │   ├── widgets/      - Виджеты модуля
+assets/                 - Frontend assets
 bin/                    - CLI утилиты
+  ├── lib/              - Библиотеки CLI утилит
 commands/               - Console контроллеры
   ├── support/          - Служебные утилиты и вывод карты проекта
 config/                 - Конфигурация приложения
@@ -333,7 +342,6 @@ tests/                  - Тесты
 tools/                  - Инструменты разработки
   ├── PHPUnit/          - Конфигурация PHPUnit
   ├── Rector/           - Конфигурация Rector
-vendor/                 - Зависимости Composer
 web/                    - Web root
 ```
 
@@ -357,10 +365,10 @@ web/                    - Web root
 
 ### 📊 Статистика проекта
 
-![Source Code](https://img.shields.io/badge/Source_Code-9.3k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-13.8k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-263-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-168-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Code](https://img.shields.io/badge/Source_Code-10.6k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-16.6k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-306-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-201-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)

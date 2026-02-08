@@ -425,6 +425,9 @@ application/            - Слой приложения (Application Logic)
   ├── ports/            - Интерфейсы (Ports)
   ├── {{module}}/
   │   ├── commands/     - DTO команд (Write)
+  │   ├── exceptions/   - Исключения модуля
+  │   ├── factories/    - Фабрики модуля
+  │   ├── mappers/      - Mappers модуля
   │   ├── queries/      - DTO чтения (Read)
   │   ├── usecases/     - Классы Use Case (execute)
 infrastructure/         - Инфраструктурный слой (Framework Logic)
@@ -432,7 +435,6 @@ infrastructure/         - Инфраструктурный слой (Framework L
   ├── components/       - Вспомогательные компоненты
   ├── factories/        - Фабрики инфраструктуры
   ├── listeners/        - Event Listeners
-  ├── logging/          - Конфигурация логов
   ├── mapping/          - Настройки маппинга
   ├── persistence/      - ActiveRecord модели (Mapping)
   ├── phpstan/          - Расширения и правила PHPStan
@@ -446,13 +448,20 @@ presentation/           - Слой представления (UI/API)
   ├── controllers/      - Общие контроллеры
   ├── dto/              - DTO уровня представления
   ├── mail/             - Шаблоны писем
+  ├── services/         - Общие сервисы представления
   ├── views/            - Шаблоны представлений
   ├── widgets/          - UI виджеты
   ├── {{module}}/
-  │   ├── controllers/  - Контроллеры модуля
   │   ├── dto/          - DTO уровня представления
   │   ├── forms/        - Формы валидации
+  │   ├── handlers/     - Обработчики запросов
+  │   ├── mappers/      - Mappers модуля
+  │   ├── services/     - Сервисы модуля
+  │   ├── validators/   - Валидаторы модуля
+  │   ├── widgets/      - Виджеты модуля
+assets/                 - Frontend assets
 bin/                    - CLI утилиты
+  ├── lib/              - Библиотеки CLI утилит
 commands/               - Console контроллеры
   ├── support/          - Служебные утилиты и вывод карты проекта
 config/                 - Конфигурация приложения
@@ -469,7 +478,6 @@ tests/                  - Тесты
 tools/                  - Инструменты разработки
   ├── PHPUnit/          - Конфигурация PHPUnit
   ├── Rector/           - Конфигурация Rector
-vendor/                 - Зависимости Composer
 web/                    - Web root
 ```
 
