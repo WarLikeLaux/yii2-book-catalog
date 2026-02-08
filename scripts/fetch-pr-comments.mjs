@@ -207,8 +207,12 @@ async function main() {
 			if (resolvedThreads.length > 0 && !includeResolved) {
 				console.log('💡 Совет: Запустите с флагом `--include-resolved`, чтобы включить разрешенные комментарии.');
 			}
-			const emptyMarkdown = `# Задачи по ревью PR - #${pullNumber}\n\n`;
-			fs.writeFileSync(outputPath, emptyMarkdown + '✅ Все комментарии закрыты!\n');
+			if (preservedCount > 0) {
+				console.log(`⚠️  Файл ${outputPath} содержит ${preservedCount} записей с пользовательскими правками — перезапись пропущена.`);
+			} else {
+				const emptyMarkdown = `# Задачи по ревью PR - #${pullNumber}\n\n`;
+				fs.writeFileSync(outputPath, emptyMarkdown + '✅ Все комментарии закрыты!\n');
+			}
 			return;
 		}
 
@@ -250,7 +254,7 @@ async function main() {
 					const updatedEntry = existing
 						.replace(/^### #\d+/, `### #${itemNumber}`)
 						.replace(/[⭕✅] \((?:OPEN|RESOLVED)\)/, status);
-					markdown += updatedEntry + '\n';
+					markdown += updatedEntry + '\n\n';
 				} else {
 					const rawBody = firstComment.body;
 					const body = cleanBody(rawBody);
