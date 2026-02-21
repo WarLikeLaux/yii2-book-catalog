@@ -62,9 +62,18 @@ final class CommentLinter
         );
 
         foreach ($iterator as $file) {
-            if ($file->getExtension() === 'php') {
+            if (!$file->isFile()) {
+                continue;
+            }
+
+            $extension = $file->getExtension();
+
+            if ($extension === 'php') {
                 $this->processPhpFile($file);
-            } else {
+                continue;
+            }
+
+            if ($extension === 'js' || $extension === 'mjs') {
                 $this->processJsFile($file);
             }
         }
