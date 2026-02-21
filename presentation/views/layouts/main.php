@@ -54,8 +54,8 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
                 $menuItems[] = ['label' => Yii::t('app', 'ui.authors'), 'url' => ['/author/index']];
                 if (YII_ENV_DEV) {
                     $menuItems[] = [
-                        'label' => Yii::t('app', 'ui.logs'),
-                        'url' => (Yii::$app->request->isSecureConnection ? 'https://' : 'http://') . Yii::$app->request->serverName . ':' . Yii::$app->params['buggregatorUiPort'],
+                        'label' => Yii::t('app', 'ui.traces'),
+                        'url' => (Yii::$app->request->isSecureConnection ? 'https://' : 'http://') . Yii::$app->request->serverName . ':' . Yii::$app->params['jaegerUiPort'],
                         'linkOptions' => ['target' => '_blank'],
                     ];
                 }

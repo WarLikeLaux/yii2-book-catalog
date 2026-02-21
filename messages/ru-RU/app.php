@@ -34,7 +34,7 @@ return [
     'ui.updated_at' => 'Обновлено',
     'ui.catalog' => 'Каталог',
     'ui.report' => 'Отчет',
-    'ui.logs' => 'Логи',
+    'ui.traces' => 'Трейсы',
     'ui.login' => 'Вход',
     'ui.logout' => 'Выход ({username})',
     'ui.footer_subtitle' => 'Демонстрационный проект на базе <strong class="text-white">Clean Architecture</strong> и <strong class="text-white">DDD</strong>.',

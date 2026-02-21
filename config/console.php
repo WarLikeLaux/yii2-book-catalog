@@ -2,12 +2,8 @@
 
 declare(strict_types=1);
 
-use app\application\common\config\BuggregatorConfig;
-
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
-
-$buggregatorConfig = BuggregatorConfig::fromParams($params);
 
 $config = [
     'id' => 'basic-console',
@@ -42,20 +38,6 @@ $config = [
                     'logFile' => '@runtime/logs/sms.log',
                     'logVars' => [],
                 ],
-                YII_ENV_DEV ? [
-                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => $buggregatorConfig->log->host,
-                    'port' => $buggregatorConfig->log->port,
-                    'levels' => ['error', 'warning'],
-                ] : null,
-                YII_ENV_DEV ? [
-                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => $buggregatorConfig->log->host,
-                    'port' => $buggregatorConfig->log->port,
-                    'levels' => ['info'],
-                    'categories' => ['sms', 'application'],
-                    'logVars' => [],
-                ] : null,
             ]),
         ],
         'db' => $db,

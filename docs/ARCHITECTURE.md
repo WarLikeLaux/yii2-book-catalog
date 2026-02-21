@@ -68,15 +68,15 @@ graph TD
     User((User/Admin))
     System[Book Catalog System]
     SMS["SMS Provider (External)"]
-    Buggregator["Buggregator (Dev Tools)"]
+    Jaeger["Jaeger (Tracing)"]
 
     User -- "Browses & Manages Books" --> System
     System -- "Sends Notifications" --> SMS
-    System -- "Sends Logs/Emails" --> Buggregator
+    System -- "Sends Traces" --> Jaeger
 
     style System fill:#1168bd,stroke:#0b4884,color:#ffffff
     style SMS fill:#999999,stroke:#666666,color:#ffffff
-    style Buggregator fill:#999999,stroke:#666666,color:#ffffff
+    style Jaeger fill:#999999,stroke:#666666,color:#ffffff
 ```
 
 ### Level 2: containers
@@ -297,7 +297,7 @@ public function createBook(BookForm $form): int
 - Переключение между MySQL и PostgreSQL управляется `DB_DRIVER` и конфигами `config/db.php`.
 - Очередь реализована через `HandlerAwareQueue`, задания хранятся в базе.
 - Время инкапсулировано через `Psr\Clock\ClockInterface` и `SystemClock`.
-- Трассировка и логирование интегрированы с Buggregator.
+- Трассировка интегрирована с Jaeger OTLP.
 - Интерактивная отладка доступна через `make shell`.
 
 [↑ К навигации](#-навигация)
@@ -379,8 +379,8 @@ public function createBook(BookForm $form): int
 
 - Трассировка команд реализована через `TracingMiddleware`.
 - Инфраструктурные декораторы (`*TracingDecorator`) оборачивают репозитории, Query Services и очередь.
-- Логирование и сбор трейсов выполняются через `BuggregatorLogTarget`.
-- В панели Buggregator доступны timeline, SQL-запросы и путь задач в очереди.
+- Сбор трейсов выполняется поверх OpenTelemetry (OTLP) с экспортом в Jaeger.
+- В панели Jaeger доступны waterfall timeline, структура вызовов RPC, и поиск трейсов по тегам.
 
 [↑ К навигации](#-навигация)
 

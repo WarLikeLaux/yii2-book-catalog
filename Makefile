@@ -112,9 +112,9 @@ init:
 up:
 	@driver=$${DB_DRIVER:-mysql}; \
 	if [ "$$driver" = "pgsql" ]; then \
-		$(COMPOSE) up -d pgsql redis php nginx queue swagger-ui buggregator selenium --remove-orphans; \
+		$(COMPOSE) up -d pgsql redis php nginx queue swagger-ui jaeger selenium --remove-orphans; \
 	else \
-		$(COMPOSE) up -d db redis php nginx queue swagger-ui buggregator selenium --remove-orphans; \
+		$(COMPOSE) up -d db redis php nginx queue swagger-ui jaeger selenium --remove-orphans; \
 	fi
 
 down:

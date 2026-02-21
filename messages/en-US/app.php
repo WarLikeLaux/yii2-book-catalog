@@ -34,7 +34,7 @@ return [
     'ui.updated_at' => 'Updated At',
     'ui.catalog' => 'Catalog',
     'ui.report' => 'Report',
-    'ui.logs' => 'Logs',
+    'ui.traces' => 'Traces',
     'ui.login' => 'Login',
     'ui.logout' => 'Logout ({username})',
     'ui.footer_subtitle' => 'Demonstration project based on <strong class="text-white">Clean Architecture</strong> and <strong class="text-white">DDD</strong>.',
