@@ -6,8 +6,8 @@ namespace app\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
 use app\application\common\services\TransactionalEventPublisher;
-use app\application\ports\AuthorQueryServiceInterface;
-use app\application\ports\BookQueryServiceInterface;
+use app\application\ports\AuthorExistenceCheckerInterface;
+use app\application\ports\BookIsbnCheckerInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\events\BookUpdatedEvent;
@@ -26,8 +26,8 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
-        private BookQueryServiceInterface $bookQueryService,
-        private AuthorQueryServiceInterface $authorQueryService,
+        private BookIsbnCheckerInterface $bookIsbnChecker,
+        private AuthorExistenceCheckerInterface $authorExistenceChecker,
         private TransactionalEventPublisher $eventPublisher,
         private ClockInterface $clock,
     ) {
@@ -40,16 +40,12 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
     {
         $authorIds = $command->authorIds->toArray();
 
-        if ($this->bookQueryService->existsByIsbn($command->isbn, $command->id)) {
+        if ($this->bookIsbnChecker->existsByIsbn($command->isbn, $command->id)) {
             throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
         }
 
-        if ($authorIds !== []) {
-            $missingIds = $this->authorQueryService->findMissingIds($authorIds);
-
-            if ($missingIds !== []) {
-                throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
-            }
+        if ($authorIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIds)) {
+            throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
         }
 
         $currentYear = (int) $this->clock->now()->format('Y');

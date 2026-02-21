@@ -45,37 +45,4 @@ final readonly class AuthorQueryService extends BaseQueryService implements Auth
 
         return $this->getPagedResult($query, $page, $limit, AuthorReadDto::class);
     }
-
-    /**
-     * @param array<int> $ids
-     * @return array<int>
-     */
-    public function findMissingIds(array $ids): array
-    {
-        if ($ids === []) {
-            return [];
-        }
-
-        $existingIds = Author::find()
-            ->select('id')
-            ->where(['id' => $ids])
-            ->column($this->db);
-
-        $existingIdsMap = array_flip($existingIds);
-
-        return array_values(array_filter(
-            $ids,
-            static fn(int $id): bool => !isset($existingIdsMap[$id]),
-        ));
-    }
-
-    public function existsByFio(string $fio, ?int $excludeId = null): bool
-    {
-        return $this->exists(Author::find()->where(['fio' => $fio]), $excludeId);
-    }
-
-    public function existsById(int $id): bool
-    {
-        return Author::find()->where(['id' => $id])->exists($this->db);
-    }
 }

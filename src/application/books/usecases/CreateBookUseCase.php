@@ -6,8 +6,8 @@ namespace app\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\common\exceptions\OperationFailedException;
-use app\application\ports\AuthorQueryServiceInterface;
-use app\application\ports\BookQueryServiceInterface;
+use app\application\ports\AuthorExistenceCheckerInterface;
+use app\application\ports\BookIsbnCheckerInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\entities\Book;
@@ -26,8 +26,8 @@ final readonly class CreateBookUseCase implements UseCaseInterface
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
-        private BookQueryServiceInterface $bookQueryService,
-        private AuthorQueryServiceInterface $authorQueryService,
+        private BookIsbnCheckerInterface $bookIsbnChecker,
+        private AuthorExistenceCheckerInterface $authorExistenceChecker,
         private ClockInterface $clock,
     ) {
     }
@@ -39,16 +39,12 @@ final readonly class CreateBookUseCase implements UseCaseInterface
     {
         $authorIds = $command->authorIds->toArray();
 
-        if ($this->bookQueryService->existsByIsbn($command->isbn)) {
+        if ($this->bookIsbnChecker->existsByIsbn($command->isbn)) {
             throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
         }
 
-        if ($authorIds !== []) {
-            $missingIds = $this->authorQueryService->findMissingIds($authorIds);
-
-            if ($missingIds !== []) {
-                throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
-            }
+        if ($authorIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIds)) {
+            throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
         }
 
         $currentYear = (int) $this->clock->now()->format('Y');
@@ -66,7 +62,7 @@ final readonly class CreateBookUseCase implements UseCaseInterface
         $bookId = $this->bookRepository->save($book);
 
         if ($bookId === 0) {
-            throw new OperationFailedException('error.entity_id_missing');
+            throw new OperationFailedException(DomainErrorCode::EntityIdMissing->value);
         }
 
         return $bookId;

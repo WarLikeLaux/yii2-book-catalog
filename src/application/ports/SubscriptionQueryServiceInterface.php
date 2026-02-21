@@ -6,8 +6,6 @@ namespace app\application\ports;
 
 interface SubscriptionQueryServiceInterface
 {
-    public function exists(string $phone, int $authorId): bool;
-
     /**
      * @return iterable<string>
      */

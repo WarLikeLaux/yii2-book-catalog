@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\application\subscriptions\usecases;
 
-use app\application\ports\AuthorQueryServiceInterface;
+use app\application\ports\AuthorExistenceCheckerInterface;
 use app\application\ports\PhoneNormalizerInterface;
-use app\application\ports\SubscriptionQueryServiceInterface;
+use app\application\ports\SubscriptionExistenceCheckerInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
@@ -23,8 +23,8 @@ final readonly class SubscribeUseCase implements UseCaseInterface
 {
     public function __construct(
         private SubscriptionRepositoryInterface $subscriptionRepository,
-        private SubscriptionQueryServiceInterface $subscriptionQueryService,
-        private AuthorQueryServiceInterface $authorQueryService,
+        private AuthorExistenceCheckerInterface $authorExistenceChecker,
+        private SubscriptionExistenceCheckerInterface $subscriptionExistenceChecker,
         private PhoneNormalizerInterface $phoneNormalizer,
     ) {
     }
@@ -34,14 +34,14 @@ final readonly class SubscribeUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
-        if (!$this->authorQueryService->existsById($command->authorId)) {
+        if (!$this->authorExistenceChecker->existsById($command->authorId)) {
             throw new EntityNotFoundException(DomainErrorCode::SubscriptionInvalidAuthorId);
         }
 
         $normalized = $this->phoneNormalizer->normalize($command->phone);
         $phone = new Phone($normalized);
 
-        if ($this->subscriptionQueryService->exists($phone->value, $command->authorId)) {
+        if ($this->subscriptionExistenceChecker->exists($phone->value, $command->authorId)) {
             throw new BusinessRuleException(DomainErrorCode::SubscriptionAlreadySubscribed);
         }
 

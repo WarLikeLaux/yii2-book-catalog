@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace app\application\authors\usecases;
 
 use app\application\authors\commands\UpdateAuthorCommand;
-use app\application\ports\AuthorQueryServiceInterface;
+use app\application\ports\AuthorExistenceCheckerInterface;
 use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\exceptions\AlreadyExistsException;
@@ -18,7 +18,7 @@ final readonly class UpdateAuthorUseCase implements UseCaseInterface
 {
     public function __construct(
         private AuthorRepositoryInterface $authorRepository,
-        private AuthorQueryServiceInterface $authorQueryService,
+        private AuthorExistenceCheckerInterface $authorExistenceChecker,
     ) {
     }
 
@@ -27,7 +27,7 @@ final readonly class UpdateAuthorUseCase implements UseCaseInterface
      */
     public function execute(object $command): void
     {
-        if ($this->authorQueryService->existsByFio($command->fio, $command->id)) {
+        if ($this->authorExistenceChecker->existsByFio($command->fio, $command->id)) {
             throw new AlreadyExistsException(DomainErrorCode::AuthorFioExists);
         }
 

@@ -55,14 +55,6 @@ final readonly class BookQueryServiceTracingDecorator implements BookQueryServic
         );
     }
 
-    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
-    {
-        return $this->tracer->trace(
-            'BookQuery::' . __FUNCTION__,
-            fn(): bool => $this->service->existsByIsbn($isbn, $excludeId),
-        );
-    }
-
     /**
      * @return string[]
      */

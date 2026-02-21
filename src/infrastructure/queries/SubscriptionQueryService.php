@@ -16,13 +16,6 @@ final readonly class SubscriptionQueryService implements SubscriptionQueryServic
     ) {
     }
 
-    public function exists(string $phone, int $authorId): bool
-    {
-        return Subscription::find()
-            ->where(['phone' => $phone, 'author_id' => $authorId])
-            ->exists($this->db);
-    }
-
     /**
      * @return iterable<string>
      */

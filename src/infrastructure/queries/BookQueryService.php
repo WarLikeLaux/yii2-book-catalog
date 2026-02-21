@@ -63,11 +63,6 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
         return $this->getPagedResult($query, $page, $limit, BookReadDto::class);
     }
 
-    public function existsByIsbn(string $isbn, ?int $excludeId = null): bool
-    {
-        return $this->exists(Book::find()->where(['isbn' => $isbn]), $excludeId);
-    }
-
     /**
      * @return string[]
      */
