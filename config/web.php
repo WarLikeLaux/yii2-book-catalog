@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 use app\application\common\config\IdempotencyConfig;
 use app\application\common\config\JaegerConfig;
+use app\infrastructure\components\AppMysqlMutex;
+use app\infrastructure\components\AppPgsqlMutex;
+use app\infrastructure\components\AppRedisConnection;
+use app\infrastructure\persistence\User;
+use app\infrastructure\queue\HandlerAwareQueue;
+use app\infrastructure\services\observability\RequestIdProvider;
+use app\infrastructure\services\observability\TracerBootstrap;
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
@@ -45,11 +52,11 @@ $config = [
                 $event->sender->headers->add('X-Frame-Options', 'SAMEORIGIN');
                 $event->sender->headers->add('X-Content-Type-Options', 'nosniff');
                 $event->sender->headers->add('Referrer-Policy', 'strict-origin-when-cross-origin');
-                $event->sender->headers->add('X-Request-Id', \app\infrastructure\services\observability\RequestIdProvider::get());
+                $event->sender->headers->add('X-Request-Id', RequestIdProvider::get());
             },
         ],
         'redis' => [
-            'class' => \app\infrastructure\components\AppRedisConnection::class,
+            'class' => AppRedisConnection::class,
             'hostname' => env('REDIS_HOST', 'redis'),
             'port' => (int)env('REDIS_PORT', '6379'),
             'database' => 0,
@@ -64,7 +71,7 @@ $config = [
             ],
         ],
         'user' => [
-            'identityClass' => 'app\infrastructure\persistence\User',
+            'identityClass' => User::class,
             'enableAutoLogin' => true,
         ],
         'i18n' => [
@@ -99,7 +106,7 @@ $config = [
                 [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
-                    'prefix' => static fn () => '[req:' . \app\infrastructure\services\observability\RequestIdProvider::get() . ']',
+                    'prefix' => static fn () => '[req:' . RequestIdProvider::get() . ']',
                 ],
                 [
                     'class' => 'yii\log\FileTarget',
@@ -107,19 +114,19 @@ $config = [
                     'levels' => ['info', 'error'],
                     'logFile' => '@runtime/logs/sms.log',
                     'logVars' => [],
-                    'prefix' => static fn () => '[req:' . \app\infrastructure\services\observability\RequestIdProvider::get() . ']',
+                    'prefix' => static fn () => '[req:' . RequestIdProvider::get() . ']',
                 ],
             ]),
         ],
         'db' => $db,
         'mutex' => [
             'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
-                ? \app\infrastructure\components\AppPgsqlMutex::class
-                : \app\infrastructure\components\AppMysqlMutex::class,
+                ? AppPgsqlMutex::class
+                : AppMysqlMutex::class,
             'db' => $db,
         ],
         'queue' => [
-            'class' => \app\infrastructure\queue\HandlerAwareQueue::class,
+            'class' => HandlerAwareQueue::class,
             'db' => $db,
             'tableName' => '{{%queue}}',
             'channel' => 'queue',
@@ -133,7 +140,7 @@ $config = [
             ],
         ],
         'tracer' => [
-            'class' => \app\infrastructure\services\observability\TracerBootstrap::class,
+            'class' => TracerBootstrap::class,
             'enabled' => YII_ENV_DEV,
             'endpoint' => $jaegerConfig->endpoint,
             'serviceName' => 'yii2-book-catalog',

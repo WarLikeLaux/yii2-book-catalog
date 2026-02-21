@@ -21,6 +21,7 @@ use app\application\ports\BookSearcherInterface;
 use app\application\ports\CacheInterface;
 use app\application\ports\ContentStorageInterface;
 use app\application\ports\EventPublisherInterface;
+use app\application\ports\HealthCheckRunnerInterface;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MimeTypeDetectorInterface;
 use app\application\ports\MutexInterface;
@@ -40,6 +41,11 @@ use app\infrastructure\queries\ReportQueryService;
 use app\infrastructure\queries\SubscriptionQueryService as InfraSubscriptionQueryService;
 use app\infrastructure\queue\handlers\NotifySingleSubscriberHandler;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
+use app\infrastructure\services\health\DatabaseHealthCheck;
+use app\infrastructure\services\health\DiskSpaceHealthCheck;
+use app\infrastructure\services\health\HealthCheckRunner;
+use app\infrastructure\services\health\QueueHealthCheck;
+use app\infrastructure\services\health\RedisHealthCheck;
 use app\infrastructure\services\LibPhoneNormalizer;
 use app\infrastructure\services\LogCategory;
 use app\infrastructure\services\NativeMimeTypeDetector;
@@ -125,17 +131,17 @@ return static function (array $params): array {
                 );
             },
 
-            \app\infrastructure\services\health\DiskSpaceHealthCheck::class => static fn (): \app\infrastructure\services\health\DiskSpaceHealthCheck => new \app\infrastructure\services\health\DiskSpaceHealthCheck(
+            DiskSpaceHealthCheck::class => static fn (): DiskSpaceHealthCheck => new DiskSpaceHealthCheck(
                 (float) ($params['health']['disk']['threshold_gb'] ?? 10.0),
             ),
 
-            \app\application\ports\HealthCheckRunnerInterface::class => static fn (Container $c): \app\infrastructure\services\health\HealthCheckRunner => new \app\infrastructure\services\health\HealthCheckRunner(
+            HealthCheckRunnerInterface::class => static fn (Container $c): HealthCheckRunner => new HealthCheckRunner(
                 [
-                        $c->get(\app\infrastructure\services\health\DatabaseHealthCheck::class),
-                        $c->get(\app\infrastructure\services\health\RedisHealthCheck::class),
-                        $c->get(\app\infrastructure\services\health\QueueHealthCheck::class),
-                        $c->get(\app\infrastructure\services\health\DiskSpaceHealthCheck::class),
-                    ],
+                    $c->get(DatabaseHealthCheck::class),
+                    $c->get(RedisHealthCheck::class),
+                    $c->get(QueueHealthCheck::class),
+                    $c->get(DiskSpaceHealthCheck::class),
+                ],
                 (string) ($params['health']['version'] ?? '1.0.0'),
             ),
         ],
