@@ -431,9 +431,9 @@ test-migration:
 # =================================================================================================
 
 review-fetch:
-	@node scripts/fetch-pr-comments.mjs
+	@node bin/fetch-pr-comments.mjs
 
 review-resolve:
-	@node scripts/resolve-pr-threads.mjs
+	@node bin/resolve-pr-threads.mjs
 
 .PHONY: review-fetch review-resolve
