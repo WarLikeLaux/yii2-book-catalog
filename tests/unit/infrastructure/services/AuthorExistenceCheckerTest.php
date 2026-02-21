@@ -85,4 +85,22 @@ final class AuthorExistenceCheckerTest extends Unit
     {
         $this->assertFalse($this->checker->existsAllByIds([99998, 99999]));
     }
+
+    public function testExistsAllByIdsWithDuplicatesReturnsTrueWhenAllExist(): void
+    {
+        $author1 = AuthorEntity::create('Author 1');
+        $author2 = AuthorEntity::create('Author 2');
+        $this->repository->save($author1);
+        $this->repository->save($author2);
+
+        $this->assertTrue($this->checker->existsAllByIds([$author1->id, $author2->id, $author1->id]));
+    }
+
+    public function testExistsAllByIdsWithDuplicatesReturnsFalseWhenOneMissing(): void
+    {
+        $author = AuthorEntity::create('Existing Author');
+        $this->repository->save($author);
+
+        $this->assertFalse($this->checker->existsAllByIds([$author->id, $author->id, 99999]));
+    }
 }

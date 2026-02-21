@@ -40,10 +40,11 @@ final readonly class AuthorExistenceChecker implements AuthorExistenceCheckerInt
             return true;
         }
 
+        $uniqueIds = array_values(array_unique($ids));
         $existingCount = (int) Author::find()
-            ->where(['id' => $ids])
-            ->count('*', $this->db);
+            ->where(['id' => $uniqueIds])
+            ->count('DISTINCT id', $this->db);
 
-        return $existingCount === count($ids);
+        return $existingCount === count($uniqueIds);
     }
 }

@@ -229,4 +229,32 @@ final class CreateBookUseCaseTest extends Unit
 
         $useCase->execute($command);
     }
+
+    public function testExecuteCreatesBookWithDuplicateAuthorIds(): void
+    {
+        $command = new CreateBookCommand(
+            title: self::TITLE_CLEAN_CODE,
+            year: 2008,
+            description: self::SUBTITLE_CLEAN_CODE,
+            isbn: '9780132350884',
+            authorIds: AuthorIdCollection::fromArray([1, 2, 1]),
+        );
+
+        $this->authorExistenceChecker->expects($this->once())
+            ->method('existsAllByIds')
+            ->with([1, 2, 1])
+            ->willReturn(true);
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
+            ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2, 1]))
+            ->willReturnCallback(static function (Book $book): int {
+                BookTestHelper::assignBookId($book, 42);
+                return 42;
+            });
+
+        $result = $this->useCase->execute($command);
+
+        $this->assertSame(42, $result);
+    }
 }
