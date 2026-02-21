@@ -17,14 +17,18 @@ if ($viewModel->book !== null) {
 }
 
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
 
 <div class="book-update">
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?= $this->render('_form', [
-        'model' => $viewModel->form,
-        'authors' => $viewModel->authors,
-        'book' => $viewModel->book,
-    ]) ?>
+    <?= $this->render(
+        '_form',
+        [
+            'model' => $viewModel->form,
+            'authors' => $viewModel->authors,
+            'book' => $viewModel->book,
+        ],
+    ) ?>
 </div>

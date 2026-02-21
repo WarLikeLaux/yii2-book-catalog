@@ -15,6 +15,7 @@ use yii\helpers\Html;
 
 $this->title = Yii::t('app', 'ui.books');
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
 
 <div class="book-index">
@@ -27,9 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= GridView::widget([
         'dataProvider' => $viewModel->dataProvider,
-        'pager' => [
-            'class' => LinkPager::class,
-        ],
+        'pager' => ['class' => LinkPager::class],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             'id',
@@ -53,9 +52,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'raw',
                 'value' => static fn (BookViewModel $model): string => BookStatusBadge::widget(['status' => $model->status]),
             ],
-            [
-                'class' => 'yii\grid\ActionColumn',
-            ],
+            ['class' => 'yii\grid\ActionColumn'],
         ],
     ]) ?>
 </div>

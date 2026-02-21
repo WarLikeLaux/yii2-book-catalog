@@ -12,12 +12,11 @@ use yii\helpers\Html;
 $this->title = Yii::t('app', 'ui.author_create');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.authors'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
 
 <div class="author-create">
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?= $this->render('_form', [
-        'model' => $viewModel->form,
-    ]) ?>
+    <?= $this->render('_form', ['model' => $viewModel->form]) ?>
 </div>

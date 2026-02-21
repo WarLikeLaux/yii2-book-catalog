@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
+use app\presentation\components\ActiveForm;
+use yii\bootstrap5\Html;
+
 /**
  * @var yii\web\View $this
  * @var app\presentation\components\ActiveForm $form
  * @var app\presentation\auth\dto\LoginViewModel $viewModel
  */
 
-use app\presentation\components\ActiveForm;
-use yii\bootstrap5\Html;
-
 $this->title = Yii::t('app', 'ui.login');
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
 <div class="site-login">
     <h1><?= Html::encode($this->title) ?></h1>
@@ -21,7 +22,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <div class="row">
         <div class="col-lg-5">
-
             <?php $form = ActiveForm::begin([
                 'id' => 'login-form',
                 'fieldConfig' => [
@@ -31,34 +31,28 @@ $this->params['breadcrumbs'][] = $this->title;
                     'errorOptions' => ['class' => 'col-lg-7 invalid-feedback'],
                 ],
             ]); ?>
-
-            <?= $form->errorSummary($viewModel->form) ?>
-
-            <?= $form->field($viewModel->form, 'username')->textInput(['autofocus' => true]) ?>
-
-            <?= $form->field($viewModel->form, 'password')->passwordInput() ?>
-
-            <?= $form->field($viewModel->form, 'rememberMe')->checkbox([
-                'template' => "<div class=\"custom-control custom-checkbox\">{input} {label}</div>\n<div class=\"col-lg-8\">{error}</div>",
-            ]) ?>
-
-            <div class="form-group">
-                <div>
-                    <?= Html::submitButton(Yii::t('app', 'ui.login'), ['class' => 'btn btn-primary', 'name' => 'login-button']) ?>
+                <?= $form->errorSummary($viewModel->form) ?>
+                <?= $form->field($viewModel->form, 'username')->textInput(['autofocus' => true]) ?>
+                <?= $form->field($viewModel->form, 'password')->passwordInput() ?>
+                <?= $form->field($viewModel->form, 'rememberMe')
+                    ->checkbox(['template' => "<div class=\"custom-control custom-checkbox\">{input} {label}</div>\n<div class=\"col-lg-8\">{error}</div>"]) ?>
+                <div class="form-group">
+                    <div>
+                        <?= Html::submitButton(
+                            Yii::t('app', 'ui.login'),
+                            [
+                                'class' => 'btn btn-primary',
+                                'name' => 'login-button',
+                            ],
+                        ) ?>
+                    </div>
                 </div>
-            </div>
-
             <?php ActiveForm::end(); ?>
-
             <?php if (YII_ENV_DEV): ?>
-            <div class="text-hint">
-                <?= Html::decode(Yii::t('app', 'ui.login_demo_hint', [
-                    'admin' => '<strong>admin/admin</strong>',
-                    'demo' => '<strong>demo/demo</strong>',
-                ])) ?>
-            </div>
+                <div class="text-hint">
+                    <?= Html::decode(Yii::t('app', 'ui.login_demo_hint', ['admin' => '<strong>admin/admin</strong>', 'demo' => '<strong>demo/demo</strong>'])) ?>
+                </div>
             <?php endif; ?>
-
         </div>
     </div>
 </div>

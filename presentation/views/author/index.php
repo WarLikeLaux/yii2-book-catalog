@@ -12,6 +12,7 @@ use yii\helpers\Html;
 
 $this->title = 'Авторы';
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
 
 <div class="author-index">
@@ -31,9 +32,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'fio',
                 'label' => Yii::t('app', 'ui.fio'),
             ],
-            [
-                'class' => 'yii\grid\ActionColumn',
-            ],
+            ['class' => 'yii\grid\ActionColumn'],
         ],
     ]) ?>
 </div>

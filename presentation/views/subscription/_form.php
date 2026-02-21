@@ -16,20 +16,22 @@ $form = ActiveForm::begin([
     'action' => Url::to(['subscription/subscribe']),
     'options' => ['class' => 'subscription-form'],
 ]);
+
 ?>
 
-<?= Html::hiddenInput('SubscriptionForm[authorId]', $viewModel->author->id) ?>
+    <?= Html::hiddenInput('SubscriptionForm[authorId]', $viewModel->author->id) ?>
 
-<?= $form->errorSummary($viewModel->form) ?>
+    <?= $form->errorSummary($viewModel->form) ?>
 
-<div class="form-group">
-    <span class="form-label">Подписка на автора: <strong><?= Html::encode($viewModel->author->fio) ?></strong></span>
-</div>
+    <div class="form-group">
+        <span class="form-label">
+            Подписка на автора:
+            <strong><?= Html::encode($viewModel->author->fio) ?></strong>
+        </span>
+    </div>
 
-<?= $form->field($viewModel->form, 'phone')->textInput(['placeholder' => '+79001234567']) ?>
+    <?= $form->field($viewModel->form, 'phone')->textInput(['placeholder' => '+79001234567']) ?>
 
-<div class="form-group">
-    <?= Html::submitButton('Подписаться', ['class' => 'btn btn-primary']) ?>
-</div>
+    <div class="form-group"><?= Html::submitButton('Подписаться', ['class' => 'btn btn-primary']) ?></div>
 
 <?php ActiveForm::end(); ?>

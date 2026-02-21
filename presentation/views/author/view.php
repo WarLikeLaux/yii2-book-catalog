@@ -12,20 +12,32 @@ use yii\helpers\Html;
 $this->title = $viewModel->author->fio;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'ui.authors'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
 
 <div class="author-view">
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a(Yii::t('app', 'ui.update'), ['update', 'id' => $viewModel->author->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a(Yii::t('app', 'ui.delete'), ['delete', 'id' => $viewModel->author->id], [
-            'class' => 'btn btn-danger',
-            'data' => [
-                'confirm' => Yii::t('app', 'author.confirm.delete'),
-                'method' => 'post',
+        <?= Html::a(
+            Yii::t('app', 'ui.update'),
+            [
+                'update',
+                'id' => $viewModel->author->id,
             ],
-        ]) ?>
+            ['class' => 'btn btn-primary'],
+        ) ?>
+        <?= Html::a(
+            Yii::t('app', 'ui.delete'),
+            [
+                'delete',
+                'id' => $viewModel->author->id,
+            ],
+            [
+                'class' => 'btn btn-danger',
+                'data' => ['confirm' => Yii::t('app', 'author.confirm.delete'), 'method' => 'post'],
+            ],
+        ) ?>
     </p>
 
     <table class="table table-striped table-bordered">
