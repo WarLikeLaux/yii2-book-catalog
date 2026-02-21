@@ -7,6 +7,7 @@ namespace app\infrastructure\queries;
 use app\application\ports\ReportQueryServiceInterface;
 use app\application\reports\queries\ReportCriteria;
 use app\application\reports\queries\ReportDto;
+use app\domain\values\BookStatus;
 use Override;
 use yii\db\Connection;
 use yii\db\Query;
@@ -43,7 +44,7 @@ final readonly class ReportQueryService implements ReportQueryServiceInterface
             ->from('{{%authors}} a')
             ->innerJoin('{{%book_authors}} ba', 'ba.author_id = a.id')
             ->innerJoin('{{%books}} b', 'b.id = ba.book_id')
-            ->where(['b.year' => $year, 'b.status' => 'published'])
+            ->where(['b.year' => $year, 'b.status' => BookStatus::Published->value])
             ->groupBy(['a.id', 'a.fio'])
             ->orderBy(['books_count' => SORT_DESC])
             ->limit($limit)

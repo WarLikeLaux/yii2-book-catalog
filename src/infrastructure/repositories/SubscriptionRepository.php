@@ -26,7 +26,7 @@ final readonly class SubscriptionRepository extends BaseActiveRecordRepository i
         $model = new Subscription();
 
         $this->hydrator->hydrate($model, $subscription, [
-            'phone',
+            'phone' => static fn(SubscriptionEntity $e): string => (string)$e->phone,
             'author_id' => static fn(SubscriptionEntity $e): int => $e->authorId,
         ]);
 

@@ -82,6 +82,7 @@ deptrac:
 
     Presentation:
       - Application
+      - DomainShared
       - Vendor
       - Framework
       - GlobalState

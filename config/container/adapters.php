@@ -9,6 +9,7 @@ use app\application\ports\EventPublisherInterface;
 use app\application\ports\MutexInterface;
 use app\application\ports\NotificationInterface;
 use app\application\ports\QueueInterface;
+use app\application\ports\RequestIdProviderInterface;
 use app\application\ports\SmsSenderInterface;
 use app\application\ports\SystemInfoProviderInterface;
 use app\application\ports\TracerInterface;
@@ -33,6 +34,7 @@ use app\infrastructure\listeners\ReportCacheInvalidationListener;
 use app\infrastructure\queue\NotifySubscribersJob;
 use app\infrastructure\services\notifications\FlashNotificationService;
 use app\infrastructure\services\observability\OtelTracer;
+use app\infrastructure\services\observability\RequestIdProvider;
 use app\infrastructure\services\sms\LogSmsSender;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\YiiPsrLogger;
@@ -85,6 +87,8 @@ return static function (array $params): array {
             ),
 
             SystemInfoProviderInterface::class => SystemInfoAdapter::class,
+
+            RequestIdProviderInterface::class => RequestIdProvider::class,
         ],
         'singletons' => [
             TracerInterface::class => static function (Container $c): TracerInterface {

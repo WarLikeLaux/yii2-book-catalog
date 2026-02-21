@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace app\infrastructure\services\observability;
 
-final class RequestIdProvider
+use app\application\ports\RequestIdProviderInterface;
+
+final class RequestIdProvider implements RequestIdProviderInterface
 {
     private static string|null $requestId = null;
 
@@ -29,5 +31,10 @@ final class RequestIdProvider
         $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
 
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
+    public function getRequestId(): string
+    {
+        return self::get();
     }
 }

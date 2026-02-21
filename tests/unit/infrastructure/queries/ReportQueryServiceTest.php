@@ -6,6 +6,7 @@ namespace tests\unit\infrastructure\queries;
 
 use app\application\reports\queries\ReportCriteria;
 use app\application\reports\queries\ReportDto;
+use app\domain\values\BookStatus;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use app\infrastructure\queries\ReportQueryService;
@@ -91,7 +92,7 @@ final class ReportQueryServiceTest extends Unit
         $book->year = 2024;
         $book->isbn = $this->generateUniqueIsbn();
         $book->description = 'Test description';
-        $book->status = 'draft';
+        $book->status = BookStatus::Draft->value;
         $book->save(false);
 
         Yii::$app->db->createCommand()
@@ -165,7 +166,7 @@ final class ReportQueryServiceTest extends Unit
         $book->year = $year;
         $book->isbn = $this->generateUniqueIsbn();
         $book->description = 'Test description';
-        $book->status = 'published';
+        $book->status = BookStatus::Published->value;
         $book->save(false);
 
         Yii::$app->db->createCommand()

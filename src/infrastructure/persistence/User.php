@@ -32,17 +32,11 @@ final class User extends BaseObject implements IdentityInterface
     public string $authKey;
     public string $accessToken;
 
-    /**
-     * {@inheritdoc}
-     */
     public static function findIdentity($id)
     {
         return isset(self::$_users[$id]) ? new static(self::$_users[$id]) : null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function findIdentityByAccessToken($token, $_type = null)
     {
         foreach (self::$_users as $user) {
@@ -54,11 +48,7 @@ final class User extends BaseObject implements IdentityInterface
         return null;
     }
 
-    /**
-     * @param string $username
-     * @return static|null
-     */
-    public static function findByUsername($username)
+    public static function findByUsername(string $username): ?static
     {
         foreach (self::$_users as $user) {
             if (strcasecmp($user['username'], $username) === 0) {
@@ -69,38 +59,25 @@ final class User extends BaseObject implements IdentityInterface
         return null;
     }
 
-    /**
-     * {@inheritdoc}
-     * @return string
-     */
+    /** @return string */
     public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * {@inheritdoc}
-     * @return string
-     */
+    /** @return string */
     public function getAuthKey()
     {
         return $this->authKey;
     }
 
-    /**
-     * {@inheritdoc}
-     * @return bool
-     */
+    /** @return bool */
     public function validateAuthKey($authKey)
     {
         return $this->authKey === $authKey;
     }
 
-    /**
-     * @param string $password password to validate
-     * @return bool if password provided is valid for current user
-     */
-    public function validatePassword($password)
+    public function validatePassword(string $password): bool
     {
         return $this->password === $password;
     }

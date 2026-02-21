@@ -101,7 +101,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         }
 
         if ($ar->version !== $expectedVersion) {
-            throw new StaleDataException();
+            throw new StaleDataException(DomainErrorCode::BookStaleData);
         }
 
         $entity = $this->mapToEntity($ar);

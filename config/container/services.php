@@ -24,6 +24,7 @@ use app\application\ports\EventPublisherInterface;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MimeTypeDetectorInterface;
 use app\application\ports\MutexInterface;
+use app\application\ports\PhoneNormalizerInterface;
 use app\application\ports\RateLimitInterface;
 use app\application\ports\ReportQueryServiceInterface;
 use app\application\ports\SmsSenderInterface;
@@ -39,12 +40,14 @@ use app\infrastructure\queries\ReportQueryService;
 use app\infrastructure\queries\SubscriptionQueryService as InfraSubscriptionQueryService;
 use app\infrastructure\queue\handlers\NotifySingleSubscriberHandler;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
+use app\infrastructure\services\LibPhoneNormalizer;
 use app\infrastructure\services\LogCategory;
 use app\infrastructure\services\NativeMimeTypeDetector;
 use app\infrastructure\services\storage\ContentAddressableStorage;
 use app\infrastructure\services\YiiPsrLogger;
 use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\services\FileUrlResolver;
+use libphonenumber\PhoneNumberUtil;
 use yii\di\Container;
 
 return static function (array $params): array {
@@ -64,6 +67,8 @@ return static function (array $params): array {
             AuthorQueryServiceInterface::class => AuthorQueryService::class,
 
             SubscriptionQueryServiceInterface::class => InfraSubscriptionQueryService::class,
+
+            PhoneNormalizerInterface::class => LibPhoneNormalizer::class,
 
             ReportQueryServiceInterface::class => static function (Container $c): ReportQueryServiceInterface {
                 $reportsConfig = $c->get(ReportsConfig::class);
@@ -146,6 +151,7 @@ return static function (array $params): array {
                 $c->get(TransactionInterface::class),
                 $c->get(EventPublisherInterface::class),
             ),
+            PhoneNumberUtil::class => static fn(): PhoneNumberUtil => PhoneNumberUtil::getInstance(),
         ],
     ];
 };

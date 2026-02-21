@@ -202,7 +202,7 @@ final class ActiveRecordHydratorTest extends Unit
 
         $this->hydrator->hydrate($ar, $source, ['status']);
 
-        $this->assertSame('published', $ar->status);
+        $this->assertSame(TestStringStatus::Published->value, $ar->status);
     }
 
     public function testObjectWithoutValuePropertyIsNotUnboxed(): void
