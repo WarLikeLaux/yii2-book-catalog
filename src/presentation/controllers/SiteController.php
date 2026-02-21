@@ -14,7 +14,6 @@ use app\presentation\common\enums\ActionName;
 use app\presentation\common\traits\HtmxDetectionTrait;
 use app\presentation\common\ViewModelRenderer;
 use Override;
-use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\ErrorAction;
@@ -122,9 +121,7 @@ final class SiteController extends BaseController
     public function actionApi(): string
     {
         $viewModel = $this->authViewFactory->getApiInfoViewModel(
-            (int)Yii::$app->params['swaggerPort'],
-            (int)Yii::$app->params['appPort'],
-            (string)$this->request->serverName,
+            (string) $this->request->serverName,
         );
 
         return $this->renderer->render('api', $viewModel);
