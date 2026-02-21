@@ -155,3 +155,13 @@
 2.  **Типобезопасность**: использование `BookStatus::Published` вместо строки `'published'` исключает класс ошибок, невидимых для статического анализа.
 3.  **KISS и DRY**: альтернатива — дублирование enum в Application-слое или оборачивание в DTO — создаёт бессмысленную прослойку без добавленной ценности.
 4.  **Контролируемое ослабление**: доступ открыт только к значениям и исключениям, но не к сущностям. Presentation не может вызвать `$book->transitionTo()` — только передать `BookStatus` enum в команду.
+
+## 15. Query Services только в Infrastructure
+
+**Контекст**: в CQRS read-side реализуется через порты (`BookFinderInterface`, `BookSearcherInterface`) и их инфраструктурные реализации.
+
+**Проблема**: дублирование слоя — application-level Query Service, который лишь делегирует к портам, не участвует в runtime (контейнер резолвит `BookQueryServiceInterface` в `infrastructure/queries/BookQueryService`). Это создаёт ghost-компоненты, размывающие границы CQRS.
+
+**Решение**: Query Services реализуются только в `infrastructure/queries/`. В `application/{{module}}/queries/` остаются только Read DTO (например, `BookReadDto`). Presentation и Use Cases зависят от портов, контейнер привязывает порты к инфраструктурным реализациям.
+
+**Обоснование**: один источник истины для read-side. Избегаем «слоя для вида» без реального участия в production-потоке.

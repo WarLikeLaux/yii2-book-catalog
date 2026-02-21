@@ -186,7 +186,7 @@ graph TD
 Чтение и запись разделены по CQS, а внешние зависимости вынесены в порты:
 
 - **Запись (команды):** любое изменение в системе (создание книги, подписка) - это отдельный **Use Case**. Данные поступают через строго типизированные **Command DTO**.
-- **Чтение (запросы):** read-side реализован через Query Services и DTO (`application/*/queries`).
+- **Чтение (запросы):** read-side реализован через порты (`BookFinderInterface`, `BookSearcherInterface`), их реализации в `infrastructure/queries/` и Read DTO в `application/*/queries` (см. DECISIONS.md §15).
 - **Порты:** интерфейсы в `application/ports` позволяют менять реализацию без изменений бизнес-логики.
 
 [↑ К навигации](#-навигация)
