@@ -391,7 +391,28 @@ tag:
 	@if [ -z "$(TAG)" ]; then echo "Usage: make tag TAG (где TAG — заголовок раздела в markdown)"; exit 1; fi
 	@if [ ! -d "docs/ai" ]; then echo "❌ Error: docs/ai directory not found."; exit 1; fi
 	@if [ -z "$$(ls -A docs/ai/*.md 2>/dev/null)" ]; then echo "❌ Error: No markdown files found in docs/ai."; exit 1; fi
-	@awk -v tag="$(TAG)" 'BEGIN{p=0} FNR==1{p=0} $$0 ~ "^### "tag"($$|[^[:alnum:]_])"{p=1} p && $$0 ~ "^#" && $$0 !~ "^### "tag"($$|[^[:alnum:]_])"{p=0} p' docs/ai/*.md
+	@awk -v tag="$(TAG)" ' \
+		function heading_level(line, m) { return match(line, /^(#+)[[:space:]]+/, m) ? length(m[1]) : 0 } \
+		function is_tag_heading(text, t, n, c) { \
+			n = length(t); \
+			if (substr(text, 1, n) != t) return 0; \
+			c = substr(text, n + 1, 1); \
+			return c == "" || c !~ /[[:alnum:]_]/; \
+		} \
+		FNR==1 { p=0; level=0 } \
+		{ \
+			current = heading_level($$0); \
+			if (!p) { \
+				if (current > 0) { \
+					text = substr($$0, current + 2); \
+					if (is_tag_heading(text, tag)) { p=1; level=current; print; } \
+				} \
+				next; \
+			} \
+			if (current > 0 && current <= level) { p=0; next; } \
+			print; \
+		} \
+	' docs/ai/*.md
 
 # =================================================================================================
 # 🛰️ GIT SHORTCUTS
