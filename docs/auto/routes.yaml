@@ -150,6 +150,12 @@ routes:
     guards:
       - Auth
   -
+    path: /health
+    action: health/index
+    controller: HealthController
+    methods:
+      - GET
+  -
     path: /report
     action: report/index
     controller: ReportController
