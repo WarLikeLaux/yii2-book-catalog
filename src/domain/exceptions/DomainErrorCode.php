@@ -102,12 +102,6 @@ enum DomainErrorCode: string
     #[ErrorMapping(ErrorType::AlreadyExists)]
     case EntityAlreadyExists = 'error.entity_already_exists';
 
-    #[ErrorMapping(ErrorType::OperationFailed)]
-    case IdempotencyKeyInProgress = 'idempotency.error.key_in_progress';
-
-    #[ErrorMapping(ErrorType::OperationFailed)]
-    case IdempotencyStorageUnavailable = 'idempotency.error.storage_unavailable';
-
     #[ErrorMapping(ErrorType::OperationFailed, field: 'key')]
     case FileKeyInvalidFormat = 'file.error.key_invalid_format';
 
