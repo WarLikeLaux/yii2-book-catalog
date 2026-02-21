@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
-use app\application\ports\HealthCheckRunnerInterface;
-use Yii;
+use app\application\system\commands\CheckHealthCommand;
+use app\application\system\usecases\CheckHealthUseCase;
+use app\presentation\services\HealthResponseFormatter;
 use yii\base\Module;
 use yii\rest\Controller;
 use yii\web\Response;
@@ -20,7 +21,8 @@ final class HealthController extends Controller
     public function __construct(
         $id,
         $module,
-        private readonly HealthCheckRunnerInterface $runner,
+        private readonly CheckHealthUseCase $useCase,
+        private readonly HealthResponseFormatter $formatter,
         $config = [],
     ) {
         parent::__construct($id, $module, $config);
@@ -29,27 +31,13 @@ final class HealthController extends Controller
     public function actionIndex(): Response
     {
         /** @var Response $response */
-        $response = Yii::$app->getResponse();
+        $response = $this->response;
         $response->format = Response::FORMAT_JSON;
 
-        $report = $this->runner->run();
+        $report = $this->useCase->execute(new CheckHealthCommand());
 
         $response->statusCode = $report->healthy ? 200 : 503;
-        $checks = [];
-
-        foreach ($report->checks as $check) {
-            $checks[$check->name] = array_merge(
-                ['status' => $check->healthy ? 'up' : 'down', 'latency_ms' => $check->latencyMs],
-                $check->details,
-            );
-        }
-
-        $response->data = [
-            'status' => $report->healthy ? 'healthy' : 'unhealthy',
-            'timestamp' => $report->timestamp,
-            'version' => $report->version,
-            'checks' => $checks,
-        ];
+        $response->data = $this->formatter->format($report);
 
         return $response;
     }
