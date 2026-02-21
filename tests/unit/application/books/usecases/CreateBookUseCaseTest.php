@@ -247,7 +247,7 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2, 1]))
+            ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2]))
             ->willReturnCallback(static function (Book $book): int {
                 BookTestHelper::assignBookId($book, 42);
                 return 42;

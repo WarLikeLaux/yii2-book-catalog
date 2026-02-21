@@ -136,7 +136,7 @@ final class UpdateBookUseCaseTest extends Unit
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2, 1]))
+            ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2]))
             ->willReturn(42);
 
         $this->eventPublisher->expects($this->once())->method('publishAfterCommit');
