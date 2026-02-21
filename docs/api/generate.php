@@ -10,7 +10,7 @@ use OpenApi\Generator;
 try {
     $openapi = Generator::scan([
         __DIR__ . '/OpenApiSpec.php',
-        __DIR__ . '/../../presentation/controllers',
+        __DIR__ . '/../../src/presentation/controllers',
     ]);
     file_put_contents(__DIR__ . '/openapi.yaml', $openapi->toYaml());
     echo "✅ OpenAPI spec generated successfully to docs/api/openapi.yaml\n";

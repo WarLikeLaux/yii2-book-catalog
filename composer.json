@@ -74,7 +74,7 @@
     },
     "autoload": {
         "psr-4": {
-            "app\\": "src/",
+            "app\\": ["src/", ""],
             "Tools\\": "tools/"
         },
         "files": [
