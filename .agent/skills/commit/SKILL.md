@@ -1,8 +1,9 @@
 ---
+name: commit
 description: Пошаговый процесс создания атомарных git commit по правилам проекта - запуск make dev, выбор ID, анализ staged/unstaged, группировка изменений и строгий формат сообщений.
 ---
 
-# Workflow: COMMIT
+# Skill: COMMIT
 
 ## Обзор
 

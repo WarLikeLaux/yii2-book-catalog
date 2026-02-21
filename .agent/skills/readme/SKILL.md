@@ -1,8 +1,9 @@
 ---
+name: readme
 description: Обновление README.md по текущему состоянию кода и метрик тестирования, с синхронизацией docs/ARCHITECTURE.md при архитектурных изменениях
 ---
 
-# Workflow: README
+# Skill: README
 
 ## Обзор
 
