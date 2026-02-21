@@ -7,6 +7,7 @@ namespace app\presentation\common\filters;
 use app\application\common\config\RateLimitConfig;
 use app\application\common\RateLimitServiceInterface;
 use Override;
+use Psr\Clock\ClockInterface;
 use Yii;
 use yii\base\ActionFilter;
 use yii\web\Request;
@@ -20,6 +21,7 @@ final class RateLimitFilter extends ActionFilter
     public function __construct(
         private readonly RateLimitServiceInterface $service,
         RateLimitConfig $rateLimitConfig,
+        private readonly ClockInterface $clock,
         array $config = [],
     ) {
         $this->limit = $rateLimitConfig->limit;
@@ -81,7 +83,7 @@ final class RateLimitFilter extends ActionFilter
             return; // @codeCoverageIgnore
         }
 
-        $retryAfter = max(1, $resetAt - time());
+        $retryAfter = max(1, $resetAt - $this->clock->now()->getTimestamp());
         $response->statusCode = 429;
         $response->getHeaders()->set('Retry-After', (string)$retryAfter);
         $response->data = [

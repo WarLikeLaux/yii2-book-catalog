@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\components\automapper;
+namespace app\tests\unit\presentation\books\mappers;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\UpdateBookCommand;
-use app\infrastructure\components\automapper\FormToBookCommandMappingListener;
+use app\presentation\books\forms\BookForm;
+use app\presentation\books\mappers\FormToBookCommandMappingListener;
 use AutoMapper\Event\GenerateMapperEvent;
 use AutoMapper\Event\PropertyMetadataEvent;
 use AutoMapper\Metadata\MapperMetadata;
@@ -25,7 +26,7 @@ final class FormToBookCommandMappingListenerTest extends Unit
 
     public function testInvokeAddsAuthorIdsTransformerForBookFormToCreateBookCommand(): void
     {
-        $event = $this->createEventForMapping('app\presentation\books\forms\BookForm', CreateBookCommand::class);
+        $event = $this->createEventForMapping(BookForm::class, CreateBookCommand::class);
 
         ($this->listener)($event);
 
@@ -36,7 +37,7 @@ final class FormToBookCommandMappingListenerTest extends Unit
 
     public function testInvokeAddsAuthorIdsTransformerForBookFormToUpdateBookCommand(): void
     {
-        $event = $this->createEventForMapping('app\presentation\books\forms\BookForm', UpdateBookCommand::class);
+        $event = $this->createEventForMapping(BookForm::class, UpdateBookCommand::class);
 
         ($this->listener)($event);
 
@@ -56,7 +57,7 @@ final class FormToBookCommandMappingListenerTest extends Unit
 
     public function testInvokeDoesNothingForOtherTargets(): void
     {
-        $event = $this->createEventForMapping('app\presentation\books\forms\BookForm', \stdClass::class);
+        $event = $this->createEventForMapping(BookForm::class, \stdClass::class);
 
         ($this->listener)($event);
 
@@ -65,7 +66,7 @@ final class FormToBookCommandMappingListenerTest extends Unit
 
     public function testInvokeDoesNotOverrideExistingAuthorIds(): void
     {
-        $event = $this->createEventForMapping('app\presentation\books\forms\BookForm', CreateBookCommand::class);
+        $event = $this->createEventForMapping(BookForm::class, CreateBookCommand::class);
         $existingProperty = $this->createMock(PropertyMetadataEvent::class);
         $event->properties['authorIds'] = $existingProperty;
 

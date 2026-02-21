@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace app\infrastructure\components\automapper;
+namespace app\presentation\books\mappers;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\UpdateBookCommand;
 use app\application\common\values\AuthorIdCollection;
+use app\presentation\books\forms\BookForm;
 use AutoMapper\Event\GenerateMapperEvent;
 use AutoMapper\Event\PropertyMetadataEvent;
 use AutoMapper\Event\SourcePropertyMetadata;
@@ -23,7 +24,7 @@ final class FormToBookCommandMappingListener
 
     public function __invoke(GenerateMapperEvent $event): void
     {
-        if ($event->mapperMetadata->source !== 'app\presentation\books\forms\BookForm') {
+        if ($event->mapperMetadata->source !== BookForm::class) {
             return;
         }
 
