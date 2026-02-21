@@ -34,8 +34,8 @@ final readonly class ConfigFactory
         return StorageConfig::fromParams($this->params);
     }
 
-    public function buggregator(): BuggregatorConfig
+    public function jaeger(): JaegerConfig
     {
-        return BuggregatorConfig::fromParams($this->params);
+        return JaegerConfig::fromParams($this->params);
     }
 }
