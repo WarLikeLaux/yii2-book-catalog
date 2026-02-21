@@ -29,7 +29,7 @@ final readonly class AuthorItemViewFactory
 
     public function createForm(): AuthorForm
     {
-        return new AuthorForm($this->queryService);
+        return new AuthorForm();
     }
 
     public function getUpdateViewModel(int $id, AuthorForm|null $form = null): AuthorEditViewModel
@@ -51,7 +51,7 @@ final readonly class AuthorItemViewFactory
     {
         $dto = $this->queryService->findById($id) ?? throw new NotFoundHttpException();
 
-        $form = new AuthorForm($this->queryService);
+        $form = new AuthorForm();
 
         /** @var AuthorForm */
         return $this->autoMapper->map($dto, $form);

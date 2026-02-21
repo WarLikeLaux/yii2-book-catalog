@@ -29,7 +29,7 @@ final readonly class SubscriptionViewFactory
 
     public function createForm(int|null $authorId = null): SubscriptionForm
     {
-        $form = new SubscriptionForm($this->queryService);
+        $form = new SubscriptionForm();
 
         if ($authorId !== null) {
             $form->authorId = $authorId;
