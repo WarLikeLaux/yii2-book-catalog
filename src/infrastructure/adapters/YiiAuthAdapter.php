@@ -30,7 +30,7 @@ final class YiiAuthAdapter implements AuthServiceInterface
     {
         $user = User::findByUsername($username);
 
-        if ($user === null || !$user->validatePassword($password)) {
+        if (!$user instanceof User || !$user->validatePassword($password)) {
             throw new OperationFailedException(DomainErrorCode::AuthInvalidCredentials->value, 'password');
         }
 
