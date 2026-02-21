@@ -6,6 +6,7 @@ use app\application\common\exceptions\DomainErrorMappingRegistry;
 use app\application\common\middleware\DomainExceptionTranslationMiddleware;
 use app\infrastructure\adapters\SystemClock;
 use app\infrastructure\components\automapper\BookToBookReadDtoMappingListener;
+use app\infrastructure\components\automapper\FormToBookCommandMappingListener;
 use app\infrastructure\components\automapper\ValueObjectStringPropertyTransformer;
 use app\infrastructure\components\automapper\Yii2ActiveRecordMappingListener;
 use app\infrastructure\services\YiiPsrLogger;
@@ -27,6 +28,7 @@ return static fn (array $_params) => [
         $eventDispatcher = new EventDispatcher();
         $eventDispatcher->addListener(GenerateMapperEvent::class, new Yii2ActiveRecordMappingListener());
         $eventDispatcher->addListener(GenerateMapperEvent::class, new BookToBookReadDtoMappingListener());
+        $eventDispatcher->addListener(GenerateMapperEvent::class, new FormToBookCommandMappingListener());
 
         $isDev = defined('YII_ENV_DEV') && YII_ENV_DEV;
         $isTest = defined('YII_ENV') && YII_ENV === 'test';
