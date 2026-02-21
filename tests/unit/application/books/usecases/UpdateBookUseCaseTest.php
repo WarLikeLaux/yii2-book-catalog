@@ -101,6 +101,49 @@ final class UpdateBookUseCaseTest extends Unit
         $this->useCase->execute($command);
     }
 
+    public function testExecuteUpdatesBookWithDuplicateAuthorIds(): void
+    {
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Updated Title',
+            year: 2024,
+            description: self::DESCRIPTION_NEW,
+            isbn: '9780132350884',
+            authorIds: AuthorIdCollection::fromArray([1, 2, 1]),
+            version: 1,
+        );
+
+        $existingBook = BookTestHelper::createBook(
+            id: 42,
+            title: 'Old Title',
+            year: 2020,
+            description: 'Old description',
+            coverImage: null,
+            authorIds: [1],
+            status: BookStatus::Draft,
+            version: 1,
+        );
+
+        $this->authorExistenceChecker->expects($this->once())
+            ->method('existsAllByIds')
+            ->with([1, 2, 1])
+            ->willReturn(true);
+
+        $this->bookRepository->expects($this->once())
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
+            ->willReturn($existingBook);
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
+            ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2, 1]))
+            ->willReturn(42);
+
+        $this->eventPublisher->expects($this->once())->method('publishAfterCommit');
+
+        $this->useCase->execute($command);
+    }
+
     public function testExecuteThrowsStaleDataExceptionWhenVersionMismatchOrNotFound(): void
     {
         $command = new UpdateBookCommand(
