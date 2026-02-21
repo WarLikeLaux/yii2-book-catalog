@@ -36,38 +36,7 @@ final readonly class IdempotencyService implements IdempotencyServiceInterface
 
     public function getRecord(string $key): IdempotencyRecordDto|null
     {
-        $saved = $this->repository->getRecord($key);
-
-        if ($saved === null) {
-            return null;
-        }
-
-        $status = IdempotencyKeyStatus::tryFrom($saved['status']);
-
-        if (!$status instanceof IdempotencyKeyStatus) {
-            return null;
-        }
-
-        if ($status === IdempotencyKeyStatus::Started) {
-            return new IdempotencyRecordDto(
-                $status,
-                null,
-                [],
-                null,
-            );
-        }
-
-        $body = $saved['body'];
-        $decoded = is_string($body) ? json_decode($body, true) : null;
-        $data = is_array($decoded) ? $decoded : [];
-        $redirectUrl = $data['redirect_url'] ?? null;
-
-        return new IdempotencyRecordDto(
-            $status,
-            $saved['status_code'],
-            $data,
-            is_string($redirectUrl) ? $redirectUrl : null,
-        );
+        return $this->repository->getRecord($key);
     }
 
     public function saveResponse(

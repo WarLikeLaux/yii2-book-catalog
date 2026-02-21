@@ -16,13 +16,6 @@ final readonly class RateLimitService implements RateLimitServiceInterface
 
     public function isAllowed(string $identifier, int $limit, int $windowSeconds): RateLimitResult
     {
-        $result = $this->repository->checkLimit($identifier, $limit, $windowSeconds);
-
-        return new RateLimitResult(
-            allowed: $result['allowed'],
-            current: $result['current'],
-            limit: $result['limit'],
-            resetAt: $result['resetAt'],
-        );
+        return $this->repository->checkLimit($identifier, $limit, $windowSeconds);
     }
 }
