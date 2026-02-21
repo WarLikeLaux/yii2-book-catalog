@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use app\application\common\config\BuggregatorConfig;
+use app\application\common\config\JaegerConfig;
 use app\application\ports\AuthServiceInterface;
 use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
@@ -32,8 +32,7 @@ use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\listeners\ReportCacheInvalidationListener;
 use app\infrastructure\queue\NotifySubscribersJob;
 use app\infrastructure\services\notifications\FlashNotificationService;
-use app\infrastructure\services\observability\InspectorTracer;
-use app\infrastructure\services\observability\NullTracer;
+use app\infrastructure\services\observability\OtelTracer;
 use app\infrastructure\services\sms\LogSmsSender;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\YiiPsrLogger;
@@ -89,16 +88,11 @@ return static function (array $params): array {
         ],
         'singletons' => [
             TracerInterface::class => static function (Container $c): TracerInterface {
-                $config = $c->get(BuggregatorConfig::class);
-                $ingestionKey = $config->inspector->ingestionKey;
+                $config = $c->get(JaegerConfig::class);
 
-                if ($ingestionKey === '' || $ingestionKey === 'buggregator') {
-                    return new NullTracer();
-                }
-
-                return new InspectorTracer(
-                    $ingestionKey,
-                    $config->inspector->url,
+                return new OtelTracer(
+                    $config->serviceName,
+                    $config->endpoint,
                 );
             },
         ],

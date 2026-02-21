@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use app\application\common\config\BuggregatorConfig;
 use app\application\common\config\ConfigFactory;
 use app\application\common\config\IdempotencyConfig;
+use app\application\common\config\JaegerConfig;
 use app\application\common\config\RateLimitConfig;
 use app\application\common\config\ReportsConfig;
 use app\application\common\config\StorageConfig as AppStorageConfig;
@@ -91,6 +91,7 @@ return static function (array $params): array {
 
             NotifySubscribersHandler::class => static fn(Container $c): NotifySubscribersHandler => new NotifySubscribersHandler(
                 $c->get(SubscriptionQueryServiceInterface::class),
+                $c->get(BookQueryServiceInterface::class),
                 $c->get(TranslatorInterface::class),
                 new YiiPsrLogger(LogCategory::SMS),
             ),
@@ -99,7 +100,7 @@ return static function (array $params): array {
             RateLimitConfig::class => static fn(): RateLimitConfig => $configFactory->rateLimit(),
             ReportsConfig::class => static fn(): ReportsConfig => $configFactory->reports(),
             AppStorageConfig::class => static fn(): AppStorageConfig => $configFactory->storage(),
-            BuggregatorConfig::class => static fn(): BuggregatorConfig => $configFactory->buggregator(),
+            JaegerConfig::class => static fn(): JaegerConfig => $configFactory->jaeger(),
 
             NotifySingleSubscriberHandler::class => static function (Container $c): NotifySingleSubscriberHandler {
                 $idempotencyConfig = $c->get(IdempotencyConfig::class);
@@ -118,6 +119,20 @@ return static function (array $params): array {
                     $storageConfig->placeholderUrl,
                 );
             },
+
+            \app\infrastructure\services\health\DiskSpaceHealthCheck::class => static fn (): \app\infrastructure\services\health\DiskSpaceHealthCheck => new \app\infrastructure\services\health\DiskSpaceHealthCheck(
+                (float) ($params['health']['disk']['threshold_gb'] ?? 10.0),
+            ),
+
+            \app\application\ports\HealthCheckRunnerInterface::class => static fn (Container $c): \app\infrastructure\services\health\HealthCheckRunner => new \app\infrastructure\services\health\HealthCheckRunner(
+                [
+                        $c->get(\app\infrastructure\services\health\DatabaseHealthCheck::class),
+                        $c->get(\app\infrastructure\services\health\RedisHealthCheck::class),
+                        $c->get(\app\infrastructure\services\health\QueueHealthCheck::class),
+                        $c->get(\app\infrastructure\services\health\DiskSpaceHealthCheck::class),
+                    ],
+                (string) ($params['health']['version'] ?? '1.0.0'),
+            ),
         ],
         'singletons' => [
             IdempotencyServiceInterface::class => static fn(Container $c): IdempotencyServiceInterface => new IdempotencyService(

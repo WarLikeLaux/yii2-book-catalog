@@ -8,6 +8,24 @@ servers:
     url: 'http://localhost:8000'
     description: 'Локальный сервер разработки'
 paths:
+  /health:
+    get:
+      tags:
+        - 'Health'
+      summary: 'Проверка здоровья приложения (health check)'
+      responses:
+        '200':
+          description: 'Приложение здорово'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthReport'
+        '503':
+          description: 'Один или несколько компонентов неисправны'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthReport'
   /api/v1/books:
     get:
       tags:
@@ -91,6 +109,33 @@ components:
         perPage:
           type: integer
           example: 10
+      type: object
+    HealthReport:
+      title: 'Health Report'
+      description: 'Отчет о здоровье приложения'
+      properties:
+        status:
+          type: string
+          example: 'healthy'
+        timestamp:
+          type: string
+          format: date-time
+          example: '2026-02-08T03:52:00+06:00'
+        version:
+          type: string
+          example: '1.0.0'
+        checks:
+          type: object
+          description: 'Детальная информация по каждому компоненту'
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                example: 'up'
+              latency_ms:
+                type: number
+                example: 2.3
       type: object
 tags:
   -

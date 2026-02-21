@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use app\application\common\config\BuggregatorConfig;
 use app\application\common\config\IdempotencyConfig;
+use app\application\common\config\JaegerConfig;
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
@@ -13,7 +13,7 @@ if (!YII_ENV_DEV && env('COOKIE_VALIDATION_KEY', '') === '') {
 }
 
 $idempotencyConfig = IdempotencyConfig::fromParams($params);
-$buggregatorConfig = BuggregatorConfig::fromParams($params);
+$jaegerConfig = JaegerConfig::fromParams($params);
 if (!YII_ENV_DEV && YII_ENV !== 'test' && $idempotencyConfig->smsPhoneHashKey === 'changeme') {
     throw new RuntimeException('SMS_IDEMPOTENCY_HASH_KEY must be set and changed in production');
 }
@@ -109,22 +109,6 @@ $config = [
                     'logVars' => [],
                     'prefix' => static fn () => '[req:' . \app\infrastructure\services\observability\RequestIdProvider::get() . ']',
                 ],
-                YII_ENV_DEV ? [
-                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => $buggregatorConfig->log->host,
-                    'port' => $buggregatorConfig->log->port,
-                    'levels' => ['error', 'warning'],
-                    'except' => ['yii\web\HttpException:404'],
-                    'logVars' => [],
-                ] : null,
-                YII_ENV_DEV ? [
-                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => $buggregatorConfig->log->host,
-                    'port' => $buggregatorConfig->log->port,
-                    'levels' => ['info'],
-                    'categories' => ['sms', 'application'],
-                    'logVars' => [],
-                ] : null,
             ]),
         ],
         'db' => $db,
@@ -145,13 +129,13 @@ $config = [
             'showScriptName' => false,
             'rules' => [
                 'api/v1/books' => 'api/v1/book/index',
+                'health' => 'health/index',
             ],
         ],
         'tracer' => [
             'class' => \app\infrastructure\services\observability\TracerBootstrap::class,
             'enabled' => YII_ENV_DEV,
-            'endpoint' => $buggregatorConfig->inspector->url,
-            'ingestionKey' => $buggregatorConfig->inspector->ingestionKey,
+            'endpoint' => $jaegerConfig->endpoint,
             'serviceName' => 'yii2-book-catalog',
         ],
     ],
