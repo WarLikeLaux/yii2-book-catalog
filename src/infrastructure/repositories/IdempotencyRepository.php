@@ -4,36 +4,54 @@ declare(strict_types=1);
 
 namespace app\infrastructure\repositories;
 
+use app\application\common\dto\IdempotencyRecordDto;
 use app\application\common\IdempotencyKeyStatus;
 use app\application\ports\IdempotencyInterface;
 use app\infrastructure\persistence\IdempotencyKey;
+use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 
 final readonly class IdempotencyRepository implements IdempotencyInterface
 {
     public function __construct(
         private LoggerInterface $logger,
+        private ClockInterface $clock,
     ) {
     }
 
-    /** @return array{status: string, status_code: int|null, body: string|null}|null */
-    public function getRecord(string $key): array|null
+    public function getRecord(string $key): IdempotencyRecordDto|null
     {
         /** @var IdempotencyKey|null $model */
         $model = IdempotencyKey::find()
             ->where(['idempotency_key' => $key])
-            ->andWhere(['>', 'expires_at', time()])
+            ->andWhere(['>', 'expires_at', $this->clock->now()->getTimestamp()])
             ->one();
 
         if ($model === null) {
             return null;
         }
 
-        return [
-            'status' => $model->status,
-            'status_code' => $model->status_code,
-            'body' => $this->normalizeResponseBody($model->response_body),
-        ];
+        $status = IdempotencyKeyStatus::tryFrom($model->status);
+
+        if (!$status instanceof IdempotencyKeyStatus) {
+            return null;
+        }
+
+        if ($status === IdempotencyKeyStatus::Started) {
+            return new IdempotencyRecordDto($status, null, [], null);
+        }
+
+        $body = $this->normalizeResponseBody($model->response_body);
+        $decoded = is_string($body) ? json_decode($body, true) : null;
+        $data = is_array($decoded) ? $decoded : [];
+        $redirectUrl = $data['redirect_url'] ?? null;
+
+        return new IdempotencyRecordDto(
+            $status,
+            $model->status_code,
+            $data,
+            is_string($redirectUrl) ? $redirectUrl : null,
+        );
     }
 
     public function saveStarted(string $key, int $ttl): bool
@@ -41,8 +59,9 @@ final readonly class IdempotencyRepository implements IdempotencyInterface
         $model = new IdempotencyKey();
         $model->idempotency_key = $key;
         $model->status = IdempotencyKeyStatus::Started->value;
-        $model->created_at = time();
-        $model->expires_at = time() + $ttl;
+        $now = $this->clock->now()->getTimestamp();
+        $model->created_at = $now;
+        $model->expires_at = $now + $ttl;
 
         if ($model->save()) {
             return true;
@@ -63,16 +82,18 @@ final readonly class IdempotencyRepository implements IdempotencyInterface
             return;
         }
 
+        $now = $this->clock->now()->getTimestamp();
+
         if (!($model instanceof IdempotencyKey)) {
             $model = new IdempotencyKey();
             $model->idempotency_key = $key;
-            $model->created_at = time();
+            $model->created_at = $now;
         }
 
         $model->status = IdempotencyKeyStatus::Finished->value;
         $model->status_code = $statusCode;
         $model->response_body = $body;
-        $model->expires_at = time() + $ttl;
+        $model->expires_at = $now + $ttl;
 
         if ($model->save()) {
             return;

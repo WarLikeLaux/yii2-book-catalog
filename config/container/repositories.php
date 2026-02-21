@@ -20,17 +20,31 @@ use app\infrastructure\repositories\decorators\SubscriptionRepositoryTracingDeco
 use app\infrastructure\repositories\IdempotencyRepository;
 use app\infrastructure\repositories\RateLimitRepository;
 use app\infrastructure\repositories\SubscriptionRepository;
+use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use yii\di\Container;
 use yii\di\Instance;
+use yii\redis\Connection as RedisConnection;
 
 return static fn (array $_params) => [
-    AsyncIdempotencyStorageInterface::class => AsyncIdempotencyRepository::class,
+    AsyncIdempotencyStorageInterface::class => [
+        'class' => AsyncIdempotencyRepository::class,
+        '__construct()' => [Instance::of(ClockInterface::class)],
+    ],
 
     IdempotencyRepository::class => [
         'class' => IdempotencyRepository::class,
         '__construct()' => [
             Instance::of(LoggerInterface::class),
+            Instance::of(ClockInterface::class),
+        ],
+    ],
+
+    RateLimitRepository::class => [
+        'class' => RateLimitRepository::class,
+        '__construct()' => [
+            Instance::of(RedisConnection::class),
+            Instance::of(ClockInterface::class),
         ],
     ],
     IdempotencyInterface::class => static fn(Container $c): IdempotencyInterface => TracingFactory::create(

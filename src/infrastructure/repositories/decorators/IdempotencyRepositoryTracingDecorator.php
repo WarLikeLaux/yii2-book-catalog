@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\infrastructure\repositories\decorators;
 
+use app\application\common\dto\IdempotencyRecordDto;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\TracerInterface;
 use Override;
@@ -16,13 +17,12 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
     ) {
     }
 
-    /** @return array{status: string, status_code: int|null, body: string|null}|null */
     #[Override]
-    public function getRecord(string $key): array|null
+    public function getRecord(string $key): IdempotencyRecordDto|null
     {
         return $this->tracer->trace(
             'IdempotencyRepo::' . __FUNCTION__,
-            fn(): array|null => $this->repository->getRecord($key),
+            fn(): IdempotencyRecordDto|null => $this->repository->getRecord($key),
         );
     }
 
