@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\tests\unit\application\subscriptions\usecases;
 
+use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PhoneNormalizerInterface;
 use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
@@ -13,6 +14,7 @@ use app\domain\entities\Subscription;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\EntityNotFoundException;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 use RuntimeException;
@@ -21,6 +23,7 @@ final class SubscribeUseCaseTest extends Unit
 {
     private SubscriptionRepositoryInterface&MockObject $repository;
     private SubscriptionQueryServiceInterface&MockObject $queryService;
+    private AuthorQueryServiceInterface&MockObject $authorQueryService;
     private PhoneNormalizerInterface&MockObject $phoneNormalizer;
     private SubscribeUseCase $useCase;
 
@@ -28,13 +31,24 @@ final class SubscribeUseCaseTest extends Unit
     {
         $this->repository = $this->createMock(SubscriptionRepositoryInterface::class);
         $this->queryService = $this->createMock(SubscriptionQueryServiceInterface::class);
+        $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
         $this->phoneNormalizer = $this->createMock(PhoneNormalizerInterface::class);
-        $this->useCase = new SubscribeUseCase($this->repository, $this->queryService, $this->phoneNormalizer);
+        $this->useCase = new SubscribeUseCase(
+            $this->repository,
+            $this->queryService,
+            $this->authorQueryService,
+            $this->phoneNormalizer,
+        );
     }
 
     public function testExecuteSuccess(): void
     {
         $command = new SubscribeCommand('+7 999 111-22-33', 1);
+
+        $this->authorQueryService->expects($this->once())
+            ->method('existsById')
+            ->with(1)
+            ->willReturn(true);
 
         $this->phoneNormalizer->expects($this->once())
             ->method('normalize')
@@ -57,10 +71,29 @@ final class SubscribeUseCaseTest extends Unit
         $this->assertTrue($result);
     }
 
+    public function testExecuteThrowsEntityNotFoundExceptionWhenAuthorNotExists(): void
+    {
+        $command = new SubscribeCommand('+79001112233', 999);
+
+        $this->authorQueryService->expects($this->once())
+            ->method('existsById')
+            ->with(999)
+            ->willReturn(false);
+
+        $this->phoneNormalizer->expects($this->never())->method('normalize');
+        $this->queryService->expects($this->never())->method('exists');
+
+        $this->expectException(EntityNotFoundException::class);
+        $this->expectExceptionMessage(DomainErrorCode::SubscriptionInvalidAuthorId->value);
+
+        $this->useCase->execute($command);
+    }
+
     public function testExecuteThrowsBusinessRuleExceptionWhenAlreadySubscribed(): void
     {
         $command = new SubscribeCommand('+79001112233', 1);
 
+        $this->authorQueryService->method('existsById')->willReturn(true);
         $this->phoneNormalizer->method('normalize')->willReturn('+79001112233');
         $this->queryService->method('exists')->willReturn(true);
 
@@ -74,6 +107,7 @@ final class SubscribeUseCaseTest extends Unit
     {
         $command = new SubscribeCommand('+79001112233', 1);
 
+        $this->authorQueryService->method('existsById')->willReturn(true);
         $this->phoneNormalizer->method('normalize')->willReturn('+79001112233');
         $this->queryService->method('exists')->willReturn(false);
         $this->repository->method('save')->willThrowException(new RuntimeException('DB Error'));
@@ -88,6 +122,7 @@ final class SubscribeUseCaseTest extends Unit
     {
         $command = new SubscribeCommand('+79001112233', 1);
 
+        $this->authorQueryService->method('existsById')->willReturn(true);
         $this->phoneNormalizer->method('normalize')->willReturn('+79001112233');
         $this->queryService->method('exists')->willReturn(false);
         $this->repository->method('save')->willThrowException(new AlreadyExistsException());
@@ -102,6 +137,7 @@ final class SubscribeUseCaseTest extends Unit
     {
         $command = new SubscribeCommand('+7 999 111-22-33', 1);
 
+        $this->authorQueryService->method('existsById')->willReturn(true);
         $this->phoneNormalizer->method('normalize')
             ->with('+7 999 111-22-33')
             ->willReturn('+79991112233');

@@ -157,4 +157,17 @@ final class AuthorQueryServiceTest extends Unit
         $this->assertFalse($this->queryService->existsByFio(self::EXCLUDE_FIO, $author->id));
         $this->assertTrue($this->queryService->existsByFio(self::EXCLUDE_FIO, 99999));
     }
+
+    public function testExistsByIdReturnsTrue(): void
+    {
+        $author = AuthorEntity::create('Test Author');
+        $this->repository->save($author);
+
+        $this->assertTrue($this->queryService->existsById($author->id));
+    }
+
+    public function testExistsByIdReturnsFalse(): void
+    {
+        $this->assertFalse($this->queryService->existsById(99999));
+    }
 }

@@ -4,53 +4,48 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\forms;
 
-use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\subscriptions\forms\SubscriptionForm;
 use Codeception\Test\Unit;
 
 final class SubscriptionFormTest extends Unit
 {
-    public function testValidateAuthorExistsAddsErrorForNonScalarAuthorId(): void
+    public function testValidateRequiredFields(): void
     {
-        $authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $authorQueryService->expects($this->never())->method('findById');
+        $form = new SubscriptionForm();
+        $form->phone = '';
+        $form->authorId = null;
 
-        $form = new SubscriptionForm($authorQueryService);
-        $form->authorId = ['1'];
-
-        $form->validateAuthorExists('authorId');
-
+        $this->assertFalse($form->validate());
+        $this->assertTrue($form->hasErrors('phone'));
         $this->assertTrue($form->hasErrors('authorId'));
     }
 
-    public function testValidatePhoneAddsErrorForParsableButInvalidNumber(): void
+    public function testValidateAuthorIdInteger(): void
     {
-        $form = new SubscriptionForm($this->createMock(AuthorQueryServiceInterface::class));
-        $form->phone = '+1555';
+        $form = new SubscriptionForm();
+        $form->phone = '+79991234567';
+        $form->authorId = 'invalid';
 
-        $form->validatePhone('phone');
+        $this->assertFalse($form->validate());
+        $this->assertTrue($form->hasErrors('authorId'));
+    }
 
+    public function testValidatePhoneMaxLength(): void
+    {
+        $form = new SubscriptionForm();
+        $form->phone = str_repeat('1', 21);
+        $form->authorId = 1;
+
+        $this->assertFalse($form->validate());
         $this->assertTrue($form->hasErrors('phone'));
     }
 
-    public function testValidatePhoneFormatsValidNumber(): void
+    public function testValidateSuccess(): void
     {
-        $form = new SubscriptionForm($this->createMock(AuthorQueryServiceInterface::class));
-        $form->phone = '+7 999 123-45-67';
+        $form = new SubscriptionForm();
+        $form->phone = '+79991234567';
+        $form->authorId = 1;
 
-        $form->validatePhone('phone');
-
-        $this->assertFalse($form->hasErrors('phone'));
-        $this->assertEquals('+79991234567', $form->phone);
-    }
-
-    public function testValidatePhoneAddsErrorForUnparseableNumber(): void
-    {
-        $form = new SubscriptionForm($this->createMock(AuthorQueryServiceInterface::class));
-        $form->phone = 'not-a-phone';
-
-        $form->validatePhone('phone');
-
-        $this->assertTrue($form->hasErrors('phone'));
+        $this->assertTrue($form->validate());
     }
 }

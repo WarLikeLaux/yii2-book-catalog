@@ -9,6 +9,7 @@ final class AuthorValidationCest
 {
     public function _before(IntegrationTester $I): void
     {
+        DbCleaner::clear(['authors']);
         $I->amLoggedInAs(User::findByUsername('admin'));
     }
 
@@ -45,6 +46,12 @@ final class AuthorValidationCest
     {
         $I->haveRecord(Author::class, ['fio' => 'First Author']);
         $secondAuthorId = $I->haveRecord(Author::class, ['fio' => 'Second Author']);
+
+        $transaction = Yii::$app->db->getTransaction();
+
+        if ($transaction !== null && $transaction->getIsActive()) {
+            $transaction->commit();
+        }
 
         $I->sendPost('/index-test.php?r=author/update&id=' . $secondAuthorId, [
             'AuthorForm' => [
