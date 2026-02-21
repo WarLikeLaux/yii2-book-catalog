@@ -964,7 +964,7 @@ public function createDefault(): PipelineInterface
 {
     return (new Pipeline())
         ->pipe(new TracingMiddleware($this->tracer))
-        ->pipe(new IdempotencyMiddleware($this->idempotencyService))
+        ->pipe($this->exceptionTranslationMiddleware)
         ->pipe(new TransactionMiddleware($this->transaction));
 }
 ```
