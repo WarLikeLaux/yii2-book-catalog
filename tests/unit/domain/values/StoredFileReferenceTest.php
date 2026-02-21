@@ -26,13 +26,17 @@ final class StoredFileReferenceTest extends Unit
     {
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('file.error.path_empty');
-        new StoredFileReference('');
+
+        $ref = new StoredFileReference('');
+        $this->fail('Expected ValidationException was not thrown, got: ' . $ref->getPath());
     }
 
     public function testWhitespaceOnlyPathThrowsValidationException(): void
     {
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('file.error.path_empty');
-        new StoredFileReference('   ');
+
+        $ref = new StoredFileReference('   ');
+        $this->fail('Expected ValidationException was not thrown, got: ' . $ref->getPath());
     }
 }

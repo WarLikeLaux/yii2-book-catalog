@@ -31,7 +31,8 @@ final class PhoneTest extends Unit
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::PhoneEmpty->value);
 
-        new Phone('');
+        $phone = new Phone('');
+        $this->fail('Expected ValidationException was not thrown, got: ' . $phone->value);
     }
 
     public function testThrowsExceptionForWhitespaceOnlyString(): void
@@ -39,7 +40,8 @@ final class PhoneTest extends Unit
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::PhoneEmpty->value);
 
-        new Phone('   ');
+        $phone = new Phone('   ');
+        $this->fail('Expected ValidationException was not thrown, got: ' . $phone->value);
     }
 
     public function testThrowsExceptionForNonE164Format(): void
@@ -47,7 +49,8 @@ final class PhoneTest extends Unit
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::PhoneInvalidFormat->value);
 
-        new Phone('+7 999 123-45-67');
+        $phone = new Phone('+7 999 123-45-67');
+        $this->fail('Expected ValidationException was not thrown, got: ' . $phone->value);
     }
 
     public function testThrowsExceptionForUnparseablePhone(): void
@@ -55,7 +58,8 @@ final class PhoneTest extends Unit
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::PhoneInvalidFormat->value);
 
-        new Phone('not-a-phone');
+        $phone = new Phone('not-a-phone');
+        $this->fail('Expected ValidationException was not thrown, got: ' . $phone->value);
     }
 
     public function testThrowsExceptionForTooShortPhone(): void
@@ -63,7 +67,8 @@ final class PhoneTest extends Unit
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::PhoneInvalidFormat->value);
 
-        new Phone('+1555');
+        $phone = new Phone('+1555');
+        $this->fail('Expected ValidationException was not thrown, got: ' . $phone->value);
     }
 
     public function testThrowsExceptionForPhoneWithoutPlus(): void
@@ -71,7 +76,8 @@ final class PhoneTest extends Unit
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::PhoneInvalidFormat->value);
 
-        new Phone('79991234567');
+        $phone = new Phone('79991234567');
+        $this->fail('Expected ValidationException was not thrown, got: ' . $phone->value);
     }
 
     public function testEqualsReturnsTrueForSamePhone(): void
