@@ -6,7 +6,7 @@ namespace tests\unit\application\authors\usecases;
 
 use app\application\authors\commands\CreateAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
-use app\application\ports\AuthorQueryServiceInterface;
+use app\application\ports\AuthorExistenceCheckerInterface;
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
 use app\domain\exceptions\AlreadyExistsException;
@@ -19,21 +19,21 @@ use ReflectionProperty;
 final class CreateAuthorUseCaseTest extends Unit
 {
     private AuthorRepositoryInterface&MockObject $authorRepository;
-    private AuthorQueryServiceInterface&MockObject $authorQueryService;
     private CreateAuthorUseCase $useCase;
+    private AuthorExistenceCheckerInterface&MockObject $authorExistenceChecker;
 
     protected function _before(): void
     {
         $this->authorRepository = $this->createMock(AuthorRepositoryInterface::class);
-        $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $this->useCase = new CreateAuthorUseCase($this->authorRepository, $this->authorQueryService);
+        $this->authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $this->useCase = new CreateAuthorUseCase($this->authorRepository, $this->authorExistenceChecker);
     }
 
     public function testExecuteCreatesAuthorSuccessfully(): void
     {
         $command = new CreateAuthorCommand(fio: 'Иванов Иван Иванович');
 
-        $this->authorQueryService->expects($this->once())
+        $this->authorExistenceChecker->expects($this->once())
             ->method('existsByFio')
             ->with('Иванов Иван Иванович')
             ->willReturn(false);
@@ -61,7 +61,7 @@ final class CreateAuthorUseCaseTest extends Unit
     {
         $command = new CreateAuthorCommand(fio: 'Duplicate FIO');
 
-        $this->authorQueryService->expects($this->once())
+        $this->authorExistenceChecker->expects($this->once())
             ->method('existsByFio')
             ->with('Duplicate FIO')
             ->willReturn(true);
@@ -78,7 +78,7 @@ final class CreateAuthorUseCaseTest extends Unit
     {
         $command = new CreateAuthorCommand(fio: 'Test Author');
 
-        $this->authorQueryService->method('existsByFio')->willReturn(false);
+        $this->authorExistenceChecker->method('existsByFio')->willReturn(false);
         $this->authorRepository->expects($this->once())
             ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
@@ -93,7 +93,7 @@ final class CreateAuthorUseCaseTest extends Unit
     {
         $command = new CreateAuthorCommand(fio: '');
 
-        $this->authorQueryService->expects($this->once())
+        $this->authorExistenceChecker->expects($this->once())
             ->method('existsByFio')
             ->with('')
             ->willReturn(false);

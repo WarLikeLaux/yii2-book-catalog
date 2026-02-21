@@ -139,7 +139,7 @@ final class ContentAddressableStorageTest extends Unit
         $key = new FileKey(str_repeat('f', 64));
 
         $this->expectException(OperationFailedException::class);
-        $this->expectExceptionMessage('file.error.storage_operation_failed');
+        $this->expectExceptionMessage(DomainErrorCode::FileStorageOperationFailed->value);
 
         $this->storage->getModificationTime($key, self::EXTENSION);
     }

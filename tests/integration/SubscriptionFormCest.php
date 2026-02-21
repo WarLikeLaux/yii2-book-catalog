@@ -49,6 +49,10 @@ final class SubscriptionFormCest
 
         $response = json_decode($I->grabPageSource(), true);
         $I->assertFalse($response['success']);
+        $I->assertArrayHasKey('errors', $response);
+        $I->assertArrayHasKey('authorId', $response['errors']);
+        $I->assertIsArray($response['errors']['authorId']);
+        $I->assertNotEmpty($response['errors']['authorId']);
     }
 
     public function testSubscribeWithZeroAuthorId(IntegrationTester $I): void
@@ -101,5 +105,9 @@ final class SubscriptionFormCest
 
         $response = json_decode($I->grabPageSource(), true);
         $I->assertFalse($response['success']);
+        $I->assertArrayHasKey('errors', $response);
+        $I->assertArrayHasKey('phone', $response['errors']);
+        $I->assertIsArray($response['errors']['phone']);
+        $I->assertNotEmpty($response['errors']['phone']);
     }
 }

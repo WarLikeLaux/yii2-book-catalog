@@ -8,17 +8,9 @@ use app\application\common\dto\SystemInfoDto;
 use app\application\ports\SystemInfoProviderInterface;
 use app\presentation\common\widgets\SystemInfoWidget;
 use PHPUnit\Framework\TestCase;
-use Yii;
-use yii\di\Container;
 
 final class SystemInfoWidgetTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        Yii::$container = new Container();
-    }
-
     public function testRunAsMysql(): void
     {
         $provider = $this->createMock(SystemInfoProviderInterface::class);
@@ -29,9 +21,7 @@ final class SystemInfoWidgetTest extends TestCase
             '8.0.32',
         ));
 
-        Yii::$container->set(SystemInfoProviderInterface::class, $provider);
-
-        $widget = new SystemInfoWidget();
+        $widget = new SystemInfoWidget($provider);
         $html = $widget->run();
 
         $this->assertStringContainsString('PHP:', $html);
@@ -53,9 +43,7 @@ final class SystemInfoWidgetTest extends TestCase
             '15.2',
         ));
 
-        Yii::$container->set(SystemInfoProviderInterface::class, $provider);
-
-        $widget = new SystemInfoWidget();
+        $widget = new SystemInfoWidget($provider);
         $html = $widget->run();
 
         $this->assertStringContainsString('PGSQL:', $html);

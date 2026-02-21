@@ -20,7 +20,6 @@ final class SubscriptionQueryServiceTest extends Unit
     private const string PHONE_ALT1 = '+77001110000';
     private const string PHONE_ALT2 = '+77002220000';
     private const string PHONE_SHARED = '+77009999999';
-    private const string TEST_AUTHOR = 'Test Author';
 
     protected \UnitTester $tester;
     private SubscriptionQueryServiceInterface $queryService;
@@ -34,31 +33,6 @@ final class SubscriptionQueryServiceTest extends Unit
         Yii::$app->db->createCommand()->delete('book_authors')->execute();
         Book::deleteAll();
         Author::deleteAll();
-    }
-
-    public function testExistsReturnsTrueWhenSubscriptionExists(): void
-    {
-        $authorId = $this->createAuthor(self::TEST_AUTHOR);
-        $this->createSubscription(self::PHONE_PRIMARY, $authorId);
-
-        $this->assertTrue($this->queryService->exists(self::PHONE_PRIMARY, $authorId));
-    }
-
-    public function testExistsReturnsFalseWhenSubscriptionMissing(): void
-    {
-        $authorId = $this->createAuthor(self::TEST_AUTHOR);
-
-        $this->assertFalse($this->queryService->exists(self::PHONE_PRIMARY, $authorId));
-    }
-
-    public function testExistsReturnsFalseForDifferentAuthor(): void
-    {
-        $authorId1 = $this->createAuthor('Author One');
-        $authorId2 = $this->createAuthor('Author Two');
-
-        $this->createSubscription(self::PHONE_PRIMARY, $authorId1);
-
-        $this->assertFalse($this->queryService->exists(self::PHONE_PRIMARY, $authorId2));
     }
 
     public function testGetSubscriberPhonesForBookReturnsPhones(): void

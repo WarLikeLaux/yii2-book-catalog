@@ -8,8 +8,8 @@ use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\services\TransactionalEventPublisher;
 use app\application\common\values\AuthorIdCollection;
-use app\application\ports\AuthorQueryServiceInterface;
-use app\application\ports\BookQueryServiceInterface;
+use app\application\ports\AuthorExistenceCheckerInterface;
+use app\application\ports\BookIsbnCheckerInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookUpdatedEvent;
@@ -30,8 +30,8 @@ final class UpdateBookUseCaseTest extends Unit
 {
     private const DESCRIPTION_NEW = 'New description';
     private BookRepositoryInterface&MockObject $bookRepository;
-    private BookQueryServiceInterface&MockObject $bookQueryService;
-    private AuthorQueryServiceInterface&MockObject $authorQueryService;
+    private BookIsbnCheckerInterface&MockObject $bookIsbnChecker;
+    private AuthorExistenceCheckerInterface&MockObject $authorExistenceChecker;
     private TransactionalEventPublisher&MockObject $eventPublisher;
     private ClockInterface&MockObject $clock;
     private UpdateBookUseCase $useCase;
@@ -39,18 +39,18 @@ final class UpdateBookUseCaseTest extends Unit
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
-        $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
-        $this->bookQueryService->method('existsByIsbn')->willReturn(false);
-        $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $this->authorQueryService->method('findMissingIds')->willReturn([]);
+        $this->bookIsbnChecker = $this->createMock(BookIsbnCheckerInterface::class);
+        $this->bookIsbnChecker->method('existsByIsbn')->willReturn(false);
+        $this->authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $this->authorExistenceChecker->method('existsAllByIds')->willReturn(true);
         $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
         $this->clock = $this->createMock(ClockInterface::class);
         $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
         $this->useCase = new UpdateBookUseCase(
             $this->bookRepository,
-            $this->bookQueryService,
-            $this->authorQueryService,
+            $this->bookIsbnChecker,
+            $this->authorExistenceChecker,
             $this->eventPublisher,
             $this->clock,
         );
@@ -377,14 +377,14 @@ final class UpdateBookUseCaseTest extends Unit
 
     public function testExecuteThrowsIsbnAlreadyExistsException(): void
     {
-        $bookQueryService = $this->createMock(BookQueryServiceInterface::class);
-        $bookQueryService->method('existsByIsbn')
+        $bookIsbnChecker = $this->createMock(BookIsbnCheckerInterface::class);
+        $bookIsbnChecker->method('existsByIsbn')
             ->willReturn(true);
 
         $useCase = new UpdateBookUseCase(
             $this->bookRepository,
-            $bookQueryService,
-            $this->authorQueryService,
+            $bookIsbnChecker,
+            $this->authorExistenceChecker,
             $this->eventPublisher,
             $this->clock,
         );
@@ -409,14 +409,14 @@ final class UpdateBookUseCaseTest extends Unit
 
     public function testExecuteThrowsAuthorsNotFoundException(): void
     {
-        $authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $authorQueryService->method('findMissingIds')
-            ->willReturn([999]);
+        $authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $authorExistenceChecker->method('existsAllByIds')
+            ->willReturn(false);
 
         $useCase = new UpdateBookUseCase(
             $this->bookRepository,
-            $this->bookQueryService,
-            $authorQueryService,
+            $this->bookIsbnChecker,
+            $authorExistenceChecker,
             $this->eventPublisher,
             $this->clock,
         );

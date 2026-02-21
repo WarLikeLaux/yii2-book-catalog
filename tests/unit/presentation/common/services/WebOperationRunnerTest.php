@@ -121,6 +121,52 @@ final class WebOperationRunnerTest extends Unit
         $this->assertSame('result', $result->data);
     }
 
+    public function testExecuteForApiReturnsFieldErrorsWhenApplicationExceptionHasField(): void
+    {
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
+        $exception = new ApplicationException('subscription.error.invalid_author_id', 0, null, 'authorId');
+
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipeline->expects($this->once())->method('execute')->willThrowException($exception);
+
+        $this->translator->expects($this->once())
+            ->method('translate')
+            ->with('app', 'subscription.error.invalid_author_id')
+            ->willReturn('Invalid author');
+
+        $result = $this->runner->executeForApi($command, $useCase, 'ok');
+
+        $this->assertInstanceOf(ApiResponse::class, $result);
+        $this->assertFalse($result->success);
+        $this->assertSame('Invalid author', $result->message);
+        $this->assertSame(['authorId' => ['Invalid author']], $result->errors);
+    }
+
+    public function testExecuteForApiReturnsEmptyErrorsWhenApplicationExceptionHasNoField(): void
+    {
+        $command = $this->createMock(CommandInterface::class);
+        $useCase = $this->createMock(UseCaseInterface::class);
+        $pipeline = $this->createMock(PipelineInterface::class);
+        $exception = new ApplicationException(self::ERROR_TITLE_EMPTY);
+
+        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipeline->expects($this->once())->method('execute')->willThrowException($exception);
+
+        $this->translator->expects($this->once())
+            ->method('translate')
+            ->with('app', self::ERROR_TITLE_EMPTY)
+            ->willReturn(self::ERROR_TITLE_EMPTY);
+
+        $result = $this->runner->executeForApi($command, $useCase, 'ok');
+
+        $this->assertInstanceOf(ApiResponse::class, $result);
+        $this->assertFalse($result->success);
+        $this->assertSame(self::ERROR_TITLE_EMPTY, $result->message);
+        $this->assertSame([], $result->errors);
+    }
+
     public function testExecuteForApiHandlesUnexpectedExceptionWithLogging(): void
     {
         $command = $this->createMock(CommandInterface::class);
