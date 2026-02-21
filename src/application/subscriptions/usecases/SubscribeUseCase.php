@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\application\subscriptions\usecases;
 
+use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PhoneNormalizerInterface;
 use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
@@ -12,6 +13,7 @@ use app\application\subscriptions\commands\SubscribeCommand;
 use app\domain\entities\Subscription;
 use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\EntityNotFoundException;
 use app\domain\values\Phone;
 
 /**
@@ -22,6 +24,7 @@ final readonly class SubscribeUseCase implements UseCaseInterface
     public function __construct(
         private SubscriptionRepositoryInterface $subscriptionRepository,
         private SubscriptionQueryServiceInterface $subscriptionQueryService,
+        private AuthorQueryServiceInterface $authorQueryService,
         private PhoneNormalizerInterface $phoneNormalizer,
     ) {
     }
@@ -31,6 +34,10 @@ final readonly class SubscribeUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
+        if (!$this->authorQueryService->existsById($command->authorId)) {
+            throw new EntityNotFoundException(DomainErrorCode::SubscriptionInvalidAuthorId);
+        }
+
         $normalized = $this->phoneNormalizer->normalize($command->phone);
         $phone = new Phone($normalized);
 

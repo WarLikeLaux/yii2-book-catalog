@@ -73,4 +73,9 @@ final readonly class AuthorQueryService extends BaseQueryService implements Auth
     {
         return $this->exists(Author::find()->where(['fio' => $fio]), $excludeId);
     }
+
+    public function existsById(int $id): bool
+    {
+        return Author::find()->where(['id' => $id])->exists($this->db);
+    }
 }
