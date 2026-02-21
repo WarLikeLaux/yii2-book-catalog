@@ -50,4 +50,11 @@ final class AuthorIdCollectionTest extends Unit
 
         $this->assertSame([3], $collection->toArray());
     }
+
+    public function testFromArrayDeduplicatesIds(): void
+    {
+        $collection = AuthorIdCollection::fromArray([5, 5, 3, 5, 3]);
+
+        $this->assertSame([5, 3], $collection->toArray());
+    }
 }

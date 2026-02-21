@@ -56,7 +56,7 @@ final readonly class AuthorIdCollection
             $normalized[] = $id;
         }
 
-        return $normalized;
+        return array_values(array_unique($normalized));
     }
 
     /**

@@ -242,7 +242,7 @@ final class CreateBookUseCaseTest extends Unit
 
         $this->authorExistenceChecker->expects($this->once())
             ->method('existsAllByIds')
-            ->with([1, 2, 1])
+            ->with([1, 2])
             ->willReturn(true);
 
         $this->bookRepository->expects($this->once())
