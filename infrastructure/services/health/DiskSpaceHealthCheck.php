@@ -34,7 +34,7 @@ final readonly class DiskSpaceHealthCheck implements HealthCheckInterface
                 latencyMs: $latency,
                 details: ['free_gb' => $freeGb],
             );
-        /** @codeCoverageIgnoreStart */
+        // @codeCoverageIgnoreStart
         } catch (Throwable $e) {
             $latency = round((microtime(true) - $start) * 1000, 2);
 
@@ -45,6 +45,6 @@ final readonly class DiskSpaceHealthCheck implements HealthCheckInterface
                 details: ['error' => $e->getMessage()],
             );
         }
-        /** @codeCoverageIgnoreEnd */
+        // @codeCoverageIgnoreEnd
     }
 }
