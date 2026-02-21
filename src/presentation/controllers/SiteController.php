@@ -6,6 +6,7 @@ namespace app\presentation\controllers;
 
 use app\application\common\exceptions\ApplicationException;
 use app\application\ports\AuthServiceInterface;
+use app\application\ports\RequestIdProviderInterface;
 use app\presentation\auth\forms\LoginForm;
 use app\presentation\auth\handlers\AuthViewFactory;
 use app\presentation\books\handlers\BookSearchViewFactory;
@@ -30,9 +31,10 @@ final class SiteController extends BaseController
         private readonly BookSearchViewFactory $bookSearchViewFactory,
         private readonly AuthViewFactory $authViewFactory,
         ViewModelRenderer $renderer,
+        RequestIdProviderInterface $requestIdProvider,
         $config = [],
     ) {
-        parent::__construct($id, $module, $renderer, $config);
+        parent::__construct($id, $module, $renderer, $requestIdProvider, $config);
     }
 
     #[Override]

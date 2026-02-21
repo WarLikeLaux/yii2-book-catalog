@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\integration;
 
+use app\domain\values\BookStatus;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use IntegrationTester;
@@ -49,7 +50,7 @@ class SearchBookCest
             'isbn' => '0-306-40615-2',
             'year' => 2020,
             'description' => 'ISBN desc 1',
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
@@ -58,7 +59,7 @@ class SearchBookCest
             'isbn' => '978-0-545-01022-1',
             'year' => 2021,
             'description' => 'ISBN desc 2',
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
@@ -85,7 +86,7 @@ class SearchBookCest
             'isbn' => $isbn,
             'year' => 2023,
             'description' => 'Test desc',
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
         $book = $I->grabRecord(Book::class, ['isbn' => $isbn]);

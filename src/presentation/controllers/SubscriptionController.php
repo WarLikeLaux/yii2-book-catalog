@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\ports\RequestIdProviderInterface;
 use app\presentation\common\dto\ApiResponse;
 use app\presentation\common\enums\ActionName;
 use app\presentation\common\filters\IdempotencyFilter;
@@ -26,9 +27,10 @@ final class SubscriptionController extends BaseController
         private readonly SubscriptionCommandHandler $commandHandler,
         private readonly SubscriptionViewFactory $viewFactory,
         ViewModelRenderer $renderer,
+        RequestIdProviderInterface $requestIdProvider,
         $config = [],
     ) {
-        parent::__construct($id, $module, $renderer, $config);
+        parent::__construct($id, $module, $renderer, $requestIdProvider, $config);
     }
 
     #[Override]

@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use app\assets\AppAsset;
-use app\infrastructure\services\observability\RequestIdProvider;
 use app\presentation\common\widgets\Alert;
 use app\presentation\common\widgets\SystemInfoWidget;
 use yii\bootstrap5\Breadcrumbs;
@@ -173,7 +172,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
                     class="border-top border-secondary border-opacity-25 mt-4 pt-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2"
                 >
                     <div class="small text-white-50">&copy; 2025 &mdash;<?= date('Y') ?></div>
-                    <div class="small text-white-50 font-monospace"><?= RequestIdProvider::get() ?></div>
+                    <div class="small text-white-50 font-monospace"><?= $this->params['requestId'] ?? '' ?></div>
                 </div>
             </div>
         </footer>

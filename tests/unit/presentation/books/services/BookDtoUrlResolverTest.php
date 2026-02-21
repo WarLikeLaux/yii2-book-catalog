@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace tests\unit\presentation\books\services;
 
 use app\application\books\queries\BookReadDto;
+use app\domain\values\BookStatus;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\services\FileUrlResolver;
 use Codeception\Test\Unit;
@@ -22,7 +23,7 @@ final class BookDtoUrlResolverTest extends Unit
 
     public function testResolveUrlReturnsDtoWithResolvedCover(): void
     {
-        $dto = new BookReadDto(1, 'Title', 2020, null, 'ISBN', [], [], 'cover.jpg', 'draft', 1);
+        $dto = new BookReadDto(1, 'Title', 2020, null, 'ISBN', [], [], 'cover.jpg', BookStatus::Draft->value, 1);
 
         $result = $this->resolver->resolveUrl($dto);
 
@@ -31,7 +32,7 @@ final class BookDtoUrlResolverTest extends Unit
 
     public function testResolveUrlReturnsPlaceholderWhenEmpty(): void
     {
-        $dto = new BookReadDto(1, 'Title', 2020, null, 'ISBN', [], [], null, 'draft', 1);
+        $dto = new BookReadDto(1, 'Title', 2020, null, 'ISBN', [], [], null, BookStatus::Draft->value, 1);
 
         $result = $this->resolver->resolveUrl($dto);
 

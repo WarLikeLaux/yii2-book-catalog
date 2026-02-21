@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\controllers;
 
 use app\application\common\exceptions\ApplicationException;
+use app\application\ports\RequestIdProviderInterface;
 use app\presentation\common\ViewModelRenderer;
 use LogicException;
 use Override;
@@ -19,10 +20,12 @@ abstract class BaseController extends Controller
         $id,
         $module,
         protected ViewModelRenderer $renderer,
+        private readonly RequestIdProviderInterface $requestIdProvider,
         $config = [],
     ) {
         $this->renderer->setController($this);
         parent::__construct($id, $module, $config);
+        $this->view->params['requestId'] = $this->requestIdProvider->getRequestId();
     }
 
     #[Override]

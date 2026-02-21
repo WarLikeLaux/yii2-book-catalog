@@ -21,8 +21,8 @@ final class BookStatusChangedEventTest extends Unit
         $this->assertSame(BookStatusChangedEvent::EVENT_TYPE, $event->getEventType());
         $this->assertSame([
             'bookId' => 42,
-            'oldStatus' => 'draft',
-            'newStatus' => 'published',
+            'oldStatus' => BookStatus::Draft->value,
+            'newStatus' => BookStatus::Published->value,
             'year' => 2023,
         ], $event->getPayload());
     }

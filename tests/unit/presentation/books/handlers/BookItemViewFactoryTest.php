@@ -8,6 +8,7 @@ use app\application\authors\queries\AuthorReadDto;
 use app\application\books\queries\BookReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\BookQueryServiceInterface;
+use app\domain\values\BookStatus;
 use app\presentation\books\dto\BookEditViewModel;
 use app\presentation\books\handlers\BookItemViewFactory;
 use app\presentation\books\mappers\BookViewModelMapper;
@@ -68,7 +69,7 @@ final class BookItemViewFactoryTest extends Unit
             [],
             [],
             null,
-            'draft',
+            BookStatus::Draft->value,
             1,
         );
 

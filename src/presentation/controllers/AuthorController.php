@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\presentation\controllers;
 
 use app\application\common\exceptions\ApplicationException;
+use app\application\ports\RequestIdProviderInterface;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\handlers\AuthorItemViewFactory;
@@ -30,9 +31,10 @@ final class AuthorController extends BaseController
         private readonly AuthorItemViewFactory $itemViewFactory,
         private readonly AuthorSearchViewFactory $authorSearchViewFactory,
         ViewModelRenderer $renderer,
+        RequestIdProviderInterface $requestIdProvider,
         $config = [],
     ) {
-        parent::__construct($id, $module, $renderer, $config);
+        parent::__construct($id, $module, $renderer, $requestIdProvider, $config);
     }
 
     #[Override]

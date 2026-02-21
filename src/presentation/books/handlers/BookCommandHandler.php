@@ -12,6 +12,7 @@ use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\exceptions\OperationFailedException;
 use app\application\common\services\UploadedFileStorage;
+use app\domain\values\BookStatus;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookCommandMapper;
 use app\presentation\common\adapters\UploadedFileAdapter;
@@ -92,7 +93,7 @@ final readonly class BookCommandHandler
         );
     }
 
-    public function changeBookStatus(int $id, string $targetStatus, string $successMessage): void
+    public function changeBookStatus(int $id, BookStatus $targetStatus, string $successMessage): void
     {
         $command = new ChangeBookStatusCommand($id, $targetStatus);
 

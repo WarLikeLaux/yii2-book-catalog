@@ -8,6 +8,7 @@ use app\application\books\queries\BookReadDto;
 use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookSearcherInterface;
+use app\domain\values\BookStatus;
 use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\handlers\BookListViewFactory;
 use app\presentation\books\mappers\BookViewModelMapper;
@@ -46,7 +47,7 @@ final class BookListViewFactoryTest extends Unit
 
     public function testGetListViewModelReturnsModel(): void
     {
-        $dto = new BookReadDto(1, 'T', 2020, null, 'ISBN', [], [], null, 'draft', 1);
+        $dto = new BookReadDto(1, 'T', 2020, null, 'ISBN', [], [], null, BookStatus::Draft->value, 1);
         $queryResult = new QueryResult([$dto], 1, new PaginationDto(1, 20, 1, 1));
         $dataProvider = $this->createMock(DataProviderInterface::class);
 

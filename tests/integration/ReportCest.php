@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use app\domain\values\BookStatus;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use app\infrastructure\persistence\User;
@@ -32,7 +33,7 @@ final class ReportCest
             'year' => $currentYear,
             'isbn' => '9783161484100',
             'description' => 'Test',
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
         ]);
 
         Yii::$app->db->createCommand()->insert('book_authors', [
@@ -54,14 +55,14 @@ final class ReportCest
             'year' => 2023,
             'isbn' => '9783161484101',
             'description' => 'Test',
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
         ]);
         $book2024 = $I->haveRecord(Book::class, [
             'title' => 'Book 2024',
             'year' => 2024,
             'isbn' => '9783161484102',
             'description' => 'Test',
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
         ]);
 
         Yii::$app->db->createCommand()->insert('book_authors', [
@@ -94,21 +95,21 @@ final class ReportCest
             'year' => $currentYear,
             'isbn' => '9783161484103',
             'description' => 'Test',
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
         ]);
         $book2 = $I->haveRecord(Book::class, [
             'title' => 'Book 2',
             'year' => $currentYear,
             'isbn' => '9783161484104',
             'description' => 'Test',
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
         ]);
         $book3 = $I->haveRecord(Book::class, [
             'title' => 'Book 3',
             'year' => $currentYear,
             'isbn' => '9783161484105',
             'description' => 'Test',
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
         ]);
 
         Yii::$app->db->createCommand()->insert('book_authors', [
@@ -148,7 +149,7 @@ final class ReportCest
                 'year' => $currentYear,
                 'isbn' => '978316148' . str_pad((string)$i, 4, '0', STR_PAD_LEFT),
                 'description' => 'Test',
-                'status' => 'published',
+                'status' => BookStatus::Published->value,
             ]);
             Yii::$app->db->createCommand()->insert('book_authors', [
                 'book_id' => $bookId,

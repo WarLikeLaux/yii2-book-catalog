@@ -23,7 +23,7 @@ final class BookUpdatedEventTest extends Unit
             'bookId' => 123,
             'oldYear' => 2023,
             'newYear' => 2024,
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
         ], $event->getPayload());
     }
 
@@ -36,7 +36,7 @@ final class BookUpdatedEventTest extends Unit
             'bookId' => 456,
             'oldYear' => 2024,
             'newYear' => 2024,
-            'status' => 'draft',
+            'status' => BookStatus::Draft->value,
         ], $event->getPayload());
     }
 }

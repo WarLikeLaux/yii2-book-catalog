@@ -40,7 +40,7 @@ final readonly class ReportViewFactory
         /** @var ReportDto $data */
         $data = $this->operationRunner->query(
             fn(): ReportDto => $this->reportQueryService->getTopAuthorsReport($criteria),
-            $this->reportQueryService->getEmptyTopAuthorsReport($form->year !== null && $form->year !== '' ? (int)$form->year : null),
+            $this->reportQueryService->getEmptyTopAuthorsReport($criteria->year),
             Yii::t('app', 'report.error.generate_failed'),
         );
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\controllers;
 
+use app\application\ports\RequestIdProviderInterface;
 use app\presentation\common\ViewModelRenderer;
 use app\presentation\reports\handlers\ReportViewFactory;
 
@@ -14,9 +15,10 @@ final class ReportController extends BaseController
         $module,
         private readonly ReportViewFactory $reportViewFactory,
         ViewModelRenderer $renderer,
+        RequestIdProviderInterface $requestIdProvider,
         $config = [],
     ) {
-        parent::__construct($id, $module, $renderer, $config);
+        parent::__construct($id, $module, $renderer, $requestIdProvider, $config);
     }
 
     public function actionIndex(): string

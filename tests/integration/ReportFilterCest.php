@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use app\domain\values\BookStatus;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use app\infrastructure\persistence\User;
@@ -21,7 +22,7 @@ final class ReportFilterCest
             'year' => 2023,
             'isbn' => '9783161484100',
             'description' => 'Test',
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
         ]);
         Yii::$app->db->createCommand()
             ->insert('book_authors', ['book_id' => $bookId, 'author_id' => $authorId])

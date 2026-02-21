@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\books\widgets;
 
+use app\domain\values\BookStatus;
 use Override;
 use Yii;
 use yii\base\Widget;
@@ -12,9 +13,9 @@ use yii\helpers\Html;
 final class BookStatusBadge extends Widget
 {
     private const array CSS_MAP = [
-        'published' => 'bg-success',
-        'archived' => 'bg-dark',
-        'draft' => 'bg-secondary',
+        BookStatus::Published->value => 'bg-success',
+        BookStatus::Archived->value => 'bg-dark',
+        BookStatus::Draft->value => 'bg-secondary',
     ];
 
     public string $status;

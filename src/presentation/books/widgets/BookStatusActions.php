@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\books\widgets;
 
+use app\domain\values\BookStatus;
 use Override;
 use Yii;
 use yii\base\Widget;
@@ -12,14 +13,14 @@ use yii\helpers\Html;
 final class BookStatusActions extends Widget
 {
     private const array TRANSITIONS = [
-        'draft' => [
+        BookStatus::Draft->value => [
             ['publish', 'ui.publish', 'btn-success', 'book.confirm.publish'],
         ],
-        'published' => [
+        BookStatus::Published->value => [
             ['unpublish', 'ui.unpublish', 'btn-warning', 'book.confirm.unpublish'],
             ['archive', 'ui.archive', 'btn-secondary', 'book.confirm.archive'],
         ],
-        'archived' => [
+        BookStatus::Archived->value => [
             ['restore', 'ui.restore', 'btn-info', 'book.confirm.restore'],
         ],
     ];

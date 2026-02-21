@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace app\presentation\controllers;
 
 use app\application\common\exceptions\ApplicationException;
+use app\application\ports\RequestIdProviderInterface;
+use app\domain\values\BookStatus;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
 use app\presentation\books\handlers\BookItemViewFactory;
@@ -28,9 +30,10 @@ final class BookController extends BaseController
         private readonly BookListViewFactory $listViewFactory,
         private readonly BookItemViewFactory $itemViewFactory,
         ViewModelRenderer $renderer,
+        RequestIdProviderInterface $requestIdProvider,
         $config = [],
     ) {
-        parent::__construct($id, $module, $renderer, $config);
+        parent::__construct($id, $module, $renderer, $requestIdProvider, $config);
     }
 
     #[Override]
@@ -138,7 +141,7 @@ final class BookController extends BaseController
     public function actionPublish(int $id): Response
     {
         try {
-            $this->commandHandler->changeBookStatus($id, 'published', Yii::t('app', 'book.success.published'));
+            $this->commandHandler->changeBookStatus($id, BookStatus::Published, Yii::t('app', 'book.success.published'));
         } catch (ApplicationException $e) {
             $this->flash('error', Yii::t('app', $e->errorCode));
         }
@@ -149,7 +152,7 @@ final class BookController extends BaseController
     public function actionUnpublish(int $id): Response
     {
         try {
-            $this->commandHandler->changeBookStatus($id, 'draft', Yii::t('app', 'book.success.unpublished'));
+            $this->commandHandler->changeBookStatus($id, BookStatus::Draft, Yii::t('app', 'book.success.unpublished'));
         } catch (ApplicationException $e) {
             $this->flash('error', Yii::t('app', $e->errorCode));
         }
@@ -160,7 +163,7 @@ final class BookController extends BaseController
     public function actionArchive(int $id): Response
     {
         try {
-            $this->commandHandler->changeBookStatus($id, 'archived', Yii::t('app', 'book.success.archived'));
+            $this->commandHandler->changeBookStatus($id, BookStatus::Archived, Yii::t('app', 'book.success.archived'));
         } catch (ApplicationException $e) {
             $this->flash('error', Yii::t('app', $e->errorCode));
         }
@@ -171,7 +174,7 @@ final class BookController extends BaseController
     public function actionRestore(int $id): Response
     {
         try {
-            $this->commandHandler->changeBookStatus($id, 'draft', Yii::t('app', 'book.success.restored'));
+            $this->commandHandler->changeBookStatus($id, BookStatus::Draft, Yii::t('app', 'book.success.restored'));
         } catch (ApplicationException $e) {
             $this->flash('error', Yii::t('app', $e->errorCode));
         }
