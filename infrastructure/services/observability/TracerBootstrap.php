@@ -16,8 +16,7 @@ use yii\web\Application as WebApplication;
 final class TracerBootstrap extends Component implements BootstrapInterface
 {
     public bool $enabled = true;
-    public string $endpoint = 'http://buggregator:8000';
-    public string $ingestionKey = 'buggregator';
+    public string $endpoint = 'http://jaeger:4318/v1/traces';
     public string $serviceName = 'yii2-book-catalog';
     private TracerInterface|null $tracer = null;
     private SpanInterface|null $rootSpan = null;
@@ -34,7 +33,7 @@ final class TracerBootstrap extends Component implements BootstrapInterface
             return;
         }
 
-        $this->tracer = new InspectorTracer($this->ingestionKey, $this->endpoint);
+        $this->tracer = new OtelTracer($this->serviceName, $this->endpoint);
         $this->registerTracer();
 
         $app->on(Application::EVENT_BEFORE_REQUEST, function () use ($app): void {
