@@ -15,7 +15,6 @@ readonly SYMLINKS=(
 )
 
 readonly NESTED_DIRS=(
-    ".antigravity:rules.md"
     ".agent/rules:rules.md"
 )
 
@@ -54,3 +53,16 @@ for entry in "${NESTED_DIRS[@]}"; do
 done
 
 echo "✅ Симлинки созданы: ${SYMLINKS[*]}, ${derived_paths[*]} -> $SOURCE_FILE"
+
+echo "📂 Настройка алиасов для Skills..."
+mkdir -p .agent/skills
+mkdir -p .claude
+mkdir -p .codex
+
+ln -sfT ../.agent/skills .claude/skills
+ln -sfT ../.agent/skills .codex/skills
+
+mkdir -p "$HOME/.claude" 2>/dev/null || true
+ln -sf "$ROOT_DIR/.agent/skills" "$HOME/.claude/skills" 2>/dev/null || true
+
+echo "✅ Алиасы для skills настроены: .claude/skills, .codex/skills, ~/.claude/skills -> .agent/skills"
