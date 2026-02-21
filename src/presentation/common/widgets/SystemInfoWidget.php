@@ -6,20 +6,14 @@ namespace app\presentation\common\widgets;
 
 use app\application\ports\SystemInfoProviderInterface;
 use Override;
-use Yii;
 use yii\base\Widget;
 
 final class SystemInfoWidget extends Widget
 {
-    private readonly SystemInfoProviderInterface $provider;
-
     public function __construct(
-        $config = [],
+        private readonly SystemInfoProviderInterface $provider,
+        array $config = [],
     ) {
-        /** @var SystemInfoProviderInterface $provider */
-        $provider = Yii::$container->get(SystemInfoProviderInterface::class);
-        $this->provider = $provider;
-
         parent::__construct($config);
     }
 

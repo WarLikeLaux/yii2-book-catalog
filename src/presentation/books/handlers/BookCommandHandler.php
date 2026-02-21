@@ -12,6 +12,7 @@ use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\exceptions\OperationFailedException;
 use app\application\common\services\UploadedFileStorage;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\values\BookStatus;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookCommandMapper;
@@ -46,7 +47,7 @@ final readonly class BookCommandHandler
         );
 
         if ($form->cover instanceof UploadedFile && $cover === null) {
-            throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
+            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
         }
 
         $command = $this->commandMapper->toCreateCommand($form, $cover);
@@ -70,7 +71,7 @@ final readonly class BookCommandHandler
         );
 
         if ($form->cover instanceof UploadedFile && $cover === null) {
-            throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
+            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
         }
 
         $command = $this->commandMapper->toUpdateCommand($id, $form, $cover);

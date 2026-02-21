@@ -86,7 +86,11 @@ final readonly class WebOperationRunner
             $result = $this->pipelineFactory->createDefault()->execute($command, $useCase);
             return ApiResponse::success($successMessage, $result);
         } catch (ApplicationException $e) {
-            return ApiResponse::failure($this->translator->translate('app', $e->getMessage()));
+            $message = $this->translator->translate('app', $e->getMessage());
+            $field = $e->getField();
+            $errors = $field !== null ? [$field => [$message]] : [];
+
+            return ApiResponse::failure($message, $errors);
         } catch (Throwable $e) {
             $this->logger->error($e->getMessage(), array_merge($logContext, ['exception' => $e]));
             return ApiResponse::failure($this->translator->translate('app', 'error.unexpected'));
