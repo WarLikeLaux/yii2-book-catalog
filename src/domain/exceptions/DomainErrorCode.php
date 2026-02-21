@@ -78,6 +78,15 @@ enum DomainErrorCode: string
     #[ErrorMapping(ErrorType::OperationFailed)]
     case SubscriptionStaleData = 'subscription.error.stale_data';
 
+    #[ErrorMapping(ErrorType::OperationFailed, field: 'phone')]
+    case PhoneEmpty = 'phone.error.empty';
+
+    #[ErrorMapping(ErrorType::OperationFailed, field: 'phone')]
+    case PhoneInvalidFormat = 'phone.error.invalid_format';
+
+    #[ErrorMapping(ErrorType::OperationFailed, field: 'authorId')]
+    case SubscriptionInvalidAuthorId = 'subscription.error.invalid_author_id';
+
     #[ErrorMapping(ErrorType::BusinessRule)]
     case AuthInvalidCredentials = 'auth.error.invalid_credentials';
 
@@ -113,6 +122,9 @@ enum DomainErrorCode: string
 
     #[ErrorMapping(ErrorType::OperationFailed)]
     case FileStorageOperationFailed = 'file.error.storage_operation_failed';
+
+    #[ErrorMapping(ErrorType::OperationFailed, field: 'path')]
+    case StoredFilePathEmpty = 'file.error.path_empty';
 
     #[ErrorMapping(ErrorType::OperationFailed)]
     case EntityDeleteFailed = 'error.entity_delete_failed';
