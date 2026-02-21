@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace app\tests\unit\infrastructure\repositories;
 
+use app\application\common\IdempotencyKeyStatus;
+use app\infrastructure\adapters\SystemClock;
 use app\infrastructure\persistence\IdempotencyKey;
 use app\infrastructure\repositories\IdempotencyRepository;
 use app\infrastructure\repositories\StreamGetContentsStub;
@@ -17,7 +19,7 @@ final class IdempotencyRepositoryTest extends Unit
 
     protected function _before(): void
     {
-        $this->repository = new IdempotencyRepository(new NullLogger());
+        $this->repository = new IdempotencyRepository(new NullLogger(), new SystemClock());
         IdempotencyKey::deleteAll();
     }
 
@@ -29,9 +31,9 @@ final class IdempotencyRepositoryTest extends Unit
         $response = $this->repository->getRecord($key);
 
         $this->assertNotNull($response);
-        $this->assertSame('finished', $response['status']);
-        $this->assertSame(200, $response['status_code']);
-        $this->assertSame('{"result": "ok"}', $response['body']);
+        $this->assertSame(IdempotencyKeyStatus::Finished, $response->status);
+        $this->assertSame(200, $response->statusCode);
+        $this->assertSame(['result' => 'ok'], $response->data);
     }
 
     public function testGetExpiredResponseReturnsNull(): void
@@ -49,6 +51,17 @@ final class IdempotencyRepositoryTest extends Unit
         $this->assertNull($this->repository->getRecord('non-existent'));
     }
 
+    public function testGetRecordReturnsNullWhenStatusIsInvalid(): void
+    {
+        $key = 'invalid-status-key';
+        $this->repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
+        IdempotencyKey::updateAll(['status' => 'unknown'], ['idempotency_key' => $key]);
+
+        $response = $this->repository->getRecord($key);
+
+        $this->assertNull($response);
+    }
+
     public function testSaveStartedAndGetRecord(): void
     {
         $key = 'started-key';
@@ -57,9 +70,9 @@ final class IdempotencyRepositoryTest extends Unit
         $response = $this->repository->getRecord($key);
 
         $this->assertNotNull($response);
-        $this->assertSame('started', $response['status']);
-        $this->assertNull($response['status_code']);
-        $this->assertNull($response['body']);
+        $this->assertSame(IdempotencyKeyStatus::Started, $response->status);
+        $this->assertNull($response->statusCode);
+        $this->assertSame([], $response->data);
     }
 
     public function testSaveStartedAllowsMaxKeyLength(): void
@@ -69,9 +82,9 @@ final class IdempotencyRepositoryTest extends Unit
 
         $response = $this->repository->getRecord($key);
         $this->assertNotNull($response);
-        $this->assertSame('started', $response['status']);
-        $this->assertNull($response['status_code']);
-        $this->assertNull($response['body']);
+        $this->assertSame(IdempotencyKeyStatus::Started, $response->status);
+        $this->assertNull($response->statusCode);
+        $this->assertSame([], $response->data);
     }
 
     public function testSaveStartedLogsErrorOnValidationFailure(): void
@@ -82,7 +95,7 @@ final class IdempotencyRepositoryTest extends Unit
         $logger->expects($this->once())
             ->method('error');
 
-        $repository = new IdempotencyRepository($logger);
+        $repository = new IdempotencyRepository($logger, new SystemClock());
         $key = str_repeat('a', IdempotencyKey::MAX_KEY_LENGTH + 1);
 
         $this->assertFalse($repository->saveStarted($key, 3600));
@@ -92,12 +105,13 @@ final class IdempotencyRepositoryTest extends Unit
     public function testSaveDuplicateKeyDoesNotCrash(): void
     {
         $key = 'duplicate-key';
-        $this->repository->saveResponse($key, 200, 'first', 3600);
+        $this->repository->saveResponse($key, 200, '{"result":"first"}', 3600);
 
-        $this->repository->saveResponse($key, 200, 'second', 3600);
+        $this->repository->saveResponse($key, 200, '{"result":"second"}', 3600);
 
         $response = $this->repository->getRecord($key);
-        $this->assertSame('first', $response['body']);
+        $this->assertNotNull($response);
+        $this->assertSame(['result' => 'first'], $response->data);
     }
 
     public function testSaveResponseLogsErrorOnValidationFailure(): void
@@ -108,7 +122,7 @@ final class IdempotencyRepositoryTest extends Unit
         $logger->expects($this->once())
             ->method('error');
 
-        $repository = new IdempotencyRepository($logger);
+        $repository = new IdempotencyRepository($logger, new SystemClock());
         $key = str_repeat('b', IdempotencyKey::MAX_KEY_LENGTH + 1);
 
         $repository->saveResponse($key, 200, '{"result": "ok"}', 3600);
@@ -123,9 +137,9 @@ final class IdempotencyRepositoryTest extends Unit
 
         $response = $this->repository->getRecord($key);
         $this->assertNotNull($response);
-        $this->assertSame('finished', $response['status']);
-        $this->assertSame(200, $response['status_code']);
-        $this->assertSame('{"result": "ok"}', $response['body']);
+        $this->assertSame(IdempotencyKeyStatus::Finished, $response->status);
+        $this->assertSame(200, $response->statusCode);
+        $this->assertSame(['result' => 'ok'], $response->data);
     }
 
     public function testNormalizeResponseBodyReturnsNullForNonResource(): void

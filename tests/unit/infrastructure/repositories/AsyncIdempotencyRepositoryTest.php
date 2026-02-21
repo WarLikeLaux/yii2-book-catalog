@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\tests\unit\infrastructure\repositories;
 
+use app\infrastructure\adapters\SystemClock;
 use app\infrastructure\persistence\AsyncIdempotencyLog;
 use app\infrastructure\repositories\AsyncIdempotencyRepository;
 use Codeception\Test\Unit;
@@ -17,7 +18,7 @@ final class AsyncIdempotencyRepositoryTest extends Unit
 
     protected function _before(): void
     {
-        $this->repository = new AsyncIdempotencyRepository();
+        $this->repository = new AsyncIdempotencyRepository(new SystemClock());
         AsyncIdempotencyLog::deleteAll();
     }
 
