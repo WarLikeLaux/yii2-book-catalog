@@ -14,6 +14,7 @@ use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
 use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\AlreadyExistsException;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
@@ -115,7 +116,7 @@ final class UpdateBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('getByIdAndVersion')
             ->with(999, 1)
-            ->willThrowException(new StaleDataException());
+            ->willThrowException(new StaleDataException(DomainErrorCode::BookStaleData));
 
         $this->expectException(StaleDataException::class);
 

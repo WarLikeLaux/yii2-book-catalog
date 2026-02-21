@@ -9,8 +9,6 @@ use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\events\BookStatusChangedEvent;
-use app\domain\exceptions\BusinessRuleException;
-use app\domain\exceptions\DomainErrorCode;
 use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookStatus;
 
@@ -33,8 +31,7 @@ final readonly class ChangeBookStatusUseCase implements UseCaseInterface
     {
         $book = $this->bookRepository->get($command->bookId);
         $oldStatus = $book->status;
-        $targetStatus = BookStatus::tryFrom($command->targetStatus)
-        ?? throw new BusinessRuleException(DomainErrorCode::BookInvalidStatusTransition);
+        $targetStatus = $command->targetStatus;
 
         $policy = $targetStatus === BookStatus::Published ? $this->publicationPolicy : null;
         $book->transitionTo($targetStatus, $policy);

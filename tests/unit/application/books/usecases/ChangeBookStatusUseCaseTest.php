@@ -56,7 +56,7 @@ final class ChangeBookStatusUseCaseTest extends Unit
                 && $event->newStatus === BookStatus::Published
                 && $event->year === 2024));
 
-        $result = $this->useCase->execute(new ChangeBookStatusCommand(1, 'published'));
+        $result = $this->useCase->execute(new ChangeBookStatusCommand(1, BookStatus::Published));
 
         $this->assertTrue($result);
         $this->assertSame(BookStatus::Published, $book->status);
@@ -74,7 +74,7 @@ final class ChangeBookStatusUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())->method('save');
         $this->eventPublisher->expects($this->once())->method('publishAfterCommit');
 
-        $result = $this->useCase->execute(new ChangeBookStatusCommand(1, 'draft'));
+        $result = $this->useCase->execute(new ChangeBookStatusCommand(1, BookStatus::Draft));
 
         $this->assertTrue($result);
         $this->assertSame(BookStatus::Draft, $book->status);
@@ -92,7 +92,7 @@ final class ChangeBookStatusUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())->method('save');
         $this->eventPublisher->expects($this->once())->method('publishAfterCommit');
 
-        $result = $this->useCase->execute(new ChangeBookStatusCommand(1, 'archived'));
+        $result = $this->useCase->execute(new ChangeBookStatusCommand(1, BookStatus::Archived));
 
         $this->assertTrue($result);
         $this->assertSame(BookStatus::Archived, $book->status);
@@ -116,7 +116,7 @@ final class ChangeBookStatusUseCaseTest extends Unit
                 && $event->newStatus === BookStatus::Draft
                 && $event->year === 2024));
 
-        $result = $this->useCase->execute(new ChangeBookStatusCommand(1, 'draft'));
+        $result = $this->useCase->execute(new ChangeBookStatusCommand(1, BookStatus::Draft));
 
         $this->assertTrue($result);
         $this->assertSame(BookStatus::Draft, $book->status);
@@ -134,7 +134,7 @@ final class ChangeBookStatusUseCaseTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.invalid_status_transition');
 
-        $this->useCase->execute(new ChangeBookStatusCommand(1, 'archived'));
+        $this->useCase->execute(new ChangeBookStatusCommand(1, BookStatus::Archived));
     }
 
     public function testArchivedToPublishedForbidden(): void
@@ -149,21 +149,6 @@ final class ChangeBookStatusUseCaseTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.invalid_status_transition');
 
-        $this->useCase->execute(new ChangeBookStatusCommand(1, 'published'));
-    }
-
-    public function testInvalidStatusStringThrows(): void
-    {
-        $book = BookTestHelper::createBook(
-            id: 1,
-            status: BookStatus::Draft,
-        );
-
-        $this->bookRepository->method('get')->willReturn($book);
-
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('book.error.invalid_status_transition');
-
-        $this->useCase->execute(new ChangeBookStatusCommand(1, 'garbage'));
+        $this->useCase->execute(new ChangeBookStatusCommand(1, BookStatus::Published));
     }
 }

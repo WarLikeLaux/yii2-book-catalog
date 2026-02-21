@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\application\books\queries;
 
+use app\domain\values\BookStatus;
 use JsonSerializable;
 
 final readonly class BookReadDto implements JsonSerializable
@@ -21,14 +22,14 @@ final readonly class BookReadDto implements JsonSerializable
         public array $authorIds,
         public array $authorNames = [],
         public string|null $coverUrl = null,
-        public string $status = 'draft',
+        public string $status = BookStatus::Draft->value,
         public int $version = 1,
     ) {
     }
 
     public function getIsPublished(): bool
     {
-        return $this->status === 'published';
+        return $this->status === BookStatus::Published->value;
     }
 
     public function getFullTitle(): string

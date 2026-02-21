@@ -9,6 +9,7 @@ use app\application\common\IdempotencyKeyStatus;
 use app\application\common\IdempotencyService;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
+use app\domain\values\BookStatus;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -199,7 +200,7 @@ final class IdempotencyServiceTest extends Unit
             authorIds: [1, 2],
             authorNames: [1 => 'Author One', 2 => 'Author Two'],
             coverUrl: '/covers/test.jpg',
-            status: 'published',
+            status: BookStatus::Published->value,
             version: 1,
         );
         $ttl = 3600;
@@ -214,7 +215,7 @@ final class IdempotencyServiceTest extends Unit
             'authorNames' => [1 => 'Author One', 2 => 'Author Two'],
             'coverUrl' => '/covers/test.jpg',
             'isPublished' => true,
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
             'version' => 1,
         ];
 

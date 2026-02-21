@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\tests\unit\application\subscriptions\usecases;
 
+use app\application\ports\PhoneNormalizerInterface;
 use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
@@ -20,26 +21,34 @@ final class SubscribeUseCaseTest extends Unit
 {
     private SubscriptionRepositoryInterface&MockObject $repository;
     private SubscriptionQueryServiceInterface&MockObject $queryService;
+    private PhoneNormalizerInterface&MockObject $phoneNormalizer;
     private SubscribeUseCase $useCase;
 
     protected function _before(): void
     {
         $this->repository = $this->createMock(SubscriptionRepositoryInterface::class);
         $this->queryService = $this->createMock(SubscriptionQueryServiceInterface::class);
-        $this->useCase = new SubscribeUseCase($this->repository, $this->queryService);
+        $this->phoneNormalizer = $this->createMock(PhoneNormalizerInterface::class);
+        $this->useCase = new SubscribeUseCase($this->repository, $this->queryService, $this->phoneNormalizer);
     }
 
     public function testExecuteSuccess(): void
     {
-        $command = new SubscribeCommand('79001112233', 1);
+        $command = new SubscribeCommand('+7 999 111-22-33', 1);
+
+        $this->phoneNormalizer->expects($this->once())
+            ->method('normalize')
+            ->with('+7 999 111-22-33')
+            ->willReturn('+79991112233');
 
         $this->queryService->expects($this->once())
             ->method('exists')
+            ->with('+79991112233', 1)
             ->willReturn(false);
 
         $this->repository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Subscription $subscription) => $subscription->phone === '79001112233'
+            ->with($this->callback(static fn(Subscription $subscription) => (string)$subscription->phone === '+79991112233'
                     && $subscription->authorId === 1))
             ->willReturn(1);
 
@@ -50,8 +59,9 @@ final class SubscribeUseCaseTest extends Unit
 
     public function testExecuteThrowsBusinessRuleExceptionWhenAlreadySubscribed(): void
     {
-        $command = new SubscribeCommand('79001112233', 1);
+        $command = new SubscribeCommand('+79001112233', 1);
 
+        $this->phoneNormalizer->method('normalize')->willReturn('+79001112233');
         $this->queryService->method('exists')->willReturn(true);
 
         $this->expectException(BusinessRuleException::class);
@@ -62,8 +72,9 @@ final class SubscribeUseCaseTest extends Unit
 
     public function testExecuteThrowsRuntimeExceptionOnRepositoryError(): void
     {
-        $command = new SubscribeCommand('79001112233', 1);
+        $command = new SubscribeCommand('+79001112233', 1);
 
+        $this->phoneNormalizer->method('normalize')->willReturn('+79001112233');
         $this->queryService->method('exists')->willReturn(false);
         $this->repository->method('save')->willThrowException(new RuntimeException('DB Error'));
 
@@ -75,13 +86,32 @@ final class SubscribeUseCaseTest extends Unit
 
     public function testExecuteThrowsApplicationExceptionOnAlreadyExists(): void
     {
-        $command = new SubscribeCommand('79001112233', 1);
+        $command = new SubscribeCommand('+79001112233', 1);
 
+        $this->phoneNormalizer->method('normalize')->willReturn('+79001112233');
         $this->queryService->method('exists')->willReturn(false);
         $this->repository->method('save')->willThrowException(new AlreadyExistsException());
 
         $this->expectException(AlreadyExistsException::class);
         $this->expectExceptionMessage('error.entity_already_exists');
+
+        $this->useCase->execute($command);
+    }
+
+    public function testExistsCheckUsesNormalizedPhone(): void
+    {
+        $command = new SubscribeCommand('+7 999 111-22-33', 1);
+
+        $this->phoneNormalizer->method('normalize')
+            ->with('+7 999 111-22-33')
+            ->willReturn('+79991112233');
+
+        $this->queryService->expects($this->once())
+            ->method('exists')
+            ->with('+79991112233', 1)
+            ->willReturn(true);
+
+        $this->expectException(BusinessRuleException::class);
 
         $this->useCase->execute($command);
     }
