@@ -17,7 +17,7 @@ final readonly class LogSmsSender implements SmsSenderInterface
     public function send(string $phone, string $message): bool
     {
         $this->logger->info('SMS sent (logged)', [
-            'phone' => $phone,
+            'phone' => PhoneMasker::mask($phone),
             'message' => $message,
         ]);
 

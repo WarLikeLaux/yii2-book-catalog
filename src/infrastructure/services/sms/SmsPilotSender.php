@@ -37,7 +37,7 @@ final readonly class SmsPilotSender implements SmsSenderInterface
 
         if ($httpCode !== 200 || $response === false) {
             $this->logger->error('SMS API error', [
-                'phone' => $phone,
+                'phone' => PhoneMasker::mask($phone),
                 'http_code' => $httpCode,
                 'response' => $response,
             ]);
@@ -48,14 +48,14 @@ final readonly class SmsPilotSender implements SmsSenderInterface
 
         if ($status === 'OK' || $status === '0') {
             $this->logger->info('SMS sent successfully', [
-                'phone' => $phone,
+                'phone' => PhoneMasker::mask($phone),
                 'status' => $status,
             ]);
             return true;
         }
 
         $this->logger->error('SMS API failed', [
-            'phone' => $phone,
+            'phone' => PhoneMasker::mask($phone),
             'status' => $status,
             'response' => $response,
         ]);

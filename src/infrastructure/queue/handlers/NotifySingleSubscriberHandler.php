@@ -6,6 +6,7 @@ namespace app\infrastructure\queue\handlers;
 
 use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\application\ports\SmsSenderInterface;
+use app\infrastructure\services\sms\PhoneMasker;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -28,7 +29,7 @@ final readonly class NotifySingleSubscriberHandler
 
         if (!$this->idempotencyStorage->acquire($idempotencyKey)) {
             $this->logger->info('Skipping duplicate SMS notification', [
-                'phone' => $this->maskPhone($phone),
+                'phone' => PhoneMasker::mask($phone),
                 'book_id' => $bookId,
                 'idempotency_key' => $idempotencyKey,
             ]);
@@ -39,7 +40,7 @@ final readonly class NotifySingleSubscriberHandler
             $this->sender->send($phone, $message);
 
             $this->logger->info('SMS notification sent successfully', [
-                'phone' => $this->maskPhone($phone),
+                'phone' => PhoneMasker::mask($phone),
                 'book_id' => $bookId,
             ]);
         } catch (Throwable $exception) {
@@ -53,7 +54,7 @@ final readonly class NotifySingleSubscriberHandler
             }
 
             $this->logger->error('SMS notification failed', [
-                'phone' => $this->maskPhone($phone),
+                'phone' => PhoneMasker::mask($phone),
                 'book_id' => $bookId,
                 'error' => $exception->getMessage(),
                 'exception_class' => $exception::class,
@@ -61,16 +62,5 @@ final readonly class NotifySingleSubscriberHandler
 
             throw $exception;
         }
-    }
-
-    private function maskPhone(string $phone): string
-    {
-        $len = strlen($phone);
-
-        if ($len <= 4) {
-            return str_repeat('*', $len);
-        }
-
-        return substr($phone, 0, 2) . str_repeat('*', $len - 4) . substr($phone, -2);
     }
 }
