@@ -7,7 +7,9 @@ namespace tests\unit\presentation\controllers;
 use app\application\common\dto\HealthCheckResult;
 use app\application\common\dto\HealthReport;
 use app\application\ports\HealthCheckRunnerInterface;
+use app\application\system\usecases\CheckHealthUseCase;
 use app\presentation\controllers\HealthController;
+use app\presentation\services\HealthResponseFormatter;
 use Codeception\Test\Unit;
 use Yii;
 use yii\base\Module;
@@ -51,7 +53,11 @@ final class HealthControllerTest extends Unit
         );
         $runner->method('run')->willReturn($report);
 
-        $controller = new HealthController('health', $this->createMock(Module::class), $runner, [
+        $useCase = new CheckHealthUseCase($runner);
+
+        $formatter = new HealthResponseFormatter();
+
+        $controller = new HealthController('health', $this->createMock(Module::class), $useCase, $formatter, [
             'request' => new Request(),
             'response' => new Response(),
         ]);
@@ -85,7 +91,11 @@ final class HealthControllerTest extends Unit
         );
         $runner->method('run')->willReturn($report);
 
-        $controller = new HealthController('health', $this->createMock(Module::class), $runner, [
+        $useCase = new CheckHealthUseCase($runner);
+
+        $formatter = new HealthResponseFormatter();
+
+        $controller = new HealthController('health', $this->createMock(Module::class), $useCase, $formatter, [
             'request' => new Request(),
             'response' => new Response(),
         ]);
