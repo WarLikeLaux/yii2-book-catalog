@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use app\application\common\config\ApiPageConfig;
 use app\application\common\config\ConfigFactory;
 use app\application\common\config\IdempotencyConfig;
 use app\application\common\config\JaegerConfig;
@@ -109,6 +110,7 @@ return static function (array $params): array {
             ConfigFactory::class => static fn(): ConfigFactory => $configFactory,
             IdempotencyConfig::class => static fn(): IdempotencyConfig => $configFactory->idempotency(),
             RateLimitConfig::class => static fn(): RateLimitConfig => $configFactory->rateLimit(),
+            ApiPageConfig::class => static fn(): ApiPageConfig => $configFactory->apiPage(),
             ReportsConfig::class => static fn(): ReportsConfig => $configFactory->reports(),
             AppStorageConfig::class => static fn(): AppStorageConfig => $configFactory->storage(),
             JaegerConfig::class => static fn(): JaegerConfig => $configFactory->jaeger(),
