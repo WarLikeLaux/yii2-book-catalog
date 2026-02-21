@@ -14,18 +14,15 @@ parameters:
 
 	# Директории для анализа (соответствуют слоям Clean Architecture)
 	paths:
-		- application
-		- domain
-		- infrastructure
-		- presentation
+		- src
 
 	# Исключения из анализа
 	excludePaths:
-		- presentation/views/* # View-файлы содержат HTML и PHP, сложны для статического анализа
+		- src/presentation/views/* # View-файлы содержат HTML и PHP, сложны для статического анализа
 		- tests/*              # Тесты анализируются отдельно (или не требуют такой строгости)
 		- runtime/*            # Временные файлы Yii2
 		- vendor/*             # Сторонние библиотеки
-		- presentation/controllers/BaseController.php # Переопределяет render() с более строгой сигнатурой
+		- src/presentation/controllers/BaseController.php # Переопределяет render() с более строгой сигнатурой
 
 	# Не ругаться, если какое-то правило ignoreErrors больше не срабатывает (полезно при рефакторинге)
 	reportUnmatchedIgnoredErrors: false

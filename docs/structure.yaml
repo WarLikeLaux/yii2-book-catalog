@@ -6,7 +6,7 @@ modules:
   subscriptions: "Подписки на уведомления"
 
 layers:
-  domain:
+  src/domain:
     description: "Слой домена (Business Logic)"
     children:
       common: "Общие доменные элементы"
@@ -17,7 +17,7 @@ layers:
       exceptions: "Исключения домена"
       specifications: "Specifications (criteria)"
 
-  application:
+  src/application:
     description: "Слой приложения (Application Logic)"
     type: "modules"
     modules_exclude:
@@ -35,7 +35,7 @@ layers:
       factories: "Фабрики модуля"
       mappers: "Mappers модуля"
 
-  infrastructure:
+  src/infrastructure:
     description: "Инфраструктурный слой (Framework Logic)"
     children:
       repositories: "Реализации Repository (через AR)"
@@ -51,7 +51,7 @@ layers:
       phpstan: "Расширения и правила PHPStan"
       queries: "Query Services"
 
-  presentation:
+  src/presentation:
     description: "Слой представления (UI/API)"
     type: "modules"
     modules_exclude:

@@ -10,7 +10,7 @@ $config = [
     'id' => 'basic-tests',
     'basePath' => dirname(__DIR__),
     'controllerNamespace' => 'app\presentation\controllers',
-    'viewPath' => '@app/presentation/views',
+    'viewPath' => '@app/src/presentation/views',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
@@ -57,7 +57,7 @@ $config = [
         ],
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
-            'viewPath' => '@app/presentation/mail',
+            'viewPath' => '@app/src/presentation/mail',
             'useFileTransport' => true,
             'messageClass' => 'yii\symfonymailer\Message',
         ],

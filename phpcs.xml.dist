@@ -4,7 +4,7 @@
 
     <!-- Игнорируем ReturnTypeDeclaration для сущностей с PHP 8.4 Hook, так как это вызывает крэш линтера -->
     <rule ref="PSR12.Functions.ReturnTypeDeclaration">
-        <exclude-pattern>domain/entities/*</exclude-pattern>
+        <exclude-pattern>src/domain/entities/*</exclude-pattern>
     </rule>
 
     <file>.</file>
@@ -237,17 +237,17 @@
     <rule ref="SlevomatCodingStandard.TypeHints.UselessConstantTypeHint"/>
     <!-- Строгие типы параметров и возвратов, внедрение по модулям -->
     <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint">
-        <exclude-pattern>presentation/*</exclude-pattern>
-        <exclude-pattern>infrastructure/persistence/*</exclude-pattern>
-        <exclude-pattern>infrastructure/phpstan/Rules/*</exclude-pattern>
+        <exclude-pattern>src/presentation/*</exclude-pattern>
+        <exclude-pattern>src/infrastructure/persistence/*</exclude-pattern>
+        <exclude-pattern>src/infrastructure/phpstan/Rules/*</exclude-pattern>
         <exclude-pattern>tests/*</exclude-pattern>
         <exclude-pattern>commands/*</exclude-pattern>
         <exclude-pattern>migrations/*</exclude-pattern>
     </rule>
     <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint">
-        <exclude-pattern>presentation/*</exclude-pattern>
-        <exclude-pattern>infrastructure/persistence/*</exclude-pattern>
-        <exclude-pattern>infrastructure/phpstan/Rules/*</exclude-pattern>
+        <exclude-pattern>src/presentation/*</exclude-pattern>
+        <exclude-pattern>src/infrastructure/persistence/*</exclude-pattern>
+        <exclude-pattern>src/infrastructure/phpstan/Rules/*</exclude-pattern>
         <exclude-pattern>tests/*</exclude-pattern>
         <exclude-pattern>commands/*</exclude-pattern>
         <exclude-pattern>migrations/*</exclude-pattern>

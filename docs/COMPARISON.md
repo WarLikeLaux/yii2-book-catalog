@@ -77,12 +77,12 @@ graph TD
     style Handler fill:#f9f,stroke:#333,stroke-width:2px
     style Mapper fill:#f9f,stroke:#333,stroke-width:2px
     style Form fill:#f9f,stroke:#333,stroke-width:2px
-    
+
     style UseCase fill:#bbf,stroke:#333,stroke-width:2px
     style Command fill:#bbf,stroke:#333,stroke-width:2px
-    
+
     style Entity fill:#bfb,stroke:#333,stroke-width:2px
-    
+
     style Repo fill:#fbb,stroke:#333,stroke-width:2px
     style DB fill:#fbb,stroke:#333,stroke-width:2px
 ```

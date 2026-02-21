@@ -21,10 +21,10 @@ use Arkitect\Expression\ForClasses\ResideInOneOfTheseNamespaces;
 use Arkitect\Rules\Rule;
 
 return static function (Config $config): void {
-    $applicationSet = ClassSet::fromDir(__DIR__ . '/application');
-    $domainSet = ClassSet::fromDir(__DIR__ . '/domain');
-    $infrastructureSet = ClassSet::fromDir(__DIR__ . '/infrastructure');
-    $presentationSet = ClassSet::fromDir(__DIR__ . '/presentation');
+    $applicationSet = ClassSet::fromDir(__DIR__ . '/src/application');
+    $domainSet = ClassSet::fromDir(__DIR__ . '/src/domain');
+    $infrastructureSet = ClassSet::fromDir(__DIR__ . '/src/infrastructure');
+    $presentationSet = ClassSet::fromDir(__DIR__ . '/src/presentation');
 
     $domainRules = [];
     $applicationRules = [];

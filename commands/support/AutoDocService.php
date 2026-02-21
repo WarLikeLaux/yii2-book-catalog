@@ -40,7 +40,7 @@ final readonly class AutoDocService
 
     public function generateRoutes(): void
     {
-        $controllerDir = Yii::getAlias('@app/presentation/controllers');
+        $controllerDir = Yii::getAlias('@app/src/presentation/controllers');
         $files = FileHelper::findFiles((string)$controllerDir, ['only' => ['*Controller.php']]);
         $urlRules = $this->loadUrlRules();
         $routes = [];
@@ -63,7 +63,7 @@ final readonly class AutoDocService
 
     public function generateModelsDoc(): void
     {
-        $modelDir = Yii::getAlias('@app/infrastructure/persistence');
+        $modelDir = Yii::getAlias('@app/src/infrastructure/persistence');
         $files = FileHelper::findFiles((string)$modelDir, ['only' => ['*.php']]);
         $models = [];
 
@@ -95,7 +95,7 @@ final readonly class AutoDocService
 
     public function generateUseCasesDoc(): void
     {
-        $appDir = Yii::getAlias('@app/application');
+        $appDir = Yii::getAlias('@app/src/application');
         $files = FileHelper::findFiles((string)$appDir, ['only' => ['*UseCase.php']]);
         $useCases = [];
 
@@ -133,7 +133,7 @@ final readonly class AutoDocService
 
     public function generateEventsDoc(): void
     {
-        $eventDir = Yii::getAlias('@app/domain/events');
+        $eventDir = Yii::getAlias('@app/src/domain/events');
         $files = FileHelper::findFiles((string)$eventDir, ['only' => ['*.php']]);
         $events = [];
 
@@ -436,7 +436,7 @@ final readonly class AutoDocService
         ];
 
         if (preg_match("/render\('\s*([a-z0-9_-]+)\s*'\)/i", $body, $m)) {
-            $viewFile = 'presentation/views/' . $controllerId . '/' . $m[1] . '.php';
+            $viewFile = 'src/presentation/views/' . $controllerId . '/' . $m[1] . '.php';
 
             if (file_exists(Yii::getAlias('@app/' . $viewFile))) {
                 $entry['view'] = $viewFile;
@@ -587,7 +587,7 @@ final readonly class AutoDocService
 
     private function getRelativeControllerDir(string $file): string
     {
-        $controllerDir = realpath((string)Yii::getAlias('@app/presentation/controllers'));
+        $controllerDir = realpath((string)Yii::getAlias('@app/src/presentation/controllers'));
         $dir = realpath(dirname($file));
 
         if ($controllerDir === false || $dir === false) {

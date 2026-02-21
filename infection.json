@@ -2,8 +2,8 @@
 	"$schema": "vendor/infection/infection/resources/schema.json",
 	"source": {
 		"directories": [
-			"domain",
-			"application"
+			"src/domain",
+			"src/application"
 		]
 	},
 	"logs": {

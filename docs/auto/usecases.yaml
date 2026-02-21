@@ -4,6 +4,9 @@ usecases:
   ChangeBookStatusUseCase:
     command: ChangeBookStatusCommand
     module: books
+  CheckHealthUseCase:
+    command: void
+    module: system
   CreateAuthorUseCase:
     command: CreateAuthorCommand
     module: authors

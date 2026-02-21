@@ -23,7 +23,7 @@ $config = [
     'name' => 'Yii 2 Book Catalog',
     'basePath' => dirname(__DIR__),
     'controllerNamespace' => 'app\presentation\controllers',
-    'viewPath' => '@app/presentation/views',
+    'viewPath' => '@app/src/presentation/views',
     'language' => 'ru-RU',
     'sourceLanguage' => 'en-US',
     'bootstrap' => ['log', 'tracer'],
@@ -84,7 +84,7 @@ $config = [
         ],
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
-            'viewPath' => '@app/presentation/mail',
+            'viewPath' => '@app/src/presentation/mail',
             'useFileTransport' => env('MAILER_USE_FILE_TRANSPORT', true),
             'transport' => [
                 'scheme' => 'smtp',
