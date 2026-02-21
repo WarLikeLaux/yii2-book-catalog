@@ -58,9 +58,11 @@ echo "📂 Настройка алиасов для Skills..."
 mkdir -p .agent/skills
 mkdir -p .claude
 mkdir -p .codex
+mkdir -p .cursor
 
 ln -sfT ../.agent/skills .claude/skills
 ln -sfT ../.agent/skills .codex/skills
+ln -sfT ../.agent/skills .cursor/skills
 
 mkdir -p "$HOME/.claude" 2>/dev/null || true
 ln -sf "$ROOT_DIR/.agent/skills" "$HOME/.claude/skills" 2>/dev/null || true
