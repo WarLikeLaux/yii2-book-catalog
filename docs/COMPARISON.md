@@ -1122,7 +1122,7 @@ return Book::find()
 **Стало:**
 
 ```php
-// domain/specifications/BookSearchSpecificationFactory.php
+// application/books/factories/BookSearchSpecificationFactory.php
 $specification = $factory->createFromSearchTerm($term);
 
 // infrastructure/queries/BookQueryService.php

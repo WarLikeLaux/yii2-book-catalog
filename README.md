@@ -9,10 +9,9 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL_/_PgSQL-Multi_DB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-949_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-903_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
-[![AI Governance](https://img.shields.io/badge/AI-Governance-8A2BE2?style=for-the-badge&logo=googlegemini&logoColor=white)](docs/AI_WORKFLOW.md)
 
 ---
 
@@ -36,8 +35,6 @@
 🏗 **Архитектурные решения и диаграммы:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 🆚 **Сравнение подходов (Yii2 MVC и Clean Architecture):** [docs/COMPARISON.md](docs/COMPARISON.md)
-
-🤖 **Разработка с участием AI:** как устроено взаимодействие с агентами, контракты и автоматизация процессов: [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md)
 
 🧾 **Автособираемая документация:** актуальные отчеты и сводки по коду: [docs/auto](docs/auto)
 
@@ -86,10 +83,10 @@
 | 🔹 **Паттерн CQS**<br>Разделение команд и запросов                               | 🔍 **Гибридный поиск**<br>FullText + откат к LIKE                   |
 | 🔹 **Value Objects**<br>`Isbn`, `BookYear`, `BookStatus`, `StoredFileReference`  | 🛡 **Idempotency + Mutex**<br>Защита от дублей без гонок            |
 | 🔹 **🚦 Status FSM**<br>Конечный автомат статусов книги                          | ⚡ **HTMX**<br>Infinite Scroll и реактивные формы                   |
-| 🔹 **📦 CAS (File Storage)**<br>Контентно-адресуемое хранилище                   | 🤖 **AI Governance**<br>Контракты и автоматизация                   |
+| 🔹 **📦 CAS (File Storage)**<br>Контентно-адресуемое хранилище                   | 📈 **Observability**<br>OpenTelemetry + Inspector APM               |
 | 🔹 **Доменные события**<br>`BookStatusChangedEvent`, `BookUpdatedEvent`, fan-out | 🩺 **Эндпоинт здоровья (Health Check)**<br>Prod-readiness `/health` |
 | **🧪 Качество кода**                                                             | **🐳 DevOps Ready**                                                 |
-| ✅ **949+ тестов** (2236+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
+| ✅ **903+ тестов** (2251+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
 | ✅ **PHPStan Level 9**<br>10 кастомных правил (Custom Rules)                     | 🛠 **Makefile**<br>Автоматизация рутины                             |
 | ✅ **Мутационное тестирование**<br>Infection PHP (MSI 100%)                      | 📚 **Генерация документации**<br>Yii2 API + OpenAPI                 |
 | ✅ **Авто-рефакторинг**<br>Rector                                                | 🏗 **Контроль архитектуры**<br>Deptrac + Arkitect                   |
@@ -237,10 +234,10 @@ make env   # или make configure
 
 <table>
 <tr>
-<td align="center"><b>949</b><br>Tests</td>
-<td align="center"><b>2236+</b><br>Assertions</td>
+<td align="center"><b>903</b><br>Tests</td>
+<td align="center"><b>2251+</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~11s</b><br>Runtime</td>
+<td align="center"><b>~27s</b><br>Runtime</td>
 </tr>
 </table>
 
@@ -277,25 +274,26 @@ make test-infection
 ## 📁 Структура проекта
 
 ```text
-domain/                 - Слой домена (Business Logic)
+src/domain/             - Слой домена (Business Logic)
   ├── common/           - Общие доменные элементы
   ├── entities/         - Сущности (Rich Model)
   ├── events/           - Domain Events
   ├── exceptions/       - Исключения домена
+  ├── repositories/    
   ├── services/         - Domain Services (редко)
   ├── specifications/   - Specifications (criteria)
   ├── values/           - Value Objects (Immutable)
-application/            - Слой приложения (Application Logic)
+src/application/        - Слой приложения (Application Logic)
   ├── common/           - Общие DTO и валидаторы
   ├── ports/            - Интерфейсы (Ports)
-  ├── {{module}}/
+  ├── {{module}}/      
   │   ├── commands/     - DTO команд (Write)
   │   ├── exceptions/   - Исключения модуля
   │   ├── factories/    - Фабрики модуля
   │   ├── mappers/      - Mappers модуля
-  │   ├── queries/      - DTO чтения (Read)
+  │   ├── queries/      - DTO чтения (Read), DTO-only: final readonly, без infra
   │   ├── usecases/     - Классы Use Case (execute)
-infrastructure/         - Инфраструктурный слой (Framework Logic)
+src/infrastructure/     - Инфраструктурный слой (Framework Logic)
   ├── adapters/         - Адаптеры инфраструктуры
   ├── components/       - Вспомогательные компоненты
   ├── factories/        - Фабрики инфраструктуры
@@ -307,7 +305,7 @@ infrastructure/         - Инфраструктурный слой (Framework L
   ├── queue/            - Обработчики очередей
   ├── repositories/     - Реализации Repository (через AR)
   ├── services/         - Внешние сервисы
-presentation/           - Слой представления (UI/API)
+src/presentation/       - Слой представления (UI/API)
   ├── common/           - Общие компоненты
   ├── components/       - UI компоненты
   ├── controllers/      - Общие контроллеры
@@ -316,7 +314,7 @@ presentation/           - Слой представления (UI/API)
   ├── services/         - Общие сервисы представления
   ├── views/            - Шаблоны представлений
   ├── widgets/          - UI виджеты
-  ├── {{module}}/
+  ├── {{module}}/      
   │   ├── dto/          - DTO уровня представления
   │   ├── forms/        - Формы валидации
   │   ├── handlers/     - Обработчики запросов
@@ -332,6 +330,7 @@ commands/               - Console контроллеры
 config/                 - Конфигурация приложения
   ├── container/        - Конфигурация контейнера зависимостей
 docker/                 - Docker конфигурация
+  ├── jaeger/          
   ├── nginx/            - Конфигурация nginx
 docs/                   - Документация
   ├── ai/               - Правила и инструкции для AI
@@ -366,10 +365,10 @@ web/                    - Web root
 
 ### 📊 Статистика проекта
 
-![Source Code](https://img.shields.io/badge/Source_Code-10.6k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-16.6k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-306-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-201-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Code](https://img.shields.io/badge/Source_Code-11k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-17.4k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-335-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-220-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)

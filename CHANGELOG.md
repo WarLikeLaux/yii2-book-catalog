@@ -6,6 +6,126 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.20.0] - 2026-02-22 - "Доменная чистота, pull-модель событий и архитектурная зрелость"
+
+> Грандиозный архитектурный релиз, поднявший проект на качественно новый уровень DDD-чистоты. Реализована pull-модель доменных событий через RecordsEvents trait. Репозиторные интерфейсы перенесены в домен, хранилище файлов — в адаптеры. BookSearchSpecificationFactory вынесена из домена в application. Вычленён независимый CoverKeysScanner из BookQueryService. Внедрены inline invariant guards в агрегат Book, безопасное удаление авторов с FK RESTRICT-миграциями и проверками использования. Проведена масштабная стандартизация: FQCN-импорты в конфигах, BookStatus enum вместо magic strings, Phone VO, PhoneMasker, checker-интерфейсы. Система навыков AI-агента полностью переработана — audit разделён на hunt и reflect. Инфраструктура усилена Jaeger/OTel observability, health check endpoint и архитектурными правилами PHPArkitect.
+
+<details>
+<summary>Подробности изменений</summary>
+
+### 🚀 Новые функции и возможности
+
+- **#38** - реализована pull-модель доменных событий через **RecordsEvents trait** в сущности Book ([9c8ab98](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9c8ab98))
+- **#38** - рефакторинг use cases и репозитория для публикации событий из сущности ([a68ee7f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a68ee7f))
+- **#38** - добавлен **EventSerializer** в infrastructure, удалён getPayload из DomainEvent ([12383cb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/12383cb))
+- **#38** - добавлены inline invariant guards в мутации агрегата Book (updateDescription, updateCover, removeAuthor) ([44722a0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/44722a0))
+- **#38** - реализовано безопасное удаление авторов с проверками использования и removeAllBookLinks ([7f8d798](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7f8d798))
+- **#38** - добавлен порт **AuthorUsageCheckerInterface**, новые DomainErrorCode и контракт removeAllBookLinks ([044df7c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/044df7c))
+- **#38** - добавлены RESTRICT FK миграции для book_authors и subscriptions ([14c07d3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/14c07d3))
+- **#38** - добавлен порт **CoverKeysScannerInterface** и реализация CoverKeysScanner ([2e771c4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e771c4))
+- **#38** - добавлен **Phone** value object, валидация в Subscription и StoredFileReference ([5395214](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5395214))
+- **#38** - добавлен **PhoneNormalizerInterface** и LibPhoneNormalizer, извлечён RequestIdProviderInterface, замена magic strings на BookStatus enum в infrastructure ([85b549b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/85b549b))
+- **#38** - добавлен **PhoneMasker** для маскирования в SMS-логировании ([839a8fc](https://github.com/WarLikeLaux/yii2-book-catalog/commit/839a8fc))
+- **#38** - добавлены checker-интерфейсы и реализации ([4d9eebf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4d9eebf))
+- **#38** - добавлен **ApiPageConfig** ([dafeee0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dafeee0))
+- **#38** - добавлен ApiPageConfig в ConfigFactory и DI-контейнер ([0abbfa6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0abbfa6))
+- **#38** - добавлена дедупликация id в AuthorIdCollection ([bb884f1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bb884f1))
+- **#38** - добавлен **UnexpectedDtoTypeException** для замены generic LogicException в BookListViewFactory ([54f4a52](https://github.com/WarLikeLaux/yii2-book-catalog/commit/54f4a52))
+- **#38** - добавлено архитектурное правило **NoGhostQueryServiceInApplicationRule** (PHPArkitect) ([447a9ec](https://github.com/WarLikeLaux/yii2-book-catalog/commit/447a9ec))
+- **#38** - реализован **CheckHealthUseCase** и CheckHealthCommand ([bd93991](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bd93991))
+- **#38** - реализован health check endpoint и runners ([09283d8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/09283d8))
+- **#38** - реализована конфигурация **Jaeger** и OTel observability сервисы ([184046e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/184046e))
+- **#38** - добавлены skeleton card partial и catalog.js с toast-уведомлениями, модалкой подписки и GLightbox re-init ([fcc8577](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fcc8577))
+- **#38** - добавлен **FormToBookCommandMappingListener**, удалён MapFrom из CreateBookCommand и UpdateBookCommand ([e3292a3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e3292a3))
+- **#38** - добавлена валидация автора/подписки в usecases ([99083f8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/99083f8))
+
+### 🐛 Исправления
+
+- **#38** - исправлены FK RESTRICT тесты для PostgreSQL transaction abort state ([36c178f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/36c178f))
+- **#38** - исправлен AuthorExistenceChecker для обработки дублированных ids в existsAllByIds ([895891a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/895891a))
+- **#38** - исправлены ожидания теста дублированных author ids для нормализованного Book entity ([e1c7882](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e1c7882))
+- **#38** - исправлен YiiAuthAdapter null check с instanceof ([7be560f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7be560f))
+- **#38** - исправлены аннотации code coverage в DiskSpaceHealthCheck ([4b50d74](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4b50d74))
+- **#38** - исправлена генерация swagger docs ([a15263b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a15263b))
+- **#38** - исправлен list-comments: пропуск директорий и поддержка js/mjs ([3b7da0e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3b7da0e))
+
+### 🛠 Рефакторинг и архитектура
+
+- **#38** - перенесены репозиторные интерфейсы в домен, техническое хранилище — в адаптеры ([c11196e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c11196e))
+- **#38** - перенесена **BookSearchSpecificationFactory** из домена в application layer ([29b3a5a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/29b3a5a))
+- **#38** - удалён getReferencedCoverKeys из BookQueryServiceInterface ([2ba4965](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2ba4965))
+- **#38** - рефакторинг архитектуры в паттерн директории src/ ([3d2d4ff](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3d2d4ff))
+- **#38** - рефакторинг **FileContent**: перенесён fromPath в UploadedFileStorage, закрытие stream в finally ([66e4200](https://github.com/WarLikeLaux/yii2-book-catalog/commit/66e4200))
+- **#38** - рефакторинг HealthController для использования HealthResponseFormatter и use case ([8efe53a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8efe53a))
+- **#38** - рефакторинг AuthViewFactory: инжектирован ApiPageConfig для swagger/app портов ([8311fcf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8311fcf))
+- **#38** - рефакторинг форм: удалена валидация из presentation layer ([75ff8a6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/75ff8a6))
+- **#38** - рефакторинг usecases для использования existence и isbn checkers ([21bff6e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/21bff6e))
+- **#38** - рефакторинг presentation: DomainErrorCode, field errors, SystemInfoWidget DI ([8b72e0d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8b72e0d))
+- **#38** - рефакторинг use cases и репозиторий для публикации событий из сущности ([a68ee7f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a68ee7f))
+- **#38** - замена magic status strings на **BookStatus enum** в presentation layer, инжектирован RequestIdProviderInterface в контроллеры ([968cba0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/968cba0))
+- **#38** - рефакторинг ChangeBookStatusCommand для использования BookStatus enum, нормализация телефона в SubscribeUseCase ([826c9b8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/826c9b8))
+- **#38** - замена raw array в портах на **IdempotencyRecordDto** и **RateLimitResult** ([1b7a52e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1b7a52e))
+- **#38** - обновлены репозитории и декораторы для возврата DTO, введён ClockInterface ([628141e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/628141e))
+- **#38** - введён **ClockInterface** в RateLimitFilter, FormToBookCommandMappingListener перенесён в presentation ([6e0237a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6e0237a))
+- **#38** - введён DTO-only контракт для application/*/queries layer (PHPArkitect, Deptrac, docs) ([c876ba5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c876ba5))
+- **#38** - удалён ghost BookQueryService и BookSearchCriteria из application layer ([e3dd776](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e3dd776))
+- **#38** - удалена idempotency middleware и связанный код ([33d41ec](https://github.com/WarLikeLaux/yii2-book-catalog/commit/33d41ec))
+- **#38** - удалены мёртвые DomainErrorCode cases (AuthorCreateFailed, AuthorUpdateFailed, SubscriptionCreateFailed, SubscriptionStaleData, MapperFailed) ([8c7e721](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8c7e721))
+- **#38** - удалён phpstan из grumphp pre-commit ([ea7175b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ea7175b))
+- **#38** - удалены Buggregator и Inspector observability сервисы ([66854c6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/66854c6))
+- **#38** - упрощён CreateBookUseCase: удалена избыточная проверка bookId ([3b3e5bb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3b3e5bb))
+- **#38** - стандартизованы FQCN-импорты в конфигах (use + short name) ([a679366](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a679366))
+- **#38** - стандартизованы пространства имён тестов (app\\tests → tests) ([4be6cbf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4be6cbf))
+- **#38** - перенесён AuthorIdCollectionTest из domain в application ([761befb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/761befb))
+- **#38** - перенесён NativeMimeTypeDetectorTest из domain в infrastructure ([5ce5858](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5ce5858))
+- **#38** - рефакторинг view templates: стандартизация отступов и форматирования ([150656d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/150656d))
+
+### 🧪 Тестирование
+
+- **#38** - добавлены unit и integration тесты для безопасного удаления авторов ([e4fce35](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e4fce35))
+- **#38** - добавлены тесты CoverKeysScanner и обновлены тесты декоратора BookQueryService ([0e09d60](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0e09d60))
+- **#38** - добавлены тесты для inline invariant guards (updateDescription, updateCover, removeAuthor) ([a90486b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a90486b))
+- **#38** - добавлен FormToBookCommandMappingListenerTest ([7fc9065](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7fc9065))
+- **#38** - добавлен тест дублированных author ids для UpdateBookUseCase ([fccd7d7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fccd7d7))
+- **#38** - добавлен integration тест целостности контейнера ([c558627](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c558627))
+- **#38** - обновлены тесты и docs для доменных событий в entities ([c537a21](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c537a21))
+- **#38** - обновлены тесты для рефакторинга checkers и новых сервисов ([48dfe68](https://github.com/WarLikeLaux/yii2-book-catalog/commit/48dfe68))
+- **#38** - обновлены тесты для рефакторинга валидации ([f634dfa](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f634dfa))
+- **#38** - обновлены тесты для рефакторинга port array, добавлен IdempotencyRepositoryTracingDecoratorTest ([ae370ca](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ae370ca))
+- **#38** - обновлены тесты phone и stored file reference для assert ожидаемых исключений ([c14c53b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c14c53b))
+- **#38** - обновлён HealthControllerTest для новых зависимостей ([04fb108](https://github.com/WarLikeLaux/yii2-book-catalog/commit/04fb108))
+
+### ⚙️ Инфраструктура
+
+- **#38** - заменён скилл audit на **hunt** и **reflect** ([bb546c2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bb546c2))
+- **#38** - введена система skills и обновлены ссылки проекта ([dbc1186](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dbc1186))
+- **#38** - мигрированы workflows в новую структуру skills ([62dc15e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/62dc15e))
+- **#38** - обновлены deptrac layers и архитектурная документация ([745de4e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/745de4e))
+- **#38** - обновлена конфигурация приложения и core зависимости ([695cd3e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/695cd3e))
+- **#38** - обновлены rector команды в Makefile: добавлен --clear-cache ([2bd79be](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2bd79be))
+- **#38** - добавлен autoload-dev для пространства имён tests ([672aaaf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/672aaaf))
+- **#38** - перенесены PHPStan fixtures в tests, рефакторинг конфигурации ([e423a67](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e423a67))
+- **#38** - добавлены .gitignore записи для make lock artifacts (.dev.lock, .test.lock) ([d430a95](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d430a95))
+- **#38** - добавлены переводы для ошибок валидации phone и file ([b1a68b0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b1a68b0))
+- **#38** - добавлен lang attributes в html mail layout ([990c49e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/990c49e))
+- **#38** - добавлены переводы для ограничений удаления авторов (en-US, ru-RU) ([044df7c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/044df7c))
+- **#38** - зарегистрированы AuthorUsageCheckerInterface и CoverKeysScannerInterface в DI-контейнере ([2e771c4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e771c4))
+- **#38** - рефакторинг awk-команды в Makefile для улучшенного определения заголовков тегов ([71b63fe](https://github.com/WarLikeLaux/yii2-book-catalog/commit/71b63fe))
+- **#38** - рефакторинг путей review-скриптов в bin ([f385aa2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f385aa2))
+
+### 📝 Документация
+
+- **#38** - обновлена документация ([a977c89](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a977c89))
+- **#38** - обновлена документация ([96538fb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/96538fb))
+- **#38** - удалён избыточный комментарий и обновлены docs ([cc7634e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cc7634e))
+- **#38** - синхронизированы примеры CreateBookUseCase и ChangeBookStatusUseCase в COMPARISON.md с актуальным кодом ([cc4a0c7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cc4a0c7))
+- **#38** - добавлен шаг make analyze в цикл разработки в документации ([f9b4303](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f9b4303))
+- **#38** - обновлён go skill: уточнён workflow финальной проверки ([cc1025d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cc1025d))
+- **#37** - обновлена архитектурная документация: добавлена визуализация жизненного цикла запроса ([af0031b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/af0031b))
+- **#37** - синхронизирован лендинг с README: замена CQRS на CQS, обновлены метрики, добавлены карточки Status FSM, CAS Storage, Value Objects и Arkitect ([c20cc0b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c20cc0b))
+
+</details>
+
 ## [0.19.0] - 2026-02-08 - "Презентационная революция, декларативные ошибки и машина состояний"
 
 > Масштабнейший релиз, охватывающий все слои приложения: реализован паттерн BaseController с ViewModelRenderer, внедрена декларативная система обработки доменных ошибок через ErrorMapping-атрибуты и DomainExceptionTranslationMiddleware. Введена машина состояний BookStatus с безопасными переходами. Presentation-слой полностью переработан — Read-side handlers переименованы в ViewFactory, контроллеры переведены на early returns. Формы мигрированы на constructor DI, репозитории стандартизированы через ActiveRecordHydrator и reconstitute(). Локализованы все представления, стандартизированы стили через CSS-классы, добавлена поддержка HTMX partial rendering.

@@ -276,7 +276,7 @@ public function createBook(BookForm $form): int
     );
 
     if ($form->cover instanceof UploadedFile && $cover === null) {
-        throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
+        throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
     }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
@@ -432,27 +432,27 @@ public function createBook(BookForm $form): int
 ## 📁 Структура проекта
 
 ```text
-domain/                 - Слой домена (Business Logic)
+src/domain/             - Слой домена (Business Logic)
   ├── common/           - Общие доменные элементы
   ├── entities/         - Сущности (Rich Model)
   ├── events/           - Domain Events
   ├── exceptions/       - Исключения домена
-  ├── repositories/     - Интерфейсы репозиториев (контракт хранения)
+  ├── repositories/    
   ├── services/         - Domain Services (редко)
   ├── specifications/   - Specifications (criteria)
   ├── values/           - Value Objects (Immutable)
-  application/            - Слой приложения (Application Logic)
+src/application/        - Слой приложения (Application Logic)
   ├── common/           - Общие DTO и валидаторы
   ├── ports/            - Интерфейсы (Ports)
-  ├── {{module}}/
+  ├── {{module}}/      
   │   ├── commands/     - DTO команд (Write)
   │   ├── exceptions/   - Исключения модуля
   │   ├── factories/    - Фабрики модуля
   │   ├── mappers/      - Mappers модуля
   │   ├── queries/      - DTO чтения (Read), DTO-only: final readonly, без infra
   │   ├── usecases/     - Классы Use Case (execute)
-infrastructure/         - Инфраструктурный слой (Framework Logic)
-  ├── adapters/         - Адаптеры (IdempotencyStorage, RateLimitStorage, Yii*, EventPublisher)
+src/infrastructure/     - Инфраструктурный слой (Framework Logic)
+  ├── adapters/         - Адаптеры инфраструктуры
   ├── components/       - Вспомогательные компоненты
   ├── factories/        - Фабрики инфраструктуры
   ├── listeners/        - Event Listeners
@@ -463,7 +463,7 @@ infrastructure/         - Инфраструктурный слой (Framework L
   ├── queue/            - Обработчики очередей
   ├── repositories/     - Реализации Repository (через AR)
   ├── services/         - Внешние сервисы
-presentation/           - Слой представления (UI/API)
+src/presentation/       - Слой представления (UI/API)
   ├── common/           - Общие компоненты
   ├── components/       - UI компоненты
   ├── controllers/      - Общие контроллеры
@@ -472,7 +472,7 @@ presentation/           - Слой представления (UI/API)
   ├── services/         - Общие сервисы представления
   ├── views/            - Шаблоны представлений
   ├── widgets/          - UI виджеты
-  ├── {{module}}/
+  ├── {{module}}/      
   │   ├── dto/          - DTO уровня представления
   │   ├── forms/        - Формы валидации
   │   ├── handlers/     - Обработчики запросов
@@ -488,6 +488,7 @@ commands/               - Console контроллеры
 config/                 - Конфигурация приложения
   ├── container/        - Конфигурация контейнера зависимостей
 docker/                 - Docker конфигурация
+  ├── jaeger/          
   ├── nginx/            - Конфигурация nginx
 docs/                   - Документация
   ├── ai/               - Правила и инструкции для AI
