@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace app\domain\entities;
 
-use app\domain\common\IdentifiableEntityInterface;
+use app\domain\common\RecordableEntityInterface;
+use app\domain\common\RecordsEvents;
+use app\domain\events\BookDeletedEvent;
+use app\domain\events\BookStatusChangedEvent;
+use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
@@ -14,8 +18,10 @@ use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
 
-final class Book implements IdentifiableEntityInterface
+final class Book implements RecordableEntityInterface
 {
+    use RecordsEvents;
+
     private const int MAX_TITLE_LENGTH = 255;
 
     // phpcs:disable PSR2.Classes.PropertyDeclaration,Generic.WhiteSpace.ScopeIndent,SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing
@@ -112,7 +118,14 @@ final class Book implements IdentifiableEntityInterface
 
     public function changeYear(BookYear $year): void
     {
+        $oldYear = $this->year->value;
         $this->year = $year;
+
+        if ($this->id === null) {
+            return;
+        }
+
+        $this->recordEvent(new BookUpdatedEvent($this->id, $oldYear, $year->value, $this->status));
     }
 
     public function correctIsbn(Isbn $isbn): void
@@ -201,7 +214,27 @@ final class Book implements IdentifiableEntityInterface
             $policy->ensureCanPublish($this);
         }
 
+        $oldStatus = $this->status;
         $this->status = $target;
+
+        if ($this->id === null) {
+            return;
+        }
+
+        $this->recordEvent(new BookStatusChangedEvent($this->id, $oldStatus, $target, $this->year->value));
+    }
+
+    public function markAsDeleted(): void
+    {
+        if ($this->id === null) {
+            return;
+        }
+
+        $this->recordEvent(new BookDeletedEvent(
+            $this->id,
+            $this->year->value,
+            $this->status === BookStatus::Published,
+        ));
     }
 
     /**
