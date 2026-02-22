@@ -82,6 +82,11 @@
             "tools/PHPUnit/Framework/Attributes/CodeCoverageIgnore.php"
         ]
     },
+    "autoload-dev": {
+        "psr-4": {
+            "tests\\": "tests/"
+        }
+    },
     "config": {
         "allow-plugins": {
             "yiisoft/yii2-composer": true,
