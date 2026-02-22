@@ -63,6 +63,12 @@ enum DomainErrorCode: string
     #[ErrorMapping(ErrorType::AlreadyExists, field: 'fio')]
     case AuthorFioExists = 'author.error.fio_exists';
 
+    #[ErrorMapping(ErrorType::BusinessRule)]
+    case AuthorLinkedToPublishedBooks = 'author.error.linked_to_published_books';
+
+    #[ErrorMapping(ErrorType::BusinessRule)]
+    case AuthorHasSubscriptions = 'author.error.has_subscriptions';
+
     #[ErrorMapping(ErrorType::AlreadyExists)]
     case SubscriptionAlreadySubscribed = 'subscription.error.already_subscribed';
 

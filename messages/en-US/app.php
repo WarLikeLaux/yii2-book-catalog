@@ -75,6 +75,8 @@ return [
     'author.error.fio_empty' => 'Author FIO cannot be empty',
     'author.error.fio_too_short' => 'Author FIO is too short',
     'author.error.fio_too_long' => 'Author FIO is too long',
+    'author.error.linked_to_published_books' => 'Cannot delete author linked to published or archived books',
+    'author.error.has_subscriptions' => 'Cannot delete author with active subscriptions',
     'book.error.not_found' => 'Book not found',
     'book.error.isbn_exists' => 'Book with this ISBN already exists',
     'book.error.title_empty' => 'Book title cannot be empty',

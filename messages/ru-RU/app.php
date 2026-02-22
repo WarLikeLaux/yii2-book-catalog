@@ -75,6 +75,8 @@ return [
     'author.error.fio_empty' => 'ФИО автора не может быть пустым',
     'author.error.fio_too_short' => 'ФИО автора слишком короткое',
     'author.error.fio_too_long' => 'ФИО автора слишком длинное',
+    'author.error.linked_to_published_books' => 'Невозможно удалить автора, привязанного к опубликованным или архивированным книгам',
+    'author.error.has_subscriptions' => 'Невозможно удалить автора, на которого есть активные подписки',
     'book.error.not_found' => 'Книга не найдена',
     'book.error.isbn_exists' => 'Книга с таким ISBN уже существует',
     'book.error.title_empty' => 'Название книги не может быть пустым',

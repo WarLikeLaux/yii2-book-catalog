@@ -13,4 +13,6 @@ interface AuthorRepositoryInterface
     public function get(int $id): Author;
 
     public function delete(Author $author): void;
+
+    public function removeAllBookLinks(int $authorId): void;
 }
