@@ -48,6 +48,7 @@
 - **#38** - исправлены аннотации code coverage в DiskSpaceHealthCheck ([4b50d74](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4b50d74))
 - **#38** - исправлена генерация swagger docs ([a15263b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a15263b))
 - **#38** - исправлен list-comments: пропуск директорий и поддержка js/mjs ([3b7da0e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3b7da0e))
+- **#38** - исправлен тест NoGhostQueryServiceInApplicationRule ([6f1372c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6f1372c))
 
 ### 🛠 Рефакторинг и архитектура
 
@@ -123,6 +124,8 @@
 - **#38** - обновлён go skill: уточнён workflow финальной проверки ([cc1025d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cc1025d))
 - **#37** - обновлена архитектурная документация: добавлена визуализация жизненного цикла запроса ([af0031b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/af0031b))
 - **#37** - синхронизирован лендинг с README: замена CQRS на CQS, обновлены метрики, добавлены карточки Status FSM, CAS Storage, Value Objects и Arkitect ([c20cc0b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c20cc0b))
+- **#38** - синхронизированы примеры кода в COMPARISON.md и метрики E2E в README.md ([96d93ea](https://github.com/WarLikeLaux/yii2-book-catalog/commit/96d93ea))
+- **#38** - исправлены расхождения примеров кода с реальной кодовой базой ([97c1b84](https://github.com/WarLikeLaux/yii2-book-catalog/commit/97c1b84))
 
 </details>
 
