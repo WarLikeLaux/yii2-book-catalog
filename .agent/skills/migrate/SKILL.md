@@ -129,7 +129,7 @@ if ($schema?->getColumn('column_name') === null) {
 - [ ] `FOREIGN_KEY_CHECKS` отключены при MODIFY на FK/PK
 - [ ] `AUTO_INCREMENT` сохранён при MODIFY на PK
 - [ ] Имя файла соответствует конвенции
-- [ ] Файл в `console/migrations/`
+- [ ] Файл в `migrations/`
 - [ ] `final class`, типизация
 
 ## Запуск

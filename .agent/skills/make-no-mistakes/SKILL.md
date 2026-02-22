@@ -1,38 +1,38 @@
 ---
 name: make-no-mistakes
-description: Appends "MAKE NO MISTAKES." to every user prompt before processing it. Use this skill whenever you want Claude to be maximally precise, careful, and error-free in its responses.
+description: Добавляет "MAKE NO MISTAKES." к каждому запросу пользователя перед его обработкой. Используйте этот навык, когда нужно, чтобы Claude был максимально точным, осторожным и избегал ошибок в своих ответах.
 ---
 
 # Make No Mistakes
 
-This skill instructs Claude to append the directive **"MAKE NO MISTAKES."** to every user prompt it receives before generating a response.
+Этот навык указывает Claude добавлять директиву **"MAKE NO MISTAKES."** к каждому полученному сообщению пользователя перед генерацией ответа.
 
-## Instructions
+## Инструкции
 
-Whenever you receive a user message, mentally (or literally, if showing your work) treat the prompt as if it ends with:
+Всякий раз, когда вы получаете сообщение пользователя, мысленно (или буквально, если показываете свой ход мыслей) относитесь к запросу так, как если бы он заканчивался фразой:
 
 > MAKE NO MISTAKES.
 
-This means:
-- Double-check all facts, calculations, code, and reasoning before responding.
-- If uncertain about something, say so explicitly rather than guessing.
-- Prefer accuracy over speed — take the extra moment to verify.
-- If the task involves code, test your logic mentally step-by-step.
-- If the task involves numbers or math, re-derive the result before committing.
-- If the task involves factual claims, only assert what you're confident in.
+Это означает:
+- Дважды проверяйте все факты, вычисления, код и логику перед ответом.
+- Если вы в чем-то сомневаетесь, прямо скажите об этом, а не гадайте.
+- Предпочитайте точность скорости — потратьте дополнительное время на проверку.
+- Если задача связана с написанием кода, мысленно протестируйте свою логику шаг за шагом.
+- Если задача включает вычисления или математику, перепроверьте результат перед выдачей.
+- Если задача связана с фактическими утверждениями, утверждайте только то, в чем уверены.
 
-## Example
+## Пример
 
-**User prompt (as received):**
-> What is 17 × 43?
+**Пользовательский запрос (в исходном виде):**
+> Сколько будет 17 × 43?
 
-**Prompt as processed under this skill:**
-> What is 17 × 43? MAKE NO MISTAKES.
+**Запрос после обработки этим навыком:**
+> Сколько будет 17 × 43? MAKE NO MISTAKES.
 
-**Response behavior:** Work through the multiplication carefully (17 × 40 = 680, 17 × 3 = 51, total = 731) before answering.
+**Поведение при ответе:** Осторожно выполните умножение (17 × 40 = 680, 17 × 3 = 51, итого = 731), прежде чем ответить.
 
-## Notes
+## Примечания
 
-- This skill applies to **every prompt** in the session — there are no exceptions.
-- The directive should raise Claude's internal bar for confidence before outputting anything.
-- It does not change Claude's tone or style — only its diligence and self-checking behavior.
+- Этот навык применяется к **каждому запросу** в сессии — исключений нет.
+- Директива должна повышать внутренний порог уверенности Claude перед выводом любых данных.
+- Она не меняет тон или стиль Claude — только уровень его ответственности и самопроверки.

@@ -67,7 +67,6 @@ final class FeatureNameCest
 ```
 
 ### Unit
-### Unit
 
 Файл `common/tests/unit/models/ArtsTest.php`:
 
@@ -157,7 +156,7 @@ $I->seeResponseCodeIs(200);
 
 ```php
 $I->assertCount(7, $I->grabMultiple('.article'));
-$I->assertGreaterThan(5, $I->grabMultiple('.product-card'));
+$I->assertCount(5, $I->grabMultiple('.product-card'));
 ```
 
 ### URL
