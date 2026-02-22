@@ -138,9 +138,11 @@ final class AuthorUseCasesCest
             ->execute();
 
         $I->expectThrowable(IntegrityException::class, static function () use ($authorId): void {
-            Yii::$app->db->createCommand()
-                ->delete('authors', ['id' => $authorId])
-                ->execute();
+            Yii::$app->db->transaction(static function () use ($authorId): void {
+                Yii::$app->db->createCommand()
+                    ->delete('authors', ['id' => $authorId])
+                    ->execute();
+            });
         });
 
         $I->seeRecord(Author::class, ['id' => $authorId]);
@@ -156,9 +158,11 @@ final class AuthorUseCasesCest
         ]);
 
         $I->expectThrowable(IntegrityException::class, static function () use ($authorId): void {
-            Yii::$app->db->createCommand()
-                ->delete('authors', ['id' => $authorId])
-                ->execute();
+            Yii::$app->db->transaction(static function () use ($authorId): void {
+                Yii::$app->db->createCommand()
+                    ->delete('authors', ['id' => $authorId])
+                    ->execute();
+            });
         });
 
         $I->seeRecord(Author::class, ['id' => $authorId]);
