@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\adapters;
+namespace tests\unit\infrastructure\adapters;
 
 use app\infrastructure\adapters\YiiTransactionAdapter;
 use Codeception\Test\Unit;

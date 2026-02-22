@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\application\common;
+namespace tests\unit\application\common;
 
 use app\application\books\queries\BookReadDto;
 use app\application\common\dto\IdempotencyRecordDto;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\presentation\common\filters;
+namespace tests\unit\presentation\common\filters;
 
 use app\application\common\config\IdempotencyConfig;
 use app\application\common\dto\IdempotencyRecordDto;

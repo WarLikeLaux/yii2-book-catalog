@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\services;
+namespace tests\unit\infrastructure\services;
 
 use app\application\ports\AuthorExistenceCheckerInterface;
 use app\application\ports\AuthorRepositoryInterface;

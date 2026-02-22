@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\repositories;
+namespace tests\unit\infrastructure\repositories;
 
 use app\application\common\IdempotencyKeyStatus;
 use app\infrastructure\adapters\SystemClock;

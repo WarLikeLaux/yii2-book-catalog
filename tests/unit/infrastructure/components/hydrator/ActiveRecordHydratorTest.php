@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\components\hydrator;
+namespace tests\unit\infrastructure\components\hydrator;
 
 use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use Codeception\Test\Unit;

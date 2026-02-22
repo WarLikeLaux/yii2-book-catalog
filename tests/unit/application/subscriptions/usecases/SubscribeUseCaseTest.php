@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\application\subscriptions\usecases;
+namespace tests\unit\application\subscriptions\usecases;
 
 use app\application\ports\AuthorExistenceCheckerInterface;
 use app\application\ports\PhoneNormalizerInterface;

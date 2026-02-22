@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\queries;
+namespace tests\unit\infrastructure\queries;
 
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\AuthorRepositoryInterface;

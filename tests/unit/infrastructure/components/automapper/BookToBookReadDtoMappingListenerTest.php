@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\components\automapper;
+namespace tests\unit\infrastructure\components\automapper;
 
 use app\application\books\queries\BookReadDto;
 use app\infrastructure\components\automapper\BookToBookReadDtoMappingListener;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\repositories;
+namespace tests\unit\infrastructure\repositories;
 
 use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author as AuthorEntity;

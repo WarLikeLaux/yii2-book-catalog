@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\application\books\queries;
+namespace tests\unit\application\books\queries;
 
 use app\application\books\queries\BookReadDto;
 use app\domain\values\BookStatus;
