@@ -14,6 +14,7 @@ use app\presentation\books\handlers\BookListViewFactory;
 use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\common\exceptions\UnexpectedDtoTypeException;
 use app\presentation\services\FileUrlResolver;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -70,5 +71,27 @@ final class BookListViewFactoryTest extends Unit
 
         $this->assertInstanceOf(BookListViewModel::class, $result);
         $this->assertSame($dataProvider, $result->dataProvider);
+    }
+
+    public function testGetListViewModelThrowsWhenInvalidDtoType(): void
+    {
+        $queryResult = new QueryResult([new \stdClass()], 1, new PaginationDto(1, 20, 1, 1));
+
+        $this->searcher->expects($this->once())
+            ->method('search')
+            ->with('', 1, 20)
+            ->willReturn($queryResult);
+
+        $request = $this->createMock(Request::class);
+        $request->method('get')->willReturnMap([
+            ['page', null, null, 1],
+            ['limit', null, null, 20],
+        ]);
+
+        $this->expectException(UnexpectedDtoTypeException::class);
+        $this->expectExceptionMessage(BookReadDto::class);
+        $this->expectExceptionMessage('stdClass');
+
+        $this->factory->getListViewModel($request);
     }
 }

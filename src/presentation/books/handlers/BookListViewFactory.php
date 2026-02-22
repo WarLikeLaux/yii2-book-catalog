@@ -13,7 +13,7 @@ use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
-use LogicException;
+use app\presentation\common\exceptions\UnexpectedDtoTypeException;
 use yii\data\DataProviderInterface;
 use yii\web\Request;
 
@@ -49,7 +49,7 @@ final readonly class BookListViewFactory
         $dtos = array_map(
             fn(mixed $dto): BookViewModel => $dto instanceof BookReadDto
                 ? $this->viewModelMapper->map($this->urlResolver->resolveUrl($dto))
-                : throw new LogicException('Expected BookReadDto'),
+                : throw new UnexpectedDtoTypeException(BookReadDto::class, $dto),
             $queryResult->getModels(),
         );
 
