@@ -176,6 +176,37 @@ final class BookPublicationPolicyTest extends Unit
         $this->assertTrue($this->policy->canPublish($book));
     }
 
+    public function testEnsureCanPublishWithMultibyteDescriptionBelowMinLengthThrows(): void
+    {
+        $book = Book::create(
+            'Test Book',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            str_repeat('ф', 49),
+            new StoredFileReference('covers/test.jpg'),
+        );
+        $book->replaceAuthors([1]);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_short_description');
+
+        $this->policy->ensureCanPublish($book);
+    }
+
+    public function testCanPublishReturnsFalseWithMultibyteShortDescription(): void
+    {
+        $book = Book::create(
+            'Test Book',
+            new BookYear(2024),
+            new Isbn('9783161484100'),
+            str_repeat('ф', 49),
+            new StoredFileReference('covers/test.jpg'),
+        );
+        $book->replaceAuthors([1]);
+
+        $this->assertFalse($this->policy->canPublish($book));
+    }
+
     private function createValidPublishableBook(): Book
     {
         $book = Book::create(
