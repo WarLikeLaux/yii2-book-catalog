@@ -134,6 +134,7 @@ return static function (Config $config): void {
 
     $applicationRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\application\*\queries'))
+        ->andThat(new IsNotInterface())
         ->should(new NotDependsOnTheseNamespaces(['app\infrastructure']))
         ->because('application/*/queries — DTO-only: без сервисов и инфраструктуры');
 

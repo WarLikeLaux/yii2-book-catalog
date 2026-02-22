@@ -41,7 +41,7 @@ return [
     ],
     'health' => [
         'disk' => [
-            'threshold_gb' => (float)env('HEALTH_DISK_THRESHOLD_GB', 10.0),
+            'thresholdGb' => (float)env('HEALTH_DISK_THRESHOLD_GB', 10.0),
         ],
         'version' => '1.0.0',
     ],

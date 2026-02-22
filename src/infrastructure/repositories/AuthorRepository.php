@@ -58,8 +58,14 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
 
     public function delete(AuthorEntity $author): void
     {
-        $this->db->transaction(function () use ($author): void {
-            $this->removeAllBookLinks($author->getId());
+        $id = $author->getId();
+
+        if ($id === null) {
+            throw new OperationFailedException(DomainErrorCode::AuthorNotFound);
+        }
+
+        $this->db->transaction(function () use ($author, $id): void {
+            $this->removeAllBookLinks($id);
             $this->deleteEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
         });
     }

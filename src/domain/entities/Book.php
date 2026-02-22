@@ -120,6 +120,11 @@ final class Book implements RecordableEntityInterface
     public function changeYear(BookYear $year): void
     {
         $oldYear = $this->year->value;
+
+        if ($oldYear === $year->value) {
+            return;
+        }
+
         $this->year = $year;
 
         if ($this->id === null) {

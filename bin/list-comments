@@ -68,14 +68,11 @@ final class CommentLinter
 
             $extension = $file->getExtension();
 
-            if ($extension === 'php') {
-                $this->processPhpFile($file);
-                continue;
-            }
-
-            if ($extension === 'js' || $extension === 'mjs') {
-                $this->processJsFile($file);
-            }
+            match ($extension) {
+                'php' => $this->processPhpFile($file),
+                'js', 'mjs' => $this->processJsFile($file),
+                default => null,
+            };
         }
 
         return $this->renderOutput();

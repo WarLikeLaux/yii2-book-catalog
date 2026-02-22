@@ -41,7 +41,7 @@ final readonly class SubscribeUseCase implements UseCaseInterface
         $normalized = $this->phoneNormalizer->normalize($command->phone);
         $phone = new Phone($normalized);
 
-        if ($this->subscriptionExistenceChecker->exists($phone->value, $command->authorId)) {
+        if ($this->subscriptionExistenceChecker->exists((string)$phone, $command->authorId)) {
             throw new BusinessRuleException(DomainErrorCode::SubscriptionAlreadySubscribed);
         }
 

@@ -22,11 +22,11 @@ final readonly class ApiPageConfig
         $swaggerPort = $params['swaggerPort'] ?? null;
         $appPort = $params['appPort'] ?? null;
 
-        if (!is_int($swaggerPort)) {
+        if (!is_int($swaggerPort) || $swaggerPort <= 0 || $swaggerPort > 65535) {
             throw new ConfigurationException('Invalid config: swaggerPort');
         }
 
-        if (!is_int($appPort)) {
+        if (!is_int($appPort) || $appPort <= 0 || $appPort > 65535) {
             throw new ConfigurationException('Invalid config: appPort');
         }
 

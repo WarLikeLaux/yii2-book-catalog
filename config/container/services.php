@@ -138,7 +138,7 @@ return static function (array $params): array {
             },
 
             DiskSpaceHealthCheck::class => static fn (): DiskSpaceHealthCheck => new DiskSpaceHealthCheck(
-                (float) ($params['health']['disk']['threshold_gb'] ?? 10.0),
+                (float) ($params['health']['disk']['thresholdGb'] ?? 10.0),
             ),
 
             HealthCheckRunnerInterface::class => static fn (Container $c): HealthCheckRunner => new HealthCheckRunner(
