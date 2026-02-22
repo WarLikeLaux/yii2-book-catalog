@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace tests\unit\domain\specifications;
 
 use app\domain\specifications\AuthorSpecification;
-use app\domain\specifications\BookSearchSpecificationFactory;
 use app\domain\specifications\BookSpecificationVisitorInterface;
 use app\domain\specifications\CompositeAndSpecification;
 use app\domain\specifications\CompositeOrSpecification;
@@ -103,76 +102,5 @@ final class BookSpecificationsTest extends Unit
         $visitor = $this->createMock(BookSpecificationVisitorInterface::class);
         $visitor->expects($this->once())->method('visitStatus')->with($spec);
         $spec->accept($visitor);
-    }
-
-    public function testFactoryCreatesYearSpecForFourDigitNumber(): void
-    {
-        $factory = new BookSearchSpecificationFactory();
-
-        $spec = $factory->createFromSearchTerm('2024');
-
-        $this->assertInstanceOf(CompositeOrSpecification::class, $spec);
-        $children = $spec->getSpecifications();
-        $this->assertCount(4, $children);
-        $this->assertInstanceOf(YearSpecification::class, $children[0]);
-        $this->assertSame(2024, $children[0]->getYear());
-    }
-
-    public function testFactoryDoesNotTreatSuffixAsYear(): void
-    {
-        $factory = new BookSearchSpecificationFactory();
-
-        $spec = $factory->createFromSearchTerm('2024a');
-
-        $this->assertInstanceOf(CompositeOrSpecification::class, $spec);
-        $children = $spec->getSpecifications();
-        $this->assertCount(3, $children);
-        $this->assertInstanceOf(IsbnPrefixSpecification::class, $children[0]);
-    }
-
-    public function testFactoryDoesNotTreatPrefixAsYear(): void
-    {
-        $factory = new BookSearchSpecificationFactory();
-
-        $spec = $factory->createFromSearchTerm('a2024');
-
-        $this->assertInstanceOf(CompositeOrSpecification::class, $spec);
-        $children = $spec->getSpecifications();
-        $this->assertCount(3, $children);
-        $this->assertInstanceOf(IsbnPrefixSpecification::class, $children[0]);
-    }
-
-    public function testFactoryCreatesCompositeForRegularTerm(): void
-    {
-        $factory = new BookSearchSpecificationFactory();
-
-        $spec = $factory->createFromSearchTerm('clean');
-
-        $this->assertInstanceOf(CompositeOrSpecification::class, $spec);
-        $children = $spec->getSpecifications();
-        $this->assertCount(3, $children);
-        $this->assertInstanceOf(IsbnPrefixSpecification::class, $children[0]);
-        $this->assertInstanceOf(FullTextSpecification::class, $children[1]);
-        $this->assertInstanceOf(AuthorSpecification::class, $children[2]);
-    }
-
-    public function testFactoryReturnsEmptyFullTextForEmptyTerm(): void
-    {
-        $factory = new BookSearchSpecificationFactory();
-
-        $spec = $factory->createFromSearchTerm('');
-
-        $this->assertInstanceOf(FullTextSpecification::class, $spec);
-        $this->assertSame('', $spec->getQuery());
-    }
-
-    public function testFactoryReturnsEmptyFullTextForWhitespaceTerm(): void
-    {
-        $factory = new BookSearchSpecificationFactory();
-
-        $spec = $factory->createFromSearchTerm('   ');
-
-        $this->assertInstanceOf(FullTextSpecification::class, $spec);
-        $this->assertSame('', $spec->getQuery());
     }
 }

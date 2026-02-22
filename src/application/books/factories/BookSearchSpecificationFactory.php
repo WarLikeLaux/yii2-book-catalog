@@ -2,7 +2,14 @@
 
 declare(strict_types=1);
 
-namespace app\domain\specifications;
+namespace app\application\books\factories;
+
+use app\domain\specifications\AuthorSpecification;
+use app\domain\specifications\BookSpecificationInterface;
+use app\domain\specifications\CompositeOrSpecification;
+use app\domain\specifications\FullTextSpecification;
+use app\domain\specifications\IsbnPrefixSpecification;
+use app\domain\specifications\YearSpecification;
 
 final readonly class BookSearchSpecificationFactory
 {

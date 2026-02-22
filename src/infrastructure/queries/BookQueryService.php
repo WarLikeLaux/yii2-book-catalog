@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace app\infrastructure\queries;
 
+use app\application\books\factories\BookSearchSpecificationFactory;
 use app\application\books\queries\BookReadDto;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
-use app\domain\specifications\BookSearchSpecificationFactory;
 use app\domain\specifications\BookSpecificationInterface;
 use app\domain\specifications\CompositeAndSpecification;
 use app\domain\specifications\StatusSpecification;
