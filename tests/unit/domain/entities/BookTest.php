@@ -462,4 +462,145 @@ final class BookTest extends Unit
 
         $this->assertEmpty($book->pullRecordedEvents());
     }
+
+    public function testUpdateDescriptionNullOnDraftSucceeds(): void
+    {
+        $book = $this->createBook();
+        $book->updateDescription(null);
+
+        $this->assertNull($book->description);
+    }
+
+    public function testUpdateDescriptionNullOnPublishedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_short_description');
+
+        $book->updateDescription(null);
+    }
+
+    public function testUpdateDescriptionShortOnPublishedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_short_description');
+
+        $book->updateDescription('Too short');
+    }
+
+    public function testUpdateDescriptionValidOnPublishedSucceeds(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $newDescription = str_repeat('A', Book::MIN_DESCRIPTION_LENGTH);
+        $book->updateDescription($newDescription);
+
+        $this->assertSame($newDescription, $book->description);
+    }
+
+    public function testUpdateDescriptionNullOnArchivedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_short_description');
+
+        $book->updateDescription(null);
+    }
+
+    public function testUpdateDescriptionShortOnArchivedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_short_description');
+
+        $book->updateDescription('Too short');
+    }
+
+    public function testUpdateCoverNullOnPublishedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_cover');
+
+        $book->updateCover(null);
+    }
+
+    public function testUpdateCoverValidOnPublishedSucceeds(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $newCover = new StoredFileReference('covers/new.jpg');
+        $book->updateCover($newCover);
+
+        $this->assertSame($newCover, $book->coverImage);
+    }
+
+    public function testUpdateCoverNullOnArchivedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_cover');
+
+        $book->updateCover(null);
+    }
+
+    public function testRemoveLastAuthorOnPublishedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_authors');
+
+        $book->removeAuthor(1);
+    }
+
+    public function testRemoveNonLastAuthorOnPublishedSucceeds(): void
+    {
+        $book = $this->createPublishableBook(1, 2);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $book->removeAuthor(1);
+
+        $this->assertSame([2], $book->authorIds);
+    }
+
+    public function testRemoveLastAuthorOnArchivedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_authors');
+
+        $book->removeAuthor(1);
+    }
+
+    public function testRemoveLastAuthorOnDraftSucceeds(): void
+    {
+        $book = $this->createBookWithAuthors(1);
+
+        $book->removeAuthor(1);
+
+        $this->assertSame([], $book->authorIds);
+    }
 }
