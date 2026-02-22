@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
-use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\AuthorExistenceCheckerInterface;
 use app\application\ports\BookIsbnCheckerInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\UseCaseInterface;
-use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
@@ -28,7 +26,6 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
         private BookRepositoryInterface $bookRepository,
         private BookIsbnCheckerInterface $bookIsbnChecker,
         private AuthorExistenceCheckerInterface $authorExistenceChecker,
-        private TransactionalEventPublisher $eventPublisher,
         private ClockInterface $clock,
     ) {
     }
@@ -51,7 +48,6 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
         $currentYear = (int) $this->clock->now()->format('Y');
 
         $book = $this->bookRepository->getByIdAndVersion($command->id, $command->version);
-        $oldYear = $book->year->value;
 
         $book->rename($command->title);
         $book->changeYear(new BookYear($command->year, $currentYear));
@@ -67,10 +63,6 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
         $book->replaceAuthors($authorIds);
 
         $this->bookRepository->save($book);
-
-        $this->eventPublisher->publishAfterCommit(
-            new BookUpdatedEvent($command->id, $oldYear, $command->year, $book->status),
-        );
 
         return true;
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\infrastructure\repositories;
 
+use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\DomainErrorCode;
@@ -31,6 +32,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     public function __construct(
         private Connection $db,
         private ActiveRecordHydrator $hydrator,
+        private TransactionalEventPublisher $eventPublisher,
     ) {
         parent::__construct();
         $this->authorSnapshots = new WeakMap();
@@ -68,6 +70,8 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             $this->registerIdentity($book, $model);
 
             $this->syncAuthors($book);
+
+            $this->publishRecordedEvents($book);
 
             return (int)$model->id;
         });
@@ -117,6 +121,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
      */
     public function delete(BookEntity $book): void
     {
+        $this->publishRecordedEvents($book);
         $this->deleteEntity($book, Book::class, DomainErrorCode::BookNotFound);
     }
 
@@ -183,5 +188,12 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         $ids = $book->authorIds;
         sort($ids);
         $this->authorSnapshots[$book] = $ids;
+    }
+
+    private function publishRecordedEvents(BookEntity $book): void
+    {
+        foreach ($book->pullRecordedEvents() as $event) {
+            $this->eventPublisher->publishAfterCommit($event);
+        }
     }
 }

@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\ChangeBookStatusCommand;
-use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\BookRepositoryInterface;
 use app\application\ports\UseCaseInterface;
-use app\domain\events\BookStatusChangedEvent;
 use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookStatus;
 
@@ -19,7 +17,6 @@ final readonly class ChangeBookStatusUseCase implements UseCaseInterface
 {
     public function __construct(
         private BookRepositoryInterface $bookRepository,
-        private TransactionalEventPublisher $eventPublisher,
         private BookPublicationPolicy $publicationPolicy,
     ) {
     }
@@ -30,17 +27,10 @@ final readonly class ChangeBookStatusUseCase implements UseCaseInterface
     public function execute(object $command): bool
     {
         $book = $this->bookRepository->get($command->bookId);
-        $oldStatus = $book->status;
-        $targetStatus = $command->targetStatus;
-
-        $policy = $targetStatus === BookStatus::Published ? $this->publicationPolicy : null;
-        $book->transitionTo($targetStatus, $policy);
+        $policy = $command->targetStatus === BookStatus::Published ? $this->publicationPolicy : null;
+        $book->transitionTo($command->targetStatus, $policy);
 
         $this->bookRepository->save($book);
-
-        $this->eventPublisher->publishAfterCommit(
-            new BookStatusChangedEvent($command->bookId, $oldStatus, $targetStatus, $book->year->value),
-        );
 
         return true;
     }
