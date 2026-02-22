@@ -56,7 +56,7 @@
 4. **CommandMapper (Presentation)** помогает хендлеру переложить данные из формы (`Form`) в жестко типизированный, независимый от веба объект команды (`Command DTO`).
 5. **UseCase (Application)** - основное место выполнения бизнес-логики. Получает готовую `Command`, достает сущности из репозиториев, просит их выполнить действия и сохраняет результат. Не зависит от HTTP-запросов, сессий и Yii.
 6. **Entity & Value Objects (Domain)** - ядро домена. Сущности проверяют инварианты (например, "нельзя опубликовать книгу без автора"), а `Value Objects` (например, `Isbn`) гарантируют валидность собственных свойств. Слой полностью изолирован от базы данных.
-7. **Repository (Infrastructure)** - когда `UseCase` инициирует сохранение сущности, инфраструктурная реализация репозитория берет доменную модель, через `Hydrator` перекладывает ее данные в `ActiveRecord` и выполняет запросы к БД.
+7. **Repository (Infrastructure)** - когда `UseCase` инициирует сохранение сущности, инфраструктурная реализация репозитория берет доменную модель, через `Hydrator` перекладывает ее данные в `ActiveRecord`, выполняет запросы к БД и публикует доменные события сущности после коммита транзакции.
 
 **Визуализация потока (на примере создания):**
 
@@ -294,9 +294,9 @@ public function createBook(BookForm $form): int
         'Failed to upload book cover',
     );
 
-    if ($form->cover instanceof UploadedFile && $cover === null) {
-        throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
-    }
+        if ($form->cover instanceof UploadedFile && $cover === null) {
+            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+        }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
 
@@ -350,9 +350,9 @@ final readonly class Isbn implements \Stringable
 
     public function __construct(string $value)
     {
-        $normalized = $this->normalizeIsbn($value);
+        $normalized = self::normalizeIsbn($value);
 
-        if (!$this->isValidIsbn($normalized)) {
+        if (!self::isValid($normalized)) {
             throw new ValidationException(DomainErrorCode::IsbnInvalidFormat);
         }
 
@@ -480,8 +480,8 @@ $command = new CreateBookCommand(
     year: 2024,
     description: 'Короткое описание',
     isbn: '9783161484100',
-    authorIds: [1, 2],
-    cover: new StoredFileReference('/covers/123.png')
+    authorIds: AuthorIdCollection::fromArray([1, 2]),
+    storedCover: '/covers/123.png',
 );
 $useCase->execute($command);
 ```
@@ -617,6 +617,8 @@ public function save(BookEntity $book): int
 
         // ... identity assignment, author sync
 
+        $this->publishRecordedEvents($book);
+
         return (int)$model->id;
     });
 }
@@ -647,9 +649,9 @@ final readonly class Isbn implements \Stringable
 
     public function __construct(string $value)
     {
-        $normalized = $this->normalizeIsbn($value);
+        $normalized = self::normalizeIsbn($value);
 
-        if (!$this->isValidIsbn($normalized)) {
+        if (!self::isValid($normalized)) {
             throw new ValidationException(DomainErrorCode::IsbnInvalidFormat);
         }
 
@@ -691,12 +693,30 @@ final readonly class BookStatusChangedEvent implements QueueableEvent
 ```
 
 ```php
-$this->eventPublisher->publishAfterCommit(
-    new BookStatusChangedEvent($command->bookId, $oldStatus, $targetStatus, $book->year->value),
-);
+// domain/entities/Book.php (RecordsEvents trait)
+public function transitionTo(BookStatus $target, ?BookPublicationPolicy $policy = null): void
+{
+    // ... валидация переходов ...
+    $oldStatus = $this->status;
+    $this->status = $target;
+
+    if ($this->id !== null) {
+        $this->recordEvent(new BookStatusChangedEvent($this->id, $oldStatus, $target, $this->year->value));
+    }
+}
 ```
 
-✅ **Результат:** домен публикует событие, инфраструктура решает как обрабатывать.
+```php
+// infrastructure/repositories/BookRepository.php
+private function publishRecordedEvents(BookEntity $book): void
+{
+    foreach ($book->pullRecordedEvents() as $event) {
+        $this->eventPublisher->publishAfterCommit($event);
+    }
+}
+```
+
+✅ **Результат:** сущность записывает события через `recordEvent()`, репозиторий публикует их после коммита. Use Case не знает о событиях.
 
 ---
 
@@ -743,16 +763,17 @@ foreach ($subscribers as $sub) {
 
 ```php
 // infrastructure/queue/handlers/NotifySubscribersHandler.php
-public function handle(int $bookId, string $title, Queue $queue): void
+public function handle(int $bookId, Queue $queue): void
 {
-    $message = $this->translator->translate('app', 'notification.book.released', ['title' => $title]);
+    $book = $this->bookQueryService->findById($bookId);
+    if (!$book instanceof BookReadDto) {
+        return;
+    }
+
+    $message = $this->translator->translate('app', 'notification.book.released', ['title' => $book->title]);
 
     foreach ($this->queryService->getSubscriberPhonesForBook($bookId) as $phone) {
-        $queue->push(new NotifySingleSubscriberJob(
-            $phone,
-            $message,
-            $bookId,
-        ));
+        $queue->push(new NotifySingleSubscriberJob($phone, $message, $bookId));
     }
 }
 ```
@@ -780,8 +801,10 @@ class Book extends ActiveRecord
 
 ```php
 // domain/entities/Book.php
-final class Book implements IdentifiableEntityInterface
+final class Book implements RecordableEntityInterface
 {
+    use RecordsEvents;
+
     private function __construct(
         public private(set) ?int $id,
         string $title,
@@ -821,7 +844,25 @@ final class Book implements IdentifiableEntityInterface
             $policy->ensureCanPublish($this);
         }
 
+        $oldStatus = $this->status;
         $this->status = $target;
+
+        if ($this->id !== null) {
+            $this->recordEvent(new BookStatusChangedEvent($this->id, $oldStatus, $target, $this->year->value));
+        }
+    }
+
+    public function markAsDeleted(): void
+    {
+        if ($this->id === null) {
+            return;
+        }
+
+        $this->recordEvent(new BookDeletedEvent(
+            $this->id,
+            $this->year->value,
+            $this->status === BookStatus::Published,
+        ));
     }
 
     /**
@@ -983,9 +1024,9 @@ public function createBook(BookForm $form): int
         'Failed to upload book cover',
     );
 
-    if ($form->cover instanceof UploadedFile && $cover === null) {
-        throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
-    }
+        if ($form->cover instanceof UploadedFile && $cover === null) {
+            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+        }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
 
