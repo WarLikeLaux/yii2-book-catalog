@@ -167,3 +167,5 @@
 **Контракт DTO-only для `application/*/queries`**: папка содержит только read DTO и критерии поиска. Классы обязаны быть `final readonly`, без зависимостей от `infrastructure`. Разрешены: данные, простые геттеры, `with*()`, `JsonSerializable`. Проверка: phparkitect.
 
 **Обоснование**: один источник истины для read-side. Избегаем «слоя для вида» без реального участия в production-потоке.
+
+**Guardrail**: правило PHPStan `NoGhostQueryServiceInApplicationRule` автоматически запрещает появление классов `*QueryService` в namespace `app\application\*`. Идентификатор ошибки: `architecture.noGhostQueryService`.

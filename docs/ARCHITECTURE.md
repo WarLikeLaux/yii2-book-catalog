@@ -325,7 +325,7 @@ public function createBook(BookForm $form): int
 
 - Строгая типизация (`declare(strict_types=1)`) во всех PHP-файлах.
 - PHPStan level 9, кастомные правила в `infrastructure/phpstan`.
-- PHPStan правила: `QueryPortsMustReturnDtoRule`, `NoActiveRecordInDomainOrApplicationRule`, `DomainEntitiesMustBePureRule`, `DomainIsCleanRule`, `DisallowDateTimeRule`, `DisallowYiiTOutsideAdaptersRule`, `StrictRepositoryReturnTypeRule`, `UseCaseMustBeFinalRule`, `ValueObjectMustBeFinalRule`.
+- PHPStan правила: `QueryPortsMustReturnDtoRule`, `NoActiveRecordInDomainOrApplicationRule`, `NoGhostQueryServiceInApplicationRule`, `DomainEntitiesMustBePureRule`, `DomainIsCleanRule`, `DisallowDateTimeRule`, `DisallowYiiTOutsideAdaptersRule`, `StrictRepositoryReturnTypeRule`, `UseCaseMustBeFinalRule`, `ValueObjectMustBeFinalRule`.
 - Rector для авто-рефакторинга и миграций синтаксиса.
 - Код-стайл через `phpcs.xml.dist`.
 - Архитектурные ограничения через Deptrac и Arkitect.

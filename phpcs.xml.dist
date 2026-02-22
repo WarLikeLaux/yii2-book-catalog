@@ -21,6 +21,7 @@
     <exclude-pattern>_output/*</exclude-pattern>
     <exclude-pattern>db-data/*</exclude-pattern>
     <exclude-pattern>db-data-pgsql/*</exclude-pattern>
+    <exclude-pattern>phpstan-fixtures/*</exclude-pattern>
 
     <!-- Базовый стандарт Yii2 -->
     <rule ref="vendor/yiisoft/yii2-coding-standards/Yii2"/>

@@ -92,3 +92,7 @@ services:
 		class: app\infrastructure\phpstan\Rules\StrictRepositoryReturnTypeRule
 		tags:
 			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\NoGhostQueryServiceInApplicationRule
+		tags:
+			- phpstan.rules.rule
