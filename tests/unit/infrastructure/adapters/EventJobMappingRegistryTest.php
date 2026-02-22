@@ -8,6 +8,7 @@ use app\domain\events\BookStatusChangedEvent;
 use app\domain\events\QueueableEvent;
 use app\domain\values\BookStatus;
 use app\infrastructure\adapters\EventJobMappingRegistry;
+use app\infrastructure\adapters\EventSerializer;
 use app\infrastructure\queue\NotifySubscribersJob;
 use Codeception\Test\Unit;
 use InvalidArgumentException;
@@ -17,9 +18,10 @@ final class EventJobMappingRegistryTest extends Unit
 {
     public function testResolveWithClassStringInstantiatesJobViaReflection(): void
     {
-        $registry = new EventJobMappingRegistry([
-            BookStatusChangedEvent::class => NotifySubscribersJob::class,
-        ]);
+        $registry = new EventJobMappingRegistry(
+            [BookStatusChangedEvent::class => NotifySubscribersJob::class],
+            new EventSerializer(),
+        );
         $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $job = $registry->resolve($event);
@@ -30,11 +32,14 @@ final class EventJobMappingRegistryTest extends Unit
 
     public function testResolveWithCallableUsesFactory(): void
     {
-        $registry = new EventJobMappingRegistry([
-            BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): NotifySubscribersJob => new NotifySubscribersJob(
-                bookId: $e->bookId + 100,
-            ),
-        ]);
+        $registry = new EventJobMappingRegistry(
+            [
+                BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): NotifySubscribersJob => new NotifySubscribersJob(
+                    bookId: $e->bookId + 100,
+                ),
+            ],
+            new EventSerializer(),
+        );
         $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $job = $registry->resolve($event);
@@ -45,11 +50,14 @@ final class EventJobMappingRegistryTest extends Unit
 
     public function testResolveWithCallableReturningNull(): void
     {
-        $registry = new EventJobMappingRegistry([
-            BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): ?NotifySubscribersJob => $e->newStatus === BookStatus::Published
-                ? new NotifySubscribersJob($e->bookId)
-                : null,
-        ]);
+        $registry = new EventJobMappingRegistry(
+            [
+                BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): ?NotifySubscribersJob => $e->newStatus === BookStatus::Published
+                    ? new NotifySubscribersJob($e->bookId)
+                    : null,
+            ],
+            new EventSerializer(),
+        );
         $event = new BookStatusChangedEvent(42, BookStatus::Published, BookStatus::Draft, 2024);
 
         $job = $registry->resolve($event);
@@ -59,17 +67,11 @@ final class EventJobMappingRegistryTest extends Unit
 
     public function testResolveThrowsExceptionForUnregisteredEvent(): void
     {
-        $registry = new EventJobMappingRegistry([]);
+        $registry = new EventJobMappingRegistry([], new EventSerializer());
         $event = new class implements QueueableEvent {
             public function getEventType(): string
             {
                 return 'unknown.event';
-            }
-
-            /** @return array<string, mixed> */
-            public function getPayload(): array
-            {
-                return [];
             }
         };
 
@@ -82,9 +84,10 @@ final class EventJobMappingRegistryTest extends Unit
     public function testResolveThrowsExceptionForMissingRequiredParameter(): void
     {
         $jobClass = $this->createJobClassWithRequiredParam();
-        $registry = new EventJobMappingRegistry([
-            BookStatusChangedEvent::class => $jobClass,
-        ]);
+        $registry = new EventJobMappingRegistry(
+            [BookStatusChangedEvent::class => $jobClass],
+            new EventSerializer(),
+        );
         $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $this->expectException(InvalidArgumentException::class);
@@ -96,9 +99,10 @@ final class EventJobMappingRegistryTest extends Unit
     public function testResolveUsesDefaultValueForOptionalParameter(): void
     {
         $jobClass = $this->createJobClassWithOptionalParam();
-        $registry = new EventJobMappingRegistry([
-            BookStatusChangedEvent::class => $jobClass,
-        ]);
+        $registry = new EventJobMappingRegistry(
+            [BookStatusChangedEvent::class => $jobClass],
+            new EventSerializer(),
+        );
         $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $job = $registry->resolve($event);
@@ -111,9 +115,10 @@ final class EventJobMappingRegistryTest extends Unit
     public function testResolveWithJobWithoutConstructor(): void
     {
         $jobClass = $this->createJobClassWithoutConstructor();
-        $registry = new EventJobMappingRegistry([
-            BookStatusChangedEvent::class => $jobClass,
-        ]);
+        $registry = new EventJobMappingRegistry(
+            [BookStatusChangedEvent::class => $jobClass],
+            new EventSerializer(),
+        );
         $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $job = $registry->resolve($event);
@@ -123,16 +128,17 @@ final class EventJobMappingRegistryTest extends Unit
 
     public function testHasReturnsTrueForRegisteredEvent(): void
     {
-        $registry = new EventJobMappingRegistry([
-            BookStatusChangedEvent::class => NotifySubscribersJob::class,
-        ]);
+        $registry = new EventJobMappingRegistry(
+            [BookStatusChangedEvent::class => NotifySubscribersJob::class],
+            new EventSerializer(),
+        );
 
         $this->assertTrue($registry->has(BookStatusChangedEvent::class));
     }
 
     public function testHasReturnsFalseForUnregisteredEvent(): void
     {
-        $registry = new EventJobMappingRegistry([]);
+        $registry = new EventJobMappingRegistry([], new EventSerializer());
 
         $this->assertFalse($registry->has(BookStatusChangedEvent::class));
     }

@@ -25,6 +25,7 @@ use app\infrastructure\adapters\decorators\IdempotencyStorageTracingDecorator;
 use app\infrastructure\adapters\decorators\QueueTracingDecorator;
 use app\infrastructure\adapters\decorators\RateLimitStorageTracingDecorator;
 use app\infrastructure\adapters\EventJobMappingRegistry;
+use app\infrastructure\adapters\EventSerializer;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
 use app\infrastructure\adapters\IdempotencyStorage;
@@ -117,11 +118,16 @@ return static function (array $params): array {
 
             CacheInterface::class => YiiCacheAdapter::class,
 
-            EventJobMappingRegistry::class => static fn(): EventJobMappingRegistry => new EventJobMappingRegistry([
-                BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): ?NotifySubscribersJob => $e->newStatus === BookStatus::Published
-                    ? new NotifySubscribersJob($e->bookId)
-                    : null,
-            ]),
+            EventSerializer::class => EventSerializer::class,
+
+            EventJobMappingRegistry::class => static fn(Container $c): EventJobMappingRegistry => new EventJobMappingRegistry(
+                [
+                    BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): ?NotifySubscribersJob => $e->newStatus === BookStatus::Published
+                        ? new NotifySubscribersJob($e->bookId)
+                        : null,
+                ],
+                $c->get(EventSerializer::class),
+            ),
 
             EventToJobMapperInterface::class => EventToJobMapper::class,
 

@@ -22,17 +22,4 @@ final readonly class BookStatusChangedEvent implements QueueableEvent
     {
         return self::EVENT_TYPE;
     }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getPayload(): array
-    {
-        return [
-            'bookId' => $this->bookId,
-            'oldStatus' => $this->oldStatus->value,
-            'newStatus' => $this->newStatus->value,
-            'year' => $this->year,
-        ];
-    }
 }

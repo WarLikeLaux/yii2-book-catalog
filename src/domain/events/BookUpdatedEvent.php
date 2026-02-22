@@ -22,17 +22,4 @@ final readonly class BookUpdatedEvent implements DomainEvent
     {
         return self::EVENT_TYPE;
     }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getPayload(): array
-    {
-        return [
-            'bookId' => $this->bookId,
-            'oldYear' => $this->oldYear,
-            'newYear' => $this->newYear,
-            'status' => $this->status->value,
-        ];
-    }
 }

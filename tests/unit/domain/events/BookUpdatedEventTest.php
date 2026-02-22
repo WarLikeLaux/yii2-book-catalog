@@ -10,7 +10,7 @@ use Codeception\Test\Unit;
 
 final class BookUpdatedEventTest extends Unit
 {
-    public function testEventTypeAndPayload(): void
+    public function testEventTypeAndProperties(): void
     {
         $event = new BookUpdatedEvent(123, 2023, 2024, BookStatus::Published);
 
@@ -19,12 +19,6 @@ final class BookUpdatedEventTest extends Unit
         $this->assertSame(2024, $event->newYear);
         $this->assertSame(BookStatus::Published, $event->status);
         $this->assertSame(BookUpdatedEvent::EVENT_TYPE, $event->getEventType());
-        $this->assertSame([
-            'bookId' => 123,
-            'oldYear' => 2023,
-            'newYear' => 2024,
-            'status' => BookStatus::Published->value,
-        ], $event->getPayload());
     }
 
     public function testDraftBook(): void
@@ -32,11 +26,5 @@ final class BookUpdatedEventTest extends Unit
         $event = new BookUpdatedEvent(456, 2024, 2024, BookStatus::Draft);
 
         $this->assertSame(BookStatus::Draft, $event->status);
-        $this->assertSame([
-            'bookId' => 456,
-            'oldYear' => 2024,
-            'newYear' => 2024,
-            'status' => BookStatus::Draft->value,
-        ], $event->getPayload());
     }
 }

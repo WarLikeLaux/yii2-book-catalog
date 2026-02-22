@@ -19,16 +19,4 @@ final readonly class BookDeletedEvent implements DomainEvent
     {
         return self::EVENT_TYPE;
     }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getPayload(): array
-    {
-        return [
-            'bookId' => $this->bookId,
-            'year' => $this->year,
-            'wasPublished' => $this->wasPublished,
-        ];
-    }
 }

@@ -18,8 +18,10 @@ final readonly class EventJobMappingRegistry
     /**
      * @param array<class-string<QueueableEvent>, JobMapping> $mappings
      */
-    public function __construct(private array $mappings)
-    {
+    public function __construct(
+        private array $mappings,
+        private EventSerializer $serializer,
+    ) {
     }
 
     public function resolve(QueueableEvent $event): ?JobInterface
@@ -56,7 +58,7 @@ final readonly class EventJobMappingRegistry
             return $reflection->newInstance();
         }
 
-        $payload = $event->getPayload();
+        $payload = $this->serializer->serialize($event);
         $args = [];
 
         foreach ($constructor->getParameters() as $param) {
