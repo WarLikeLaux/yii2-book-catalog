@@ -12,8 +12,6 @@ use app\domain\values\StoredFileReference;
 
 final readonly class BookPublicationPolicy
 {
-    private const int MIN_DESCRIPTION_LENGTH = 50;
-
     /**
      * @throws ValidationException|BusinessRuleException
      */
@@ -45,6 +43,6 @@ final readonly class BookPublicationPolicy
     private function hasValidDescription(?string $description): bool
     {
         return $description !== null
-        && mb_strlen(trim($description)) >= self::MIN_DESCRIPTION_LENGTH;
+        && mb_strlen(trim($description)) >= Book::MIN_DESCRIPTION_LENGTH;
     }
 }

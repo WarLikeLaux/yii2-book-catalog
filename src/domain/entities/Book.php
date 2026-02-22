@@ -22,6 +22,7 @@ final class Book implements RecordableEntityInterface
 {
     use RecordsEvents;
 
+    public const int MIN_DESCRIPTION_LENGTH = 50;
     private const int MAX_TITLE_LENGTH = 255;
 
     // phpcs:disable PSR2.Classes.PropertyDeclaration,Generic.WhiteSpace.ScopeIndent,SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing
@@ -143,11 +144,25 @@ final class Book implements RecordableEntityInterface
 
     public function updateDescription(?string $description): void
     {
+        if (
+            $this->status !== BookStatus::Draft
+            && (
+                $description === null
+                || mb_strlen(trim($description)) < self::MIN_DESCRIPTION_LENGTH
+            )
+        ) {
+            throw new ValidationException(DomainErrorCode::BookPublishShortDescription);
+        }
+
         $this->description = $description;
     }
 
     public function updateCover(?StoredFileReference $coverImage): void
     {
+        if ($coverImage === null && $this->status !== BookStatus::Draft) {
+            throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutCover);
+        }
+
         $this->coverImage = $coverImage;
     }
 
@@ -170,6 +185,10 @@ final class Book implements RecordableEntityInterface
 
         if ($key === false) {
             return;
+        }
+
+        if (count($this->authorIds) === 1 && $this->status !== BookStatus::Draft) {
+            throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutAuthors);
         }
 
         unset($this->authorIds[$key]);
