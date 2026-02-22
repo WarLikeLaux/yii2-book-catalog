@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
-use app\application\common\exceptions\OperationFailedException;
 use app\application\ports\AuthorExistenceCheckerInterface;
 use app\application\ports\BookIsbnCheckerInterface;
 use app\application\ports\UseCaseInterface;
@@ -59,12 +58,6 @@ final readonly class CreateBookUseCase implements UseCaseInterface
         );
         $book->replaceAuthors($authorIds);
 
-        $bookId = $this->bookRepository->save($book);
-
-        if ($bookId === 0) {
-            throw new OperationFailedException(DomainErrorCode::EntityIdMissing->value);
-        }
-
-        return $bookId;
+        return $this->bookRepository->save($book);
     }
 }

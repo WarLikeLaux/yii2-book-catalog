@@ -6,13 +6,11 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\CreateBookCommand;
 use app\application\books\usecases\CreateBookUseCase;
-use app\application\common\exceptions\OperationFailedException;
 use app\application\common\values\AuthorIdCollection;
 use app\application\ports\AuthorExistenceCheckerInterface;
 use app\application\ports\BookIsbnCheckerInterface;
 use app\domain\entities\Book;
 use app\domain\exceptions\AlreadyExistsException;
-use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\repositories\BookRepositoryInterface;
@@ -130,28 +128,6 @@ final class CreateBookUseCaseTest extends Unit
         $result = $this->useCase->execute($command);
 
         $this->assertSame(1, $result);
-    }
-
-    public function testExecuteThrowsExceptionWhenIdNotReturned(): void
-    {
-        $command = new CreateBookCommand(
-            title: 'Title',
-            year: 2023,
-            description: 'Desc',
-            isbn: '978-3-16-148410-0',
-            authorIds: AuthorIdCollection::fromArray([1, 2]),
-            storedCover: 'https://cover.com',
-        );
-
-        $this->bookRepository->expects($this->once())
-            ->method('save')
-            ->with($this->isInstanceOf(Book::class))
-            ->willReturnCallback(static fn (Book $_book): int => 0);
-
-        $this->expectException(OperationFailedException::class);
-        $this->expectExceptionMessage(DomainErrorCode::EntityIdMissing->value);
-
-        $this->useCase->execute($command);
     }
 
     public function testExecuteThrowsExceptionOnFutureYear(): void

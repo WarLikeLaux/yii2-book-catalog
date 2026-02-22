@@ -85,8 +85,8 @@ return static function (Config $config): void {
 
     $domainRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\domain'))
-        ->should(new NotDependsOnTheseNamespaces(['yii']))
-        ->because('Домен не должен зависеть от фреймворка');
+        ->should(new NotDependsOnTheseNamespaces(['yii', 'app\application', 'app\infrastructure', 'app\presentation']))
+        ->because('Домен изолирован: запрещены зависимости от yii, application, infrastructure, presentation');
 
     $domainRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\domain\repositories'))
