@@ -225,7 +225,7 @@ final class Book implements RecordableEntityInterface
             throw new BusinessRuleException(DomainErrorCode::BookInvalidStatusTransition);
         }
 
-        if ($this->status === BookStatus::Draft && $target === BookStatus::Published) {
+        if ($target === BookStatus::Published) {
             if (!$policy instanceof BookPublicationPolicy) {
                 throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutPolicy);
             }
