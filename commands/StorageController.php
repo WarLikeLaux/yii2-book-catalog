@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\commands;
 
-use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\ContentStorageInterface;
+use app\application\ports\CoverKeysScannerInterface;
 use app\domain\values\FileKey;
 use RuntimeException;
 use Yii;
@@ -21,7 +21,7 @@ final class StorageController extends Controller
         $id,
         $module,
         private readonly ContentStorageInterface $storage,
-        private readonly BookQueryServiceInterface $bookQuery,
+        private readonly CoverKeysScannerInterface $coverKeysScanner,
         $config = [],
     ) {
         parent::__construct($id, $module, $config);
@@ -33,7 +33,7 @@ final class StorageController extends Controller
         $this->stdout(Yii::t('app', 'storage.gc.ttl', ['hours' => $ttlHours]) . "\n\n");
 
         try {
-            $referencedKeys = $this->bookQuery->getReferencedCoverKeys();
+            $referencedKeys = $this->coverKeysScanner->getReferencedCoverKeys();
         } catch (\Throwable $e) {
             $this->stderr(Yii::t('app', 'storage.gc.error.fetch_keys', ['error' => $e->getMessage()]) . "\n");
             return ExitCode::DATAERR;

@@ -54,15 +54,4 @@ final readonly class BookQueryServiceTracingDecorator implements BookQueryServic
             fn(): PagedResultInterface => $this->service->searchBySpecification($specification, $page, $limit),
         );
     }
-
-    /**
-     * @return string[]
-     */
-    public function getReferencedCoverKeys(): array
-    {
-        return $this->tracer->trace(
-            'BookQuery::' . __FUNCTION__,
-            fn(): array => $this->service->getReferencedCoverKeys(),
-        );
-    }
 }
