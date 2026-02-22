@@ -58,12 +58,6 @@ enum DomainErrorCode: string
     case AuthorNotFound = 'author.error.not_found';
 
     #[ErrorMapping(ErrorType::OperationFailed)]
-    case AuthorCreateFailed = 'author.error.create_failed';
-
-    #[ErrorMapping(ErrorType::OperationFailed, field: 'fio')]
-    case AuthorUpdateFailed = 'author.error.update_failed';
-
-    #[ErrorMapping(ErrorType::OperationFailed)]
     case AuthorStaleData = 'author.error.stale_data';
 
     #[ErrorMapping(ErrorType::AlreadyExists, field: 'fio')]
@@ -71,12 +65,6 @@ enum DomainErrorCode: string
 
     #[ErrorMapping(ErrorType::AlreadyExists)]
     case SubscriptionAlreadySubscribed = 'subscription.error.already_subscribed';
-
-    #[ErrorMapping(ErrorType::OperationFailed)]
-    case SubscriptionCreateFailed = 'subscription.error.create_failed';
-
-    #[ErrorMapping(ErrorType::OperationFailed)]
-    case SubscriptionStaleData = 'subscription.error.stale_data';
 
     #[ErrorMapping(ErrorType::OperationFailed, field: 'phone')]
     case PhoneEmpty = 'phone.error.empty';
@@ -128,7 +116,4 @@ enum DomainErrorCode: string
 
     #[ErrorMapping(ErrorType::OperationFailed)]
     case EntityIdMissing = 'error.entity_id_missing';
-
-    #[ErrorMapping(ErrorType::OperationFailed)]
-    case MapperFailed = 'error.mapper_failed';
 }

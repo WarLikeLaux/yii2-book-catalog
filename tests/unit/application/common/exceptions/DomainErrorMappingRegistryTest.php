@@ -36,10 +36,8 @@ final class DomainErrorMappingRegistryTest extends Unit
         $this->assertMapping($registry, DomainErrorCode::BookTitleEmpty, OperationFailedException::class, 'title');
         $this->assertMapping($registry, DomainErrorCode::BookNotFound, EntityNotFoundException::class, null);
         $this->assertMapping($registry, DomainErrorCode::AuthorFioExists, AlreadyExistsException::class, 'fio');
-        $this->assertMapping($registry, DomainErrorCode::AuthorUpdateFailed, OperationFailedException::class, 'fio');
         $this->assertMapping($registry, DomainErrorCode::AuthorNotFound, EntityNotFoundException::class, null);
         $this->assertMapping($registry, DomainErrorCode::SubscriptionAlreadySubscribed, AlreadyExistsException::class, null);
-        $this->assertMapping($registry, DomainErrorCode::SubscriptionCreateFailed, OperationFailedException::class, null);
     }
 
     public function testFromEnumMapsBusinessRuleCases(): void
