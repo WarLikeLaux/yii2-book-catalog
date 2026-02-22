@@ -22,41 +22,12 @@ final readonly class FileContent
         }
     }
 
-    public static function fromPath(
-        string $path,
-        ?string $extension,
-        string $mimeType,
-    ): self {
-        if (!is_file($path) || !is_readable($path)) {
-            throw new ValidationException(DomainErrorCode::FileNotFound);
-        }
-
-        $stream = fopen($path, 'rb');
-
-        if ($stream === false) {
-            throw new ValidationException(DomainErrorCode::FileOpenFailed); // @codeCoverageIgnore
-        }
-
-        $extension ??= pathinfo($path, PATHINFO_EXTENSION);
-
-        return new self($stream, $extension, $mimeType);
-    }
-
     /**
      * @return resource
      */
     public function getStream(): mixed
     {
         return $this->stream;
-    }
-
-    public function __destruct()
-    {
-        if (!is_resource($this->stream)) {
-            return; // @codeCoverageIgnore
-        }
-
-        fclose($this->stream);
     }
 
     public function computeKey(): FileKey

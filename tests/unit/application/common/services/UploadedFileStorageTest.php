@@ -62,4 +62,51 @@ final class UploadedFileStorageTest extends Unit
 
         $this->service->store($payload);
     }
+
+    public function testStoreThrowsApplicationExceptionWhenPathIsDirectory(): void
+    {
+        $tempDir = sys_get_temp_dir() . '/upload-storage-dir-' . uniqid('', true);
+        mkdir($tempDir, 0777, true);
+
+        try {
+            $payload = new UploadedFilePayload($tempDir, 'txt', 'text/plain');
+
+            $this->expectException(ApplicationException::class);
+            $this->expectExceptionMessage('file.error.not_found');
+
+            $this->service->store($payload);
+        } finally {
+            rmdir($tempDir);
+        }
+    }
+
+    public function testStoreUsesPathinfoExtensionWhenExtensionEmpty(): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'upload-');
+
+        if ($tempFile === false) {
+            $this->fail('Failed to create temp file');
+        }
+
+        $filePath = $tempFile . '.jpg';
+        rename($tempFile, $filePath);
+        file_put_contents($filePath, 'content');
+
+        $payload = new UploadedFilePayload($filePath, '', 'image/jpeg');
+        $hash = str_repeat('b', 64);
+        $fileKey = new FileKey($hash);
+
+        $this->contentStorage->expects($this->once())
+            ->method('save')
+            ->with($this->callback(static fn (FileContent $content): bool => $content->extension === 'jpg'))
+            ->willReturn($fileKey);
+
+        $result = $this->service->store($payload);
+
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        $this->assertSame('bb/bb/' . $hash . '.jpg', $result);
+    }
 }
