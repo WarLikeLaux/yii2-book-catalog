@@ -15,6 +15,7 @@
 
 ### 🚀 Новые функции и возможности
 
+- **#38** - добавлен `Auth` guard в контроллер здоровья системы ([e04946d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e04946d))
 - **#38** - реализована pull-модель доменных событий через **RecordsEvents trait** в сущности Book ([9c8ab98](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9c8ab98))
 - **#38** - рефакторинг use cases и репозитория для публикации событий из сущности ([a68ee7f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a68ee7f))
 - **#38** - добавлен **EventSerializer** в infrastructure, удалён getPayload из DomainEvent ([12383cb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/12383cb))
@@ -41,6 +42,7 @@
 
 ### 🐛 Исправления
 
+- **#38** - исправлена валидация чтения файла в UploadedFileStorage ([7aadb52](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7aadb52))
 - **#38** - исправлены FK RESTRICT тесты для PostgreSQL transaction abort state ([36c178f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/36c178f))
 - **#38** - исправлен AuthorExistenceChecker для обработки дублированных ids в existsAllByIds ([895891a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/895891a))
 - **#38** - исправлены ожидания теста дублированных author ids для нормализованного Book entity ([e1c7882](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e1c7882))
@@ -52,6 +54,7 @@
 
 ### 🛠 Рефакторинг и архитектура
 
+- **#38** - рефакторинг use cases авторов для атомарности транзакций и корректной обработки ошибок ([702be26](https://github.com/WarLikeLaux/yii2-book-catalog/commit/702be26))
 - **#38** - перенесены репозиторные интерфейсы в домен, техническое хранилище — в адаптеры ([c11196e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c11196e))
 - **#38** - перенесена **BookSearchSpecificationFactory** из домена в application layer ([29b3a5a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/29b3a5a))
 - **#38** - удалён getReferencedCoverKeys из BookQueryServiceInterface ([2ba4965](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2ba4965))
@@ -101,6 +104,7 @@
 
 ### ⚙️ Инфраструктура
 
+- **#38** - исправлен порядок переменных JAEGER_ в .env.example ([24d9a13](https://github.com/WarLikeLaux/yii2-book-catalog/commit/24d9a13))
 - **#38** - заменён скилл audit на **hunt** и **reflect** ([bb546c2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bb546c2))
 - **#38** - введена система skills и обновлены ссылки проекта ([dbc1186](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dbc1186))
 - **#38** - мигрированы workflows в новую структуру skills ([62dc15e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/62dc15e))
@@ -119,6 +123,7 @@
 
 ### 📝 Документация
 
+- **#38** - обновлена документация скиллов ИИ агента (migrate, test, make-no-mistakes) ([cf1a77c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cf1a77c))
 - **#38** - обновлена документация ([a977c89](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a977c89))
 - **#38** - обновлена документация ([96538fb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/96538fb))
 - **#38** - удалён избыточный комментарий и обновлены docs ([cc7634e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cc7634e))
