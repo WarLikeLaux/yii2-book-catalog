@@ -41,8 +41,12 @@ final readonly class UploadedFileStorage
 
     private function createFileContent(UploadedFilePayload $payload): FileContent
     {
-        if (!is_file($payload->path) || !is_readable($payload->path)) {
+        if (!is_file($payload->path)) {
             throw new ValidationException(DomainErrorCode::FileNotFound);
+        }
+
+        if (!is_readable($payload->path)) {
+            throw new ValidationException(DomainErrorCode::FileOpenFailed);
         }
 
         $stream = fopen($payload->path, 'rb');
