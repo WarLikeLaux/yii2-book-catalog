@@ -30,7 +30,7 @@ layers:
     module_structure:
       usecases: "Классы Use Case (execute)"
       commands: "DTO команд (Write)"
-      queries: "DTO чтения (Read)"
+      queries: "DTO чтения (Read), DTO-only: final readonly, без infra"
       exceptions: "Исключения модуля"
       factories: "Фабрики модуля"
       mappers: "Mappers модуля"

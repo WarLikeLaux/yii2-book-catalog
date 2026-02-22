@@ -123,6 +123,11 @@ return static function (Config $config): void {
         ->because('Query DTO должны быть readonly');
 
     $applicationRules[] = Rule::allClasses()
+        ->that(new ResideInOneOfTheseNamespaces('app\application\*\queries'))
+        ->should(new NotDependsOnTheseNamespaces(['app\infrastructure']))
+        ->because('application/*/queries — DTO-only: без сервисов и инфраструктуры');
+
+    $applicationRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\application\ports'))
         ->should(new IsInterface())
         ->because('Порты должны быть интерфейсами');

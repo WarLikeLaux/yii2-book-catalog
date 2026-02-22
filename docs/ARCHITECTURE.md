@@ -186,7 +186,8 @@ graph TD
 Чтение и запись разделены по CQS, а внешние зависимости вынесены в порты:
 
 - **Запись (команды):** любое изменение в системе (создание книги, подписка) - это отдельный **Use Case**. Данные поступают через строго типизированные **Command DTO**.
-- **Чтение (запросы):** read-side реализован через порты (`BookFinderInterface`, `BookSearcherInterface`), их реализации в `infrastructure/queries/` и Read DTO в `application/*/queries` (см. DECISIONS.md §15).
+- **Чтение (запросы):** read-side реализован через порты (`BookFinderInterface`, `BookSearcherInterface`). Реализации портов (Query Services) — только в `infrastructure/queries/`. Read DTO (`BookReadDto`, `ReportDto` и т.п.) — в `application/*/queries` (см. DECISIONS.md §15).
+- **Контракт DTO-only для `application/*/queries`:** папка содержит **только** read DTO и критерии поиска. Запрещены: сервисы, Use Cases, зависимости от `infrastructure`, бизнес-логика. Разрешены: `final readonly` классы с данными, простые геттеры, `with*()`-методы, `JsonSerializable`. Проверка: phparkitect (final, readonly, NotDependsOn infra).
 - **Порты:** интерфейсы в `application/ports` позволяют менять реализацию без изменений бизнес-логики.
 
 [↑ К навигации](#-навигация)
@@ -306,7 +307,7 @@ public function createBook(BookForm $form): int
 
 - Формы валидируют HTTP-ввод в `presentation/*/forms`.
 - Команды (`CreateBookCommand`, `UpdateBookCommand`) живут в `application/*/commands`.
-- Read-side DTO находятся в `application/*/queries`.
+- Read-side DTO (`BookReadDto`, `ReportDto` и др.) — в `application/*/queries`. **Контракт DTO-only:** только `final readonly` классы-контейнеры данных, без сервисов и инфраструктурных зависимостей. Реализации Query Services — только в `infrastructure/queries` (см. DECISIONS §15).
 - Пагинация оформлена через `PaginationDto` и `PagedResultInterface`.
 
 [↑ К навигации](#-навигация)
@@ -328,6 +329,7 @@ public function createBook(BookForm $form): int
 - Rector для авто-рефакторинга и миграций синтаксиса.
 - Код-стайл через `phpcs.xml.dist`.
 - Архитектурные ограничения через Deptrac и Arkitect.
+- Arkitect: `application/*/queries` — final, readonly, NotDependsOn(infrastructure) (контракт DTO-only).
 
 [↑ К навигации](#-навигация)
 
@@ -420,7 +422,7 @@ domain/                 - Слой домена (Business Logic)
   ├── services/         - Domain Services (редко)
   ├── specifications/   - Specifications (criteria)
   ├── values/           - Value Objects (Immutable)
-application/            - Слой приложения (Application Logic)
+  application/            - Слой приложения (Application Logic)
   ├── common/           - Общие DTO и валидаторы
   ├── ports/            - Интерфейсы (Ports)
   ├── {{module}}/
@@ -428,7 +430,7 @@ application/            - Слой приложения (Application Logic)
   │   ├── exceptions/   - Исключения модуля
   │   ├── factories/    - Фабрики модуля
   │   ├── mappers/      - Mappers модуля
-  │   ├── queries/      - DTO чтения (Read)
+  │   ├── queries/      - DTO чтения (Read), DTO-only: final readonly, без infra
   │   ├── usecases/     - Классы Use Case (execute)
 infrastructure/         - Инфраструктурный слой (Framework Logic)
   ├── adapters/         - Адаптеры инфраструктуры

@@ -17,6 +17,7 @@ deptrac:
         - type: directory
           value: src/domain/(values|events|exceptions)/.*
     
+    # application/*/queries — DTO-only (final readonly, без infra). Проверка: phparkitect.
     - name: Application
       collectors:
         - type: directory

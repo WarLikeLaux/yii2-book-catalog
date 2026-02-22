@@ -546,7 +546,7 @@ public function execute(object $command): int
 {
     $authorIds = $command->authorIds->toArray();
 
-    if ($this->bookQueryService->existsByIsbn($command->isbn)) {
+    if ($this->bookIsbnChecker->existsByIsbn($command->isbn)) {
         throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
     }
 
