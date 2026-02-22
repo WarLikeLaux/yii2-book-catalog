@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace app\infrastructure\repositories;
 
-use app\application\ports\SubscriptionRepositoryInterface;
 use app\domain\entities\Subscription as SubscriptionEntity;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
+use app\domain\repositories\SubscriptionRepositoryInterface;
 use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use app\infrastructure\persistence\Subscription;
 

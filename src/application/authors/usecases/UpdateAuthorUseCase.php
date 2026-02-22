@@ -6,10 +6,10 @@ namespace app\application\authors\usecases;
 
 use app\application\authors\commands\UpdateAuthorCommand;
 use app\application\ports\AuthorExistenceCheckerInterface;
-use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
+use app\domain\repositories\AuthorRepositoryInterface;
 
 /**
  * @implements UseCaseInterface<UpdateAuthorCommand, void>

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services;
 
 use app\application\ports\BookIsbnCheckerInterface;
-use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
+use app\domain\repositories\BookRepositoryInterface;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Book as BookAR;

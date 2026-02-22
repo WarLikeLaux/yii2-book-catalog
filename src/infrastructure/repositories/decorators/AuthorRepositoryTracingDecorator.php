@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\infrastructure\repositories\decorators;
 
-use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\TracerInterface;
 use app\domain\entities\Author;
+use app\domain\repositories\AuthorRepositoryInterface;
 use Override;
 
 final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositoryInterface

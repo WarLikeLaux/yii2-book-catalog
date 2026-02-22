@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\infrastructure\repositories\decorators;
+namespace tests\unit\infrastructure\adapters\decorators;
 
 use app\application\common\dto\RateLimitResult;
 use app\application\ports\RateLimitInterface;
 use app\application\ports\TracerInterface;
-use app\infrastructure\repositories\decorators\RateLimitRepositoryTracingDecorator;
+use app\infrastructure\adapters\decorators\RateLimitStorageTracingDecorator;
 use Codeception\Test\Unit;
 
-final class RateLimitRepositoryTracingDecoratorTest extends Unit
+final class RateLimitStorageTracingDecoratorTest extends Unit
 {
     public function testCheckLimitDelegatesToDecoratedWithTracing(): void
     {
         $decorated = $this->createMock(RateLimitInterface::class);
         $tracer = $this->createMock(TracerInterface::class);
-        $decorator = new RateLimitRepositoryTracingDecorator($decorated, $tracer);
+        $decorator = new RateLimitStorageTracingDecorator($decorated, $tracer);
 
         $expectedResult = new RateLimitResult(true, 5, 100, time() + 60);
 
         $tracer->expects($this->once())
             ->method('trace')
             ->with(
-                'RateLimitRepository::checkLimit',
+                'RateLimitStorage::checkLimit',
                 $this->isType('callable'),
             )
             ->willReturnCallback(static fn(string $_name, callable $callback): RateLimitResult => $callback());

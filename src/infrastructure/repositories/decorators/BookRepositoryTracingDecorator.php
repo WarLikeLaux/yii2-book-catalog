@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\infrastructure\repositories\decorators;
 
-use app\application\ports\BookRepositoryInterface;
 use app\application\ports\TracerInterface;
 use app\domain\entities\Book;
+use app\domain\repositories\BookRepositoryInterface;
 use Override;
 
 final readonly class BookRepositoryTracingDecorator implements BookRepositoryInterface

@@ -2,51 +2,51 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\infrastructure\repositories;
+namespace tests\unit\infrastructure\adapters;
 
+use app\infrastructure\adapters\AsyncIdempotencyStorage;
 use app\infrastructure\adapters\SystemClock;
 use app\infrastructure\persistence\AsyncIdempotencyLog;
-use app\infrastructure\repositories\AsyncIdempotencyRepository;
 use Codeception\Test\Unit;
 
-final class AsyncIdempotencyRepositoryTest extends Unit
+final class AsyncIdempotencyStorageTest extends Unit
 {
     private const int DEFAULT_TTL = 172800;
     private const int OLD_TIMESTAMP_OFFSET = 200000;
 
-    private AsyncIdempotencyRepository $repository;
+    private AsyncIdempotencyStorage $storage;
 
     protected function _before(): void
     {
-        $this->repository = new AsyncIdempotencyRepository(new SystemClock());
+        $this->storage = new AsyncIdempotencyStorage(new SystemClock());
         AsyncIdempotencyLog::deleteAll();
     }
 
     public function testAcquireReturnsTrue(): void
     {
-        $this->assertTrue($this->repository->acquire('test-key'));
+        $this->assertTrue($this->storage->acquire('test-key'));
     }
 
     public function testAcquireReturnsFalseOnDuplicate(): void
     {
-        $this->assertTrue($this->repository->acquire('test-key'));
-        $this->assertFalse($this->repository->acquire('test-key'));
+        $this->assertTrue($this->storage->acquire('test-key'));
+        $this->assertFalse($this->storage->acquire('test-key'));
     }
 
     public function testReleaseDeletesRecord(): void
     {
-        $this->repository->acquire('test-key');
+        $this->storage->acquire('test-key');
 
-        $this->repository->release('test-key');
+        $this->storage->release('test-key');
 
-        $this->assertTrue($this->repository->acquire('test-key'));
+        $this->assertTrue($this->storage->acquire('test-key'));
     }
 
     public function testReleaseNonExistentKeyDoesNotThrow(): void
     {
         $this->expectNotToPerformAssertions();
 
-        $this->repository->release('non-existent');
+        $this->storage->release('non-existent');
     }
 
     public function testDeleteExpiredRemovesOldRecords(): void
@@ -56,19 +56,19 @@ final class AsyncIdempotencyRepositoryTest extends Unit
         $model->created_at = time() - self::OLD_TIMESTAMP_OFFSET;
         $model->save();
 
-        $this->repository->acquire('new-key');
+        $this->storage->acquire('new-key');
 
-        $deleted = $this->repository->deleteExpired(self::DEFAULT_TTL);
+        $deleted = $this->storage->deleteExpired(self::DEFAULT_TTL);
 
         $this->assertSame(1, $deleted);
-        $this->assertFalse($this->repository->acquire('new-key'));
+        $this->assertFalse($this->storage->acquire('new-key'));
     }
 
     public function testDeleteExpiredReturnsZeroWhenNoExpired(): void
     {
-        $this->repository->acquire('new-key');
+        $this->storage->acquire('new-key');
 
-        $deleted = $this->repository->deleteExpired(self::DEFAULT_TTL);
+        $deleted = $this->storage->deleteExpired(self::DEFAULT_TTL);
 
         $this->assertSame(0, $deleted);
     }

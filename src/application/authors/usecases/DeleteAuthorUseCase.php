@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace app\application\authors\usecases;
 
 use app\application\authors\commands\DeleteAuthorCommand;
-use app\application\ports\AuthorRepositoryInterface;
 use app\application\ports\UseCaseInterface;
+use app\domain\repositories\AuthorRepositoryInterface;
 
 /**
  * @implements UseCaseInterface<DeleteAuthorCommand, void>

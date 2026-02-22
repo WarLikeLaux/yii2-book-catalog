@@ -188,7 +188,7 @@ graph TD
 - **Запись (команды):** любое изменение в системе (создание книги, подписка) - это отдельный **Use Case**. Данные поступают через строго типизированные **Command DTO**.
 - **Чтение (запросы):** read-side реализован через порты (`BookFinderInterface`, `BookSearcherInterface`). Реализации портов (Query Services) — только в `infrastructure/queries/`. Read DTO (`BookReadDto`, `ReportDto` и т.п.) — в `application/*/queries` (см. DECISIONS.md §15).
 - **Контракт DTO-only для `application/*/queries`:** папка содержит **только** read DTO и критерии поиска. Запрещены: сервисы, Use Cases, зависимости от `infrastructure`, бизнес-логика. Разрешены: `final readonly` классы с данными, простые геттеры, `with*()`-методы, `JsonSerializable`. Проверка: phparkitect (final, readonly, NotDependsOn infra).
-- **Порты:** интерфейсы в `application/ports` позволяют менять реализацию без изменений бизнес-логики.
+- **Порты:** интерфейсы в `application/ports` (checkers, query services и др.) и `domain/repositories` (репозитории сущностей) позволяют менять реализацию без изменений бизнес-логики.
 
 [↑ К навигации](#-навигация)
 
@@ -315,7 +315,7 @@ public function createBook(BookForm $form): int
 ### 7. Инфраструктурный слой
 
 - ActiveRecord модели размещены в `infrastructure/persistence` и используются только внутри инфраструктуры.
-- Репозитории и Query Services реализуют порты в `infrastructure/repositories` и `infrastructure/queries`.
+- Репозитории сущностей реализуют интерфейсы из `domain/repositories` в `infrastructure/repositories`. Технические хранилища (Idempotency, RateLimit, AsyncIdempotency) — в `infrastructure/adapters/` как `*Storage` (см. DECISIONS §16).
 - События публикуются через `YiiEventPublisherAdapter`, маппинг в jobs делает `EventToJobMapper`.
 - Оптимистическая блокировка включена в `infrastructure/persistence/Book.php` через `OptimisticLockBehavior`, конфликты версий транслируются в `StaleDataException`.
 
@@ -419,6 +419,7 @@ domain/                 - Слой домена (Business Logic)
   ├── entities/         - Сущности (Rich Model)
   ├── events/           - Domain Events
   ├── exceptions/       - Исключения домена
+  ├── repositories/     - Интерфейсы репозиториев (контракт хранения)
   ├── services/         - Domain Services (редко)
   ├── specifications/   - Specifications (criteria)
   ├── values/           - Value Objects (Immutable)
@@ -433,7 +434,7 @@ domain/                 - Слой домена (Business Logic)
   │   ├── queries/      - DTO чтения (Read), DTO-only: final readonly, без infra
   │   ├── usecases/     - Классы Use Case (execute)
 infrastructure/         - Инфраструктурный слой (Framework Logic)
-  ├── adapters/         - Адаптеры инфраструктуры
+  ├── adapters/         - Адаптеры (IdempotencyStorage, RateLimitStorage, Yii*, EventPublisher)
   ├── components/       - Вспомогательные компоненты
   ├── factories/        - Фабрики инфраструктуры
   ├── listeners/        - Event Listeners

@@ -6,8 +6,8 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\ChangeBookStatusCommand;
 use app\application\books\usecases\ChangeBookStatusUseCase;
-use app\application\ports\BookRepositoryInterface;
 use app\domain\exceptions\DomainException;
+use app\domain\repositories\BookRepositoryInterface;
 use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookStatus;
 use BookTestHelper;

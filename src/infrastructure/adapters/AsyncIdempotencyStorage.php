@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace app\infrastructure\repositories;
+namespace app\infrastructure\adapters;
 
 use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\infrastructure\persistence\AsyncIdempotencyLog;
 use Psr\Clock\ClockInterface;
 use Throwable;
 
-final readonly class AsyncIdempotencyRepository implements AsyncIdempotencyStorageInterface
+final readonly class AsyncIdempotencyStorage implements AsyncIdempotencyStorageInterface
 {
     public function __construct(private ClockInterface $clock)
     {

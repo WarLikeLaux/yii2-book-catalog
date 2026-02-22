@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\repositories;
 
-use app\application\ports\SubscriptionRepositoryInterface;
 use app\domain\entities\Subscription;
+use app\domain\repositories\SubscriptionRepositoryInterface;
 use app\domain\values\Phone;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Subscription as SubscriptionAR;

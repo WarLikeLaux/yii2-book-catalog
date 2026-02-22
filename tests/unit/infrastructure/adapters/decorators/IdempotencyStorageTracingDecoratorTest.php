@@ -2,29 +2,29 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\infrastructure\repositories\decorators;
+namespace tests\unit\infrastructure\adapters\decorators;
 
 use app\application\common\dto\IdempotencyRecordDto;
 use app\application\common\IdempotencyKeyStatus;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\TracerInterface;
-use app\infrastructure\repositories\decorators\IdempotencyRepositoryTracingDecorator;
+use app\infrastructure\adapters\decorators\IdempotencyStorageTracingDecorator;
 use Codeception\Test\Unit;
 
-final class IdempotencyRepositoryTracingDecoratorTest extends Unit
+final class IdempotencyStorageTracingDecoratorTest extends Unit
 {
     public function testGetRecordDelegatesToDecoratedWithTracing(): void
     {
         $decorated = $this->createMock(IdempotencyInterface::class);
         $tracer = $this->createMock(TracerInterface::class);
-        $decorator = new IdempotencyRepositoryTracingDecorator($decorated, $tracer);
+        $decorator = new IdempotencyStorageTracingDecorator($decorated, $tracer);
 
         $expectedResult = new IdempotencyRecordDto(IdempotencyKeyStatus::Finished, 200, ['id' => 1], null);
 
         $tracer->expects($this->once())
             ->method('trace')
             ->with(
-                'IdempotencyRepo::getRecord',
+                'IdempotencyStorage::getRecord',
                 $this->isType('callable'),
             )
             ->willReturnCallback(static fn(string $_name, callable $callback) => $callback());
@@ -43,7 +43,7 @@ final class IdempotencyRepositoryTracingDecoratorTest extends Unit
     {
         $decorated = $this->createMock(IdempotencyInterface::class);
         $tracer = $this->createMock(TracerInterface::class);
-        $decorator = new IdempotencyRepositoryTracingDecorator($decorated, $tracer);
+        $decorator = new IdempotencyStorageTracingDecorator($decorated, $tracer);
 
         $tracer->expects($this->once())
             ->method('trace')
@@ -63,12 +63,12 @@ final class IdempotencyRepositoryTracingDecoratorTest extends Unit
     {
         $decorated = $this->createMock(IdempotencyInterface::class);
         $tracer = $this->createMock(TracerInterface::class);
-        $decorator = new IdempotencyRepositoryTracingDecorator($decorated, $tracer);
+        $decorator = new IdempotencyStorageTracingDecorator($decorated, $tracer);
 
         $tracer->expects($this->once())
             ->method('trace')
             ->with(
-                'IdempotencyRepo::saveStarted',
+                'IdempotencyStorage::saveStarted',
                 $this->isType('callable'),
             )
             ->willReturnCallback(static fn(string $_name, callable $callback): bool => $callback());
@@ -87,12 +87,12 @@ final class IdempotencyRepositoryTracingDecoratorTest extends Unit
     {
         $decorated = $this->createMock(IdempotencyInterface::class);
         $tracer = $this->createMock(TracerInterface::class);
-        $decorator = new IdempotencyRepositoryTracingDecorator($decorated, $tracer);
+        $decorator = new IdempotencyStorageTracingDecorator($decorated, $tracer);
 
         $tracer->expects($this->once())
             ->method('trace')
             ->with(
-                'IdempotencyRepo::saveResponse',
+                'IdempotencyStorage::saveResponse',
                 $this->isType('callable'),
             )
             ->willReturnCallback(static function (string $_name, callable $callback): void {

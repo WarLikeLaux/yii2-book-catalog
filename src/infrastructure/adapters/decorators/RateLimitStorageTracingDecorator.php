@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace app\infrastructure\repositories\decorators;
+namespace app\infrastructure\adapters\decorators;
 
 use app\application\common\dto\RateLimitResult;
 use app\application\ports\RateLimitInterface;
 use app\application\ports\TracerInterface;
 
-final readonly class RateLimitRepositoryTracingDecorator implements RateLimitInterface
+final readonly class RateLimitStorageTracingDecorator implements RateLimitInterface
 {
     public function __construct(
         private RateLimitInterface $decorated,
@@ -19,7 +19,7 @@ final readonly class RateLimitRepositoryTracingDecorator implements RateLimitInt
     public function checkLimit(string $key, int $limit, int $windowSeconds): RateLimitResult
     {
         return $this->tracer->trace(
-            'RateLimitRepository::checkLimit',
+            'RateLimitStorage::checkLimit',
             fn(): RateLimitResult => $this->decorated->checkLimit($key, $limit, $windowSeconds),
         );
     }

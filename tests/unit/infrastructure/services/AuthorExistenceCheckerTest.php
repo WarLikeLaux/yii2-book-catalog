@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services;
 
 use app\application\ports\AuthorExistenceCheckerInterface;
-use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author as AuthorEntity;
+use app\domain\repositories\AuthorRepositoryInterface;
 use app\infrastructure\persistence\Author;
 use Codeception\Test\Unit;
 use Yii;

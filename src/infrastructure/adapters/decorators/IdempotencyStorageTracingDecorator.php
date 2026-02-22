@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace app\infrastructure\repositories\decorators;
+namespace app\infrastructure\adapters\decorators;
 
 use app\application\common\dto\IdempotencyRecordDto;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\TracerInterface;
 use Override;
 
-final readonly class IdempotencyRepositoryTracingDecorator implements IdempotencyInterface
+final readonly class IdempotencyStorageTracingDecorator implements IdempotencyInterface
 {
     public function __construct(
-        private IdempotencyInterface $repository,
+        private IdempotencyInterface $storage,
         private TracerInterface $tracer,
     ) {
     }
@@ -21,8 +21,8 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
     public function getRecord(string $key): IdempotencyRecordDto|null
     {
         return $this->tracer->trace(
-            'IdempotencyRepo::' . __FUNCTION__,
-            fn(): IdempotencyRecordDto|null => $this->repository->getRecord($key),
+            'IdempotencyStorage::' . __FUNCTION__,
+            fn(): IdempotencyRecordDto|null => $this->storage->getRecord($key),
         );
     }
 
@@ -30,8 +30,8 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
     public function saveStarted(string $key, int $ttl): bool
     {
         return $this->tracer->trace(
-            'IdempotencyRepo::' . __FUNCTION__,
-            fn(): bool => $this->repository->saveStarted($key, $ttl),
+            'IdempotencyStorage::' . __FUNCTION__,
+            fn(): bool => $this->storage->saveStarted($key, $ttl),
         );
     }
 
@@ -39,8 +39,8 @@ final readonly class IdempotencyRepositoryTracingDecorator implements Idempotenc
     public function saveResponse(string $key, int $statusCode, string $body, int $ttl): void
     {
         $this->tracer->trace(
-            'IdempotencyRepo::' . __FUNCTION__,
-            fn() => $this->repository->saveResponse($key, $statusCode, $body, $ttl),
+            'IdempotencyStorage::' . __FUNCTION__,
+            fn() => $this->storage->saveResponse($key, $statusCode, $body, $ttl),
         );
     }
 }

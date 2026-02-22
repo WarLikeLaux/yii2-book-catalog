@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 use app\application\common\config\JaegerConfig;
+use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\application\ports\AuthServiceInterface;
 use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
+use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
 use app\application\ports\NotificationInterface;
 use app\application\ports\QueueInterface;
+use app\application\ports\RateLimitInterface;
 use app\application\ports\RequestIdProviderInterface;
 use app\application\ports\SmsSenderInterface;
 use app\application\ports\SystemInfoProviderInterface;
@@ -17,10 +20,15 @@ use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
 use app\domain\events\BookStatusChangedEvent;
 use app\domain\values\BookStatus;
+use app\infrastructure\adapters\AsyncIdempotencyStorage;
+use app\infrastructure\adapters\decorators\IdempotencyStorageTracingDecorator;
 use app\infrastructure\adapters\decorators\QueueTracingDecorator;
+use app\infrastructure\adapters\decorators\RateLimitStorageTracingDecorator;
 use app\infrastructure\adapters\EventJobMappingRegistry;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
+use app\infrastructure\adapters\IdempotencyStorage;
+use app\infrastructure\adapters\RateLimitStorage;
 use app\infrastructure\adapters\SystemInfoAdapter;
 use app\infrastructure\adapters\YiiAuthAdapter;
 use app\infrastructure\adapters\YiiCacheAdapter;
@@ -38,7 +46,11 @@ use app\infrastructure\services\observability\RequestIdProvider;
 use app\infrastructure\services\sms\LogSmsSender;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\YiiPsrLogger;
+use Psr\Clock\ClockInterface;
+use Psr\Log\LoggerInterface;
 use yii\di\Container;
+use yii\di\Instance;
+use yii\redis\Connection as RedisConnection;
 
 return static function (array $params): array {
     unset($params);
@@ -63,6 +75,39 @@ return static function (array $params): array {
             MutexInterface::class => YiiMutexAdapter::class,
 
             TransactionInterface::class => YiiTransactionAdapter::class,
+
+            AsyncIdempotencyStorageInterface::class => [
+                'class' => AsyncIdempotencyStorage::class,
+                '__construct()' => [Instance::of(ClockInterface::class)],
+            ],
+
+            IdempotencyStorage::class => [
+                'class' => IdempotencyStorage::class,
+                '__construct()' => [
+                    Instance::of(LoggerInterface::class),
+                    Instance::of(ClockInterface::class),
+                ],
+            ],
+
+            RateLimitStorage::class => [
+                'class' => RateLimitStorage::class,
+                '__construct()' => [
+                    Instance::of(RedisConnection::class),
+                    Instance::of(ClockInterface::class),
+                ],
+            ],
+
+            IdempotencyInterface::class => static fn(Container $c): IdempotencyInterface => TracingFactory::create(
+                $c,
+                IdempotencyStorage::class,
+                IdempotencyStorageTracingDecorator::class,
+            ),
+
+            RateLimitInterface::class => static fn(Container $c): RateLimitInterface => TracingFactory::create(
+                $c,
+                RateLimitStorage::class,
+                RateLimitStorageTracingDecorator::class,
+            ),
 
             QueueInterface::class => static fn(Container $c): QueueInterface => TracingFactory::create(
                 $c,

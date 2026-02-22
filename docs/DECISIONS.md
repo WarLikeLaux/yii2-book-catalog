@@ -156,7 +156,27 @@
 3.  **KISS и DRY**: альтернатива — дублирование enum в Application-слое или оборачивание в DTO — создаёт бессмысленную прослойку без добавленной ценности.
 4.  **Контролируемое ослабление**: доступ открыт только к значениям и исключениям, но не к сущностям. Presentation не может вызвать `$book->transitionTo()` — только передать `BookStatus` enum в команду.
 
-## 15. Query Services только в Infrastructure
+## 15. Интерфейсы репозиториев в домене (domain/repositories)
+
+**Контекст**: по каноничному DDD (Vaughn Vernon, «Implementing DDD») интерфейсы репозиториев принадлежат домену, а не application-слою.
+
+**Проблема**: репозиторий — абстракция коллекции агрегатов; домен определяет контракт хранения. Размещение `BookRepositoryInterface`, `AuthorRepositoryInterface`, `SubscriptionRepositoryInterface` в `application/ports` формально нарушает Dependency Rule для showcase-проекта, декларирующего Clean Architecture + DDD.
+
+**Решение**: интерфейсы репозиториев сущностей перенесены в `domain/repositories`. Порты прикладного уровня (IdempotencyInterface, RateLimitInterface, AsyncIdempotencyStorageInterface и др.) остаются в `application/ports`.
+
+**Обоснование**: соответствие каноничному DDD и Dependency Rule. Домен определяет, как хранятся агрегаты; инфраструктура реализует контракт.
+
+## 16. Технические Storage в adapters (не Repository)
+
+**Контекст**: в DDD термин Repository строго означает «абстракция коллекции агрегатов» (Evans, Blue Book, гл. 6).
+
+**Проблема**: `IdempotencyRepository`, `RateLimitRepository`, `AsyncIdempotencyRepository` хранят технические/операционные данные (ключи идемпотентности, счётчики rate limit), у них нет доменной сущности и агрегата. Их интерфейсы живут в `application/ports` (не `domain/repositories`), что подтверждает — это адаптеры, а не репозитории. Размещение в `infrastructure/repositories/` вынуждало хардкодить FQN в `->except()` блоках `phparkitect.php`.
+
+**Решение**: `IdempotencyStorage`, `RateLimitStorage`, `AsyncIdempotencyStorage` перенесены в `infrastructure/adapters/`. Реализации доменных репозиториев (Book, Author, Subscription) остаются в `infrastructure/repositories/`.
+
+**Обоснование**: соответствие DDD-терминологии и упрощение архитектурных правил.
+
+## 17. Query Services только в Infrastructure
 
 **Контекст**: в CQRS read-side реализуется через порты (`BookFinderInterface`, `BookSearcherInterface`) и их инфраструктурные реализации.
 

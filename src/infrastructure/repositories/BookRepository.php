@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace app\infrastructure\repositories;
 
 use app\application\common\services\TransactionalEventPublisher;
-use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
+use app\domain\repositories\BookRepositoryInterface;
 use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;

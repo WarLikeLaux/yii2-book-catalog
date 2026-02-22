@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\DeleteBookCommand;
-use app\application\ports\BookRepositoryInterface;
 use app\application\ports\UseCaseInterface;
+use app\domain\repositories\BookRepositoryInterface;
 
 /**
  * @implements UseCaseInterface<DeleteBookCommand, bool>

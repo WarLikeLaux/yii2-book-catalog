@@ -88,6 +88,16 @@ return static function (Config $config): void {
         ->should(new NotDependsOnTheseNamespaces(['yii']))
         ->because('Домен не должен зависеть от фреймворка');
 
+    $domainRules[] = Rule::allClasses()
+        ->that(new ResideInOneOfTheseNamespaces('app\domain\repositories'))
+        ->should(new IsInterface())
+        ->because('domain/repositories содержит только интерфейсы репозиториев');
+
+    $domainRules[] = Rule::allClasses()
+        ->that(new ResideInOneOfTheseNamespaces('app\domain\repositories'))
+        ->should(new HaveNameMatching('*RepositoryInterface'))
+        ->because('Интерфейсы репозиториев должны иметь суффикс RepositoryInterface');
+
     // --- Application Layer ---
 
     $applicationRules[] = Rule::allClasses()
@@ -164,8 +174,8 @@ return static function (Config $config): void {
         ->andThat(new IsNotInterface())
         ->andThat(new IsNotTrait())
         ->andThat(new IsNotAbstract())
-        ->should(new Implement('app\application\ports\*'))
-        ->because('Репозитории должны реализовывать порты');
+        ->should(new Implement('app\domain\repositories\*'))
+        ->because('Репозитории должны реализовывать порты домена');
 
     // --- Presentation Layer ---
 

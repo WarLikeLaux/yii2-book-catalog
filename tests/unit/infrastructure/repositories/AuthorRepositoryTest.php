@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\repositories;
 
-use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author as AuthorEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\repositories\AuthorRepositoryInterface;
 use Codeception\Test\Unit;
 use DbCleaner;
 use Yii;

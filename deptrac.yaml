@@ -16,7 +16,12 @@ deptrac:
       collectors:
         - type: directory
           value: src/domain/(values|events|exceptions)/.*
-    
+
+    - name: DomainRepositories
+      collectors:
+        - type: directory
+          value: src/domain/repositories/.*
+
     # application/*/queries — DTO-only (final readonly, без infra). Проверка: phparkitect.
     - name: Application
       collectors:
@@ -60,15 +65,22 @@ deptrac:
 
     DomainShared:
       - Vendor
-    
+
+    DomainRepositories:
+      - DomainEntities
+      - DomainShared
+      - Vendor
+
     Application:
       - DomainEntities
+      - DomainRepositories
       - DomainShared
       - Vendor
     
     Infrastructure:
       - Persistence
       - DomainEntities
+      - DomainRepositories
       - DomainShared
       - Application
       - Vendor

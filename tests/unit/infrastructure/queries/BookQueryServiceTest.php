@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\queries;
 
 use app\application\ports\BookQueryServiceInterface;
-use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
+use app\domain\repositories\BookRepositoryInterface;
 use app\domain\specifications\AuthorSpecification;
 use app\domain\specifications\CompositeOrSpecification;
 use app\domain\specifications\FullTextSpecification;

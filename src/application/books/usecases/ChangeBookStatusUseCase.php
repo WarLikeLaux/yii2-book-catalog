@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace app\application\books\usecases;
 
 use app\application\books\commands\ChangeBookStatusCommand;
-use app\application\ports\BookRepositoryInterface;
 use app\application\ports\UseCaseInterface;
+use app\domain\repositories\BookRepositoryInterface;
 use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookStatus;
 

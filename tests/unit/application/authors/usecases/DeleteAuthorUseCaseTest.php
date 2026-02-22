@@ -6,10 +6,10 @@ namespace tests\unit\application\authors\usecases;
 
 use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\authors\usecases\DeleteAuthorUseCase;
-use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\repositories\AuthorRepositoryInterface;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 

@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\infrastructure\repositories;
+namespace tests\unit\infrastructure\adapters;
 
 use app\application\common\dto\RateLimitResult;
+use app\infrastructure\adapters\RateLimitStorage;
 use app\infrastructure\adapters\SystemClock;
-use app\infrastructure\repositories\RateLimitRepository;
 use Codeception\Test\Unit;
 use yii\redis\Connection;
 
-final class RateLimitRepositoryTest extends Unit
+final class RateLimitStorageTest extends Unit
 {
     public function testCheckLimitAllowsRequestWhenBelowLimit(): void
     {
         $redis = $this->createMock(Connection::class);
         $redis->method('executeCommand')->willReturn(30);
-        $repository = new RateLimitRepository($redis, new SystemClock());
-        $result = $repository->checkLimit('192.168.1.1', 60, 60);
+        $storage = new RateLimitStorage($redis, new SystemClock());
+        $result = $storage->checkLimit('192.168.1.1', 60, 60);
 
         $this->assertInstanceOf(RateLimitResult::class, $result);
         $this->assertTrue($result->allowed);
@@ -28,8 +28,8 @@ final class RateLimitRepositoryTest extends Unit
         $redis = $this->createMock(Connection::class);
         $redis->method('executeCommand')->willReturn(60);
 
-        $repository = new RateLimitRepository($redis, new SystemClock());
-        $result = $repository->checkLimit('192.168.1.1', 60, 60);
+        $storage = new RateLimitStorage($redis, new SystemClock());
+        $result = $storage->checkLimit('192.168.1.1', 60, 60);
 
         $this->assertTrue($result->allowed);
     }
@@ -39,8 +39,8 @@ final class RateLimitRepositoryTest extends Unit
         $redis = $this->createMock(Connection::class);
         $redis->method('executeCommand')->willReturn(61);
 
-        $repository = new RateLimitRepository($redis, new SystemClock());
-        $result = $repository->checkLimit('192.168.1.1', 60, 60);
+        $storage = new RateLimitStorage($redis, new SystemClock());
+        $result = $storage->checkLimit('192.168.1.1', 60, 60);
 
         $this->assertFalse($result->allowed);
     }
@@ -50,8 +50,8 @@ final class RateLimitRepositoryTest extends Unit
         $redis = $this->createMock(Connection::class);
         $redis->method('executeCommand')->willReturn(45);
 
-        $repository = new RateLimitRepository($redis, new SystemClock());
-        $result = $repository->checkLimit('192.168.1.1', 60, 60);
+        $storage = new RateLimitStorage($redis, new SystemClock());
+        $result = $storage->checkLimit('192.168.1.1', 60, 60);
 
         $this->assertEquals(45, $result->current);
     }
@@ -62,8 +62,8 @@ final class RateLimitRepositoryTest extends Unit
         $redis = $this->createMock(Connection::class);
         $redis->method('executeCommand')->willReturn(30);
 
-        $repository = new RateLimitRepository($redis, new SystemClock());
-        $result = $repository->checkLimit('192.168.1.1', 60, 60);
+        $storage = new RateLimitStorage($redis, new SystemClock());
+        $result = $storage->checkLimit('192.168.1.1', 60, 60);
         $after = time();
 
         $this->assertGreaterThanOrEqual($before + 60, $result->resetAt);
@@ -76,8 +76,8 @@ final class RateLimitRepositoryTest extends Unit
         $redis->expects($this->atLeast(1))
             ->method('executeCommand');
 
-        $repository = new RateLimitRepository($redis, new SystemClock());
-        $repository->checkLimit('192.168.1.1', 60, 60);
+        $storage = new RateLimitStorage($redis, new SystemClock());
+        $storage->checkLimit('192.168.1.1', 60, 60);
     }
 
     public function testCheckLimitWithDifferentKeys(): void
@@ -85,9 +85,9 @@ final class RateLimitRepositoryTest extends Unit
         $redis = $this->createMock(Connection::class);
         $redis->method('executeCommand')->willReturn(10);
 
-        $repository = new RateLimitRepository($redis, new SystemClock());
-        $result1 = $repository->checkLimit('192.168.1.1', 60, 60);
-        $result2 = $repository->checkLimit('192.168.1.2', 60, 60);
+        $storage = new RateLimitStorage($redis, new SystemClock());
+        $result1 = $storage->checkLimit('192.168.1.1', 60, 60);
+        $result2 = $storage->checkLimit('192.168.1.2', 60, 60);
 
         $this->assertEquals(10, $result1->current);
         $this->assertEquals(10, $result2->current);
@@ -98,8 +98,8 @@ final class RateLimitRepositoryTest extends Unit
         $redis = $this->createMock(Connection::class);
         $redis->method('executeCommand')->willReturn(50);
 
-        $repository = new RateLimitRepository($redis, new SystemClock());
-        $result = $repository->checkLimit('192.168.1.1', 100, 60);
+        $storage = new RateLimitStorage($redis, new SystemClock());
+        $result = $storage->checkLimit('192.168.1.1', 100, 60);
 
         $this->assertEquals(100, $result->limit);
     }
@@ -109,8 +109,8 @@ final class RateLimitRepositoryTest extends Unit
         $redis = $this->createMock(Connection::class);
         $redis->method('executeCommand')->willReturn(30);
 
-        $repository = new RateLimitRepository($redis, new SystemClock());
-        $result = $repository->checkLimit('192.168.1.1', 60, 60);
+        $storage = new RateLimitStorage($redis, new SystemClock());
+        $result = $storage->checkLimit('192.168.1.1', 60, 60);
 
         $this->assertInstanceOf(RateLimitResult::class, $result);
         $this->assertObjectHasProperty('allowed', $result);

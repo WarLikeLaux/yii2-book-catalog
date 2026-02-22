@@ -584,7 +584,7 @@ Book::find()->where(['id' => $id])->one();
 **Стало:**
 
 ```php
-// application/ports/BookRepositoryInterface.php
+// domain/repositories/BookRepositoryInterface.php
 interface BookRepositoryInterface
 {
     public function save(Book $book): int;

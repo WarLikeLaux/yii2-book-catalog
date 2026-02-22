@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace app\infrastructure\repositories;
 
-use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author as AuthorEntity;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
+use app\domain\repositories\AuthorRepositoryInterface;
 use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use app\infrastructure\persistence\Author;
 

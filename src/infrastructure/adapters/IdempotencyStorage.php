@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\infrastructure\repositories;
+namespace app\infrastructure\adapters;
 
 use app\application\common\dto\IdempotencyRecordDto;
 use app\application\common\IdempotencyKeyStatus;
@@ -11,7 +11,7 @@ use app\infrastructure\persistence\IdempotencyKey;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 
-final readonly class IdempotencyRepository implements IdempotencyInterface
+final readonly class IdempotencyStorage implements IdempotencyInterface
 {
     public function __construct(
         private LoggerInterface $logger,
@@ -68,6 +68,7 @@ final readonly class IdempotencyRepository implements IdempotencyInterface
         }
 
         $this->logger->error('Failed to save idempotency key: ' . json_encode($model->getErrors()));
+
         return false;
     }
 

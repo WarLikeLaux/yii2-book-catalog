@@ -7,13 +7,13 @@ namespace app\application\subscriptions\usecases;
 use app\application\ports\AuthorExistenceCheckerInterface;
 use app\application\ports\PhoneNormalizerInterface;
 use app\application\ports\SubscriptionExistenceCheckerInterface;
-use app\application\ports\SubscriptionRepositoryInterface;
 use app\application\ports\UseCaseInterface;
 use app\application\subscriptions\commands\SubscribeCommand;
 use app\domain\entities\Subscription;
 use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\repositories\SubscriptionRepositoryInterface;
 use app\domain\values\Phone;
 
 /**

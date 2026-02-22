@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace app\infrastructure\repositories;
+namespace app\infrastructure\adapters;
 
 use app\application\common\dto\RateLimitResult;
 use app\application\ports\RateLimitInterface;
 use Psr\Clock\ClockInterface;
 use yii\redis\Connection;
 
-final readonly class RateLimitRepository implements RateLimitInterface
+final readonly class RateLimitStorage implements RateLimitInterface
 {
     public function __construct(
         private Connection $redis,

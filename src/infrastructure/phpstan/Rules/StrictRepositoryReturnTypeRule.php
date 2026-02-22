@@ -20,8 +20,8 @@ use PHPStan\Type\TypeCombinator;
  */
 final readonly class StrictRepositoryReturnTypeRule implements Rule
 {
-    private const string REPOSITORY_NAMESPACE = 'app\\application\\ports';
     private const string REPOSITORY_SUFFIX = 'RepositoryInterface';
+    private const string REPOSITORY_NAMESPACE = 'app\\domain\\repositories';
 
     public function getNodeType(): string
     {
@@ -83,11 +83,8 @@ final readonly class StrictRepositoryReturnTypeRule implements Rule
 
         $name = $classReflection->getName();
 
-        if (!str_starts_with($name, self::REPOSITORY_NAMESPACE)) {
-            return false;
-        }
-
-        return str_ends_with($name, self::REPOSITORY_SUFFIX);
+        return str_starts_with($name, self::REPOSITORY_NAMESPACE)
+        && str_ends_with($name, self::REPOSITORY_SUFFIX);
     }
 
     private function containsBool(Type $type): bool

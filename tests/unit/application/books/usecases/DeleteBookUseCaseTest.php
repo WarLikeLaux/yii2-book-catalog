@@ -6,9 +6,9 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\usecases\DeleteBookUseCase;
-use app\application\ports\BookRepositoryInterface;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\repositories\BookRepositoryInterface;
 use app\domain\values\BookStatus;
 use BookTestHelper;
 use Codeception\Test\Unit;
