@@ -332,8 +332,7 @@ final readonly class ChangeBookStatusUseCase implements UseCaseInterface
     {
         $book = $this->bookRepository->get($command->bookId);
         $oldStatus = $book->status;
-        $targetStatus = BookStatus::tryFrom($command->targetStatus)
-        ?? throw new BusinessRuleException(DomainErrorCode::BookInvalidStatusTransition);
+        $targetStatus = $command->targetStatus;
 
         $policy = $targetStatus === BookStatus::Published ? $this->publicationPolicy : null;
         $book->transitionTo($targetStatus, $policy);
@@ -550,12 +549,8 @@ public function execute(object $command): int
         throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
     }
 
-    if ($authorIds !== []) {
-        $missingIds = $this->authorQueryService->findMissingIds($authorIds);
-
-        if ($missingIds !== []) {
-            throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
-        }
+    if ($authorIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIds)) {
+        throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
     }
 
     $currentYear = (int) $this->clock->now()->format('Y');
@@ -573,7 +568,7 @@ public function execute(object $command): int
     $bookId = $this->bookRepository->save($book);
 
     if ($bookId === 0) {
-        throw new OperationFailedException('error.entity_id_missing');
+        throw new OperationFailedException(DomainErrorCode::EntityIdMissing->value);
     }
 
     return $bookId;
