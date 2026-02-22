@@ -34,4 +34,10 @@ final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositor
     {
         return $this->tracer->trace('AuthorRepo::' . __FUNCTION__, fn(): Author => $this->repository->get($id));
     }
+
+    #[Override]
+    public function removeAllBookLinks(int $authorId): void
+    {
+        $this->tracer->trace('AuthorRepo::' . __FUNCTION__, fn() => $this->repository->removeAllBookLinks($authorId));
+    }
 }

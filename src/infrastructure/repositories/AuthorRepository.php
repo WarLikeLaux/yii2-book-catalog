@@ -10,12 +10,14 @@ use app\domain\exceptions\OperationFailedException;
 use app\domain\repositories\AuthorRepositoryInterface;
 use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use app\infrastructure\persistence\Author;
+use yii\db\Connection;
 
 final readonly class AuthorRepository extends BaseActiveRecordRepository implements AuthorRepositoryInterface
 {
     use IdentityAssignmentTrait;
 
     public function __construct(
+        private Connection $db,
         private ActiveRecordHydrator $hydrator,
     ) {
         parent::__construct();
@@ -57,5 +59,12 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
     public function delete(AuthorEntity $author): void
     {
         $this->deleteEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
+    }
+
+    public function removeAllBookLinks(int $authorId): void
+    {
+        $this->db->createCommand()
+            ->delete('book_authors', ['author_id' => $authorId])
+            ->execute();
     }
 }
