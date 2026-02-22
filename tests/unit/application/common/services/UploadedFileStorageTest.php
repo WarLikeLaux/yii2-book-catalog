@@ -12,6 +12,7 @@ use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use RuntimeException;
 
 final class UploadedFileStorageTest extends Unit
 {
@@ -108,5 +109,80 @@ final class UploadedFileStorageTest extends Unit
         }
 
         $this->assertSame('bb/bb/' . $hash . '.jpg', $result);
+    }
+
+    public function testStoreClosesStreamAfterSuccessfulSave(): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'upload-');
+
+        if ($tempFile === false) {
+            $this->fail('Failed to create temp file');
+        }
+
+        file_put_contents($tempFile, 'content');
+
+        $payload = new UploadedFilePayload($tempFile, 'txt', 'text/plain');
+        $fileKey = new FileKey(str_repeat('c', 64));
+
+        /** @var ?resource $capturedStream */
+        $capturedStream = null;
+
+        $this->contentStorage->expects($this->once())
+            ->method('save')
+            ->with($this->callback(static function (FileContent $content) use (&$capturedStream): bool {
+                $capturedStream = $content->getStream();
+                return true;
+            }))
+            ->willReturn($fileKey);
+
+        $this->service->store($payload);
+
+        $this->assertNotNull($capturedStream);
+        $this->assertFalse(is_resource($capturedStream));
+
+        if (!file_exists($tempFile)) {
+            return;
+        }
+
+        unlink($tempFile);
+    }
+
+    public function testStoreClosesStreamWhenSaveThrowsException(): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'upload-');
+
+        if ($tempFile === false) {
+            $this->fail('Failed to create temp file');
+        }
+
+        file_put_contents($tempFile, 'content');
+
+        $payload = new UploadedFilePayload($tempFile, 'txt', 'text/plain');
+
+        /** @var ?resource $capturedStream */
+        $capturedStream = null;
+
+        $this->contentStorage->expects($this->once())
+            ->method('save')
+            ->with($this->callback(static function (FileContent $content) use (&$capturedStream): bool {
+                $capturedStream = $content->getStream();
+                return true;
+            }))
+            ->willThrowException(new RuntimeException('Storage failure'));
+
+        try {
+            $this->service->store($payload);
+            $this->fail('Expected exception was not thrown');
+        } catch (RuntimeException) {
+        }
+
+        $this->assertNotNull($capturedStream);
+        $this->assertFalse(is_resource($capturedStream));
+
+        if (!file_exists($tempFile)) {
+            return;
+        }
+
+        unlink($tempFile);
     }
 }
