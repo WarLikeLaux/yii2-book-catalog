@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace tests\integration;
 
+use app\infrastructure\persistence\User;
 use IntegrationTester;
 
 final class HealthEndpointCest
 {
     public function testGetHealthStatus(IntegrationTester $I): void
     {
+        $I->amLoggedInAs(User::findByUsername('admin'));
         $I->sendGet('/index-test.php?r=health/index');
         $I->seeResponseCodeIs(200);
         $I->seeResponseIsJson();
 
-        // At least check the root structure
         $I->seeResponseContainsJson([
             'status' => 'healthy',
         ]);
