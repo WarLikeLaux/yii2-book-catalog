@@ -294,9 +294,9 @@ public function createBook(BookForm $form): int
         'Failed to upload book cover',
     );
 
-        if ($form->cover instanceof UploadedFile && $cover === null) {
-            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
-        }
+    if ($form->cover instanceof UploadedFile && $cover === null) {
+        throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+    }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
 
@@ -557,13 +557,7 @@ public function execute(object $command): int
     );
     $book->replaceAuthors($authorIds);
 
-    $bookId = $this->bookRepository->save($book);
-
-    if ($bookId === 0) {
-        throw new OperationFailedException(DomainErrorCode::EntityIdMissing->value);
-    }
-
-    return $bookId;
+    return $this->bookRepository->save($book);
 }
 ```
 
@@ -736,11 +730,14 @@ if ($event instanceof BookPublishedEvent) {
 
 ```php
 // config/container/adapters.php
-EventJobMappingRegistry::class => static fn(): EventJobMappingRegistry => new EventJobMappingRegistry([
-    BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): ?NotifySubscribersJob => $e->newStatus === BookStatus::Published
-        ? new NotifySubscribersJob($e->bookId)
-        : null,
-]),
+EventJobMappingRegistry::class => static fn(Container $c): EventJobMappingRegistry => new EventJobMappingRegistry(
+    [
+        BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): ?NotifySubscribersJob => $e->newStatus === BookStatus::Published
+            ? new NotifySubscribersJob($e->bookId)
+            : null,
+    ],
+    $c->get(EventSerializer::class),
+),
 ```
 
 ✅ **Результат:** маппинг событий централизован в конфигурации с условной логикой.
@@ -766,15 +763,30 @@ foreach ($subscribers as $sub) {
 public function handle(int $bookId, Queue $queue): void
 {
     $book = $this->bookQueryService->findById($bookId);
+
     if (!$book instanceof BookReadDto) {
+        $this->logger->warning('Book not found for notification', ['book_id' => $bookId]);
         return;
     }
 
-    $message = $this->translator->translate('app', 'notification.book.released', ['title' => $book->title]);
+    $title = $book->title;
+    $message = $this->translator->translate('app', 'notification.book.released', ['title' => $title]);
+    $totalDispatched = 0;
 
     foreach ($this->queryService->getSubscriberPhonesForBook($bookId) as $phone) {
-        $queue->push(new NotifySingleSubscriberJob($phone, $message, $bookId));
+        $queue->push(new NotifySingleSubscriberJob(
+            $phone,
+            $message,
+            $bookId,
+        ));
+        $totalDispatched++;
     }
+
+    $this->logger->info('SMS notification jobs dispatched', [
+        'book_id' => $bookId,
+        'book_title' => $title,
+        'total_jobs' => $totalDispatched,
+    ]);
 }
 ```
 
@@ -941,6 +953,7 @@ final readonly class ChangeBookStatusUseCase implements UseCaseInterface
 public function behaviors(): array
 {
     return [
+        TimestampBehavior::class,
         [
             'class' => OptimisticLockBehavior::class,
             'value' => fn(): int => $this->version ?? 1,
@@ -1024,9 +1037,9 @@ public function createBook(BookForm $form): int
         'Failed to upload book cover',
     );
 
-        if ($form->cover instanceof UploadedFile && $cover === null) {
-            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
-        }
+    if ($form->cover instanceof UploadedFile && $cover === null) {
+        throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+    }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
 
@@ -1082,7 +1095,9 @@ protected function persist(
 ): void {
     try {
         if (!$model->save(false)) {
-            throw new OperationFailedException(DomainErrorCode::EntityPersistFailed);
+            $errors = $model->getFirstErrors();
+            $message = $errors !== [] ? json_encode($errors, JSON_UNESCAPED_UNICODE) : 'Unknown error';
+            throw new OperationFailedException(DomainErrorCode::EntityPersistFailed, 0, new RuntimeException((string)$message));
         }
     } catch (StaleObjectException) {
         if (!$staleError instanceof DomainErrorCode) {
@@ -1154,6 +1169,7 @@ final readonly class QueueTracingDecorator implements QueueInterface
     ) {
     }
 
+    #[Override]
     public function push(object $job): void
     {
         $this->tracer->trace(
