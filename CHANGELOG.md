@@ -129,6 +129,10 @@
 - **#37** - синхронизирован лендинг с README: замена CQRS на CQS, обновлены метрики, добавлены карточки Status FSM, CAS Storage, Value Objects и Arkitect ([c20cc0b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c20cc0b))
 - **#38** - синхронизированы примеры кода в COMPARISON.md и метрики E2E в README.md ([96d93ea](https://github.com/WarLikeLaux/yii2-book-catalog/commit/96d93ea))
 - **#38** - исправлены расхождения примеров кода с реальной кодовой базой ([97c1b84](https://github.com/WarLikeLaux/yii2-book-catalog/commit/97c1b84))
+- **#38** - обновлена документация ([7bfafcf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7bfafcf))
+- **#38** - обновлена документация ([74a4e8b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/74a4e8b))
+- **#38** - обновлён лендинг: синхронизированы метрики (903 теста, 2251 assertions), добавлены карточки Rich Domain Model/Observability/Health Check ([77768d5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/77768d5))
+- **#38** - удалён llms.txt ([36c384b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/36c384b))
 
 </details>
 
