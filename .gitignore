@@ -39,6 +39,10 @@ tests/_support/_generated
 # Секреты и окружение
 .env
 
+# Lock-артефакты make (dev, test-full)
+.dev.lock
+.test.lock
+
 # Кэш инструментов и логи
 .deptrac.cache
 .phpstan.cache
