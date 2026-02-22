@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\domain\entities;
 
 use app\domain\entities\Book;
+use app\domain\events\BookDeletedEvent;
+use app\domain\events\BookStatusChangedEvent;
+use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\DomainException;
 use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookStatus;
@@ -372,5 +375,91 @@ final class BookTest extends Unit
         $this->expectExceptionMessage('book.error.title_too_long');
 
         $book->rename(str_repeat('X', 256));
+    }
+
+    public function testTransitionToRecordsBookStatusChangedEvent(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $property = new \ReflectionProperty(Book::class, 'id');
+        $property->setValue($book, 1);
+
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $events = $book->pullRecordedEvents();
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(BookStatusChangedEvent::class, $events[0]);
+        $this->assertSame(1, $events[0]->bookId);
+        $this->assertSame(BookStatus::Draft, $events[0]->oldStatus);
+        $this->assertSame(BookStatus::Published, $events[0]->newStatus);
+        $this->assertSame(2024, $events[0]->year);
+
+        $this->assertEmpty($book->pullRecordedEvents());
+    }
+
+    public function testChangeYearRecordsBookUpdatedEvent(): void
+    {
+        $book = Book::reconstitute(
+            1,
+            'Title',
+            new BookYear(2020),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null,
+            [],
+            BookStatus::Draft,
+            1,
+        );
+
+        $book->changeYear(new BookYear(2024));
+
+        $events = $book->pullRecordedEvents();
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(BookUpdatedEvent::class, $events[0]);
+        $this->assertSame(1, $events[0]->bookId);
+        $this->assertSame(2020, $events[0]->oldYear);
+        $this->assertSame(2024, $events[0]->newYear);
+        $this->assertSame(BookStatus::Draft, $events[0]->status);
+    }
+
+    public function testChangeYearDoesNotRecordEventWhenIdIsNull(): void
+    {
+        $book = $this->createBook();
+        $book->changeYear(new BookYear(2025));
+
+        $this->assertEmpty($book->pullRecordedEvents());
+        $this->assertSame(2025, $book->year->value);
+    }
+
+    public function testMarkAsDeletedRecordsBookDeletedEvent(): void
+    {
+        $book = Book::reconstitute(
+            1,
+            'Title',
+            new BookYear(2024),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null,
+            [],
+            BookStatus::Published,
+            1,
+        );
+
+        $book->markAsDeleted();
+
+        $events = $book->pullRecordedEvents();
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(BookDeletedEvent::class, $events[0]);
+        $this->assertSame(1, $events[0]->bookId);
+        $this->assertSame(2024, $events[0]->year);
+        $this->assertTrue($events[0]->wasPublished);
+    }
+
+    public function testMarkAsDeletedDoesNotRecordEventWhenIdIsNull(): void
+    {
+        $book = $this->createBook();
+
+        $book->markAsDeleted();
+
+        $this->assertEmpty($book->pullRecordedEvents());
     }
 }

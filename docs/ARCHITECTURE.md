@@ -200,7 +200,7 @@ graph TD
 - **Контроль изменяемости:** доменные сущности используют `private(set)` и меняются через методы.
 - **Value Objects:** `Isbn`, `BookYear`, `StoredFileReference`, `FileContent`, `FileKey` гарантируют валидность данных при создании.
 - **Status FSM:** статус книги моделируется через `BookStatus` enum (черновик / опубликована / в архиве) с переходами через `transitionTo(target, policy)`.
-- **Domain Events:** `BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` связывают части системы без прямых зависимостей.
+- **Domain Events:** `BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` накапливаются в сущности при мутации и связывают части системы без прямых зависимостей.
 - **Domain Guards:** `replaceAuthors()` запрещает убирать всех авторов у опубликованных/архивных книг.
 - **Specifications:** поиск формализован через `domain/specifications` (`FullTextSpecification`, `IsbnPrefixSpecification`, `AuthorSpecification`, `StatusSpecification`, `YearSpecification`, `CompositeAndSpecification`, `CompositeOrSpecification`).
 
@@ -350,7 +350,7 @@ public function createBook(BookForm $form): int
 
 Чтобы тяжелые задачи не тормозили интерфейс:
 
-1. Use Case публикует доменное событие (`BookStatusChangedEvent`).
+1. Сущность Book регистрирует событие при `transitionTo()`; репозиторий публикует накопленные события при `save()`.
 2. `EventJobMappingRegistry` маппит событие в `NotifySubscribersJob` условно (только если новый статус = `Published`).
 3. `NotifySubscribersHandler` создает отдельный `NotifySingleSubscriberJob` для каждого подписчика.
 

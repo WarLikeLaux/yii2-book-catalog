@@ -6,13 +6,11 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\application\common\services\TransactionalEventPublisher;
 use app\application\common\values\AuthorIdCollection;
 use app\application\ports\AuthorExistenceCheckerInterface;
 use app\application\ports\BookIsbnCheckerInterface;
 use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book;
-use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
@@ -32,7 +30,6 @@ final class UpdateBookUseCaseTest extends Unit
     private BookRepositoryInterface&MockObject $bookRepository;
     private BookIsbnCheckerInterface&MockObject $bookIsbnChecker;
     private AuthorExistenceCheckerInterface&MockObject $authorExistenceChecker;
-    private TransactionalEventPublisher&MockObject $eventPublisher;
     private ClockInterface&MockObject $clock;
     private UpdateBookUseCase $useCase;
 
@@ -43,7 +40,6 @@ final class UpdateBookUseCaseTest extends Unit
         $this->bookIsbnChecker->method('existsByIsbn')->willReturn(false);
         $this->authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
         $this->authorExistenceChecker->method('existsAllByIds')->willReturn(true);
-        $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
         $this->clock = $this->createMock(ClockInterface::class);
         $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
@@ -51,7 +47,6 @@ final class UpdateBookUseCaseTest extends Unit
             $this->bookRepository,
             $this->bookIsbnChecker,
             $this->authorExistenceChecker,
-            $this->eventPublisher,
             $this->clock,
         );
     }
@@ -90,13 +85,6 @@ final class UpdateBookUseCaseTest extends Unit
             ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
                     && $book->authorIds === [1, 2]))
             ->willReturn(42);
-
-        $this->eventPublisher->expects($this->once())
-            ->method('publishAfterCommit')
-            ->with($this->callback(static fn (BookUpdatedEvent $event): bool => $event->bookId === 42
-                && $event->oldYear === 2020
-                && $event->newYear === 2024
-                && $event->status === BookStatus::Draft));
 
         $this->useCase->execute($command);
     }
@@ -138,8 +126,6 @@ final class UpdateBookUseCaseTest extends Unit
             ->method('save')
             ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2]))
             ->willReturn(42);
-
-        $this->eventPublisher->expects($this->once())->method('publishAfterCommit');
 
         $this->useCase->execute($command);
     }
@@ -428,7 +414,6 @@ final class UpdateBookUseCaseTest extends Unit
             $this->bookRepository,
             $bookIsbnChecker,
             $this->authorExistenceChecker,
-            $this->eventPublisher,
             $this->clock,
         );
 
@@ -460,7 +445,6 @@ final class UpdateBookUseCaseTest extends Unit
             $this->bookRepository,
             $this->bookIsbnChecker,
             $authorExistenceChecker,
-            $this->eventPublisher,
             $this->clock,
         );
 
