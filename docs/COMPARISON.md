@@ -1068,7 +1068,7 @@ public function createBook(BookForm $form): int
 **Стало:**
 
 ```php
-// presentation/books/forms/BookForm.php — правила формы
+// presentation/books/forms/BookForm.php - правила формы
 #[Override]
 public function rules(): array
 {
