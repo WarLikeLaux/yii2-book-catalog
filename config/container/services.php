@@ -21,6 +21,7 @@ use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookSearcherInterface;
 use app\application\ports\CacheInterface;
 use app\application\ports\ContentStorageInterface;
+use app\application\ports\CoverKeysScannerInterface;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\HealthCheckRunnerInterface;
 use app\application\ports\IdempotencyInterface;
@@ -36,6 +37,7 @@ use app\application\ports\TranslatorInterface;
 use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\queries\AuthorQueryService;
 use app\infrastructure\queries\BookQueryService;
+use app\infrastructure\queries\CoverKeysScanner;
 use app\infrastructure\queries\decorators\BookQueryServiceTracingDecorator;
 use app\infrastructure\queries\decorators\ReportQueryServiceCachingDecorator;
 use app\infrastructure\queries\ReportQueryService;
@@ -70,6 +72,8 @@ return static function (array $params): array {
 
             BookFinderInterface::class => BookQueryServiceInterface::class,
             BookSearcherInterface::class => BookQueryServiceInterface::class,
+
+            CoverKeysScannerInterface::class => CoverKeysScanner::class,
 
             AuthorQueryServiceInterface::class => AuthorQueryService::class,
 
