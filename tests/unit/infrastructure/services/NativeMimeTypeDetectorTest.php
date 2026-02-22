@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\domain\services;
+namespace tests\unit\infrastructure\services;
 
 use app\infrastructure\services\FinfoFunctions;
 use app\infrastructure\services\NativeMimeTypeDetector;
