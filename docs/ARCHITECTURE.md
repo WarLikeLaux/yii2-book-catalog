@@ -187,7 +187,7 @@ graph TD
 Чтение и запись разделены по CQS, а внешние зависимости вынесены в порты:
 
 - **Запись (команды):** любое изменение в системе (создание книги, подписка) - это отдельный **Use Case**. Данные поступают через строго типизированные **Command DTO**.
-- **Чтение (запросы):** read-side реализован через порты (`BookFinderInterface`, `BookSearcherInterface`). Реализации портов (Query Services) — только в `infrastructure/queries/`. Read DTO (`BookReadDto`, `ReportDto` и т.п.) — в `application/*/queries` (см. DECISIONS.md §15).
+- **Чтение (запросы):** read-side реализован через порты (`BookFinderInterface`, `BookSearcherInterface`). Реализации портов (Query Services) — только в `infrastructure/queries/`. Read DTO (`BookReadDto`, `ReportDto` и т.п.) — в `application/*/queries`.
 - **Контракт DTO-only для `application/*/queries`:** папка содержит **только** read DTO и критерии поиска. Запрещены: сервисы, Use Cases, зависимости от `infrastructure`, бизнес-логика. Разрешены: `final readonly` классы с данными, простые геттеры, `with*()`-методы, `JsonSerializable`. Проверка: phparkitect (final, readonly, NotDependsOn infra).
 - **Порты:** интерфейсы в `application/ports` (checkers, query services и др.) и `domain/repositories` (репозитории сущностей) позволяют менять реализацию без изменений бизнес-логики.
 
@@ -308,7 +308,7 @@ public function createBook(BookForm $form): int
 
 - Формы валидируют HTTP-ввод в `presentation/*/forms`.
 - Команды (`CreateBookCommand`, `UpdateBookCommand`) живут в `application/*/commands`.
-- Read-side DTO (`BookReadDto`, `ReportDto` и др.) — в `application/*/queries`. **Контракт DTO-only:** только `final readonly` классы-контейнеры данных, без сервисов и инфраструктурных зависимостей. Реализации Query Services — только в `infrastructure/queries` (см. DECISIONS §15).
+- Read-side DTO (`BookReadDto`, `ReportDto` и др.) — в `application/*/queries`. **Контракт DTO-only:** только `final readonly` классы-контейнеры данных, без сервисов и инфраструктурных зависимостей. Реализации Query Services — только в `infrastructure/queries`.
 - Пагинация оформлена через `PaginationDto` и `PagedResultInterface`.
 
 [↑ К навигации](#-навигация)
@@ -316,7 +316,7 @@ public function createBook(BookForm $form): int
 ### 7. Инфраструктурный слой
 
 - ActiveRecord модели размещены в `infrastructure/persistence` и используются только внутри инфраструктуры.
-- Репозитории сущностей реализуют интерфейсы из `domain/repositories` в `infrastructure/repositories`. Технические хранилища (Idempotency, RateLimit, AsyncIdempotency) — в `infrastructure/adapters/` как `*Storage` (см. DECISIONS §16).
+- Репозитории сущностей реализуют интерфейсы из `domain/repositories` в `infrastructure/repositories`. Технические хранилища (Idempotency, RateLimit, AsyncIdempotency) — в `infrastructure/adapters/` как `*Storage`.
 - События публикуются через `YiiEventPublisherAdapter`, маппинг в jobs делает `EventToJobMapper`.
 - Оптимистическая блокировка включена в `infrastructure/persistence/Book.php` через `OptimisticLockBehavior`, конфликты версий транслируются в `StaleDataException`.
 
@@ -423,7 +423,6 @@ public function createBook(BookForm $form): int
 5. Для каждого события вызывается `TransactionalEventPublisher::publishAfterCommit($event)` — колбэк регистрируется в `TransactionInterface::afterCommit()`.
 6. После коммита транзакции БД выполняются колбэки — события публикуются через `EventPublisherInterface`, маппятся в jobs и попадают в очередь (см. раздел 10).
 
-См. обоснование выбора pull-модели в [DECISIONS.md §18](DECISIONS.md#18-pull-модель-доменных-событий-recordsevents).
 
 [↑ К навигации](#-навигация)
 

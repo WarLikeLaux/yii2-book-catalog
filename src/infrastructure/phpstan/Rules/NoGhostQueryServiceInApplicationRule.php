@@ -46,7 +46,7 @@ final readonly class NoGhostQueryServiceInApplicationRule implements Rule
         return [
             RuleErrorBuilder::message(
                 sprintf(
-                    'Ghost QueryService in Application layer is forbidden. Class %s must not exist in application. Query Services belong only in infrastructure/queries/. See DECISIONS.md #15.',
+                    'Ghost QueryService in Application layer is forbidden. Class %s must not exist in application. Query Services belong only in infrastructure/queries/.',
                     $className,
                 ),
             )
