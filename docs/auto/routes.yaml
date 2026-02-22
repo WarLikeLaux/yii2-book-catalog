@@ -155,6 +155,8 @@ routes:
     controller: HealthController
     methods:
       - GET
+    guards:
+      - Auth
   -
     path: /report
     action: report/index
