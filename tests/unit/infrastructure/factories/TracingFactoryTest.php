@@ -18,7 +18,6 @@ final class TracingFactoryTest extends Unit
         $service = new \stdClass();
         $container->set(\stdClass::class, $service);
 
-        // Используем stdClass как фейковый декоратор, он не будет создан
         $result = TracingFactory::create($container, $service, \stdClass::class);
 
         $this->assertSame($service, $result);
@@ -32,7 +31,6 @@ final class TracingFactoryTest extends Unit
 
         $service = new \stdClass();
 
-        // Создаем анонимный класс-декоратор, который имитирует ожидаемую структуру
         $decorator = new class ($service, $tracer) {
             public function __construct(
                 public object $service,
@@ -53,7 +51,6 @@ final class TracingFactoryTest extends Unit
         $service = new \stdClass();
         $container->set('testService', $service);
 
-        // Используем stdClass как фейковый декоратор
         $result = TracingFactory::create($container, 'testService', \stdClass::class);
 
         $this->assertSame($service, $result);

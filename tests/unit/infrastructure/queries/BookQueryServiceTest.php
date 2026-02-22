@@ -109,7 +109,6 @@ final class BookQueryServiceTest extends Unit
         $book->replaceAuthors([$authorId]);
         $this->repository->save($book);
 
-        // InnoDB FullText search requires committed transaction
         Yii::$app->db->getTransaction()->commit();
 
         $result = $this->queryService->search('Unique Author', 1, 10);
@@ -179,7 +178,6 @@ final class BookQueryServiceTest extends Unit
         $book->replaceAuthors([$authorId]);
         $this->repository->save($book);
 
-        // InnoDB FullText search requires committed transaction
         Yii::$app->db->getTransaction()->commit();
 
         $result = $this->queryService->search('SearchableBookTitle', 1, 10);

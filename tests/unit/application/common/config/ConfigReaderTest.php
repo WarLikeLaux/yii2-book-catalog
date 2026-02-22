@@ -31,7 +31,7 @@ final class ConfigReaderTest extends Unit
 
     public function testRequireArraySectionNonStringKeys(): void
     {
-        $reader = new ConfigReader(['test_section' => ['value1', 'value2']]); // int keys
+        $reader = new ConfigReader(['test_section' => ['value1', 'value2']]);
 
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('Invalid config: test_section');

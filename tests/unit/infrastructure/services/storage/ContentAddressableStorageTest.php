@@ -213,7 +213,6 @@ final class ContentAddressableStorageTest extends Unit
     {
         $key = new FileKey(self::VALID_HASH);
 
-        // Verification that no exception is thrown
         $this->storage->exists($key, '');
         $this->assertTrue(true);
     }

@@ -103,7 +103,7 @@ final class YiiCacheAdapterTest extends Unit
                     return ['0', ['yii:prefix:key1']];
                 }
 
-                return 1; // DEL returns count of deleted keys
+                return 1;
             });
 
         $adapter = new YiiCacheAdapter($redisCache);
@@ -155,10 +155,10 @@ final class YiiCacheAdapterTest extends Unit
                     $scanCount++;
 
                     if ($scanCount === 1) {
-                        return ['5', ['key1']]; // cursor 5, continue
+                        return ['5', ['key1']];
                     }
 
-                    return ['0', ['key2']]; // cursor 0, stop
+                    return ['0', ['key2']];
                 }
 
                 return 1;

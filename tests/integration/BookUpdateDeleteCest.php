@@ -123,7 +123,6 @@ final class BookUpdateDeleteCest
             ),
         ]);
 
-        // Replace services in container
         Yii::$container->set(UpdateBookUseCase::class, $mockUseCase);
         Yii::$container->set(BookItemViewFactory::class, $mockViewFactory);
 
