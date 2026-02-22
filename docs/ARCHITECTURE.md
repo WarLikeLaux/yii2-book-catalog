@@ -330,6 +330,7 @@ public function createBook(BookForm $form): int
 - Rector для авто-рефакторинга и миграций синтаксиса.
 - Код-стайл через `phpcs.xml.dist`.
 - Архитектурные ограничения через Deptrac и Arkitect.
+- Deptrac: все 7 поддиректорий domain покрыты слоями — `DomainShared` (values, events, exceptions, common), `DomainEntities`, `DomainServices`, `DomainSpecifications`, `DomainRepositories`.
 - Arkitect: domain isolation — `app\domain` не может зависеть от `yii`, `app\application`, `app\infrastructure`, `app\presentation` (изоляция домена от фреймворка и внешних слоёв).
 - Arkitect: `application/*/queries` — final, readonly, NotDependsOn(infrastructure) (контракт DTO-only).
 
