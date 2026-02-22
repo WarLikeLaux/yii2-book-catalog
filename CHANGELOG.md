@@ -80,6 +80,7 @@
 - **#38** - перенесён AuthorIdCollectionTest из domain в application ([761befb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/761befb))
 - **#38** - перенесён NativeMimeTypeDetectorTest из domain в infrastructure ([5ce5858](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5ce5858))
 - **#38** - рефакторинг view templates: стандартизация отступов и форматирования ([150656d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/150656d))
+- **#38** - упрощён guard публикации в Book::transitionTo: удалена избыточная проверка Draft статуса ([d870837](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d870837))
 
 ### 🧪 Тестирование
 
@@ -95,6 +96,8 @@
 - **#38** - обновлены тесты для рефакторинга port array, добавлен IdempotencyRepositoryTracingDecoratorTest ([ae370ca](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ae370ca))
 - **#38** - обновлены тесты phone и stored file reference для assert ожидаемых исключений ([c14c53b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c14c53b))
 - **#38** - обновлён HealthControllerTest для новых зависимостей ([04fb108](https://github.com/WarLikeLaux/yii2-book-catalog/commit/04fb108))
+- **#38** - добавлены тесты для убийства мутантов: дефолтный HTTP 422 для BusinessRuleException/ValidationException, multibyte mb_strlen в BookPublicationPolicy ([69a435f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/69a435f))
+- **#38** - добавлены тесты stream lifecycle для UploadedFileStorage: проверка fclose в finally при успехе и исключении ([e40ecfa](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e40ecfa))
 
 ### ⚙️ Инфраструктура
 
