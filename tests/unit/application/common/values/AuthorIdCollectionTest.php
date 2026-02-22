@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\domain\values;
+namespace tests\unit\application\common\values;
 
 use app\application\common\values\AuthorIdCollection;
 use Codeception\Test\Unit;
