@@ -14,17 +14,15 @@ final class NoGhostQueryServiceInApplicationRuleTest extends Unit
     public function testGhostQueryServiceInApplicationTriggersError(): void
     {
         $root = dirname(__DIR__, 4);
-        $configPath = $root . '/phpstan-rule-test.neon';
-        $fixtureDir = $root . '/phpstan-fixtures/NoGhostQueryServiceInApplicationRule';
+        $configPath = $root . '/phpstan-rule-test-violation.neon';
 
         $output = [];
         $exitCode = 0;
         exec(
             sprintf(
-                'cd %s && ./vendor/bin/phpstan analyse --no-progress --memory-limit=512M -c %s %s 2>&1',
+                'cd %s && ./vendor/bin/phpstan analyse --no-progress --memory-limit=512M -c %s 2>&1',
                 escapeshellarg($root),
                 escapeshellarg($configPath),
-                escapeshellarg($fixtureDir),
             ),
             $output,
             $exitCode,
@@ -48,17 +46,15 @@ final class NoGhostQueryServiceInApplicationRuleTest extends Unit
     public function testValidDtoDoesNotTriggerError(): void
     {
         $root = dirname(__DIR__, 4);
-        $configPath = $root . '/phpstan-rule-test.neon';
-        $validFile = $root . '/phpstan-fixtures/NoGhostQueryServiceInApplicationRule/valid-dto-no-violation.php';
+        $configPath = $root . '/phpstan-rule-test-valid.neon';
 
         $output = [];
         $exitCode = 0;
         exec(
             sprintf(
-                'cd %s && ./vendor/bin/phpstan analyse --no-progress --memory-limit=512M -c %s %s 2>&1',
+                'cd %s && ./vendor/bin/phpstan analyse --no-progress --memory-limit=512M -c %s 2>&1',
                 escapeshellarg($root),
                 escapeshellarg($configPath),
-                escapeshellarg($validFile),
             ),
             $output,
             $exitCode,

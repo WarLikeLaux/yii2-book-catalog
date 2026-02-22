@@ -6,7 +6,7 @@ namespace app\application\books\queries;
 
 final readonly class GhostBookQueryService
 {
-    public function findById(int $id): mixed
+    public function findById(int $_id): mixed
     {
         return null;
     }
