@@ -37,7 +37,6 @@ final readonly class DeleteAuthorUseCase implements UseCaseInterface
             throw new BusinessRuleException(DomainErrorCode::AuthorLinkedToPublishedBooks);
         }
 
-        $this->authorRepository->removeAllBookLinks($command->id);
         $this->authorRepository->delete($author);
     }
 }

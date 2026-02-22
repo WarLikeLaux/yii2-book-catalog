@@ -58,10 +58,8 @@ final class UpdateAuthorUseCaseTest extends Unit
     {
         $command = new UpdateAuthorCommand(id: 999, fio: 'New Name');
 
-        $this->authorExistenceChecker->expects($this->once())
-            ->method('existsByFio')
-            ->with('New Name', 999)
-            ->willReturn(false);
+        $this->authorExistenceChecker->expects($this->never())
+            ->method('existsByFio');
 
         $this->authorRepository->expects($this->once())
             ->method('get')
@@ -101,12 +99,17 @@ final class UpdateAuthorUseCaseTest extends Unit
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'Duplicated Name');
 
+        $existingAuthor = Author::reconstitute(id: 42, fio: 'Duplicated Name');
+        $this->authorRepository->expects($this->once())
+            ->method('get')
+            ->with(42)
+            ->willReturn($existingAuthor);
+
         $this->authorExistenceChecker->expects($this->once())
             ->method('existsByFio')
             ->with('Duplicated Name', 42)
             ->willReturn(true);
 
-        $this->authorRepository->expects($this->never())->method('get');
         $this->authorRepository->expects($this->never())->method('save');
 
         $this->expectException(AlreadyExistsException::class);

@@ -49,10 +49,6 @@ final class DeleteAuthorUseCaseTest extends Unit
             ->willReturn(false);
 
         $this->authorRepository->expects($this->once())
-            ->method('removeAllBookLinks')
-            ->with(42);
-
-        $this->authorRepository->expects($this->once())
             ->method('delete')
             ->with($existingAuthor);
 

@@ -27,11 +27,12 @@ final readonly class UpdateAuthorUseCase implements UseCaseInterface
      */
     public function execute(object $command): void
     {
+        $author = $this->authorRepository->get($command->id);
+
         if ($this->authorExistenceChecker->existsByFio($command->fio, $command->id)) {
             throw new AlreadyExistsException(DomainErrorCode::AuthorFioExists);
         }
 
-        $author = $this->authorRepository->get($command->id);
         $author->update($command->fio);
         $this->authorRepository->save($author);
     }
