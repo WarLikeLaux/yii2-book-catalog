@@ -36,6 +36,7 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
     public function execute(object $command): bool
     {
         $authorIds = $command->authorIds->toArray();
+        $isbn = new Isbn($command->isbn);
 
         if ($this->bookIsbnChecker->existsByIsbn($command->isbn, $command->id)) {
             throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
@@ -51,7 +52,7 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
 
         $book->rename($command->title);
         $book->changeYear(new BookYear($command->year, $currentYear));
-        $book->correctIsbn(new Isbn($command->isbn));
+        $book->correctIsbn($isbn);
         $book->updateDescription($command->description);
 
         if ($command->removeCover) {

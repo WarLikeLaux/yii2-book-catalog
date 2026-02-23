@@ -37,6 +37,7 @@ final readonly class CreateBookUseCase implements UseCaseInterface
     public function execute(object $command): int
     {
         $authorIds = $command->authorIds->toArray();
+        $isbn = new Isbn($command->isbn);
 
         if ($this->bookIsbnChecker->existsByIsbn($command->isbn)) {
             throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
@@ -52,7 +53,7 @@ final readonly class CreateBookUseCase implements UseCaseInterface
         $book = Book::create(
             title: $command->title,
             year: new BookYear($command->year, $currentYear),
-            isbn: new Isbn($command->isbn),
+            isbn: $isbn,
             description: $command->description,
             coverImage: $coverImage,
         );

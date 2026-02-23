@@ -7,6 +7,7 @@ namespace app\infrastructure\adapters\decorators;
 use app\application\common\dto\RateLimitResult;
 use app\application\ports\RateLimitInterface;
 use app\application\ports\TracerInterface;
+use Override;
 
 final readonly class RateLimitStorageTracingDecorator implements RateLimitInterface
 {
@@ -16,6 +17,7 @@ final readonly class RateLimitStorageTracingDecorator implements RateLimitInterf
     ) {
     }
 
+    #[Override]
     public function checkLimit(string $key, int $limit, int $windowSeconds): RateLimitResult
     {
         return $this->tracer->trace(
