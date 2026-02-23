@@ -107,6 +107,8 @@
 - **#38** - добавлены тесты для убийства мутантов: дефолтный HTTP 422 для BusinessRuleException/ValidationException, multibyte mb_strlen в BookPublicationPolicy ([69a435f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/69a435f))
 - **#38** - добавлены тесты stream lifecycle для UploadedFileStorage: проверка fclose в finally при успехе и исключении ([e40ecfa](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e40ecfa))
 - **#38** - исправлены невалидные ISBN-13 контрольные суммы в UpdateBookUseCaseCest, вызывавшие ValidationException вместо StaleDataException и EntityNotFoundException ([913024a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/913024a))
+- **#38** - убиты мутанты: граничные значения портов в ApiPageConfig, early return в Book::changeYear ([c329abe](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c329abe))
+- **#38** - добавлены тесты для 100% code coverage: нечитаемый файл в UploadedFileStorage, удаление с null ID в AuthorRepository, AuthorRepositoryTracingDecorator ([b65a50d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b65a50d))
 
 ### ⚙️ Инфраструктура
 
