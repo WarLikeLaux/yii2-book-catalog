@@ -6,7 +6,7 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.20.0] - 2026-02-22 - "Доменная чистота, pull-модель событий и архитектурная зрелость"
+## [0.20.0] - 2026-02-23 - "Доменная чистота, pull-модель событий и архитектурная зрелость"
 
 > Грандиозный архитектурный релиз, поднявший проект на качественно новый уровень DDD-чистоты. Реализована pull-модель доменных событий через RecordsEvents trait. Репозиторные интерфейсы перенесены в домен, хранилище файлов — в адаптеры. BookSearchSpecificationFactory вынесена из домена в application. Вычленён независимый CoverKeysScanner из BookQueryService. Внедрены inline invariant guards в агрегат Book, безопасное удаление авторов с FK RESTRICT-миграциями и проверками использования. Проведена масштабная стандартизация: FQCN-импорты в конфигах, BookStatus enum вместо magic strings, Phone VO, PhoneMasker, checker-интерфейсы. Система навыков AI-агента полностью переработана — audit разделён на hunt и reflect. Инфраструктура усилена Jaeger/OTel observability, health check endpoint и архитектурными правилами PHPArkitect.
 
