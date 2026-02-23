@@ -52,6 +52,7 @@
 - **#38** - исправлен list-comments: пропуск директорий и поддержка js/mjs ([3b7da0e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3b7da0e))
 - **#38** - исправлен тест NoGhostQueryServiceInApplicationRule ([6f1372c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6f1372c))
 - **#38** - исправлен тест HealthEndpointCest, падавший из-за отсутствия аутентификации ([b373aa8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b373aa8))
+- **#38** - исправлено правило phparkitect для query DTO (добавлен запрет на app\application\common\services), заменён широкий глоб excludePath phpstan на конкретный файл ([594a53f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/594a53f))
 
 ### 🛠 Рефакторинг и архитектура
 
