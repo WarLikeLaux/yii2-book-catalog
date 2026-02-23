@@ -7,6 +7,8 @@ use app\infrastructure\components\AppPgsqlMutex;
 use app\infrastructure\components\AppRedisConnection;
 use app\infrastructure\persistence\User;
 use app\infrastructure\queue\HandlerAwareQueue;
+use yii\mutex\MysqlMutex;
+use yii\mutex\PgsqlMutex;
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/test_db.php';
@@ -55,8 +57,8 @@ $config = [
             'tableName' => '{{%queue}}',
             'channel' => 'queue',
             'mutex' => env('DB_DRIVER', 'mysql') === 'pgsql'
-                ? \yii\mutex\PgsqlMutex::class
-                : \yii\mutex\MysqlMutex::class,
+                ? PgsqlMutex::class
+                : MysqlMutex::class,
         ],
         'cache' => [
             'class' => 'yii\caching\DummyCache',
