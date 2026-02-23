@@ -7,6 +7,7 @@ namespace tests\unit\infrastructure\repositories;
 use app\domain\entities\Author as AuthorEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\exceptions\OperationFailedException;
 use app\domain\repositories\AuthorRepositoryInterface;
 use Codeception\Test\Unit;
 use DbCleaner;
@@ -66,6 +67,14 @@ final class AuthorRepositoryTest extends Unit
 
         $this->expectException(EntityNotFoundException::class);
         $this->repository->get($author->id);
+    }
+
+    public function testDeleteThrowsWhenIdIsNull(): void
+    {
+        $author = AuthorEntity::create('Unsaved Author');
+
+        $this->expectException(OperationFailedException::class);
+        $this->repository->delete($author);
     }
 
     public function testGetThrowsExceptionOnNotFound(): void

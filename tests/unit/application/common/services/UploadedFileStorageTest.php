@@ -185,4 +185,28 @@ final class UploadedFileStorageTest extends Unit
 
         unlink($tempFile);
     }
+
+    public function testStoreThrowsApplicationExceptionWhenFileNotReadable(): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'upload-');
+
+        if ($tempFile === false) {
+            $this->fail('Failed to create temp file');
+        }
+
+        file_put_contents($tempFile, 'content');
+        chmod($tempFile, 0000);
+
+        try {
+            $payload = new UploadedFilePayload($tempFile, 'txt', 'text/plain');
+
+            $this->expectException(ApplicationException::class);
+            $this->expectExceptionMessage('file.error.open_failed');
+
+            $this->service->store($payload);
+        } finally {
+            chmod($tempFile, 0644);
+            unlink($tempFile);
+        }
+    }
 }
