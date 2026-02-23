@@ -430,6 +430,26 @@ final class BookTest extends Unit
         $this->assertSame(2025, $book->year->value);
     }
 
+    public function testChangeYearDoesNotRecordEventWhenYearIsSame(): void
+    {
+        $book = Book::reconstitute(
+            1,
+            'Title',
+            new BookYear(2024),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null,
+            [],
+            BookStatus::Draft,
+            1,
+        );
+
+        $book->changeYear(new BookYear(2024));
+
+        $this->assertEmpty($book->pullRecordedEvents());
+        $this->assertSame(2024, $book->year->value);
+    }
+
     public function testMarkAsDeletedRecordsBookDeletedEvent(): void
     {
         $book = Book::reconstitute(
