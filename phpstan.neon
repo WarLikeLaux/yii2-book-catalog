@@ -18,7 +18,7 @@ parameters:
 		- tests/unit/domain/*
 		- tests/unit/infrastructure/acceptance/*
 		- tests/unit/infrastructure/components/*
-		- tests/unit/infrastructure/phpstan/* # кроме Rules/Fixtures (для тестов PHPStan-правил)
+		- tests/unit/infrastructure/phpstan/NoGhostQueryServiceInApplicationRuleTest.php
 		- runtime/*            # Временные файлы Yii2
 		- vendor/*             # Сторонние библиотеки
 		- src/presentation/controllers/BaseController.php # Переопределяет render() с более строгой сигнатурой
