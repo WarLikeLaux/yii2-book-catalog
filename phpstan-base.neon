@@ -1,0 +1,66 @@
+includes:
+	- vendor/phpstan/phpstan-strict-rules/rules.neon
+	- vendor/phpstan/phpstan-deprecation-rules/rules.neon
+
+parameters:
+	level: 9
+	phpVersion: 80400
+	bootstrapFiles:
+		- phpstan-bootstrap.php
+	excludePaths:
+		- src/presentation/views/*
+		- runtime/*
+		- vendor/*
+	reportUnmatchedIgnoredErrors: false
+	ignoreErrors:
+		- '#Access to an undefined property .*Application::\$session#'
+		- '#Access to an undefined property .*Application::\$user#'
+		- '#Variable property access on .*#'
+		- '#Access to an undefined property (object|yii\\base\\Model)::\$id#'
+		- identifier: missingType.generics
+		- '#Return type .*::find\(\) should be compatible with return type .*ActiveRecord::find\(\)#'
+		- '#Return type .*::behaviors\(\) should be covariant with return type.*#'
+
+services:
+	-
+		class: app\infrastructure\phpstan\Rules\UseCaseMustBeFinalRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\ValueObjectMustBeFinalRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\DomainEntitiesMustBePureRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\DomainIsCleanRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\DisallowYiiTOutsideAdaptersRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\DisallowDateTimeRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\QueryPortsMustReturnDtoRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\NoActiveRecordInDomainOrApplicationRule
+		arguments:
+			reflectionProvider: @reflectionProvider
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\StrictRepositoryReturnTypeRule
+		tags:
+			- phpstan.rules.rule
+	-
+		class: app\infrastructure\phpstan\Rules\NoGhostQueryServiceInApplicationRule
+		tags:
+			- phpstan.rules.rule

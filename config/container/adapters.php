@@ -2,13 +2,17 @@
 
 declare(strict_types=1);
 
-use app\application\common\config\BuggregatorConfig;
+use app\application\common\config\JaegerConfig;
+use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\application\ports\AuthServiceInterface;
 use app\application\ports\CacheInterface;
 use app\application\ports\EventPublisherInterface;
+use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
 use app\application\ports\NotificationInterface;
 use app\application\ports\QueueInterface;
+use app\application\ports\RateLimitInterface;
+use app\application\ports\RequestIdProviderInterface;
 use app\application\ports\SmsSenderInterface;
 use app\application\ports\SystemInfoProviderInterface;
 use app\application\ports\TracerInterface;
@@ -16,10 +20,16 @@ use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
 use app\domain\events\BookStatusChangedEvent;
 use app\domain\values\BookStatus;
+use app\infrastructure\adapters\AsyncIdempotencyStorage;
+use app\infrastructure\adapters\decorators\IdempotencyStorageTracingDecorator;
 use app\infrastructure\adapters\decorators\QueueTracingDecorator;
+use app\infrastructure\adapters\decorators\RateLimitStorageTracingDecorator;
 use app\infrastructure\adapters\EventJobMappingRegistry;
+use app\infrastructure\adapters\EventSerializer;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
+use app\infrastructure\adapters\IdempotencyStorage;
+use app\infrastructure\adapters\RateLimitStorage;
 use app\infrastructure\adapters\SystemInfoAdapter;
 use app\infrastructure\adapters\YiiAuthAdapter;
 use app\infrastructure\adapters\YiiCacheAdapter;
@@ -32,12 +42,16 @@ use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\listeners\ReportCacheInvalidationListener;
 use app\infrastructure\queue\NotifySubscribersJob;
 use app\infrastructure\services\notifications\FlashNotificationService;
-use app\infrastructure\services\observability\InspectorTracer;
-use app\infrastructure\services\observability\NullTracer;
+use app\infrastructure\services\observability\OtelTracer;
+use app\infrastructure\services\observability\RequestIdProvider;
 use app\infrastructure\services\sms\LogSmsSender;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\YiiPsrLogger;
+use Psr\Clock\ClockInterface;
+use Psr\Log\LoggerInterface;
 use yii\di\Container;
+use yii\di\Instance;
+use yii\redis\Connection as RedisConnection;
 
 return static function (array $params): array {
     unset($params);
@@ -63,6 +77,39 @@ return static function (array $params): array {
 
             TransactionInterface::class => YiiTransactionAdapter::class,
 
+            AsyncIdempotencyStorageInterface::class => [
+                'class' => AsyncIdempotencyStorage::class,
+                '__construct()' => [Instance::of(ClockInterface::class)],
+            ],
+
+            IdempotencyStorage::class => [
+                'class' => IdempotencyStorage::class,
+                '__construct()' => [
+                    Instance::of(LoggerInterface::class),
+                    Instance::of(ClockInterface::class),
+                ],
+            ],
+
+            RateLimitStorage::class => [
+                'class' => RateLimitStorage::class,
+                '__construct()' => [
+                    Instance::of(RedisConnection::class),
+                    Instance::of(ClockInterface::class),
+                ],
+            ],
+
+            IdempotencyInterface::class => static fn(Container $c): IdempotencyInterface => TracingFactory::create(
+                $c,
+                IdempotencyStorage::class,
+                IdempotencyStorageTracingDecorator::class,
+            ),
+
+            RateLimitInterface::class => static fn(Container $c): RateLimitInterface => TracingFactory::create(
+                $c,
+                RateLimitStorage::class,
+                RateLimitStorageTracingDecorator::class,
+            ),
+
             QueueInterface::class => static fn(Container $c): QueueInterface => TracingFactory::create(
                 $c,
                 YiiQueueAdapter::class,
@@ -71,11 +118,16 @@ return static function (array $params): array {
 
             CacheInterface::class => YiiCacheAdapter::class,
 
-            EventJobMappingRegistry::class => static fn(): EventJobMappingRegistry => new EventJobMappingRegistry([
-                BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): ?NotifySubscribersJob => $e->newStatus === BookStatus::Published
-                    ? new NotifySubscribersJob($e->bookId)
-                    : null,
-            ]),
+            EventSerializer::class => EventSerializer::class,
+
+            EventJobMappingRegistry::class => static fn(Container $c): EventJobMappingRegistry => new EventJobMappingRegistry(
+                [
+                    BookStatusChangedEvent::class => static fn(BookStatusChangedEvent $e): ?NotifySubscribersJob => $e->newStatus === BookStatus::Published
+                        ? new NotifySubscribersJob($e->bookId)
+                        : null,
+                ],
+                $c->get(EventSerializer::class),
+            ),
 
             EventToJobMapperInterface::class => EventToJobMapper::class,
 
@@ -86,19 +138,16 @@ return static function (array $params): array {
             ),
 
             SystemInfoProviderInterface::class => SystemInfoAdapter::class,
+
+            RequestIdProviderInterface::class => RequestIdProvider::class,
         ],
         'singletons' => [
             TracerInterface::class => static function (Container $c): TracerInterface {
-                $config = $c->get(BuggregatorConfig::class);
-                $ingestionKey = $config->inspector->ingestionKey;
+                $config = $c->get(JaegerConfig::class);
 
-                if ($ingestionKey === '' || $ingestionKey === 'buggregator') {
-                    return new NullTracer();
-                }
-
-                return new InspectorTracer(
-                    $ingestionKey,
-                    $config->inspector->url,
+                return new OtelTracer(
+                    $config->serviceName,
+                    $config->endpoint,
                 );
             },
         ],

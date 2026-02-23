@@ -1,0 +1,11 @@
+{
+  "themes": {
+    "enabled": true
+  },
+  "menu": [
+    {
+      "label": "Yii2 Book Catalog",
+      "url": "http://localhost:8000"
+    }
+  ]
+}

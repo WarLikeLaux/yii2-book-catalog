@@ -2,19 +2,17 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\queries;
+namespace tests\unit\infrastructure\queries;
 
 use app\application\ports\AuthorQueryServiceInterface;
-use app\application\ports\AuthorRepositoryInterface;
 use app\domain\entities\Author as AuthorEntity;
+use app\domain\repositories\AuthorRepositoryInterface;
 use app\infrastructure\persistence\Author;
 use Codeception\Test\Unit;
 use Yii;
 
 final class AuthorQueryServiceTest extends Unit
 {
-    private const string EXCLUDE_FIO = 'Exclude FIO';
-
     private AuthorQueryServiceInterface $queryService;
     private AuthorRepositoryInterface $repository;
 
@@ -93,68 +91,5 @@ final class AuthorQueryServiceTest extends Unit
     public function testFindByIdReturnsNullOnNotFound(): void
     {
         $this->assertNull($this->queryService->findById(99999));
-    }
-
-    public function testFindMissingIdsWithEmptyArray(): void
-    {
-        $this->assertSame([], $this->queryService->findMissingIds([]));
-    }
-
-    public function testFindMissingIdsAllExist(): void
-    {
-        $author1 = AuthorEntity::create('Author 1');
-        $author2 = AuthorEntity::create('Author 2');
-        $this->repository->save($author1);
-        $this->repository->save($author2);
-
-        $result = $this->queryService->findMissingIds([
-            $author1->id,
-            $author2->id,
-        ]);
-
-        $this->assertSame([], $result);
-    }
-
-    public function testFindMissingIdsSomeMissing(): void
-    {
-        $author = AuthorEntity::create('Existing Author');
-        $this->repository->save($author);
-
-        $result = $this->queryService->findMissingIds([
-            $author->id,
-            99998,
-            99999,
-        ]);
-
-        $this->assertSame([99998, 99999], $result);
-    }
-
-    public function testFindMissingIdsAllMissing(): void
-    {
-        $result = $this->queryService->findMissingIds([99998, 99999]);
-
-        $this->assertSame([99998, 99999], $result);
-    }
-
-    public function testExistsByFioReturnsTrue(): void
-    {
-        $author = AuthorEntity::create('Unique FIO');
-        $this->repository->save($author);
-
-        $this->assertTrue($this->queryService->existsByFio('Unique FIO'));
-    }
-
-    public function testExistsByFioReturnsFalse(): void
-    {
-        $this->assertFalse($this->queryService->existsByFio('Nonexistent FIO'));
-    }
-
-    public function testExistsByFioWithExcludeId(): void
-    {
-        $author = AuthorEntity::create(self::EXCLUDE_FIO);
-        $this->repository->save($author);
-
-        $this->assertFalse($this->queryService->existsByFio(self::EXCLUDE_FIO, $author->id));
-        $this->assertTrue($this->queryService->existsByFio(self::EXCLUDE_FIO, 99999));
     }
 }

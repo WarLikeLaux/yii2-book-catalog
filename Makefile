@@ -112,9 +112,9 @@ init:
 up:
 	@driver=$${DB_DRIVER:-mysql}; \
 	if [ "$$driver" = "pgsql" ]; then \
-		$(COMPOSE) up -d pgsql redis php nginx queue swagger-ui buggregator selenium --remove-orphans; \
+		$(COMPOSE) up -d pgsql redis php nginx queue swagger-ui jaeger selenium --remove-orphans; \
 	else \
-		$(COMPOSE) up -d db redis php nginx queue swagger-ui buggregator selenium --remove-orphans; \
+		$(COMPOSE) up -d db redis php nginx queue swagger-ui jaeger selenium --remove-orphans; \
 	fi
 
 down:
@@ -210,7 +210,7 @@ _dev_full: lint-fix rector-fix comments
 _dev_file:
 	@echo "🔍 Проверяем: $(FILE_ARG)"
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf $(FILE_ARG) || true
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process $(FILE_ARG) || true
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process --clear-cache $(FILE_ARG) || true
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs $(FILE_ARG) || true
 	@echo "✅ Готово"
 
@@ -223,12 +223,12 @@ lint-fix:
 	-$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcbf
 
 rector:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process --dry-run
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process --dry-run --clear-cache
 
 rector-fix:
-	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process --clear-cache
 
-analyze: lint arch
+analyze: lint arch rector
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan analyse --memory-limit=2G
 
 prettier:
@@ -391,7 +391,28 @@ tag:
 	@if [ -z "$(TAG)" ]; then echo "Usage: make tag TAG (где TAG — заголовок раздела в markdown)"; exit 1; fi
 	@if [ ! -d "docs/ai" ]; then echo "❌ Error: docs/ai directory not found."; exit 1; fi
 	@if [ -z "$$(ls -A docs/ai/*.md 2>/dev/null)" ]; then echo "❌ Error: No markdown files found in docs/ai."; exit 1; fi
-	@awk -v tag="$(TAG)" 'BEGIN{p=0} FNR==1{p=0} $$0 ~ "^### "tag"($$|[^[:alnum:]_])"{p=1} p && $$0 ~ "^#" && $$0 !~ "^### "tag"($$|[^[:alnum:]_])"{p=0} p' docs/ai/*.md
+	@awk -v tag="$(TAG)" ' \
+		function heading_level(line, m) { return match(line, /^(#+)[[:space:]]+/, m) ? length(m[1]) : 0 } \
+		function is_tag_heading(text, t, n, c) { \
+			n = length(t); \
+			if (substr(text, 1, n) != t) return 0; \
+			c = substr(text, n + 1, 1); \
+			return c == "" || c !~ /[[:alnum:]_]/; \
+		} \
+		FNR==1 { p=0; level=0 } \
+		{ \
+			current = heading_level($$0); \
+			if (!p) { \
+				if (current > 0) { \
+					text = substr($$0, current + 2); \
+					if (is_tag_heading(text, tag)) { p=1; level=current; print; } \
+				} \
+				next; \
+			} \
+			if (current > 0 && current <= level) { p=0; next; } \
+			print; \
+		} \
+	' docs/ai/*.md
 
 # =================================================================================================
 # 🛰️ GIT SHORTCUTS
@@ -431,9 +452,9 @@ test-migration:
 # =================================================================================================
 
 review-fetch:
-	@node scripts/fetch-pr-comments.mjs
+	@node bin/fetch-pr-comments.mjs
 
 review-resolve:
-	@node scripts/resolve-pr-threads.mjs
+	@node bin/resolve-pr-threads.mjs
 
 .PHONY: review-fetch review-resolve

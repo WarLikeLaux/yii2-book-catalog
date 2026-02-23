@@ -6,10 +6,12 @@ namespace tests\unit\application\authors\usecases;
 
 use app\application\authors\commands\CreateAuthorCommand;
 use app\application\authors\usecases\CreateAuthorUseCase;
-use app\application\ports\AuthorRepositoryInterface;
+use app\application\ports\AuthorExistenceCheckerInterface;
 use app\domain\entities\Author;
+use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
+use app\domain\repositories\AuthorRepositoryInterface;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 use ReflectionProperty;
@@ -18,16 +20,23 @@ final class CreateAuthorUseCaseTest extends Unit
 {
     private AuthorRepositoryInterface&MockObject $authorRepository;
     private CreateAuthorUseCase $useCase;
+    private AuthorExistenceCheckerInterface&MockObject $authorExistenceChecker;
 
     protected function _before(): void
     {
         $this->authorRepository = $this->createMock(AuthorRepositoryInterface::class);
-        $this->useCase = new CreateAuthorUseCase($this->authorRepository);
+        $this->authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $this->useCase = new CreateAuthorUseCase($this->authorRepository, $this->authorExistenceChecker);
     }
 
     public function testExecuteCreatesAuthorSuccessfully(): void
     {
         $command = new CreateAuthorCommand(fio: 'Иванов Иван Иванович');
+
+        $this->authorExistenceChecker->expects($this->once())
+            ->method('existsByFio')
+            ->with('Иванов Иван Иванович')
+            ->willReturn(false);
 
         $this->authorRepository->expects($this->once())
             ->method('save')
@@ -48,10 +57,28 @@ final class CreateAuthorUseCaseTest extends Unit
         $this->assertSame(42, $result);
     }
 
+    public function testExecuteThrowsAlreadyExistsExceptionWhenFioExists(): void
+    {
+        $command = new CreateAuthorCommand(fio: 'Duplicate FIO');
+
+        $this->authorExistenceChecker->expects($this->once())
+            ->method('existsByFio')
+            ->with('Duplicate FIO')
+            ->willReturn(true);
+
+        $this->authorRepository->expects($this->never())->method('save');
+
+        $this->expectException(AlreadyExistsException::class);
+        $this->expectExceptionMessage(DomainErrorCode::AuthorFioExists->value);
+
+        $this->useCase->execute($command);
+    }
+
     public function testExecuteThrowsRuntimeExceptionOnRepositoryError(): void
     {
         $command = new CreateAuthorCommand(fio: 'Test Author');
 
+        $this->authorExistenceChecker->method('existsByFio')->willReturn(false);
         $this->authorRepository->expects($this->once())
             ->method('save')
             ->willThrowException(new \RuntimeException('DB error'));
@@ -65,6 +92,13 @@ final class CreateAuthorUseCaseTest extends Unit
     public function testExecuteThrowsDomainExceptionOnInvalidFio(): void
     {
         $command = new CreateAuthorCommand(fio: '');
+
+        $this->authorExistenceChecker->expects($this->once())
+            ->method('existsByFio')
+            ->with('')
+            ->willReturn(false);
+
+        $this->authorRepository->expects($this->never())->method('save');
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage(DomainErrorCode::AuthorFioEmpty->value);

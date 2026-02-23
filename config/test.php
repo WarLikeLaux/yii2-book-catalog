@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+use app\infrastructure\components\AppMysqlMutex;
+use app\infrastructure\components\AppPgsqlMutex;
+use app\infrastructure\components\AppRedisConnection;
+use app\infrastructure\persistence\User;
+use app\infrastructure\queue\HandlerAwareQueue;
+use yii\mutex\MysqlMutex;
+use yii\mutex\PgsqlMutex;
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/test_db.php';
 $container = require __DIR__ . '/container.php';
@@ -10,7 +18,7 @@ $config = [
     'id' => 'basic-tests',
     'basePath' => dirname(__DIR__),
     'controllerNamespace' => 'app\presentation\controllers',
-    'viewPath' => '@app/presentation/views',
+    'viewPath' => '@app/src/presentation/views',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
@@ -33,31 +41,31 @@ $config = [
         ],
         'db' => $db,
         'redis' => [
-            'class' => \app\infrastructure\components\AppRedisConnection::class,
+            'class' => AppRedisConnection::class,
             'hostname' => env('REDIS_HOST', 'localhost'),
             'port' => (int)env('REDIS_PORT', 6379),
             'database' => 15,
         ],
         'mutex' => [
             'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
-                ? \app\infrastructure\components\AppPgsqlMutex::class
-                : \app\infrastructure\components\AppMysqlMutex::class,
+                ? AppPgsqlMutex::class
+                : AppMysqlMutex::class,
         ],
         'queue' => [
-            'class' => \app\infrastructure\queue\HandlerAwareQueue::class,
+            'class' => HandlerAwareQueue::class,
             'db' => $db,
             'tableName' => '{{%queue}}',
             'channel' => 'queue',
             'mutex' => env('DB_DRIVER', 'mysql') === 'pgsql'
-                ? \yii\mutex\PgsqlMutex::class
-                : \yii\mutex\MysqlMutex::class,
+                ? PgsqlMutex::class
+                : MysqlMutex::class,
         ],
         'cache' => [
             'class' => 'yii\caching\DummyCache',
         ],
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
-            'viewPath' => '@app/presentation/mail',
+            'viewPath' => '@app/src/presentation/mail',
             'useFileTransport' => true,
             'messageClass' => 'yii\symfonymailer\Message',
         ],
@@ -68,7 +76,7 @@ $config = [
             'showScriptName' => true,
         ],
         'user' => [
-            'identityClass' => 'app\infrastructure\persistence\User',
+            'identityClass' => User::class,
         ],
         'request' => [
             'cookieValidationKey' => 'test',

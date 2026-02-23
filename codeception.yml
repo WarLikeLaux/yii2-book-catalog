@@ -22,15 +22,15 @@ coverage:
         text: coverage.txt
         clover: coverage.xml
     include:
-        - application/**/*
-        - domain/**/*
-        - infrastructure/**/*
-        - presentation/**/*
+        - src/application/**/*
+        - src/domain/**/*
+        - src/infrastructure/**/*
+        - src/presentation/**/*
     exclude:
         # Шаблоны — не покрываются юнит-тестами
-        - presentation/views/*
-        - presentation/widgets/*
-        - presentation/mail/*
+        - src/presentation/views/*
+        - src/presentation/widgets/*
+        - src/presentation/mail/*
         # Покрыты функциональными тестами
-        - presentation/controllers/*
-        - infrastructure/persistence/*
+        - src/presentation/controllers/*
+        - src/infrastructure/persistence/*

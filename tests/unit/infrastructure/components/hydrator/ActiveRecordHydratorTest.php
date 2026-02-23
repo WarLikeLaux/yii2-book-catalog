@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\components\hydrator;
+namespace tests\unit\infrastructure\components\hydrator;
 
 use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use Codeception\Test\Unit;
@@ -202,7 +202,7 @@ final class ActiveRecordHydratorTest extends Unit
 
         $this->hydrator->hydrate($ar, $source, ['status']);
 
-        $this->assertSame('published', $ar->status);
+        $this->assertSame(TestStringStatus::Published->value, $ar->status);
     }
 
     public function testObjectWithoutValuePropertyIsNotUnboxed(): void

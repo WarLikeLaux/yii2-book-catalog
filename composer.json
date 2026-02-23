@@ -35,7 +35,9 @@
         "twbs/bootstrap-icons": "^1.13",
         "npm-asset/glightbox": "^3.3",
         "npm-asset/htmx.org": "^2.0",
-        "jolicode/automapper": "^9.5"
+        "jolicode/automapper": "^9.5",
+        "open-telemetry/sdk": "^1.13",
+        "open-telemetry/exporter-otlp": "^1.4"
     },
     "require-dev": {
         "npm-asset/prettier": "^3.7.4",
@@ -72,7 +74,7 @@
     },
     "autoload": {
         "psr-4": {
-            "app\\": "",
+            "app\\": ["src/", ""],
             "Tools\\": "tools/"
         },
         "files": [
@@ -80,12 +82,19 @@
             "tools/PHPUnit/Framework/Attributes/CodeCoverageIgnore.php"
         ]
     },
+    "autoload-dev": {
+        "psr-4": {
+            "tests\\": "tests/"
+        }
+    },
     "config": {
         "allow-plugins": {
             "yiisoft/yii2-composer": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "infection/extension-installer": true,
-            "phpro/grumphp": true
+            "phpro/grumphp": true,
+            "php-http/discovery": true,
+            "tbachert/spi": true
         },
         "process-timeout": 1800,
         "default-socket-timeout": 120,

@@ -21,12 +21,26 @@ final class LogSmsSenderTest extends Unit
         $logger->expects($this->once())
             ->method('info')
             ->with('SMS sent (logged)', [
-                'phone' => $phone,
+                'phone' => '+7********67',
                 'message' => $message,
             ]);
 
         $result = $sender->send($phone, $message);
 
         $this->assertTrue($result);
+    }
+
+    public function testSendMasksPhoneInLogContext(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $sender = new LogSmsSender($logger);
+
+        $logger->expects($this->once())
+            ->method('info')
+            ->with('SMS sent (logged)', $this->callback(
+                static fn (array $ctx): bool => $ctx['phone'] === '****',
+            ));
+
+        $sender->send('1234', 'msg');
     }
 }

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use app\infrastructure\components\AppDbConnection;
+
 $driver = env('DB_DRIVER', 'mysql');
 
 [$host, $port] = match ($driver) {
@@ -14,7 +16,7 @@ $username = env('DB_USER', 'yii2');
 $password = env('DB_PASSWORD', 'secret');
 
 return [
-    'class' => \app\infrastructure\components\AppDbConnection::class,
+    'class' => AppDbConnection::class,
     'dsn' => "{$driver}:host={$host};port={$port};dbname={$database}",
     'username' => $username,
     'password' => $password,

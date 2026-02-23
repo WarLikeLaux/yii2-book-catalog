@@ -8,6 +8,7 @@ use app\domain\events\BookStatusChangedEvent;
 use app\domain\events\QueueableEvent;
 use app\domain\values\BookStatus;
 use app\infrastructure\adapters\EventJobMappingRegistry;
+use app\infrastructure\adapters\EventSerializer;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\queue\NotifySubscribersJob;
 use Codeception\Test\Unit;
@@ -18,9 +19,10 @@ final class EventToJobMapperTest extends Unit
 
     protected function _before(): void
     {
-        $registry = new EventJobMappingRegistry([
-            BookStatusChangedEvent::class => NotifySubscribersJob::class,
-        ]);
+        $registry = new EventJobMappingRegistry(
+            [BookStatusChangedEvent::class => NotifySubscribersJob::class],
+            new EventSerializer(),
+        );
 
         $this->mapper = new EventToJobMapper($registry);
     }
@@ -37,18 +39,12 @@ final class EventToJobMapperTest extends Unit
 
     public function testMapUnknownEventReturnsNull(): void
     {
-        $registry = new EventJobMappingRegistry([]);
+        $registry = new EventJobMappingRegistry([], new EventSerializer());
         $mapper = new EventToJobMapper($registry);
         $event = new class implements QueueableEvent {
             public function getEventType(): string
             {
                 return 'unknown.event';
-            }
-
-            /** @return array<string, mixed> */
-            public function getPayload(): array
-            {
-                return [];
             }
         };
 

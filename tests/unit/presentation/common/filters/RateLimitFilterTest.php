@@ -9,6 +9,9 @@ use app\application\common\dto\RateLimitResult;
 use app\application\common\RateLimitServiceInterface;
 use app\presentation\common\filters\RateLimitFilter;
 use Codeception\Test\Unit;
+use DateTimeImmutable;
+use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Clock\ClockInterface;
 use Yii;
 use yii\base\Action;
 use yii\web\Request;
@@ -16,16 +19,23 @@ use yii\web\Response;
 
 final class RateLimitFilterTest extends Unit
 {
+    private const FIXED_NOW = '2024-01-15 12:00:00';
+
+    private ClockInterface&MockObject $clock;
+
     protected function _before(): void
     {
         $request = new Request();
         Yii::$app->set('request', $request);
         Yii::$app->set('response', new Response());
+
+        $this->clock = $this->createMock(ClockInterface::class);
+        $this->clock->method('now')->willReturn(new DateTimeImmutable(self::FIXED_NOW));
     }
 
     public function testBeforeActionAllowsRequestWhenBelowLimit(): void
     {
-        $resetTime = time() + 60;
+        $resetTime = $this->getFixedNowTimestamp() + 60;
         $service = $this->createMock(RateLimitServiceInterface::class);
         $service->expects($this->once())
             ->method('isAllowed')
@@ -37,7 +47,7 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service, $this->createConfig());
+        $filter = new RateLimitFilter($service, $this->createConfig(), $this->clock);
         $result = $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertTrue($result);
@@ -46,7 +56,7 @@ final class RateLimitFilterTest extends Unit
 
     public function testBeforeActionDeniesRequestWhenExceedsLimit(): void
     {
-        $resetTime = time() + 60;
+        $resetTime = $this->getFixedNowTimestamp() + 60;
         $service = $this->createMock(RateLimitServiceInterface::class);
         $service->expects($this->once())
             ->method('isAllowed')
@@ -58,7 +68,7 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service, $this->createConfig());
+        $filter = new RateLimitFilter($service, $this->createConfig(), $this->clock);
         $result = $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertFalse($result);
@@ -67,7 +77,7 @@ final class RateLimitFilterTest extends Unit
 
     public function testBeforeActionSetsRateLimitHeaders(): void
     {
-        $resetTime = time() + 60;
+        $resetTime = $this->getFixedNowTimestamp() + 60;
         $service = $this->createMock(RateLimitServiceInterface::class);
         $service->expects($this->once())
             ->method('isAllowed')
@@ -79,7 +89,7 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service, $this->createConfig());
+        $filter = new RateLimitFilter($service, $this->createConfig(), $this->clock);
         $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertSame('100', Yii::$app->response->getHeaders()->get('X-RateLimit-Limit'));
@@ -88,7 +98,7 @@ final class RateLimitFilterTest extends Unit
 
     public function testBeforeActionReturns429WithRetryAfter(): void
     {
-        $resetTime = time() + 60;
+        $resetTime = $this->getFixedNowTimestamp() + 60;
         $service = $this->createMock(RateLimitServiceInterface::class);
         $service->expects($this->once())
             ->method('isAllowed')
@@ -100,16 +110,16 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service, $this->createConfig());
+        $filter = new RateLimitFilter($service, $this->createConfig(), $this->clock);
         $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertSame(429, Yii::$app->response->statusCode);
-        $this->assertNotNull(Yii::$app->response->getHeaders()->get('Retry-After'));
+        $this->assertSame('60', Yii::$app->response->getHeaders()->get('Retry-After'));
     }
 
     public function testBeforeActionReturnsJsonBodyOn429(): void
     {
-        $resetTime = time() + 60;
+        $resetTime = $this->getFixedNowTimestamp() + 60;
         $service = $this->createMock(RateLimitServiceInterface::class);
         $service->expects($this->once())
             ->method('isAllowed')
@@ -121,13 +131,14 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service, $this->createConfig());
+        $filter = new RateLimitFilter($service, $this->createConfig(), $this->clock);
         $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertSame(429, Yii::$app->response->statusCode);
         $data = Yii::$app->response->data;
         $this->assertIsArray($data);
         $this->assertArrayHasKey('error', $data);
+        $this->assertSame(60, $data['retryAfter']);
     }
 
     public function testBeforeActionHandlesNullIp(): void
@@ -137,7 +148,7 @@ final class RateLimitFilterTest extends Unit
             ->method('isAllowed');
 
         unset($_SERVER['REMOTE_ADDR']);
-        $filter = new RateLimitFilter($service, $this->createConfig());
+        $filter = new RateLimitFilter($service, $this->createConfig(), $this->clock);
         $result = $filter->beforeAction($this->createMock(Action::class));
 
         $this->assertTrue($result);
@@ -145,7 +156,7 @@ final class RateLimitFilterTest extends Unit
 
     public function testBeforeActionCalculatesCorrectRemaining(): void
     {
-        $resetTime = time() + 60;
+        $resetTime = $this->getFixedNowTimestamp() + 60;
         $service = $this->createMock(RateLimitServiceInterface::class);
         $service->expects($this->once())
             ->method('isAllowed')
@@ -157,7 +168,7 @@ final class RateLimitFilterTest extends Unit
             ));
 
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
-        $filter = new RateLimitFilter($service, $this->createConfig());
+        $filter = new RateLimitFilter($service, $this->createConfig(), $this->clock);
         $filter->beforeAction($this->createMock(Action::class));
 
         $remaining = (int)Yii::$app->response->getHeaders()->get('X-RateLimit-Remaining');
@@ -167,5 +178,10 @@ final class RateLimitFilterTest extends Unit
     private function createConfig(): RateLimitConfig
     {
         return new RateLimitConfig(60, 60);
+    }
+
+    private function getFixedNowTimestamp(): int
+    {
+        return (new DateTimeImmutable(self::FIXED_NOW))->getTimestamp();
     }
 }

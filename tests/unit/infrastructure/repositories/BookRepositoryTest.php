@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\repositories;
+namespace tests\unit\infrastructure\repositories;
 
-use app\application\ports\BookRepositoryInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\repositories\BookRepositoryInterface;
 use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;

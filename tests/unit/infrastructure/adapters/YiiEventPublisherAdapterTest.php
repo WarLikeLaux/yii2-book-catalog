@@ -10,6 +10,7 @@ use app\domain\events\BookDeletedEvent;
 use app\domain\events\BookStatusChangedEvent;
 use app\domain\values\BookStatus;
 use app\infrastructure\adapters\EventJobMappingRegistry;
+use app\infrastructure\adapters\EventSerializer;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
@@ -26,9 +27,10 @@ final class YiiEventPublisherAdapterTest extends Unit
     {
         $this->queue = $this->createMock(QueueInterface::class);
 
-        $registry = new EventJobMappingRegistry([
-            BookStatusChangedEvent::class => NotifySubscribersJob::class,
-        ]);
+        $registry = new EventJobMappingRegistry(
+            [BookStatusChangedEvent::class => NotifySubscribersJob::class],
+            new EventSerializer(),
+        );
         $this->jobMapper = new EventToJobMapper($registry);
     }
 
@@ -46,9 +48,10 @@ final class YiiEventPublisherAdapterTest extends Unit
 
     public function testPublishQueueableEventWithNullJobDoesNotPush(): void
     {
-        $registry = new EventJobMappingRegistry([
-            BookStatusChangedEvent::class => static fn(): ?NotifySubscribersJob => null,
-        ]);
+        $registry = new EventJobMappingRegistry(
+            [BookStatusChangedEvent::class => static fn(): ?NotifySubscribersJob => null],
+            new EventSerializer(),
+        );
         $mapper = new EventToJobMapper($registry);
 
         $adapter = new YiiEventPublisherAdapter($this->queue, $mapper);

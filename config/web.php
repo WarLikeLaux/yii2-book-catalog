@@ -2,8 +2,15 @@
 
 declare(strict_types=1);
 
-use app\application\common\config\BuggregatorConfig;
 use app\application\common\config\IdempotencyConfig;
+use app\application\common\config\JaegerConfig;
+use app\infrastructure\components\AppMysqlMutex;
+use app\infrastructure\components\AppPgsqlMutex;
+use app\infrastructure\components\AppRedisConnection;
+use app\infrastructure\persistence\User;
+use app\infrastructure\queue\HandlerAwareQueue;
+use app\infrastructure\services\observability\RequestIdProvider;
+use app\infrastructure\services\observability\TracerBootstrap;
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
@@ -13,7 +20,7 @@ if (!YII_ENV_DEV && env('COOKIE_VALIDATION_KEY', '') === '') {
 }
 
 $idempotencyConfig = IdempotencyConfig::fromParams($params);
-$buggregatorConfig = BuggregatorConfig::fromParams($params);
+$jaegerConfig = JaegerConfig::fromParams($params);
 if (!YII_ENV_DEV && YII_ENV !== 'test' && $idempotencyConfig->smsPhoneHashKey === 'changeme') {
     throw new RuntimeException('SMS_IDEMPOTENCY_HASH_KEY must be set and changed in production');
 }
@@ -23,7 +30,7 @@ $config = [
     'name' => 'Yii 2 Book Catalog',
     'basePath' => dirname(__DIR__),
     'controllerNamespace' => 'app\presentation\controllers',
-    'viewPath' => '@app/presentation/views',
+    'viewPath' => '@app/src/presentation/views',
     'language' => 'ru-RU',
     'sourceLanguage' => 'en-US',
     'bootstrap' => ['log', 'tracer'],
@@ -45,11 +52,11 @@ $config = [
                 $event->sender->headers->add('X-Frame-Options', 'SAMEORIGIN');
                 $event->sender->headers->add('X-Content-Type-Options', 'nosniff');
                 $event->sender->headers->add('Referrer-Policy', 'strict-origin-when-cross-origin');
-                $event->sender->headers->add('X-Request-Id', \app\infrastructure\services\observability\RequestIdProvider::get());
+                $event->sender->headers->add('X-Request-Id', RequestIdProvider::get());
             },
         ],
         'redis' => [
-            'class' => \app\infrastructure\components\AppRedisConnection::class,
+            'class' => AppRedisConnection::class,
             'hostname' => env('REDIS_HOST', 'redis'),
             'port' => (int)env('REDIS_PORT', '6379'),
             'database' => 0,
@@ -64,7 +71,7 @@ $config = [
             ],
         ],
         'user' => [
-            'identityClass' => 'app\infrastructure\persistence\User',
+            'identityClass' => User::class,
             'enableAutoLogin' => true,
         ],
         'i18n' => [
@@ -84,7 +91,7 @@ $config = [
         ],
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
-            'viewPath' => '@app/presentation/mail',
+            'viewPath' => '@app/src/presentation/mail',
             'useFileTransport' => env('MAILER_USE_FILE_TRANSPORT', true),
             'transport' => [
                 'scheme' => 'smtp',
@@ -99,7 +106,7 @@ $config = [
                 [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
-                    'prefix' => static fn () => '[req:' . \app\infrastructure\services\observability\RequestIdProvider::get() . ']',
+                    'prefix' => static fn () => '[req:' . RequestIdProvider::get() . ']',
                 ],
                 [
                     'class' => 'yii\log\FileTarget',
@@ -107,35 +114,19 @@ $config = [
                     'levels' => ['info', 'error'],
                     'logFile' => '@runtime/logs/sms.log',
                     'logVars' => [],
-                    'prefix' => static fn () => '[req:' . \app\infrastructure\services\observability\RequestIdProvider::get() . ']',
+                    'prefix' => static fn () => '[req:' . RequestIdProvider::get() . ']',
                 ],
-                YII_ENV_DEV ? [
-                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => $buggregatorConfig->log->host,
-                    'port' => $buggregatorConfig->log->port,
-                    'levels' => ['error', 'warning'],
-                    'except' => ['yii\web\HttpException:404'],
-                    'logVars' => [],
-                ] : null,
-                YII_ENV_DEV ? [
-                    'class' => 'app\infrastructure\services\BuggregatorLogTarget',
-                    'host' => $buggregatorConfig->log->host,
-                    'port' => $buggregatorConfig->log->port,
-                    'levels' => ['info'],
-                    'categories' => ['sms', 'application'],
-                    'logVars' => [],
-                ] : null,
             ]),
         ],
         'db' => $db,
         'mutex' => [
             'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
-                ? \app\infrastructure\components\AppPgsqlMutex::class
-                : \app\infrastructure\components\AppMysqlMutex::class,
+                ? AppPgsqlMutex::class
+                : AppMysqlMutex::class,
             'db' => $db,
         ],
         'queue' => [
-            'class' => \app\infrastructure\queue\HandlerAwareQueue::class,
+            'class' => HandlerAwareQueue::class,
             'db' => $db,
             'tableName' => '{{%queue}}',
             'channel' => 'queue',
@@ -145,13 +136,13 @@ $config = [
             'showScriptName' => false,
             'rules' => [
                 'api/v1/books' => 'api/v1/book/index',
+                'health' => 'health/index',
             ],
         ],
         'tracer' => [
-            'class' => \app\infrastructure\services\observability\TracerBootstrap::class,
+            'class' => TracerBootstrap::class,
             'enabled' => YII_ENV_DEV,
-            'endpoint' => $buggregatorConfig->inspector->url,
-            'ingestionKey' => $buggregatorConfig->inspector->ingestionKey,
+            'endpoint' => $jaegerConfig->endpoint,
             'serviceName' => 'yii2-book-catalog',
         ],
     ],

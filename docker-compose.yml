@@ -116,10 +116,13 @@ services:
     volumes:
       - ./tests/load:/scripts
 
-  buggregator:
-    image: ghcr.io/buggregator/server:latest
+  jaeger:
+    image: jaegertracing/jaeger:latest
     ports:
-      - "${BUGGREGATOR_UI_PORT:-8090}:8000"
-      - "${BUGGREGATOR_SMTP_PORT:-1025}:1025"
-      - "${BUGGREGATOR_TRAP_PORT:-9912}:9912"
-      - "${BUGGREGATOR_LOG_PORT:-9913}:9913"
+      - "${JAEGER_UI_PORT:-16686}:16686"
+      - "${JAEGER_OTLP_PORT:-4318}:4318"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:16686/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

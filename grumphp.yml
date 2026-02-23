@@ -8,12 +8,6 @@ grumphp:
         label: "🔍 Checking code style (PHPCS)"
       scripts:
         - ["-c", "make lint"]
-    phpstan_check:
-      metadata:
-        task: shell
-        label: "🐘 Checking static analysis (PHPStan)"
-      scripts:
-        - ["-c", "make analyze"]
     deptrac_check:
       metadata:
         task: shell

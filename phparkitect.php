@@ -21,10 +21,10 @@ use Arkitect\Expression\ForClasses\ResideInOneOfTheseNamespaces;
 use Arkitect\Rules\Rule;
 
 return static function (Config $config): void {
-    $applicationSet = ClassSet::fromDir(__DIR__ . '/application');
-    $domainSet = ClassSet::fromDir(__DIR__ . '/domain');
-    $infrastructureSet = ClassSet::fromDir(__DIR__ . '/infrastructure');
-    $presentationSet = ClassSet::fromDir(__DIR__ . '/presentation');
+    $applicationSet = ClassSet::fromDir(__DIR__ . '/src/application');
+    $domainSet = ClassSet::fromDir(__DIR__ . '/src/domain');
+    $infrastructureSet = ClassSet::fromDir(__DIR__ . '/src/infrastructure');
+    $presentationSet = ClassSet::fromDir(__DIR__ . '/src/presentation');
 
     $domainRules = [];
     $applicationRules = [];
@@ -85,8 +85,18 @@ return static function (Config $config): void {
 
     $domainRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\domain'))
-        ->should(new NotDependsOnTheseNamespaces(['yii']))
-        ->because('Домен не должен зависеть от фреймворка');
+        ->should(new NotDependsOnTheseNamespaces(['yii', 'app\application', 'app\infrastructure', 'app\presentation']))
+        ->because('Домен изолирован: запрещены зависимости от yii, application, infrastructure, presentation');
+
+    $domainRules[] = Rule::allClasses()
+        ->that(new ResideInOneOfTheseNamespaces('app\domain\repositories'))
+        ->should(new IsInterface())
+        ->because('domain/repositories содержит только интерфейсы репозиториев');
+
+    $domainRules[] = Rule::allClasses()
+        ->that(new ResideInOneOfTheseNamespaces('app\domain\repositories'))
+        ->should(new HaveNameMatching('*RepositoryInterface'))
+        ->because('Интерфейсы репозиториев должны иметь суффикс RepositoryInterface');
 
     // --- Application Layer ---
 
@@ -121,6 +131,12 @@ return static function (Config $config): void {
         ->andThat(new IsNotInterface())
         ->should(new IsReadonly())
         ->because('Query DTO должны быть readonly');
+
+    $applicationRules[] = Rule::allClasses()
+        ->that(new ResideInOneOfTheseNamespaces('app\application\*\queries'))
+        ->andThat(new IsNotInterface())
+        ->should(new NotDependsOnTheseNamespaces(['app\infrastructure', 'app\application\common\services']))
+        ->because('application/*/queries — DTO-only: без сервисов и инфраструктуры');
 
     $applicationRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\application\ports'))
@@ -159,8 +175,8 @@ return static function (Config $config): void {
         ->andThat(new IsNotInterface())
         ->andThat(new IsNotTrait())
         ->andThat(new IsNotAbstract())
-        ->should(new Implement('app\application\ports\*'))
-        ->because('Репозитории должны реализовывать порты');
+        ->should(new Implement('app\domain\repositories\*'))
+        ->because('Репозитории должны реализовывать порты домена');
 
     // --- Presentation Layer ---
 

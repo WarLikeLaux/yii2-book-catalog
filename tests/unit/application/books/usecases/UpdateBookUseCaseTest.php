@@ -6,17 +6,16 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\UpdateBookCommand;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\application\common\services\TransactionalEventPublisher;
 use app\application\common\values\AuthorIdCollection;
-use app\application\ports\AuthorQueryServiceInterface;
-use app\application\ports\BookQueryServiceInterface;
-use app\application\ports\BookRepositoryInterface;
+use app\application\ports\AuthorExistenceCheckerInterface;
+use app\application\ports\BookIsbnCheckerInterface;
 use app\domain\entities\Book;
-use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\AlreadyExistsException;
+use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
+use app\domain\repositories\BookRepositoryInterface;
 use app\domain\values\BookStatus;
 use app\domain\values\Isbn;
 use BookTestHelper;
@@ -29,28 +28,25 @@ final class UpdateBookUseCaseTest extends Unit
 {
     private const DESCRIPTION_NEW = 'New description';
     private BookRepositoryInterface&MockObject $bookRepository;
-    private BookQueryServiceInterface&MockObject $bookQueryService;
-    private AuthorQueryServiceInterface&MockObject $authorQueryService;
-    private TransactionalEventPublisher&MockObject $eventPublisher;
+    private BookIsbnCheckerInterface&MockObject $bookIsbnChecker;
+    private AuthorExistenceCheckerInterface&MockObject $authorExistenceChecker;
     private ClockInterface&MockObject $clock;
     private UpdateBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
-        $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
-        $this->bookQueryService->method('existsByIsbn')->willReturn(false);
-        $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $this->authorQueryService->method('findMissingIds')->willReturn([]);
-        $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
+        $this->bookIsbnChecker = $this->createMock(BookIsbnCheckerInterface::class);
+        $this->bookIsbnChecker->method('existsByIsbn')->willReturn(false);
+        $this->authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $this->authorExistenceChecker->method('existsAllByIds')->willReturn(true);
         $this->clock = $this->createMock(ClockInterface::class);
         $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
         $this->useCase = new UpdateBookUseCase(
             $this->bookRepository,
-            $this->bookQueryService,
-            $this->authorQueryService,
-            $this->eventPublisher,
+            $this->bookIsbnChecker,
+            $this->authorExistenceChecker,
             $this->clock,
         );
     }
@@ -90,12 +86,46 @@ final class UpdateBookUseCaseTest extends Unit
                     && $book->authorIds === [1, 2]))
             ->willReturn(42);
 
-        $this->eventPublisher->expects($this->once())
-            ->method('publishAfterCommit')
-            ->with($this->callback(static fn (BookUpdatedEvent $event): bool => $event->bookId === 42
-                && $event->oldYear === 2020
-                && $event->newYear === 2024
-                && $event->status === BookStatus::Draft));
+        $this->useCase->execute($command);
+    }
+
+    public function testExecuteUpdatesBookWithDuplicateAuthorIds(): void
+    {
+        $command = new UpdateBookCommand(
+            id: 42,
+            title: 'Updated Title',
+            year: 2024,
+            description: self::DESCRIPTION_NEW,
+            isbn: '9780132350884',
+            authorIds: AuthorIdCollection::fromArray([1, 2, 1]),
+            version: 1,
+        );
+
+        $existingBook = BookTestHelper::createBook(
+            id: 42,
+            title: 'Old Title',
+            year: 2020,
+            description: 'Old description',
+            coverImage: null,
+            authorIds: [1],
+            status: BookStatus::Draft,
+            version: 1,
+        );
+
+        $this->authorExistenceChecker->expects($this->once())
+            ->method('existsAllByIds')
+            ->with([1, 2])
+            ->willReturn(true);
+
+        $this->bookRepository->expects($this->once())
+            ->method('getByIdAndVersion')
+            ->with(42, 1)
+            ->willReturn($existingBook);
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
+            ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2]))
+            ->willReturn(42);
 
         $this->useCase->execute($command);
     }
@@ -115,7 +145,7 @@ final class UpdateBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('getByIdAndVersion')
             ->with(999, 1)
-            ->willThrowException(new StaleDataException());
+            ->willThrowException(new StaleDataException(DomainErrorCode::BookStaleData));
 
         $this->expectException(StaleDataException::class);
 
@@ -376,15 +406,14 @@ final class UpdateBookUseCaseTest extends Unit
 
     public function testExecuteThrowsIsbnAlreadyExistsException(): void
     {
-        $bookQueryService = $this->createMock(BookQueryServiceInterface::class);
-        $bookQueryService->method('existsByIsbn')
+        $bookIsbnChecker = $this->createMock(BookIsbnCheckerInterface::class);
+        $bookIsbnChecker->method('existsByIsbn')
             ->willReturn(true);
 
         $useCase = new UpdateBookUseCase(
             $this->bookRepository,
-            $bookQueryService,
-            $this->authorQueryService,
-            $this->eventPublisher,
+            $bookIsbnChecker,
+            $this->authorExistenceChecker,
             $this->clock,
         );
 
@@ -408,15 +437,14 @@ final class UpdateBookUseCaseTest extends Unit
 
     public function testExecuteThrowsAuthorsNotFoundException(): void
     {
-        $authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $authorQueryService->method('findMissingIds')
-            ->willReturn([999]);
+        $authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $authorExistenceChecker->method('existsAllByIds')
+            ->willReturn(false);
 
         $useCase = new UpdateBookUseCase(
             $this->bookRepository,
-            $this->bookQueryService,
-            $authorQueryService,
-            $this->eventPublisher,
+            $this->bookIsbnChecker,
+            $authorExistenceChecker,
             $this->clock,
         );
 

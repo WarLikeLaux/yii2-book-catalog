@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure;
 
+use app\application\ports\RequestIdProviderInterface;
 use app\infrastructure\services\observability\RequestIdProvider;
 use Codeception\Test\Unit;
 
@@ -54,5 +55,19 @@ final class RequestIdProviderTest extends Unit
 
         $this->assertNotEmpty($id);
         $this->assertSame(36, strlen($id));
+    }
+
+    public function testGetRequestIdDelegatesToStaticGet(): void
+    {
+        $provider = new RequestIdProvider();
+
+        $this->assertSame(RequestIdProvider::get(), $provider->getRequestId());
+    }
+
+    public function testImplementsRequestIdProviderInterface(): void
+    {
+        $provider = new RequestIdProvider();
+
+        $this->assertInstanceOf(RequestIdProviderInterface::class, $provider);
     }
 }

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\domain\entities;
 
 use app\domain\entities\Book;
+use app\domain\events\BookDeletedEvent;
+use app\domain\events\BookStatusChangedEvent;
+use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\DomainException;
 use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookStatus;
@@ -372,5 +375,252 @@ final class BookTest extends Unit
         $this->expectExceptionMessage('book.error.title_too_long');
 
         $book->rename(str_repeat('X', 256));
+    }
+
+    public function testTransitionToRecordsBookStatusChangedEvent(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $property = new \ReflectionProperty(Book::class, 'id');
+        $property->setValue($book, 1);
+
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $events = $book->pullRecordedEvents();
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(BookStatusChangedEvent::class, $events[0]);
+        $this->assertSame(1, $events[0]->bookId);
+        $this->assertSame(BookStatus::Draft, $events[0]->oldStatus);
+        $this->assertSame(BookStatus::Published, $events[0]->newStatus);
+        $this->assertSame(2024, $events[0]->year);
+
+        $this->assertEmpty($book->pullRecordedEvents());
+    }
+
+    public function testChangeYearRecordsBookUpdatedEvent(): void
+    {
+        $book = Book::reconstitute(
+            1,
+            'Title',
+            new BookYear(2020),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null,
+            [],
+            BookStatus::Draft,
+            1,
+        );
+
+        $book->changeYear(new BookYear(2024));
+
+        $events = $book->pullRecordedEvents();
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(BookUpdatedEvent::class, $events[0]);
+        $this->assertSame(1, $events[0]->bookId);
+        $this->assertSame(2020, $events[0]->oldYear);
+        $this->assertSame(2024, $events[0]->newYear);
+        $this->assertSame(BookStatus::Draft, $events[0]->status);
+    }
+
+    public function testChangeYearDoesNotRecordEventWhenIdIsNull(): void
+    {
+        $book = $this->createBook();
+        $book->changeYear(new BookYear(2025));
+
+        $this->assertEmpty($book->pullRecordedEvents());
+        $this->assertSame(2025, $book->year->value);
+    }
+
+    public function testChangeYearDoesNotRecordEventWhenYearIsSame(): void
+    {
+        $book = Book::reconstitute(
+            1,
+            'Title',
+            new BookYear(2024),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null,
+            [],
+            BookStatus::Draft,
+            1,
+        );
+
+        $book->changeYear(new BookYear(2024));
+
+        $this->assertEmpty($book->pullRecordedEvents());
+        $this->assertSame(2024, $book->year->value);
+    }
+
+    public function testMarkAsDeletedRecordsBookDeletedEvent(): void
+    {
+        $book = Book::reconstitute(
+            1,
+            'Title',
+            new BookYear(2024),
+            new Isbn('978-3-16-148410-0'),
+            null,
+            null,
+            [],
+            BookStatus::Published,
+            1,
+        );
+
+        $book->markAsDeleted();
+
+        $events = $book->pullRecordedEvents();
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(BookDeletedEvent::class, $events[0]);
+        $this->assertSame(1, $events[0]->bookId);
+        $this->assertSame(2024, $events[0]->year);
+        $this->assertTrue($events[0]->wasPublished);
+    }
+
+    public function testMarkAsDeletedDoesNotRecordEventWhenIdIsNull(): void
+    {
+        $book = $this->createBook();
+
+        $book->markAsDeleted();
+
+        $this->assertEmpty($book->pullRecordedEvents());
+    }
+
+    public function testUpdateDescriptionNullOnDraftSucceeds(): void
+    {
+        $book = $this->createBook();
+        $book->updateDescription(null);
+
+        $this->assertNull($book->description);
+    }
+
+    public function testUpdateDescriptionNullOnPublishedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_short_description');
+
+        $book->updateDescription(null);
+    }
+
+    public function testUpdateDescriptionShortOnPublishedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_short_description');
+
+        $book->updateDescription('Too short');
+    }
+
+    public function testUpdateDescriptionValidOnPublishedSucceeds(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $newDescription = str_repeat('A', Book::MIN_DESCRIPTION_LENGTH);
+        $book->updateDescription($newDescription);
+
+        $this->assertSame($newDescription, $book->description);
+    }
+
+    public function testUpdateDescriptionNullOnArchivedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_short_description');
+
+        $book->updateDescription(null);
+    }
+
+    public function testUpdateDescriptionShortOnArchivedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_short_description');
+
+        $book->updateDescription('Too short');
+    }
+
+    public function testUpdateCoverNullOnPublishedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_cover');
+
+        $book->updateCover(null);
+    }
+
+    public function testUpdateCoverValidOnPublishedSucceeds(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $newCover = new StoredFileReference('covers/new.jpg');
+        $book->updateCover($newCover);
+
+        $this->assertSame($newCover, $book->coverImage);
+    }
+
+    public function testUpdateCoverNullOnArchivedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_cover');
+
+        $book->updateCover(null);
+    }
+
+    public function testRemoveLastAuthorOnPublishedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_authors');
+
+        $book->removeAuthor(1);
+    }
+
+    public function testRemoveNonLastAuthorOnPublishedSucceeds(): void
+    {
+        $book = $this->createPublishableBook(1, 2);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $book->removeAuthor(1);
+
+        $this->assertSame([2], $book->authorIds);
+    }
+
+    public function testRemoveLastAuthorOnArchivedThrows(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+        $book->transitionTo(BookStatus::Archived);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('book.error.publish_without_authors');
+
+        $book->removeAuthor(1);
+    }
+
+    public function testRemoveLastAuthorOnDraftSucceeds(): void
+    {
+        $book = $this->createBookWithAuthors(1);
+
+        $book->removeAuthor(1);
+
+        $this->assertSame([], $book->authorIds);
     }
 }

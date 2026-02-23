@@ -6,6 +6,7 @@ use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\exceptions\ApplicationException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\StaleDataException;
+use app\domain\values\BookStatus;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use app\infrastructure\persistence\User;
@@ -117,12 +118,11 @@ final class BookUpdateDeleteCest
                     '978-3-16-148410-0',
                     [],
                     null,
-                    'draft',
+                    BookStatus::Draft->value,
                 ),
             ),
         ]);
 
-        // Replace services in container
         Yii::$container->set(UpdateBookUseCase::class, $mockUseCase);
         Yii::$container->set(BookItemViewFactory::class, $mockViewFactory);
 

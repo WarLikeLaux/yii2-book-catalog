@@ -7,6 +7,7 @@ use app\application\books\usecases\CreateBookUseCase;
 use app\application\common\exceptions\ApplicationException;
 use app\application\common\pipeline\PipelineFactory;
 use app\application\common\values\AuthorIdCollection;
+use app\domain\values\BookStatus;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
 use yii\db\Query;
@@ -78,7 +79,7 @@ final class CreateBookUseCaseCest
         $I->assertEquals(0, $jobCount, 'No job should be published on book creation (draft)');
 
         $book = Book::findOne($bookId);
-        $I->assertSame('draft', $book->status, 'Book should be draft');
+        $I->assertSame(BookStatus::Draft->value, $book->status, 'Book should be draft');
     }
 
     public function testValidatesUniqueIsbn(IntegrationTester $I): void

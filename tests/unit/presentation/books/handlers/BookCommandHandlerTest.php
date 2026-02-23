@@ -16,6 +16,7 @@ use app\application\common\dto\UploadedFilePayload;
 use app\application\common\exceptions\ApplicationException;
 use app\application\common\exceptions\OperationFailedException;
 use app\application\common\services\UploadedFileStorage;
+use app\domain\values\BookStatus;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
 use app\presentation\books\mappers\BookCommandMapper;
@@ -256,7 +257,7 @@ final class BookCommandHandlerTest extends Unit
             )
             ->willReturn(true);
 
-        $this->handler->changeBookStatus($bookId, 'published', 'Published!');
+        $this->handler->changeBookStatus($bookId, BookStatus::Published, 'Published!');
     }
 
     public function testDeleteBookExecutesUseCase(): void

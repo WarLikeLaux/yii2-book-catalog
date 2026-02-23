@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\infrastructure\repositories;
+namespace app\infrastructure\adapters;
 
 final class StreamGetContentsStub
 {

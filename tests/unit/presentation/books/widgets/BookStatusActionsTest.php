@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\books\widgets;
 
+use app\domain\values\BookStatus;
 use app\presentation\books\widgets\BookStatusActions;
 use PHPUnit\Framework\TestCase;
 use Yii;
@@ -45,7 +46,7 @@ final class BookStatusActionsTest extends TestCase
 
     public function testDraftShowsPublishButton(): void
     {
-        $html = BookStatusActions::widget(['bookId' => 1, 'status' => 'draft']);
+        $html = BookStatusActions::widget(['bookId' => 1, 'status' => BookStatus::Draft->value]);
 
         $this->assertStringContainsString('btn-success', $html);
         $this->assertStringContainsString('data-method="post"', $html);
@@ -54,7 +55,7 @@ final class BookStatusActionsTest extends TestCase
 
     public function testPublishedShowsUnpublishAndArchiveButtons(): void
     {
-        $html = BookStatusActions::widget(['bookId' => 1, 'status' => 'published']);
+        $html = BookStatusActions::widget(['bookId' => 1, 'status' => BookStatus::Published->value]);
 
         $this->assertStringContainsString('btn-warning', $html);
         $this->assertStringContainsString('btn-secondary', $html);
@@ -64,7 +65,7 @@ final class BookStatusActionsTest extends TestCase
 
     public function testArchivedShowsRestoreButton(): void
     {
-        $html = BookStatusActions::widget(['bookId' => 1, 'status' => 'archived']);
+        $html = BookStatusActions::widget(['bookId' => 1, 'status' => BookStatus::Archived->value]);
 
         $this->assertStringContainsString('btn-info', $html);
         $this->assertStringContainsString('book%2Frestore', $html);

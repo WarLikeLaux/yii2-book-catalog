@@ -6,11 +6,9 @@ namespace tests\unit\application\books\usecases;
 
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\usecases\DeleteBookUseCase;
-use app\application\common\services\TransactionalEventPublisher;
-use app\application\ports\BookRepositoryInterface;
-use app\domain\events\BookDeletedEvent;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
+use app\domain\repositories\BookRepositoryInterface;
 use app\domain\values\BookStatus;
 use BookTestHelper;
 use Codeception\Test\Unit;
@@ -19,17 +17,12 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class DeleteBookUseCaseTest extends Unit
 {
     private BookRepositoryInterface&MockObject $bookRepository;
-    private TransactionalEventPublisher&MockObject $eventPublisher;
     private DeleteBookUseCase $useCase;
 
     protected function _before(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
-        $this->eventPublisher = $this->createMock(TransactionalEventPublisher::class);
-        $this->useCase = new DeleteBookUseCase(
-            $this->bookRepository,
-            $this->eventPublisher,
-        );
+        $this->useCase = new DeleteBookUseCase($this->bookRepository);
     }
 
     public function testExecuteDeletesBookSuccessfully(): void
@@ -52,12 +45,6 @@ final class DeleteBookUseCaseTest extends Unit
         $this->bookRepository->expects($this->once())
             ->method('delete')
             ->with($existingBook);
-
-        $this->eventPublisher->expects($this->once())
-            ->method('publishAfterCommit')
-            ->with($this->callback(static fn (BookDeletedEvent $event): bool => $event->bookId === 42
-                && $event->year === 2020
-                && $event->wasPublished === false));
 
         $this->useCase->execute($command);
     }

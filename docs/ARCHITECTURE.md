@@ -2,7 +2,7 @@
 
 [← Назад в README](../README.md)
 
-В данном документе описаны ключевые архитектурные решения и диаграммы проекта. Сравнение подходов вынесено в [docs/COMPARISON.md](COMPARISON.md). Осознанные компромиссы описаны в [docs/DECISIONS.md](DECISIONS.md).
+В данном документе описаны ключевые архитектурные решения и диаграммы проекта. Сравнение различных подходов к написанию кода (классический Yii2 MVC, MVC с сервисным слоем и Clean Architecture) подробно описано в [docs/COMPARISON.md](COMPARISON.md). Также мы задокументировали все осознанные компромиссы - те архитектурные решения и ограничения, которые мы приняли ради гармоничной и прагматичной работы с фреймворком, в файле [docs/DECISIONS.md](DECISIONS.md).
 
 ## 📌 Навигация
 
@@ -25,6 +25,7 @@
   - [14. Хранилище файлов (CAS)](#14-хранилище-файлов-cas)
   - [15. Инфраструктурное ядро](#15-инфраструктурное-ядро)
   - [16. Маппинг данных (AutoMapper и Hydrator)](#16-маппинг-данных-automapper-и-hydrator)
+  - [17. Pull-модель доменных событий (event flow)](#17-pull-модель-доменных-событий-event-flow)
 - [📁 Структура проекта](#-структура-проекта)
 
 ---
@@ -68,15 +69,15 @@ graph TD
     User((User/Admin))
     System[Book Catalog System]
     SMS["SMS Provider (External)"]
-    Buggregator["Buggregator (Dev Tools)"]
+    Jaeger["Jaeger (Tracing)"]
 
     User -- "Browses & Manages Books" --> System
     System -- "Sends Notifications" --> SMS
-    System -- "Sends Logs/Emails" --> Buggregator
+    System -- "Sends Traces" --> Jaeger
 
     style System fill:#1168bd,stroke:#0b4884,color:#ffffff
     style SMS fill:#999999,stroke:#666666,color:#ffffff
-    style Buggregator fill:#999999,stroke:#666666,color:#ffffff
+    style Jaeger fill:#999999,stroke:#666666,color:#ffffff
 ```
 
 ### Level 2: containers
@@ -186,8 +187,9 @@ graph TD
 Чтение и запись разделены по CQS, а внешние зависимости вынесены в порты:
 
 - **Запись (команды):** любое изменение в системе (создание книги, подписка) - это отдельный **Use Case**. Данные поступают через строго типизированные **Command DTO**.
-- **Чтение (запросы):** read-side реализован через Query Services и DTO (`application/*/queries`).
-- **Порты:** интерфейсы в `application/ports` позволяют менять реализацию без изменений бизнес-логики.
+- **Чтение (запросы):** read-side реализован через порты (`BookFinderInterface`, `BookSearcherInterface`). Реализации портов (Query Services) - только в `infrastructure/queries/`. Read DTO (`BookReadDto`, `ReportDto` и т.п.) - в `application/*/queries`.
+- **Контракт DTO-only для `application/*/queries`:** папка содержит **только** read DTO и критерии поиска. Запрещены: сервисы, Use Cases, зависимости от `infrastructure`, бизнес-логика. Разрешены: `final readonly` классы с данными, простые геттеры, `with*()`-методы, `JsonSerializable`. Проверка: phparkitect (final, readonly, NotDependsOn infra).
+- **Порты:** интерфейсы в `application/ports` (checkers, query services и др.) и `domain/repositories` (репозитории сущностей) позволяют менять реализацию без изменений бизнес-логики.
 
 [↑ К навигации](#-навигация)
 
@@ -195,11 +197,11 @@ graph TD
 
 Здесь находится бизнес-суть приложения без привязки к вебу и базе данных:
 
-- **Rich Entities:** сущность `Book` управляет статусом и авторами, соблюдая бизнес-правила. Конструктор приватный — создание через `Book::create()`, восстановление из БД через `Book::reconstitute()`.
+- **Rich Entities:** сущность `Book` управляет статусом и авторами, соблюдая бизнес-правила. Конструктор приватный - создание через `Book::create()`, восстановление из БД через `Book::reconstitute()`.
 - **Контроль изменяемости:** доменные сущности используют `private(set)` и меняются через методы.
 - **Value Objects:** `Isbn`, `BookYear`, `StoredFileReference`, `FileContent`, `FileKey` гарантируют валидность данных при создании.
 - **Status FSM:** статус книги моделируется через `BookStatus` enum (черновик / опубликована / в архиве) с переходами через `transitionTo(target, policy)`.
-- **Domain Events:** `BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` связывают части системы без прямых зависимостей.
+- **Domain Events:** `BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` накапливаются в сущности при мутации и связывают части системы без прямых зависимостей.
 - **Domain Guards:** `replaceAuthors()` запрещает убирать всех авторов у опубликованных/архивных книг.
 - **Specifications:** поиск формализован через `domain/specifications` (`FullTextSpecification`, `IsbnPrefixSpecification`, `AuthorSpecification`, `StatusSpecification`, `YearSpecification`, `CompositeAndSpecification`, `CompositeOrSpecification`).
 
@@ -274,7 +276,7 @@ public function createBook(BookForm $form): int
     );
 
     if ($form->cover instanceof UploadedFile && $cover === null) {
-        throw new OperationFailedException('file.error.storage_operation_failed', field: 'cover');
+        throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
     }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
@@ -297,7 +299,7 @@ public function createBook(BookForm $form): int
 - Переключение между MySQL и PostgreSQL управляется `DB_DRIVER` и конфигами `config/db.php`.
 - Очередь реализована через `HandlerAwareQueue`, задания хранятся в базе.
 - Время инкапсулировано через `Psr\Clock\ClockInterface` и `SystemClock`.
-- Трассировка и логирование интегрированы с Buggregator.
+- Трассировка интегрирована с Jaeger OTLP.
 - Интерактивная отладка доступна через `make shell`.
 
 [↑ К навигации](#-навигация)
@@ -306,7 +308,7 @@ public function createBook(BookForm $form): int
 
 - Формы валидируют HTTP-ввод в `presentation/*/forms`.
 - Команды (`CreateBookCommand`, `UpdateBookCommand`) живут в `application/*/commands`.
-- Read-side DTO находятся в `application/*/queries`.
+- Read-side DTO (`BookReadDto`, `ReportDto` и др.) - в `application/*/queries`. **Контракт DTO-only:** только `final readonly` классы-контейнеры данных, без сервисов и инфраструктурных зависимостей. Реализации Query Services - только в `infrastructure/queries`.
 - Пагинация оформлена через `PaginationDto` и `PagedResultInterface`.
 
 [↑ К навигации](#-навигация)
@@ -314,7 +316,7 @@ public function createBook(BookForm $form): int
 ### 7. Инфраструктурный слой
 
 - ActiveRecord модели размещены в `infrastructure/persistence` и используются только внутри инфраструктуры.
-- Репозитории и Query Services реализуют порты в `infrastructure/repositories` и `infrastructure/queries`.
+- Репозитории сущностей реализуют интерфейсы из `domain/repositories` в `infrastructure/repositories`. Технические хранилища (Idempotency, RateLimit, AsyncIdempotency) - в `infrastructure/adapters/` как `*Storage`.
 - События публикуются через `YiiEventPublisherAdapter`, маппинг в jobs делает `EventToJobMapper`.
 - Оптимистическая блокировка включена в `infrastructure/persistence/Book.php` через `OptimisticLockBehavior`, конфликты версий транслируются в `StaleDataException`.
 
@@ -324,10 +326,13 @@ public function createBook(BookForm $form): int
 
 - Строгая типизация (`declare(strict_types=1)`) во всех PHP-файлах.
 - PHPStan level 9, кастомные правила в `infrastructure/phpstan`.
-- PHPStan правила: `QueryPortsMustReturnDtoRule`, `NoActiveRecordInDomainOrApplicationRule`, `DomainEntitiesMustBePureRule`, `DomainIsCleanRule`, `DisallowDateTimeRule`, `DisallowYiiTOutsideAdaptersRule`, `StrictRepositoryReturnTypeRule`, `UseCaseMustBeFinalRule`, `ValueObjectMustBeFinalRule`.
+- PHPStan правила: `QueryPortsMustReturnDtoRule`, `NoActiveRecordInDomainOrApplicationRule`, `NoGhostQueryServiceInApplicationRule`, `DomainEntitiesMustBePureRule`, `DomainIsCleanRule`, `DisallowDateTimeRule`, `DisallowYiiTOutsideAdaptersRule`, `StrictRepositoryReturnTypeRule`, `UseCaseMustBeFinalRule`, `ValueObjectMustBeFinalRule`.
 - Rector для авто-рефакторинга и миграций синтаксиса.
 - Код-стайл через `phpcs.xml.dist`.
 - Архитектурные ограничения через Deptrac и Arkitect.
+- Deptrac: все 7 поддиректорий domain покрыты слоями - `DomainShared` (values, events, exceptions, common), `DomainEntities`, `DomainServices`, `DomainSpecifications`, `DomainRepositories`.
+- Arkitect: domain isolation - `app\domain` не может зависеть от `yii`, `app\application`, `app\infrastructure`, `app\presentation` (изоляция домена от фреймворка и внешних слоёв).
+- Arkitect: `application/*/queries` - final, readonly, NotDependsOn(infrastructure) (контракт DTO-only).
 
 [↑ К навигации](#-навигация)
 
@@ -337,9 +342,9 @@ public function createBook(BookForm $form): int
 - Спецификации (`FullTextSpecification`, `IsbnPrefixSpecification`, `AuthorSpecification`, `StatusSpecification`, `YearSpecification`) живут в `domain/specifications`.
 - Композитные спецификации (`CompositeAndSpecification`, `CompositeOrSpecification`) позволяют комбинировать критерии.
 - `ActiveQueryBookSpecificationVisitor` строит запросы под MySQL/PgSQL и делает fallback на `LIKE`.
-- Для ISBN используется префиксный поиск, для года — точное совпадение.
+- Для ISBN используется префиксный поиск, для года - точное совпадение.
 - Поиск по авторам идет через отдельную спецификацию и подзапрос.
-- Публичный каталог использует `searchPublished()` — поиск только среди опубликованных книг через `StatusSpecification`.
+- Публичный каталог использует `searchPublished()` - поиск только среди опубликованных книг через `StatusSpecification`.
 - В UI используется HTMX для фильтрации без полной перезагрузки страницы.
 
 [↑ К навигации](#-навигация)
@@ -348,7 +353,7 @@ public function createBook(BookForm $form): int
 
 Чтобы тяжелые задачи не тормозили интерфейс:
 
-1. Use Case публикует доменное событие (`BookStatusChangedEvent`).
+1. Сущность Book регистрирует событие при `transitionTo()`; репозиторий публикует накопленные события при `save()` (см. [раздел 17](#17-pull-модель-доменных-событий-event-flow)).
 2. `EventJobMappingRegistry` маппит событие в `NotifySubscribersJob` условно (только если новый статус = `Published`).
 3. `NotifySubscribersHandler` создает отдельный `NotifySingleSubscriberJob` для каждого подписчика.
 
@@ -379,8 +384,8 @@ public function createBook(BookForm $form): int
 
 - Трассировка команд реализована через `TracingMiddleware`.
 - Инфраструктурные декораторы (`*TracingDecorator`) оборачивают репозитории, Query Services и очередь.
-- Логирование и сбор трейсов выполняются через `BuggregatorLogTarget`.
-- В панели Buggregator доступны timeline, SQL-запросы и путь задач в очереди.
+- Сбор трейсов выполняется поверх OpenTelemetry (OTLP) с экспортом в Jaeger.
+- В панели Jaeger доступны waterfall timeline, структура вызовов RPC, и поиск трейсов по тегам.
 
 [↑ К навигации](#-навигация)
 
@@ -407,30 +412,45 @@ public function createBook(BookForm $form): int
 
 [↑ К навигации](#-навигация)
 
+### 17. Pull-модель доменных событий (event flow)
+
+События порождаются внутри сущностей и публикуются репозиторием после успешного сохранения. Полный flow:
+
+1. **Сущность** при мутации (например, `transitionTo()`, `changeYear()`, `markAsDeleted()`) вызывает `recordEvent(DomainEvent)` - трейт `RecordsEvents` накапливает события во внутреннем массиве.
+2. **Use Case** вызывает `repository->save($entity)`. Use Case не знает о событиях.
+3. **Репозиторий** внутри транзакции выполняет `persist()`, затем вызывает `publishRecordedEvents($entity)`.
+4. **publishRecordedEvents** вызывает `$entity->pullRecordedEvents()` - получает массив событий и очищает буфер сущности.
+5. Для каждого события вызывается `TransactionalEventPublisher::publishAfterCommit($event)` - колбэк регистрируется в `TransactionInterface::afterCommit()`.
+6. После коммита транзакции БД выполняются колбэки - события публикуются через `EventPublisherInterface`, маппятся в jobs и попадают в очередь (см. раздел 10).
+
+
+[↑ К навигации](#-навигация)
+
 ---
 
 ## 📁 Структура проекта
 
 ```text
-domain/                 - Слой домена (Business Logic)
+src/domain/             - Слой домена (Business Logic)
   ├── common/           - Общие доменные элементы
   ├── entities/         - Сущности (Rich Model)
   ├── events/           - Domain Events
   ├── exceptions/       - Исключения домена
+  ├── repositories/    
   ├── services/         - Domain Services (редко)
   ├── specifications/   - Specifications (criteria)
   ├── values/           - Value Objects (Immutable)
-application/            - Слой приложения (Application Logic)
+src/application/        - Слой приложения (Application Logic)
   ├── common/           - Общие DTO и валидаторы
   ├── ports/            - Интерфейсы (Ports)
-  ├── {{module}}/
+  ├── {{module}}/      
   │   ├── commands/     - DTO команд (Write)
   │   ├── exceptions/   - Исключения модуля
   │   ├── factories/    - Фабрики модуля
   │   ├── mappers/      - Mappers модуля
-  │   ├── queries/      - DTO чтения (Read)
+  │   ├── queries/      - DTO чтения (Read), DTO-only: final readonly, без infra
   │   ├── usecases/     - Классы Use Case (execute)
-infrastructure/         - Инфраструктурный слой (Framework Logic)
+src/infrastructure/     - Инфраструктурный слой (Framework Logic)
   ├── adapters/         - Адаптеры инфраструктуры
   ├── components/       - Вспомогательные компоненты
   ├── factories/        - Фабрики инфраструктуры
@@ -442,7 +462,7 @@ infrastructure/         - Инфраструктурный слой (Framework L
   ├── queue/            - Обработчики очередей
   ├── repositories/     - Реализации Repository (через AR)
   ├── services/         - Внешние сервисы
-presentation/           - Слой представления (UI/API)
+src/presentation/       - Слой представления (UI/API)
   ├── common/           - Общие компоненты
   ├── components/       - UI компоненты
   ├── controllers/      - Общие контроллеры
@@ -451,7 +471,7 @@ presentation/           - Слой представления (UI/API)
   ├── services/         - Общие сервисы представления
   ├── views/            - Шаблоны представлений
   ├── widgets/          - UI виджеты
-  ├── {{module}}/
+  ├── {{module}}/      
   │   ├── dto/          - DTO уровня представления
   │   ├── forms/        - Формы валидации
   │   ├── handlers/     - Обработчики запросов
@@ -467,6 +487,7 @@ commands/               - Console контроллеры
 config/                 - Конфигурация приложения
   ├── container/        - Конфигурация контейнера зависимостей
 docker/                 - Docker конфигурация
+  ├── jaeger/          
   ├── nginx/            - Конфигурация nginx
 docs/                   - Документация
   ├── ai/               - Правила и инструкции для AI

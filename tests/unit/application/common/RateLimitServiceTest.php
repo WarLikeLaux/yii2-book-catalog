@@ -15,12 +15,7 @@ final class RateLimitServiceTest extends Unit
     {
         $repository = $this->createMock(RateLimitInterface::class);
         $repository->method('checkLimit')
-            ->willReturn([
-                'allowed' => true,
-                'current' => 30,
-                'limit' => 60,
-                'resetAt' => 1735929661,
-            ]);
+            ->willReturn(new RateLimitResult(true, 30, 60, 1735929661));
 
         $service = new RateLimitService($repository);
         $result = $service->isAllowed('192.168.1.1', 60, 60);
@@ -35,12 +30,7 @@ final class RateLimitServiceTest extends Unit
     {
         $repository = $this->createMock(RateLimitInterface::class);
         $repository->method('checkLimit')
-            ->willReturn([
-                'allowed' => false,
-                'current' => 60,
-                'limit' => 60,
-                'resetAt' => 1735929661,
-            ]);
+            ->willReturn(new RateLimitResult(false, 60, 60, 1735929661));
 
         $service = new RateLimitService($repository);
         $result = $service->isAllowed('192.168.1.1', 60, 60);
@@ -55,12 +45,7 @@ final class RateLimitServiceTest extends Unit
     {
         $repository = $this->createMock(RateLimitInterface::class);
         $repository->method('checkLimit')
-            ->willReturn([
-                'allowed' => true,
-                'current' => 45,
-                'limit' => 60,
-                'resetAt' => 1735929661,
-            ]);
+            ->willReturn(new RateLimitResult(true, 45, 60, 1735929661));
 
         $service = new RateLimitService($repository);
         $result = $service->isAllowed('192.168.1.1', 60, 60);
@@ -72,12 +57,7 @@ final class RateLimitServiceTest extends Unit
     {
         $repository = $this->createMock(RateLimitInterface::class);
         $repository->method('checkLimit')
-            ->willReturn([
-                'allowed' => true,
-                'current' => 30,
-                'limit' => 60,
-                'resetAt' => 1735929661,
-            ]);
+            ->willReturn(new RateLimitResult(true, 30, 60, 1735929661));
 
         $service = new RateLimitService($repository);
         $result = $service->isAllowed('192.168.1.1', 60, 60);
@@ -90,12 +70,7 @@ final class RateLimitServiceTest extends Unit
     {
         $repository = $this->createMock(RateLimitInterface::class);
         $repository->method('checkLimit')
-            ->willReturn([
-                'allowed' => true,
-                'current' => 30,
-                'limit' => 60,
-                'resetAt' => 1735929661,
-            ]);
+            ->willReturn(new RateLimitResult(true, 30, 60, 1735929661));
 
         $service = new RateLimitService($repository);
         $result = $service->isAllowed('192.168.1.1', 60, 60);

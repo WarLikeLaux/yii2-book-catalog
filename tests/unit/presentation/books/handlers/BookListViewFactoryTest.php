@@ -8,11 +8,13 @@ use app\application\books\queries\BookReadDto;
 use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
 use app\application\ports\BookSearcherInterface;
+use app\domain\values\BookStatus;
 use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\handlers\BookListViewFactory;
 use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\common\exceptions\UnexpectedDtoTypeException;
 use app\presentation\services\FileUrlResolver;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -46,7 +48,7 @@ final class BookListViewFactoryTest extends Unit
 
     public function testGetListViewModelReturnsModel(): void
     {
-        $dto = new BookReadDto(1, 'T', 2020, null, 'ISBN', [], [], null, 'draft', 1);
+        $dto = new BookReadDto(1, 'T', 2020, null, 'ISBN', [], [], null, BookStatus::Draft->value, 1);
         $queryResult = new QueryResult([$dto], 1, new PaginationDto(1, 20, 1, 1));
         $dataProvider = $this->createMock(DataProviderInterface::class);
 
@@ -69,5 +71,27 @@ final class BookListViewFactoryTest extends Unit
 
         $this->assertInstanceOf(BookListViewModel::class, $result);
         $this->assertSame($dataProvider, $result->dataProvider);
+    }
+
+    public function testGetListViewModelThrowsWhenInvalidDtoType(): void
+    {
+        $queryResult = new QueryResult([new \stdClass()], 1, new PaginationDto(1, 20, 1, 1));
+
+        $this->searcher->expects($this->once())
+            ->method('search')
+            ->with('', 1, 20)
+            ->willReturn($queryResult);
+
+        $request = $this->createMock(Request::class);
+        $request->method('get')->willReturnMap([
+            ['page', null, null, 1],
+            ['limit', null, null, 20],
+        ]);
+
+        $this->expectException(UnexpectedDtoTypeException::class);
+        $this->expectExceptionMessage(BookReadDto::class);
+        $this->expectExceptionMessage('stdClass');
+
+        $this->factory->getListViewModel($request);
     }
 }

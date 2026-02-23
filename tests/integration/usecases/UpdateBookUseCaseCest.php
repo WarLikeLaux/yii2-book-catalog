@@ -61,7 +61,7 @@ final class UpdateBookUseCaseCest
         $bookId = $I->haveRecord(Book::class, [
             'title' => 'Original Title',
             'year' => 2020,
-            'isbn' => '9783161484101',
+            'isbn' => '9780306406157',
             'description' => 'Original description',
             'version' => 2,
         ]);
@@ -73,7 +73,7 @@ final class UpdateBookUseCaseCest
             id: $bookId,
             title: 'Updated Title',
             year: 2024,
-            isbn: '9783161484101',
+            isbn: '9780306406157',
             description: 'Updated description',
             authorIds: AuthorIdCollection::fromArray([$authorId]),
             version: 1,
@@ -98,7 +98,7 @@ final class UpdateBookUseCaseCest
             id: 999,
             title: 'Updated Title',
             year: 2024,
-            isbn: '9783161484102',
+            isbn: '9780131103627',
             description: 'Updated description',
             authorIds: AuthorIdCollection::fromArray([]),
             version: 1,

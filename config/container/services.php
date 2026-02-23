@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-use app\application\common\config\BuggregatorConfig;
+use app\application\common\config\ApiPageConfig;
 use app\application\common\config\ConfigFactory;
 use app\application\common\config\IdempotencyConfig;
+use app\application\common\config\JaegerConfig;
 use app\application\common\config\RateLimitConfig;
 use app\application\common\config\ReportsConfig;
 use app\application\common\config\StorageConfig as AppStorageConfig;
@@ -20,10 +21,13 @@ use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\BookSearcherInterface;
 use app\application\ports\CacheInterface;
 use app\application\ports\ContentStorageInterface;
+use app\application\ports\CoverKeysScannerInterface;
 use app\application\ports\EventPublisherInterface;
+use app\application\ports\HealthCheckRunnerInterface;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MimeTypeDetectorInterface;
 use app\application\ports\MutexInterface;
+use app\application\ports\PhoneNormalizerInterface;
 use app\application\ports\RateLimitInterface;
 use app\application\ports\ReportQueryServiceInterface;
 use app\application\ports\SmsSenderInterface;
@@ -33,18 +37,26 @@ use app\application\ports\TranslatorInterface;
 use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\queries\AuthorQueryService;
 use app\infrastructure\queries\BookQueryService;
+use app\infrastructure\queries\CoverKeysScanner;
 use app\infrastructure\queries\decorators\BookQueryServiceTracingDecorator;
 use app\infrastructure\queries\decorators\ReportQueryServiceCachingDecorator;
 use app\infrastructure\queries\ReportQueryService;
 use app\infrastructure\queries\SubscriptionQueryService as InfraSubscriptionQueryService;
 use app\infrastructure\queue\handlers\NotifySingleSubscriberHandler;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
+use app\infrastructure\services\health\DatabaseHealthCheck;
+use app\infrastructure\services\health\DiskSpaceHealthCheck;
+use app\infrastructure\services\health\HealthCheckRunner;
+use app\infrastructure\services\health\QueueHealthCheck;
+use app\infrastructure\services\health\RedisHealthCheck;
+use app\infrastructure\services\LibPhoneNormalizer;
 use app\infrastructure\services\LogCategory;
 use app\infrastructure\services\NativeMimeTypeDetector;
 use app\infrastructure\services\storage\ContentAddressableStorage;
 use app\infrastructure\services\YiiPsrLogger;
 use app\presentation\common\adapters\UploadedFileAdapter;
 use app\presentation\services\FileUrlResolver;
+use libphonenumber\PhoneNumberUtil;
 use yii\di\Container;
 
 return static function (array $params): array {
@@ -61,9 +73,13 @@ return static function (array $params): array {
             BookFinderInterface::class => BookQueryServiceInterface::class,
             BookSearcherInterface::class => BookQueryServiceInterface::class,
 
+            CoverKeysScannerInterface::class => CoverKeysScanner::class,
+
             AuthorQueryServiceInterface::class => AuthorQueryService::class,
 
             SubscriptionQueryServiceInterface::class => InfraSubscriptionQueryService::class,
+
+            PhoneNormalizerInterface::class => LibPhoneNormalizer::class,
 
             ReportQueryServiceInterface::class => static function (Container $c): ReportQueryServiceInterface {
                 $reportsConfig = $c->get(ReportsConfig::class);
@@ -91,15 +107,17 @@ return static function (array $params): array {
 
             NotifySubscribersHandler::class => static fn(Container $c): NotifySubscribersHandler => new NotifySubscribersHandler(
                 $c->get(SubscriptionQueryServiceInterface::class),
+                $c->get(BookQueryServiceInterface::class),
                 $c->get(TranslatorInterface::class),
                 new YiiPsrLogger(LogCategory::SMS),
             ),
             ConfigFactory::class => static fn(): ConfigFactory => $configFactory,
             IdempotencyConfig::class => static fn(): IdempotencyConfig => $configFactory->idempotency(),
             RateLimitConfig::class => static fn(): RateLimitConfig => $configFactory->rateLimit(),
+            ApiPageConfig::class => static fn(): ApiPageConfig => $configFactory->apiPage(),
             ReportsConfig::class => static fn(): ReportsConfig => $configFactory->reports(),
             AppStorageConfig::class => static fn(): AppStorageConfig => $configFactory->storage(),
-            BuggregatorConfig::class => static fn(): BuggregatorConfig => $configFactory->buggregator(),
+            JaegerConfig::class => static fn(): JaegerConfig => $configFactory->jaeger(),
 
             NotifySingleSubscriberHandler::class => static function (Container $c): NotifySingleSubscriberHandler {
                 $idempotencyConfig = $c->get(IdempotencyConfig::class);
@@ -118,6 +136,20 @@ return static function (array $params): array {
                     $storageConfig->placeholderUrl,
                 );
             },
+
+            DiskSpaceHealthCheck::class => static fn (): DiskSpaceHealthCheck => new DiskSpaceHealthCheck(
+                (float) ($params['health']['disk']['thresholdGb'] ?? 10.0),
+            ),
+
+            HealthCheckRunnerInterface::class => static fn (Container $c): HealthCheckRunner => new HealthCheckRunner(
+                [
+                    $c->get(DatabaseHealthCheck::class),
+                    $c->get(RedisHealthCheck::class),
+                    $c->get(QueueHealthCheck::class),
+                    $c->get(DiskSpaceHealthCheck::class),
+                ],
+                (string) ($params['health']['version'] ?? '1.0.0'),
+            ),
         ],
         'singletons' => [
             IdempotencyServiceInterface::class => static fn(Container $c): IdempotencyServiceInterface => new IdempotencyService(
@@ -131,6 +163,7 @@ return static function (array $params): array {
                 $c->get(TransactionInterface::class),
                 $c->get(EventPublisherInterface::class),
             ),
+            PhoneNumberUtil::class => static fn(): PhoneNumberUtil => PhoneNumberUtil::getInstance(),
         ],
     ];
 };

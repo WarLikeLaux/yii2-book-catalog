@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+namespace app\infrastructure\queries;
+
+use app\application\books\factories\BookSearchSpecificationFactory;
+use app\application\books\queries\BookReadDto;
+use app\application\ports\BookQueryServiceInterface;
+use app\application\ports\PagedResultInterface;
+use app\domain\specifications\BookSpecificationInterface;
+use app\domain\specifications\CompositeAndSpecification;
+use app\domain\specifications\StatusSpecification;
+use app\domain\values\BookStatus;
+use app\infrastructure\persistence\Book;
+
+final readonly class BookQueryService extends BaseQueryService implements BookQueryServiceInterface
+{
+    public function findById(int $id): ?BookReadDto
+    {
+        return $this->findByIdWithAuthors($id);
+    }
+
+    public function findByIdWithAuthors(int $id): ?BookReadDto
+    {
+        $book = Book::find()->byId($id)->withAuthors()->one($this->db);
+
+        if ($book === null) {
+            return null;
+        }
+
+        return $this->mapToDto($book, BookReadDto::class);
+    }
+
+    public function search(string $term, int $page, int $limit): PagedResultInterface
+    {
+        $factory = new BookSearchSpecificationFactory();
+        $specification = $factory->createFromSearchTerm($term);
+
+        return $this->searchBySpecification($specification, $page, $limit);
+    }
+
+    public function searchPublished(string $term, int $page, int $limit): PagedResultInterface
+    {
+        $factory = new BookSearchSpecificationFactory();
+        $searchSpec = $factory->createFromSearchTerm($term);
+        $publishedSpec = new StatusSpecification(BookStatus::Published);
+        $combinedSpec = new CompositeAndSpecification([$publishedSpec, $searchSpec]);
+
+        return $this->searchBySpecification($combinedSpec, $page, $limit);
+    }
+
+    public function searchBySpecification(
+        BookSpecificationInterface $specification,
+        int $page,
+        int $limit,
+    ): PagedResultInterface {
+        $query = Book::find()->withAuthors()->orderedByCreatedAt();
+
+        $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->db);
+        $specification->accept($visitor);
+
+        return $this->getPagedResult($query, $page, $limit, BookReadDto::class);
+    }
+}

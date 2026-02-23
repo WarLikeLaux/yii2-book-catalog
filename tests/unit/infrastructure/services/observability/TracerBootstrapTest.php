@@ -31,8 +31,6 @@ final class TracerBootstrapTest extends Unit
 
         $this->bootstrap->bootstrap($app);
 
-        // If not enabled, it sets NullTracer. We can't easily verify private property without reflection,
-        // but no error means it ran.
         $this->assertTrue(true);
     }
 
@@ -119,7 +117,6 @@ final class TracerBootstrapTest extends Unit
         $tracer = $this->createMock(TracerInterface::class);
         $span = $this->createMock(SpanInterface::class);
 
-        // Setup Request
         $request->method('getPathInfo')->willReturn('api/books');
         $request->method('getMethod')->willReturn('GET');
         $request->method('getAbsoluteUrl')->willReturn('http://localhost/api/books');
@@ -131,18 +128,15 @@ final class TracerBootstrapTest extends Unit
 
         $app->method('getRequest')->willReturn($request);
 
-        // Setup Tracer
         $tracer->expects($this->once())
             ->method('startSpan')
             ->willReturn($span);
 
-        // Inject mock tracer
         $reflection = new \ReflectionClass($this->bootstrap);
         $tracerProp = $reflection->getProperty('tracer');
         $tracerProp->setAccessible(true);
         $tracerProp->setValue($this->bootstrap, $tracer);
 
-        // Execute
         $method = $reflection->getMethod('startRootSpan');
         $method->setAccessible(true);
         $method->invoke($this->bootstrap, $app);

@@ -33,6 +33,6 @@ final class IsbnFormatValidatorTest extends Unit
 
     public function testIsValidReturnsFalseForInvalidChecksum(): void
     {
-        $this->assertFalse($this->validator->isValid('0-306-40615-1')); // Invalid check digit
+        $this->assertFalse($this->validator->isValid('0-306-40615-1'));
     }
 }

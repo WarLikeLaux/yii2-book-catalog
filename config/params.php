@@ -9,7 +9,7 @@ return [
     'bsVersion' => '5',
     'appPort' => (int)env('APP_PORT', 8000),
     'swaggerPort' => (int)env('SWAGGER_PORT', 8081),
-    'buggregatorUiPort' => (int)env('BUGGREGATOR_UI_PORT', 8090),
+    'jaegerUiPort' => (int)env('JAEGER_UI_PORT', 16686),
     'storage' => [
         'basePath' => '@app/web/uploads',
         'baseUrl' => '/uploads',
@@ -35,14 +35,14 @@ return [
             'application' => 3,
         ],
     ],
-    'buggregator' => [
-        'log' => [
-            'host' => (string)env('BUGGREGATOR_LOG_HOST', 'buggregator'),
-            'port' => (int)env('BUGGREGATOR_LOG_PORT', 9913),
+    'jaeger' => [
+        'endpoint' => (string)env('JAEGER_ENDPOINT', 'http://jaeger:4318/v1/traces'),
+        'serviceName' => 'yii2-book-catalog',
+    ],
+    'health' => [
+        'disk' => [
+            'thresholdGb' => (float)env('HEALTH_DISK_THRESHOLD_GB', 10.0),
         ],
-        'inspector' => [
-            'url' => (string)env('INSPECTOR_URL', 'http://buggregator:8000'),
-            'ingestionKey' => (string)env('INSPECTOR_INGESTION_KEY', 'buggregator'),
-        ],
+        'version' => '1.0.0',
     ],
 ];

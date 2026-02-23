@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\application\common;
+namespace tests\unit\application\common;
 
 use app\application\books\queries\BookReadDto;
+use app\application\common\dto\IdempotencyRecordDto;
 use app\application\common\IdempotencyKeyStatus;
 use app\application\common\IdempotencyService;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
+use app\domain\values\BookStatus;
 use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -28,16 +30,17 @@ final class IdempotencyServiceTest extends Unit
     public function testGetRecordReturnsFinishedDtoWhenKeyExists(): void
     {
         $key = 'test-key';
-        $savedData = [
-            'status' => 'finished',
-            'status_code' => 201,
-            'body' => (string)json_encode(['id' => 123, 'title' => 'Test Book']),
-        ];
+        $dto = new IdempotencyRecordDto(
+            IdempotencyKeyStatus::Finished,
+            201,
+            ['id' => 123, 'title' => 'Test Book'],
+            null,
+        );
 
         $this->repository->expects($this->once())
             ->method('getRecord')
             ->with($key)
-            ->willReturn($savedData);
+            ->willReturn($dto);
 
         $result = $this->service->getRecord($key);
 
@@ -51,16 +54,17 @@ final class IdempotencyServiceTest extends Unit
     public function testGetRecordReturnsDtoWithRedirect(): void
     {
         $key = 'test-key';
-        $savedData = [
-            'status' => 'finished',
-            'status_code' => 302,
-            'body' => (string)json_encode(['redirect_url' => '/view/123']),
-        ];
+        $dto = new IdempotencyRecordDto(
+            IdempotencyKeyStatus::Finished,
+            302,
+            ['redirect_url' => '/view/123'],
+            '/view/123',
+        );
 
         $this->repository->expects($this->once())
             ->method('getRecord')
             ->with($key)
-            ->willReturn($savedData);
+            ->willReturn($dto);
 
         $result = $this->service->getRecord($key);
 
@@ -73,16 +77,12 @@ final class IdempotencyServiceTest extends Unit
     public function testGetRecordReturnsStartedDto(): void
     {
         $key = 'test-key';
-        $savedData = [
-            'status' => 'started',
-            'status_code' => null,
-            'body' => null,
-        ];
+        $dto = new IdempotencyRecordDto(IdempotencyKeyStatus::Started, null, [], null);
 
         $this->repository->expects($this->once())
             ->method('getRecord')
             ->with($key)
-            ->willReturn($savedData);
+            ->willReturn($dto);
 
         $result = $this->service->getRecord($key);
 
@@ -96,16 +96,12 @@ final class IdempotencyServiceTest extends Unit
     public function testGetRecordIgnoresPayloadWhenStatusStarted(): void
     {
         $key = 'test-key';
-        $savedData = [
-            'status' => 'started',
-            'status_code' => 201,
-            'body' => (string)json_encode(['redirect_url' => '/should-not-use']),
-        ];
+        $dto = new IdempotencyRecordDto(IdempotencyKeyStatus::Started, null, [], null);
 
         $this->repository->expects($this->once())
             ->method('getRecord')
             ->with($key)
-            ->willReturn($savedData);
+            ->willReturn($dto);
 
         $result = $this->service->getRecord($key);
 
@@ -116,19 +112,14 @@ final class IdempotencyServiceTest extends Unit
         $this->assertNull($result->redirectUrl);
     }
 
-    public function testGetRecordReturnsNullOnUnknownStatus(): void
+    public function testGetRecordReturnsNullWhenRepositoryReturnsNull(): void
     {
         $key = 'test-key';
-        $savedData = [
-            'status' => 'unknown',
-            'status_code' => 200,
-            'body' => (string)json_encode(['result' => 'ok']),
-        ];
 
         $this->repository->expects($this->once())
             ->method('getRecord')
             ->with($key)
-            ->willReturn($savedData);
+            ->willReturn(null);
 
         $result = $this->service->getRecord($key);
 
@@ -199,7 +190,7 @@ final class IdempotencyServiceTest extends Unit
             authorIds: [1, 2],
             authorNames: [1 => 'Author One', 2 => 'Author Two'],
             coverUrl: '/covers/test.jpg',
-            status: 'published',
+            status: BookStatus::Published->value,
             version: 1,
         );
         $ttl = 3600;
@@ -214,7 +205,7 @@ final class IdempotencyServiceTest extends Unit
             'authorNames' => [1 => 'Author One', 2 => 'Author Two'],
             'coverUrl' => '/covers/test.jpg',
             'isPublished' => true,
-            'status' => 'published',
+            'status' => BookStatus::Published->value,
             'version' => 1,
         ];
 

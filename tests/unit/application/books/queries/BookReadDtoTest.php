@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\application\books\queries;
+namespace tests\unit\application\books\queries;
 
 use app\application\books\queries\BookReadDto;
+use app\domain\values\BookStatus;
 use Codeception\Test\Unit;
 
 final class BookReadDtoTest extends Unit
@@ -51,7 +52,7 @@ final class BookReadDtoTest extends Unit
         );
 
         $this->assertFalse($dto->getIsPublished());
-        $this->assertSame('draft', $dto->status);
+        $this->assertSame(BookStatus::Draft->value, $dto->status);
         $this->assertSame(1, $dto->version);
     }
 }

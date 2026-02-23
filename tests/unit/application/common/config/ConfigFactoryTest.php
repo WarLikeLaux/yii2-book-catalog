@@ -30,15 +30,9 @@ final class ConfigFactoryTest extends Unit
                 'baseUrl' => '/uploads',
                 'placeholderUrl' => 'https://example.com/{seed}',
             ],
-            'buggregator' => [
-                'log' => [
-                    'host' => 'buggregator',
-                    'port' => 9913,
-                ],
-                'inspector' => [
-                    'url' => 'http://buggregator:8000',
-                    'ingestionKey' => 'key',
-                ],
+            'jaeger' => [
+                'endpoint' => 'http://jaeger:4318/v1/traces',
+                'serviceName' => 'yii2-book-catalog',
             ],
         ]);
 
@@ -46,6 +40,6 @@ final class ConfigFactoryTest extends Unit
         $this->assertSame(30, $factory->rateLimit()->window);
         $this->assertSame(120, $factory->reports()->cacheTtl);
         $this->assertSame('/uploads', $factory->storage()->baseUrl);
-        $this->assertSame('buggregator', $factory->buggregator()->log->host);
+        $this->assertSame('http://jaeger:4318/v1/traces', $factory->jaeger()->endpoint);
     }
 }

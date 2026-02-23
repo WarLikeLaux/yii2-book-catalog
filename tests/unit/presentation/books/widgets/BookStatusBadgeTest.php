@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\books\widgets;
 
+use app\domain\values\BookStatus;
 use app\presentation\books\widgets\BookStatusBadge;
 use PHPUnit\Framework\TestCase;
 use Yii;
@@ -41,7 +42,7 @@ final class BookStatusBadgeTest extends TestCase
 
     public function testPublishedBadgeHasSuccessClass(): void
     {
-        $html = BookStatusBadge::widget(['status' => 'published']);
+        $html = BookStatusBadge::widget(['status' => BookStatus::Published->value]);
 
         $this->assertStringContainsString('badge bg-success', $html);
         $this->assertStringContainsString('<span', $html);
@@ -49,14 +50,14 @@ final class BookStatusBadgeTest extends TestCase
 
     public function testDraftBadgeHasSecondaryClass(): void
     {
-        $html = BookStatusBadge::widget(['status' => 'draft']);
+        $html = BookStatusBadge::widget(['status' => BookStatus::Draft->value]);
 
         $this->assertStringContainsString('badge bg-secondary', $html);
     }
 
     public function testArchivedBadgeHasDarkClass(): void
     {
-        $html = BookStatusBadge::widget(['status' => 'archived']);
+        $html = BookStatusBadge::widget(['status' => BookStatus::Archived->value]);
 
         $this->assertStringContainsString('badge bg-dark', $html);
     }

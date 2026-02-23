@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\auth\handlers;
 
+use app\application\common\config\ApiPageConfig;
 use app\presentation\auth\dto\LoginViewModel;
 use app\presentation\auth\forms\LoginForm;
 use app\presentation\auth\handlers\AuthViewFactory;
@@ -13,7 +14,7 @@ final class AuthViewFactoryTest extends Unit
 {
     public function testGetLoginViewModelReturnsViewModel(): void
     {
-        $factory = new AuthViewFactory();
+        $factory = new AuthViewFactory($this->createApiPageConfig());
 
         $viewModel = $factory->getLoginViewModel();
 
@@ -26,12 +27,17 @@ final class AuthViewFactoryTest extends Unit
 
     public function testGetApiInfoViewModelReturnsViewModel(): void
     {
-        $factory = new AuthViewFactory();
+        $factory = new AuthViewFactory(new ApiPageConfig(8080, 8000));
 
-        $viewModel = $factory->getApiInfoViewModel(8080, 8000, 'example.test');
+        $viewModel = $factory->getApiInfoViewModel('example.test');
 
         $this->assertSame(8080, $viewModel->swaggerPort);
         $this->assertSame(8000, $viewModel->appPort);
         $this->assertSame('example.test', $viewModel->host);
+    }
+
+    private function createApiPageConfig(): ApiPageConfig
+    {
+        return new ApiPageConfig(8081, 8000);
     }
 }

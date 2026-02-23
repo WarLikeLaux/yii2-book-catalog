@@ -4,22 +4,34 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\authors\forms;
 
-use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\authors\forms\AuthorForm;
 use Codeception\Test\Unit;
 
 final class AuthorFormTest extends Unit
 {
-    public function testValidateFioUniqueIgnoresNonStringFio(): void
+    public function testValidateFioRequired(): void
     {
-        $queryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $queryService->expects($this->never())->method('existsByFio');
+        $form = new AuthorForm();
+        $form->fio = '';
 
-        $form = new AuthorForm($queryService);
-        $form->fio = 123;
+        $this->assertFalse($form->validate());
+        $this->assertTrue($form->hasErrors('fio'));
+    }
 
-        $form->validateFioUnique('fio');
+    public function testValidateFioMaxLength(): void
+    {
+        $form = new AuthorForm();
+        $form->fio = str_repeat('a', 256);
 
-        $this->assertFalse($form->hasErrors('fio'));
+        $this->assertFalse($form->validate());
+        $this->assertTrue($form->hasErrors('fio'));
+    }
+
+    public function testValidateFioSuccess(): void
+    {
+        $form = new AuthorForm();
+        $form->fio = 'Иванов Иван Иванович';
+
+        $this->assertTrue($form->validate());
     }
 }

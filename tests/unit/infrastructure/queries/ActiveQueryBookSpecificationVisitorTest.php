@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\tests\unit\infrastructure\queries;
+namespace tests\unit\infrastructure\queries;
 
 use app\domain\specifications\CompositeAndSpecification;
 use app\domain\specifications\CompositeOrSpecification;
@@ -160,7 +160,7 @@ final class ActiveQueryBookSpecificationVisitorTest extends Unit
         $query = $this->createMock(ActiveQuery::class);
         $query->expects($this->once())
             ->method('andWhere')
-            ->with(['status' => 'published']);
+            ->with(['status' => BookStatus::Published->value]);
 
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
         $visitor->visitStatus(new StatusSpecification(BookStatus::Published));

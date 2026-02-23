@@ -1,9 +1,6 @@
 deptrac:
   paths:
-    - application
-    - domain
-    - infrastructure
-    - presentation
+    - src
   
   exclude_files:
     - '#.*test.*#'
@@ -13,32 +10,48 @@ deptrac:
     - name: DomainEntities
       collectors:
         - type: directory
-          value: domain/entities/.*
+          value: src/domain/entities/.*
 
     - name: DomainShared
       collectors:
         - type: directory
-          value: domain/(values|events|exceptions)/.*
-    
+          value: src/domain/(values|events|exceptions|common)/.*
+
+    - name: DomainServices
+      collectors:
+        - type: directory
+          value: src/domain/services/.*
+
+    - name: DomainSpecifications
+      collectors:
+        - type: directory
+          value: src/domain/specifications/.*
+
+    - name: DomainRepositories
+      collectors:
+        - type: directory
+          value: src/domain/repositories/.*
+
+    # application/*/queries — DTO-only (final readonly, без infra). Проверка: phparkitect.
     - name: Application
       collectors:
         - type: directory
-          value: application/.*
+          value: src/application/.*
     
     - name: Infrastructure
       collectors:
         - type: directory
-          value: infrastructure/(adapters|services|queries|repositories|phpstan|queue|components|factories|listeners|mapping)/.*
+          value: src/infrastructure/(adapters|services|queries|repositories|phpstan|queue|components|factories|listeners|mapping)/.*
 
     - name: Persistence
       collectors:
         - type: directory
-          value: infrastructure/persistence/.*
+          value: src/infrastructure/persistence/.*
     
     - name: Presentation
       collectors:
         - type: directory
-          value: presentation/.*
+          value: src/presentation/.*
     
     - name: Framework
       collectors:
@@ -58,20 +71,41 @@ deptrac:
   ruleset:
     DomainEntities:
       - DomainShared
+      - DomainServices
       - Vendor
 
     DomainShared:
       - Vendor
-    
-    Application:
+
+    DomainServices:
       - DomainEntities
       - DomainShared
+      - Vendor
+
+    DomainSpecifications:
+      - DomainShared
+      - Vendor
+
+    DomainRepositories:
+      - DomainEntities
+      - DomainShared
+      - Vendor
+
+    Application:
+      - DomainEntities
+      - DomainRepositories
+      - DomainShared
+      - DomainServices
+      - DomainSpecifications
       - Vendor
     
     Infrastructure:
       - Persistence
       - DomainEntities
+      - DomainRepositories
       - DomainShared
+      - DomainServices
+      - DomainSpecifications
       - Application
       - Vendor
       - Framework
@@ -85,6 +119,7 @@ deptrac:
 
     Presentation:
       - Application
+      - DomainShared
       - Vendor
       - Framework
       - GlobalState
