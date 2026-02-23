@@ -51,6 +51,7 @@
 - **#38** - исправлена генерация swagger docs ([a15263b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a15263b))
 - **#38** - исправлен list-comments: пропуск директорий и поддержка js/mjs ([3b7da0e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3b7da0e))
 - **#38** - исправлен тест NoGhostQueryServiceInApplicationRule ([6f1372c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6f1372c))
+- **#38** - исправлен тест HealthEndpointCest, падавший из-за отсутствия аутентификации ([b373aa8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b373aa8))
 
 ### 🛠 Рефакторинг и архитектура
 
@@ -84,6 +85,9 @@
 - **#38** - перенесён NativeMimeTypeDetectorTest из domain в infrastructure ([5ce5858](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5ce5858))
 - **#38** - рефакторинг view templates: стандартизация отступов и форматирования ([150656d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/150656d))
 - **#38** - упрощён guard публикации в Book::transitionTo: удалена избыточная проверка Draft статуса ([d870837](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d870837))
+- **#38** - рефакторинг компонентов по результатам ревью PR (nitpicks) ([c4d52a5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c4d52a5))
+- **#38** - удалены комментарии ([7f86320](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7f86320))
+- **#38** - рефакторинг порядка валидации ISBN в use cases, добавлен #[Override] в RateLimitStorageTracingDecorator ([8e63982](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8e63982))
 
 ### 🧪 Тестирование
 
@@ -120,6 +124,7 @@
 - **#38** - зарегистрированы AuthorUsageCheckerInterface и CoverKeysScannerInterface в DI-контейнере ([2e771c4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2e771c4))
 - **#38** - рефакторинг awk-команды в Makefile для улучшенного определения заголовков тегов ([71b63fe](https://github.com/WarLikeLaux/yii2-book-catalog/commit/71b63fe))
 - **#38** - рефакторинг путей review-скриптов в bin ([f385aa2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f385aa2))
+- **#38** - стандартизована конфигурация: добавлен заголовок секции MAILER, healthcheck для jaeger, унифицированы FQCN-импорты ([8634b2a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8634b2a))
 
 ### 📝 Документация
 
@@ -138,6 +143,7 @@
 - **#38** - обновлена документация ([74a4e8b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/74a4e8b))
 - **#38** - обновлён лендинг: синхронизированы метрики (903 теста, 2251 assertions), добавлены карточки Rich Domain Model/Observability/Health Check ([77768d5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/77768d5))
 - **#38** - удалён llms.txt ([36c384b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/36c384b))
+- **#38** - исправлены ссылки документации: замена ветки dev на main ([e0c6724](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e0c6724))
 
 </details>
 
