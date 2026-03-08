@@ -3,13 +3,13 @@
 
 # Yii2 Book Catalog
 
-**Enterprise-grade Clean Architecture on Yii2 Framework • PHP 8.4**
+**Enterprise-grade Clean Architecture on Yii2 Framework • PHP 8.5**
 
-[![PHP Version](https://img.shields.io/badge/PHP-8.4-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/PHP-8.5-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL_/_PgSQL-Multi_DB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-903_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-1007_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -24,7 +24,7 @@
 
 ---
 
-Этот проект - практическая реализация каталога книг на базе **Yii2** и **PHP 8.4**. Используется **Clean Architecture**, демонстрирующая возможности написания масштабируемого кода на классическом фреймворке.
+Этот проект - практическая реализация каталога книг на базе **Yii2** и **PHP 8.5**. Используется **Clean Architecture**, демонстрирующая возможности написания масштабируемого кода на классическом фреймворке.
 
 Хотя принято считать, что AI-агенты лучше «дружат» с Python или Laravel, работа над этим проектом показала: классический **Yii2** всё ещё позволяет внедрять современные инженерные стандарты. Здесь выстроена чистая архитектура, доказывающая, что даже на «олдскульном» фреймворке можно работать качественно и актуально, используя нейросети как инструмент.
 
@@ -46,7 +46,7 @@
 >
 > **🦖 Зачем взял этого "динозавра" (Yii2)?**
 >
-> Многие считают Yii2 устаревшим, но проект показывает крутой симбиоз: проверенное временем ядро плюс возможности **PHP 8.4** (Enums, Readonly, Attributes).
+> Многие считают Yii2 устаревшим, но проект показывает крутой симбиоз: проверенное временем ядро плюс возможности **PHP 8.5** (Enums, Readonly, Attributes).
 > «Магия» глобальных переменных полностью убрана: управлением занимается **Dependency Injection**. Код честный: если классу что-то нужно, он запрашивает это в конструкторе.
 >
 > **🧠 Это просто генерация от AI?**
@@ -86,7 +86,7 @@
 | 🔹 **📦 CAS (File Storage)**<br>Контентно-адресуемое хранилище                   | 📈 **Observability**<br>OpenTelemetry + Inspector APM               |
 | 🔹 **Доменные события**<br>`BookStatusChangedEvent`, `BookUpdatedEvent`, fan-out | 🩺 **Эндпоинт здоровья (Health Check)**<br>Prod-readiness `/health` |
 | **🧪 Качество кода**                                                             | **🐳 DevOps Ready**                                                 |
-| ✅ **903+ тестов** (2251+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
+| ✅ **1007+ тестов** (2479+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
 | ✅ **PHPStan Level 9**<br>10 кастомных правил (Custom Rules)                     | 🛠 **Makefile**<br>Автоматизация рутины                             |
 | ✅ **Мутационное тестирование**<br>Infection PHP (MSI 100%)                      | 📚 **Генерация документации**<br>Yii2 API + OpenAPI                 |
 | ✅ **Авто-рефакторинг**<br>Rector                                                | 🏗 **Контроль архитектуры**<br>Deptrac + Arkitect                   |
@@ -125,7 +125,7 @@ open http://localhost:8000
 
 > 💡 **Что делает `make install`:**
 >
-> - 🐳 Поднимает Docker контейнеры (PHP 8.4 + MySQL 8 / PgSQL + воркер очереди)
+> - 🐳 Поднимает Docker контейнеры (PHP 8.5 + MySQL 8 / PgSQL + воркер очереди)
 > - 📦 Устанавливает Composer зависимости
 > - 🗄 Применяет миграции БД
 > - 🌱 Наполняет базу демо-данными
@@ -211,12 +211,12 @@ make env   # или make configure
 
 | Категория           | Технология                                                                                                           | Описание                                             |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| **Язык**            | [![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)](https://www.php.net/)                 | PHPStan Level 9, Strict Types, Constructor Promotion |
+| **Язык**            | [![PHP](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white)](https://www.php.net/)                 | PHPStan Level 9, Strict Types, Constructor Promotion |
 | **Фреймворк**       | [![Yii2](https://img.shields.io/badge/Yii-2.0-blue?logo=yii)](https://www.yiiframework.com/)                         | Basic Template с DI Container                        |
 | **База(-ы) данных** | [![MySQL](https://img.shields.io/badge/MySQL_/_PgSQL-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)     | InnoDB / PostgreSQL 16 + FullText Search             |
 | **Очереди**         | `yii2-queue`                                                                                                         | DB Driver + Fan-out Pattern                          |
 | **Тестирование**    | [![Codeception](https://img.shields.io/badge/Codeception-5.0-purple)](https://codeception.com/)                      | Unit + Integration + E2E, 100% Coverage              |
-| **Инфраструктура**  | [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) | PHP 8.4 + MySQL 8 / PgSQL 16 + Redis + очередь       |
+| **Инфраструктура**  | [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) | PHP 8.5 + MySQL 8 / PgSQL 16 + Redis + очередь       |
 | **UX / Front**      | [![HTMX](https://img.shields.io/badge/HTMX-2.0-blue)](https://htmx.org/)                                             | Infinite Scroll, Reactive Forms, Modal dialogs       |
 | **Качество**        | `Rector`, `PHPStan`, `Deptrac`, `Arkitect`                                                                           | Strict Static Analysis & Architectural Guardrails    |
 
@@ -234,8 +234,8 @@ make env   # или make configure
 
 <table>
 <tr>
-<td align="center"><b>903</b><br>Tests</td>
-<td align="center"><b>2251+</b><br>Assertions</td>
+<td align="center"><b>1007</b><br>Tests</td>
+<td align="center"><b>2479+</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
 <td align="center"><b>~27s</b><br>Runtime</td>
 </tr>
