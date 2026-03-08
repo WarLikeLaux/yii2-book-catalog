@@ -2,11 +2,11 @@
         up down restart logs shell tinker sms-logs \
         composer req require req-dev require-dev \
         dev _dev_full _dev_file fix ci check lint lint-fix rector rector-fix analyze prettier prettier-fix deptrac arkitect arch audit \
-        test test-unit test-integration test-e2e cov coverage test-coverage infection inf load-test \
+        test test-unit test-integration test-e2e cov coverage test-coverage infection inf load-test test-migration \
         migrate seed db-mysql db-pgsql db-info db-fresh queue-info \
         docs swagger repomix tree comments ai \
-        diff d dc ds diff-staged diff-cached tag \
-        gs ga gfp ghr \
+        diff d sdiff tag \
+        review-fetch review-resolve \
         bin-exec
 
 COMPOSE=docker compose
@@ -31,9 +31,7 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-# =================================================================================================
-# 🚀 ГЛАВНОЕ МЕНЮ И УПРАВЛЕНИЕ
-# =================================================================================================
+# Главное меню и управление
 
 help:
 	@echo "Использование: make [команда]"
@@ -62,11 +60,7 @@ help:
 	@echo ""
 	@echo "🛰️  GIT SHORTCUTS:"
 	@echo "  diff (d)             🔎 Показать изменения (включая untracked файлы)"
-	@echo "  dc                   📌 Показать изменения в индексе (staged)"
-	@echo "  gs                   📊 Статус репозитория (git status)"
-	@echo "  ga                   ➕ Добавить все изменения (git add .)"
-	@echo "  gfp                  🚀 Безопасный форс-пуш (force-with-lease)"
-	@echo "  ghr                  🚨 Жесткий сброс изменений (reset --hard)"
+	@echo "  sdiff                📌 Показать изменения в индексе (staged)"
 	@echo ""
 	@echo "📦 ПАКЕТЫ (COMPOSER):"
 	@echo "  composer             📥 Установка зависимостей (install)"
@@ -99,9 +93,7 @@ help:
 	@echo "  swagger              🌐 Генерация OpenAPI/Swagger"
 	@echo "  repomix              🤖 Сборка контекста для LLM"
 
-# =================================================================================================
-# 🐳 DOCKER И ОКРУЖЕНИЕ
-# =================================================================================================
+# Docker и окружение
 
 install: bin-exec init
 install-force: bin-exec init-force
@@ -137,9 +129,7 @@ tinker:
 sms-logs:
 	$(COMPOSE) exec $(PHP_CONTAINER) tail -f runtime/logs/sms.log
 
-# =================================================================================================
-# 🛠 НАСТРОЙКА (SETUP)
-# =================================================================================================
+# Настройка
 
 perms:
 	@echo "🔧 Исправление прав..."
@@ -182,9 +172,7 @@ req-dev require-dev:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer require --dev $(COMPOSER_ARGS)
 
 
-# =================================================================================================
-# 🛡️ КОНТРОЛЬ КАЧЕСТВА (QA)
-# =================================================================================================
+# Контроль качества
 
 ci: analyze
 fix: lint-fix rector-fix
@@ -249,9 +237,7 @@ arch: deptrac arkitect
 audit:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer audit
 
-# =================================================================================================
-# 🧪 ТЕСТЫ
-# =================================================================================================
+# Тесты
 
 _test-init:
 	@DB_DRIVER=$(DB_DRIVER) DB_TEST_NAME=$(DB_TEST_NAME) COMPOSE="$(COMPOSE)" ./bin/test-db-prepare
@@ -299,6 +285,9 @@ test-e2e: _test-init
 	@echo "🚀 Запуск E2E тестов..."
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run e2e --ext DotReporter --no-colors
 
+test-migration:
+	bin/test-migration
+
 test-coverage coverage cov:
 	@if [ ! -f tests/_output/coverage.xml ]; then $(MAKE) test-full; fi
 	@./bin/coverage-report
@@ -312,9 +301,7 @@ test-load:
 	@echo "🚀 Load Testing (K6)..."
 	$(COMPOSE) run --rm k6 run /scripts/smoke.js
 
-# =================================================================================================
-# 📦 БАЗА ДАННЫХ
-# =================================================================================================
+# База данных
 
 migrate:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./yii migrate --interactive=0
@@ -355,9 +342,7 @@ db-fresh:
 test-db-fresh:
 	@DB_DRIVER=$(DB_DRIVER) DB_TEST_NAME=$(DB_TEST_NAME) COMPOSE="$(COMPOSE)" ./bin/test-db-fresh
 
-# =================================================================================================
-# 📚 ДОКУМЕНТАЦИЯ И УТИЛИТЫ
-# =================================================================================================
+# Документация и утилиты
 
 queue-info:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./yii queue/info
@@ -415,47 +400,19 @@ tag:
 		} \
 	' docs/ai/*.md
 
-# =================================================================================================
-# 🛰️ GIT SHORTCUTS
-# =================================================================================================
+# Git
 
 diff d:
 	@git diff || true
 	@git ls-files -o --exclude-standard -z | xargs -0 -n1 git diff --no-index /dev/null -- 2>/dev/null || true
 
-diff-staged diff-cached ds dc:
+sdiff:
 	@git diff --staged || true
 
-gs:
-	@git status
-
-ga:
-	@git add .
-
-gfp:
-	@git push --force-with-lease
-
-ghr:
-	@echo "🚨 ВНИМАНИЕ: Это БЕЗВОЗВРАТНО удалит все незакоммиченные изменения (reset --hard)."
-	@read -p "   Вы уверены? [y/N] " ans; \
-	if [ "$$ans" != "y" ] && [ "$$ans" != "Y" ]; then \
-		echo "❌ Отменено."; \
-		exit 1; \
-	fi
-	@git reset --hard HEAD
-
-.PHONY: test-migration
-test-migration:
-	bin/test-migration
-
-# =================================================================================================
-# 🔍 PR REVIEW
-# =================================================================================================
+# PR review
 
 review-fetch:
 	@node bin/fetch-pr-comments.mjs
 
 review-resolve:
 	@node bin/resolve-pr-threads.mjs
-
-.PHONY: review-fetch review-resolve
