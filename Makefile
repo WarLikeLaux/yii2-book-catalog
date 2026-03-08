@@ -3,7 +3,7 @@
         composer req require req-dev require-dev \
         dev _dev_full _dev_file fix ci check lint lint-fix rector rector-fix analyze prettier prettier-fix deptrac arkitect arch audit \
         test test-unit test-integration test-e2e cov coverage test-coverage infection inf load-test test-migration \
-        migrate seed db-mysql db-pgsql db-info db-fresh queue-info \
+        migrate seed db-mysql db-pgsql db-info db-fresh db-test-fresh queue-info \
         docs swagger repomix tree comments ai \
         ci-env ci-up ci-down ci-install ci-audit ci-openapi-check ci-quality ci-test-suite ci-e2e \
         diff d sdiff tag \
@@ -85,7 +85,7 @@ help:
 	@echo "  db-mysql             🐬 Переключить на MySQL"
 	@echo "  db-pgsql             🐘 Переключить на PostgreSQL"
 	@echo "  db-fresh             🚨 Полный сброс БД (fresh + seed)"
-	@echo "  test-db-fresh        🧪 Полный сброс тестовой БД (fresh + migrations)"
+	@echo "  db-test-fresh        🧪 Полный сброс тестовой БД (fresh + migrations)"
 	@echo "  queue-info           📥 Статус очереди задач"
 	@echo ""
 	@echo "📚 ДОКУМЕНТАЦИЯ:"
@@ -373,7 +373,7 @@ db-fresh:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii seed --interactive=0
 	@echo "✅ База данных очищена и заполнена заново."
 
-test-db-fresh:
+db-test-fresh:
 	@DB_DRIVER=$(DB_DRIVER) DB_TEST_NAME=$(DB_TEST_NAME) COMPOSE="$(COMPOSE)" ./bin/test-db-fresh
 
 # Документация и утилиты
