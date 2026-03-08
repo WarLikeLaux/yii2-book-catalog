@@ -56,7 +56,7 @@
         "yiisoft/yii2-coding-standards": "^3.0",
         "slevomat/coding-standard": "^8.25",
         "phpstan/phpstan": "^2.1",
-        "deptrac/deptrac": "4.x-dev",
+        "deptrac/deptrac": "^4.6",
         "infection/infection": "^0.32.0",
         "infection/codeception-adapter": "^0.4.4",
         "rector/rector": "^2.3",

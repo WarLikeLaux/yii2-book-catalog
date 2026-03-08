@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5925b7a645fc6c610cd10bbfe23f4e85",
+    "content-hash": "50a2473536ac8229c626cf339ad4ae42",
     "packages": [
         {
             "name": "bower-asset/inputmask",
@@ -7865,7 +7865,7 @@
         },
         {
             "name": "deptrac/deptrac",
-            "version": "4.x-dev",
+            "version": "4.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/deptrac/deptrac.git",
@@ -7906,7 +7906,6 @@
             "suggest": {
                 "ext-dom": "For using the JUnit output formatter"
             },
-            "default-branch": true,
             "bin": [
                 "deptrac"
             ],
@@ -7945,7 +7944,7 @@
             ],
             "support": {
                 "issues": "https://github.com/deptrac/deptrac/issues",
-                "source": "https://github.com/deptrac/deptrac/tree/4.x"
+                "source": "https://github.com/deptrac/deptrac/tree/4.6.0"
             },
             "time": "2026-02-02T09:44:37+00:00"
         },
@@ -15417,7 +15416,6 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "deptrac/deptrac": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": false,
