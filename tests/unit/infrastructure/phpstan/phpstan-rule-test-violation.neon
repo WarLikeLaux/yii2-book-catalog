@@ -1,0 +1,6 @@
+includes:
+	- ../../../../phpstan-base.neon
+
+parameters:
+	paths:
+		- Rules/Fixtures/NoGhostQueryServiceInApplicationRule/ghost-query-service-violation.php
