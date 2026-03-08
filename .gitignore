@@ -17,6 +17,7 @@ composer.phar
 # Тестирование и отчеты
 phpunit.phar
 /phpunit.xml
+.phpunit.cache/
 tests/_output/*
 tests/_support/_generated
 

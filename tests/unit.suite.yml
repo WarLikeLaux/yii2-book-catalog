@@ -7,6 +7,3 @@ actor: UnitTester
 modules:
     enabled:
         - Asserts
-        - Yii2:
-            part: [orm, email, fixtures]
-            entryScript: index-test.php

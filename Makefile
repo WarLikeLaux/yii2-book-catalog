@@ -306,7 +306,7 @@ test-full:
 
 test-unit:
 	@echo "🚀 Запуск Unit тестов..."
-	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run unit --ext DotReporter --no-colors
+	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpunit
 
 test-integration: _test-init
 	@echo "🚀 Запуск Integration тестов..."
