@@ -3,6 +3,8 @@
 
 declare(strict_types=1);
 
+use yii\console\Application;
+
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/env.php';
 
@@ -11,6 +13,6 @@ require_once __DIR__ . '/config/bootstrap.php';
 
 $config = require __DIR__ . '/config/console.php';
 
-$application = new yii\console\Application($config);
+$application = new Application($config);
 $exitCode = $application->run();
 exit($exitCode);
