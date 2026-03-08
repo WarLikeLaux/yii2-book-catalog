@@ -185,7 +185,6 @@ final class IdempotencyStorageTest extends Unit
     private function invokePrivateMethod(object $target, string $method, array $arguments): mixed
     {
         $reflection = new \ReflectionMethod($target, $method);
-        $reflection->setAccessible(true);
 
         return $reflection->invokeArgs($target, $arguments);
     }

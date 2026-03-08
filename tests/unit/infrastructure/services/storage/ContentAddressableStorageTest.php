@@ -267,7 +267,6 @@ final class ContentAddressableStorageTest extends Unit
     public function testNormalizePathHandlesRootDirectory(): void
     {
         $method = new ReflectionMethod(ContentAddressableStorage::class, 'normalizePath');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->storage, '/');
 
