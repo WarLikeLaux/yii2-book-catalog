@@ -6,9 +6,9 @@ namespace tests\unit\application\books\queries;
 
 use app\application\books\queries\BookReadDto;
 use app\domain\values\BookStatus;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookReadDtoTest extends Unit
+final class BookReadDtoTest extends TestCase
 {
     public function testGetFullTitleWithYear(): void
     {

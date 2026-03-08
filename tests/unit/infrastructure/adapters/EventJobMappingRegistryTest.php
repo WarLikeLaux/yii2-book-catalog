@@ -10,11 +10,11 @@ use app\domain\values\BookStatus;
 use app\infrastructure\adapters\EventJobMappingRegistry;
 use app\infrastructure\adapters\EventSerializer;
 use app\infrastructure\queue\NotifySubscribersJob;
-use Codeception\Test\Unit;
 use InvalidArgumentException;
+use PHPUnit\Framework\TestCase;
 use yii\queue\JobInterface;
 
-final class EventJobMappingRegistryTest extends Unit
+final class EventJobMappingRegistryTest extends TestCase
 {
     public function testResolveWithClassStringInstantiatesJobViaReflection(): void
     {

@@ -7,9 +7,9 @@ namespace tests\unit\domain\values;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
 use app\domain\values\Phone;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class PhoneTest extends Unit
+final class PhoneTest extends TestCase
 {
     public function testCreatesWithValidE164Phone(): void
     {

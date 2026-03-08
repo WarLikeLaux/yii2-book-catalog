@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\queries;
 
 use AutoMapper\AutoMapperInterface;
-use Codeception\Test\Unit;
 use LogicException;
+use PHPUnit\Framework\TestCase;
 use tests\_support\TestableBaseQueryService;
 use yii\db\ActiveQuery;
 use yii\db\ActiveQueryInterface;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
 
-final class BaseQueryServiceTest extends Unit
+final class BaseQueryServiceTest extends TestCase
 {
     private Connection $conn;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->conn = $this->createMock(Connection::class);
+        $this->conn = $this->createStub(Connection::class);
     }
 
     public function testExistsWithActiveQueryAndExcludeId(): void
@@ -54,7 +54,7 @@ final class BaseQueryServiceTest extends Unit
     {
         $service = $this->createService();
 
-        $nonActiveQuery = $this->makeEmpty(ActiveQueryInterface::class);
+        $nonActiveQuery = $this->createStub(ActiveQueryInterface::class);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Query must be an instance of ActiveQuery to support dynamic primary key exclusion');
@@ -152,14 +152,14 @@ final class BaseQueryServiceTest extends Unit
 
     private function createService(): object
     {
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
+        $mapper = $this->createStub(AutoMapperInterface::class);
 
         return new TestableBaseQueryService($this->conn, $mapper);
     }
 
     private function createActiveQueryWithPrimaryKey(array $primaryKey): ActiveQuery
     {
-        $query = $this->createMock(ActiveQuery::class);
+        $query = $this->createStub(ActiveQuery::class);
         $query->modelClass = $this->createActiveRecordClass($primaryKey);
 
         return $query;

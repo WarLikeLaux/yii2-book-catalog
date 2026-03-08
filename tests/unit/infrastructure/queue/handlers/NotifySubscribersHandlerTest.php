@@ -10,11 +10,11 @@ use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\TranslatorInterface;
 use app\infrastructure\queue\handlers\NotifySubscribersHandler;
 use app\infrastructure\queue\NotifySingleSubscriberJob;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use yii\queue\Queue;
 
-final class NotifySubscribersHandlerTest extends Unit
+final class NotifySubscribersHandlerTest extends TestCase
 {
     public function testHandlePushesJobsForSubscribers(): void
     {
@@ -50,7 +50,7 @@ final class NotifySubscribersHandlerTest extends Unit
             ->method('push')
             ->with($this->isInstanceOf(NotifySingleSubscriberJob::class));
 
-        $logger = $this->createMock(LoggerInterface::class);
+        $logger = $this->createStub(LoggerInterface::class);
         $handler = new NotifySubscribersHandler($queryService, $bookQueryService, $translator, $logger);
         $handler->handle(12, $queue);
     }
@@ -66,7 +66,7 @@ final class NotifySubscribersHandlerTest extends Unit
         $queryService = $this->createMock(SubscriptionQueryServiceInterface::class);
         $queryService->expects($this->never())->method('getSubscriberPhonesForBook');
 
-        $translator = $this->createMock(TranslatorInterface::class);
+        $translator = $this->createStub(TranslatorInterface::class);
 
         $queue = $this->createMock(Queue::class);
         $queue->expects($this->never())->method('push');

@@ -9,27 +9,16 @@ use app\application\ports\ReportQueryServiceInterface;
 use app\application\reports\queries\ReportCriteria;
 use app\application\reports\queries\ReportDto;
 use app\infrastructure\queries\decorators\ReportQueryServiceCachingDecorator;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-final class ReportQueryServiceCachingDecoratorTest extends Unit
+final class ReportQueryServiceCachingDecoratorTest extends TestCase
 {
-    private ReportQueryServiceInterface&MockObject $inner;
-    private CacheInterface&MockObject $cache;
-    private ReportQueryServiceCachingDecorator $decorator;
-
-    protected function _before(): void
-    {
-        $this->inner = $this->createMock(ReportQueryServiceInterface::class);
-        $this->cache = $this->createMock(CacheInterface::class);
-        $this->decorator = new ReportQueryServiceCachingDecorator($this->inner, $this->cache);
-    }
-
     public function testGetTopAuthorsReportUsesCurrentYearByDefault(): void
     {
         $currentYear = (int)date('Y');
 
-        $this->cache->expects($this->once())
+        $cache = $this->createMock(CacheInterface::class);
+        $cache->expects($this->once())
             ->method('getOrSet')
             ->with(
                 "report:top_authors:{$currentYear}",
@@ -38,9 +27,12 @@ final class ReportQueryServiceCachingDecoratorTest extends Unit
             )
             ->willReturn([]);
 
+        $inner = $this->createStub(ReportQueryServiceInterface::class);
+        $decorator = new ReportQueryServiceCachingDecorator($inner, $cache);
+
         $criteria = new ReportCriteria(null);
 
-        $dto = $this->decorator->getTopAuthorsReport($criteria);
+        $dto = $decorator->getTopAuthorsReport($criteria);
 
         $this->assertSame($currentYear, $dto->year);
     }
@@ -49,7 +41,8 @@ final class ReportQueryServiceCachingDecoratorTest extends Unit
     {
         $year = 2020;
 
-        $this->cache->expects($this->once())
+        $cache = $this->createMock(CacheInterface::class);
+        $cache->expects($this->once())
             ->method('getOrSet')
             ->with(
                 "report:top_authors:{$year}",
@@ -58,9 +51,12 @@ final class ReportQueryServiceCachingDecoratorTest extends Unit
             )
             ->willReturn([]);
 
+        $inner = $this->createStub(ReportQueryServiceInterface::class);
+        $decorator = new ReportQueryServiceCachingDecorator($inner, $cache);
+
         $criteria = new ReportCriteria($year);
 
-        $dto = $this->decorator->getTopAuthorsReport($criteria);
+        $dto = $decorator->getTopAuthorsReport($criteria);
 
         $this->assertSame($year, $dto->year);
     }
@@ -73,16 +69,20 @@ final class ReportQueryServiceCachingDecoratorTest extends Unit
             ['id' => 2, 'fio' => 'Author 2', 'books_count' => 3],
         ];
 
-        $this->cache->expects($this->once())
+        $cache = $this->createMock(CacheInterface::class);
+        $cache->expects($this->once())
             ->method('getOrSet')
             ->willReturn($cachedData);
 
-        $this->inner->expects($this->never())
+        $inner = $this->createMock(ReportQueryServiceInterface::class);
+        $inner->expects($this->never())
             ->method('getTopAuthorsReport');
+
+        $decorator = new ReportQueryServiceCachingDecorator($inner, $cache);
 
         $criteria = new ReportCriteria($year);
 
-        $dto = $this->decorator->getTopAuthorsReport($criteria);
+        $dto = $decorator->getTopAuthorsReport($criteria);
 
         $this->assertSame($cachedData, $dto->topAuthors);
         $this->assertSame($year, $dto->year);
@@ -94,16 +94,20 @@ final class ReportQueryServiceCachingDecoratorTest extends Unit
         $expectedData = [['id' => 1, 'fio' => 'Test', 'books_count' => 10]];
         $expectedDto = new ReportDto($expectedData, $year);
 
-        $this->inner->expects($this->once())
+        $inner = $this->createMock(ReportQueryServiceInterface::class);
+        $inner->expects($this->once())
             ->method('getTopAuthorsReport')
             ->willReturn($expectedDto);
 
-        $this->cache->expects($this->once())
+        $cache = $this->createMock(CacheInterface::class);
+        $cache->expects($this->once())
             ->method('getOrSet')
             ->willReturnCallback(static fn ($key, $callback) => $callback()); // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter -- Параметр $key обязателен для сигнатуры, но не используется в моке
 
+        $decorator = new ReportQueryServiceCachingDecorator($inner, $cache);
+
         $criteria = new ReportCriteria($year);
-        $dto = $this->decorator->getTopAuthorsReport($criteria);
+        $dto = $decorator->getTopAuthorsReport($criteria);
 
         $this->assertSame($expectedData, $dto->topAuthors);
     }
@@ -112,12 +116,16 @@ final class ReportQueryServiceCachingDecoratorTest extends Unit
     {
         $expectedDto = new ReportDto([], 2000);
 
-        $this->inner->expects($this->once())
+        $inner = $this->createMock(ReportQueryServiceInterface::class);
+        $inner->expects($this->once())
             ->method('getEmptyTopAuthorsReport')
             ->with(2000)
             ->willReturn($expectedDto);
 
-        $dto = $this->decorator->getEmptyTopAuthorsReport(2000);
+        $cache = $this->createStub(CacheInterface::class);
+        $decorator = new ReportQueryServiceCachingDecorator($inner, $cache);
+
+        $dto = $decorator->getEmptyTopAuthorsReport(2000);
 
         $this->assertSame(2000, $dto->year);
         $this->assertSame([], $dto->topAuthors);
@@ -129,14 +137,16 @@ final class ReportQueryServiceCachingDecoratorTest extends Unit
         $expectedData = [['id' => 1, 'fio' => 'Direct', 'books_count' => 5]];
         $expectedDto = new ReportDto($expectedData, $year);
 
-        $this->inner->expects($this->once())
+        $inner = $this->createMock(ReportQueryServiceInterface::class);
+        $inner->expects($this->once())
             ->method('getTopAuthorsReport')
             ->willReturn($expectedDto);
 
-        $this->cache->expects($this->never())
+        $cache = $this->createMock(CacheInterface::class);
+        $cache->expects($this->never())
             ->method('getOrSet');
 
-        $decorator = new ReportQueryServiceCachingDecorator($this->inner, $this->cache, 0);
+        $decorator = new ReportQueryServiceCachingDecorator($inner, $cache, 0);
 
         $criteria = new ReportCriteria($year);
         $dto = $decorator->getTopAuthorsReport($criteria);

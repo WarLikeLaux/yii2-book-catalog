@@ -9,18 +9,18 @@ use app\application\ports\PagedResultInterface;
 use app\presentation\authors\dto\AuthorListViewModel;
 use app\presentation\authors\handlers\AuthorListViewFactory;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use yii\data\DataProviderInterface;
 use yii\web\Request;
 
-final class AuthorListViewFactoryTest extends Unit
+final class AuthorListViewFactoryTest extends TestCase
 {
     private AuthorQueryServiceInterface&MockObject $queryService;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private AuthorListViewFactory $factory;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->queryService = $this->createMock(AuthorQueryServiceInterface::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
@@ -33,8 +33,8 @@ final class AuthorListViewFactoryTest extends Unit
 
     public function testGetListViewModelReturnsModel(): void
     {
-        $pagedResult = $this->createMock(PagedResultInterface::class);
-        $dataProvider = $this->createMock(DataProviderInterface::class);
+        $pagedResult = $this->createStub(PagedResultInterface::class);
+        $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->queryService->expects($this->once())
             ->method('search')
@@ -46,7 +46,7 @@ final class AuthorListViewFactoryTest extends Unit
             ->with($pagedResult)
             ->willReturn($dataProvider);
 
-        $request = $this->createMock(Request::class);
+        $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
             ['page', null, 1],
             ['limit', null, 20],

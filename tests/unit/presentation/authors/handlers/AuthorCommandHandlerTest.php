@@ -13,26 +13,27 @@ use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
 use app\presentation\authors\mappers\AuthorCommandMapper;
 use app\presentation\common\services\WebOperationRunner;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class AuthorCommandHandlerTest extends Unit
+final class AuthorCommandHandlerTest extends TestCase
 {
     private const MSG_MAPPER_FAILED = 'mapper failed';
     private AuthorCommandMapper&MockObject $commandMapper;
-    private CreateAuthorUseCase&MockObject $createAuthorUseCase;
-    private UpdateAuthorUseCase&MockObject $updateAuthorUseCase;
-    private DeleteAuthorUseCase&MockObject $deleteAuthorUseCase;
+    private CreateAuthorUseCase&Stub $createAuthorUseCase;
+    private UpdateAuthorUseCase&Stub $updateAuthorUseCase;
+    private DeleteAuthorUseCase&Stub $deleteAuthorUseCase;
     private WebOperationRunner&MockObject $operationRunner;
     private AuthorCommandHandler $handler;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->commandMapper = $this->createMock(AuthorCommandMapper::class);
-        $this->createAuthorUseCase = $this->createMock(CreateAuthorUseCase::class);
-        $this->updateAuthorUseCase = $this->createMock(UpdateAuthorUseCase::class);
-        $this->deleteAuthorUseCase = $this->createMock(DeleteAuthorUseCase::class);
+        $this->createAuthorUseCase = $this->createStub(CreateAuthorUseCase::class);
+        $this->updateAuthorUseCase = $this->createStub(UpdateAuthorUseCase::class);
+        $this->deleteAuthorUseCase = $this->createStub(DeleteAuthorUseCase::class);
         $this->operationRunner = $this->createMock(WebOperationRunner::class);
 
         $this->handler = new AuthorCommandHandler(
@@ -46,8 +47,8 @@ final class AuthorCommandHandlerTest extends Unit
 
     public function testCreateAuthorReturnsIdOnSuccess(): void
     {
-        $form = $this->createMock(AuthorForm::class);
-        $command = $this->createMock(CreateAuthorCommand::class);
+        $form = $this->createStub(AuthorForm::class);
+        $command = $this->createStub(CreateAuthorCommand::class);
 
         $this->commandMapper->expects($this->once())
             ->method('toCreateCommand')
@@ -63,22 +64,32 @@ final class AuthorCommandHandlerTest extends Unit
 
     public function testCreateAuthorPropagatesMapperException(): void
     {
-        $form = $this->createMock(AuthorForm::class);
+        $this->operationRunner->expects($this->never())->method($this->anything());
+        $form = $this->createStub(AuthorForm::class);
+        $operationRunner = $this->createStub(WebOperationRunner::class);
 
         $this->commandMapper->expects($this->once())
             ->method('toCreateCommand')
             ->willThrowException(new RuntimeException(self::MSG_MAPPER_FAILED));
 
+        $handler = new AuthorCommandHandler(
+            $this->commandMapper,
+            $this->createAuthorUseCase,
+            $this->updateAuthorUseCase,
+            $this->deleteAuthorUseCase,
+            $operationRunner,
+        );
+
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage(self::MSG_MAPPER_FAILED);
 
-        $this->handler->createAuthor($form);
+        $handler->createAuthor($form);
     }
 
     public function testUpdateAuthorSucceeds(): void
     {
-        $form = $this->createMock(AuthorForm::class);
-        $command = $this->createMock(UpdateAuthorCommand::class);
+        $form = $this->createStub(AuthorForm::class);
+        $command = $this->createStub(UpdateAuthorCommand::class);
 
         $this->commandMapper->expects($this->once())
             ->method('toUpdateCommand')
@@ -93,23 +104,44 @@ final class AuthorCommandHandlerTest extends Unit
 
     public function testUpdateAuthorPropagatesMapperException(): void
     {
-        $form = $this->createMock(AuthorForm::class);
+        $this->operationRunner->expects($this->never())->method($this->anything());
+        $form = $this->createStub(AuthorForm::class);
+        $operationRunner = $this->createStub(WebOperationRunner::class);
 
         $this->commandMapper->expects($this->once())
             ->method('toUpdateCommand')
             ->willThrowException(new RuntimeException(self::MSG_MAPPER_FAILED));
 
+        $handler = new AuthorCommandHandler(
+            $this->commandMapper,
+            $this->createAuthorUseCase,
+            $this->updateAuthorUseCase,
+            $this->deleteAuthorUseCase,
+            $operationRunner,
+        );
+
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage(self::MSG_MAPPER_FAILED);
 
-        $this->handler->updateAuthor(1, $form);
+        $handler->updateAuthor(1, $form);
     }
 
     public function testDeleteAuthorSucceeds(): void
     {
+        $this->commandMapper->expects($this->never())->method($this->anything());
+        $commandMapper = $this->createStub(AuthorCommandMapper::class);
+
         $this->operationRunner->expects($this->once())
             ->method('executeAndPropagate');
 
-        $this->handler->deleteAuthor(1);
+        $handler = new AuthorCommandHandler(
+            $commandMapper,
+            $this->createAuthorUseCase,
+            $this->updateAuthorUseCase,
+            $this->deleteAuthorUseCase,
+            $this->operationRunner,
+        );
+
+        $handler->deleteAuthor(1);
     }
 }

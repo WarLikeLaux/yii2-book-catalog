@@ -6,9 +6,9 @@ namespace tests\unit\application\common\config;
 
 use app\application\common\config\JaegerConfig;
 use app\application\common\exceptions\ConfigurationException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class JaegerConfigTest extends Unit
+final class JaegerConfigTest extends TestCase
 {
     public function testFromParamsSuccess(): void
     {

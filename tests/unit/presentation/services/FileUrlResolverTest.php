@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace tests\unit\presentation\services;
 
 use app\presentation\services\FileUrlResolver;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class FileUrlResolverTest extends Unit
+final class FileUrlResolverTest extends TestCase
 {
     private const PLACEHOLDER_URL = 'https://placehold.jp/24/333333/ffffff/400x600.png?text=Book+{seed}';
     private FileUrlResolver $resolver;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->resolver = new FileUrlResolver('/uploads');
     }

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\application\common\config;
 
 use app\application\common\config\ConfigFactory;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class ConfigFactoryTest extends Unit
+final class ConfigFactoryTest extends TestCase
 {
     public function testBuildsAllConfigs(): void
     {

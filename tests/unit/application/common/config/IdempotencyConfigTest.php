@@ -6,9 +6,9 @@ namespace tests\unit\application\common\config;
 
 use app\application\common\config\IdempotencyConfig;
 use app\application\common\exceptions\ConfigurationException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class IdempotencyConfigTest extends Unit
+final class IdempotencyConfigTest extends TestCase
 {
     public function testFromParamsBuildsConfig(): void
     {

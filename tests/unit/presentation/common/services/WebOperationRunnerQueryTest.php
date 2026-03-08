@@ -13,25 +13,25 @@ use app\application\ports\TranslatorInterface;
 use app\application\ports\UseCaseInterface;
 use app\presentation\common\dto\ApiResponse;
 use app\presentation\common\services\WebOperationRunner;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
-final class WebOperationRunnerQueryTest extends Unit
+final class WebOperationRunnerQueryTest extends TestCase
 {
-    private NotificationInterface&MockObject $notifier;
-    private LoggerInterface&MockObject $logger;
-    private TranslatorInterface&MockObject $translator;
-    private PipelineFactory&MockObject $pipelineFactory;
+    private NotificationInterface&Stub $notifier;
+    private LoggerInterface&Stub $logger;
+    private TranslatorInterface&Stub $translator;
+    private PipelineFactory&Stub $pipelineFactory;
     private WebOperationRunner $runner;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->notifier = $this->createMock(NotificationInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->translator = $this->createMock(TranslatorInterface::class);
-        $this->pipelineFactory = $this->createMock(PipelineFactory::class);
+        $this->notifier = $this->createStub(NotificationInterface::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
+        $this->translator = $this->createStub(TranslatorInterface::class);
+        $this->pipelineFactory = $this->createStub(PipelineFactory::class);
         $this->runner = new WebOperationRunner($this->notifier, $this->logger, $this->translator, $this->pipelineFactory);
     }
 
@@ -43,13 +43,17 @@ final class WebOperationRunnerQueryTest extends Unit
 
     public function testQueryReturnsFallbackOnApplicationException(): void
     {
-        $this->translator->expects($this->once())
+        $translator = $this->createMock(TranslatorInterface::class);
+        $notifier = $this->createMock(NotificationInterface::class);
+        $runner = new WebOperationRunner($notifier, $this->logger, $translator, $this->pipelineFactory);
+
+        $translator->expects($this->once())
             ->method('translate')
             ->with('app', 'book.error.title_empty')
             ->willReturn('book.error.title_empty');
-        $this->notifier->expects($this->once())->method('error')->with('book.error.title_empty');
+        $notifier->expects($this->once())->method('error')->with('book.error.title_empty');
 
-        $result = $this->runner->query(
+        $result = $runner->query(
             static fn() => throw new ApplicationException('book.error.title_empty'),
             'fallback',
             'error message',
@@ -60,10 +64,14 @@ final class WebOperationRunnerQueryTest extends Unit
 
     public function testQueryReturnsFallbackOnException(): void
     {
-        $this->logger->expects($this->once())->method('error');
-        $this->notifier->expects($this->once())->method('error')->with('generic error');
+        $logger = $this->createMock(LoggerInterface::class);
+        $notifier = $this->createMock(NotificationInterface::class);
+        $runner = new WebOperationRunner($notifier, $logger, $this->translator, $this->pipelineFactory);
 
-        $result = $this->runner->query(
+        $logger->expects($this->once())->method('error');
+        $notifier->expects($this->once())->method('error')->with('generic error');
+
+        $result = $runner->query(
             static fn() => throw new RuntimeException('boom'),
             'fallback',
             'generic error',
@@ -74,21 +82,24 @@ final class WebOperationRunnerQueryTest extends Unit
 
     public function testExecuteForApiReturnsApplicationError(): void
     {
-        $command = $this->createMock(CommandInterface::class);
-        $useCase = $this->createMock(UseCaseInterface::class);
+        $command = $this->createStub(CommandInterface::class);
+        $useCase = $this->createStub(UseCaseInterface::class);
         $pipeline = $this->createMock(PipelineInterface::class);
+        $pipelineFactory = $this->createMock(PipelineFactory::class);
+        $translator = $this->createMock(TranslatorInterface::class);
+        $runner = new WebOperationRunner($this->notifier, $this->logger, $translator, $pipelineFactory);
 
-        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
         $pipeline->expects($this->once())
             ->method('execute')
             ->willThrowException(new ApplicationException('book.error.title_empty'));
 
-        $this->translator->expects($this->once())
+        $translator->expects($this->once())
             ->method('translate')
             ->with('app', 'book.error.title_empty')
             ->willReturn('book.error.title_empty');
 
-        $result = $this->runner->executeForApi(
+        $result = $runner->executeForApi(
             $command,
             $useCase,
             'success',
@@ -101,21 +112,25 @@ final class WebOperationRunnerQueryTest extends Unit
 
     public function testExecuteForApiReturnsGenericError(): void
     {
-        $command = $this->createMock(CommandInterface::class);
-        $useCase = $this->createMock(UseCaseInterface::class);
+        $command = $this->createStub(CommandInterface::class);
+        $useCase = $this->createStub(UseCaseInterface::class);
         $pipeline = $this->createMock(PipelineInterface::class);
+        $pipelineFactory = $this->createMock(PipelineFactory::class);
+        $translator = $this->createMock(TranslatorInterface::class);
+        $logger = $this->createMock(LoggerInterface::class);
+        $runner = new WebOperationRunner($this->notifier, $logger, $translator, $pipelineFactory);
 
-        $this->pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
+        $pipelineFactory->expects($this->once())->method('createDefault')->willReturn($pipeline);
         $pipeline->expects($this->once())
             ->method('execute')
             ->willThrowException(new RuntimeException('boom'));
 
-        $this->translator->expects($this->once())
+        $translator->expects($this->once())
             ->method('translate')
             ->willReturn('error.unexpected');
-        $this->logger->expects($this->once())->method('error');
+        $logger->expects($this->once())->method('error');
 
-        $result = $this->runner->executeForApi(
+        $result = $runner->executeForApi(
             $command,
             $useCase,
             'success',

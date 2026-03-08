@@ -6,9 +6,9 @@ namespace tests\unit\application\common\config;
 
 use app\application\common\config\ReportsConfig;
 use app\application\common\exceptions\ConfigurationException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class ReportsConfigTest extends Unit
+final class ReportsConfigTest extends TestCase
 {
     public function testFromParamsBuildsConfig(): void
     {

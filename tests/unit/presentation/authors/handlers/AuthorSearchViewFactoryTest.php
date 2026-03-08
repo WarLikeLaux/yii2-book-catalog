@@ -8,15 +8,15 @@ use app\application\authors\queries\AuthorReadDto;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\presentation\authors\handlers\AuthorSearchViewFactory;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-final class AuthorSearchViewFactoryTest extends Unit
+final class AuthorSearchViewFactoryTest extends TestCase
 {
     private AuthorQueryServiceInterface&MockObject $queryService;
     private AuthorSearchViewFactory $viewFactory;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->queryService = $this->createMock(AuthorQueryServiceInterface::class);
 
@@ -47,7 +47,7 @@ final class AuthorSearchViewFactoryTest extends Unit
     {
         $queryParams = ['q' => 'test'];
 
-        $pagedResult = $this->createMock(PagedResultInterface::class);
+        $pagedResult = $this->createStub(PagedResultInterface::class);
         $pagedResult->method('getModels')->willReturn([
             new AuthorReadDto(1, 'Test Author'),
         ]);

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\application\authors\queries;
 
 use app\application\authors\queries\AuthorSearchCriteria;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AuthorSearchCriteriaTest extends Unit
+final class AuthorSearchCriteriaTest extends TestCase
 {
     public function testDefaultValues(): void
     {

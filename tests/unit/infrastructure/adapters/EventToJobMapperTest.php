@@ -11,13 +11,13 @@ use app\infrastructure\adapters\EventJobMappingRegistry;
 use app\infrastructure\adapters\EventSerializer;
 use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\queue\NotifySubscribersJob;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class EventToJobMapperTest extends Unit
+final class EventToJobMapperTest extends TestCase
 {
     private EventToJobMapper $mapper;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $registry = new EventJobMappingRegistry(
             [BookStatusChangedEvent::class => NotifySubscribersJob::class],

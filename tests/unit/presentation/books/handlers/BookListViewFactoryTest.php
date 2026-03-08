@@ -16,12 +16,12 @@ use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\common\exceptions\UnexpectedDtoTypeException;
 use app\presentation\services\FileUrlResolver;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use yii\data\DataProviderInterface;
 use yii\web\Request;
 
-final class BookListViewFactoryTest extends Unit
+final class BookListViewFactoryTest extends TestCase
 {
     private BookSearcherInterface&MockObject $searcher;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
@@ -30,7 +30,7 @@ final class BookListViewFactoryTest extends Unit
     private BookViewModelMapper $viewModelMapper;
     private BookListViewFactory $factory;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->searcher = $this->createMock(BookSearcherInterface::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
@@ -50,7 +50,7 @@ final class BookListViewFactoryTest extends Unit
     {
         $dto = new BookReadDto(1, 'T', 2020, null, 'ISBN', [], [], null, BookStatus::Draft->value, 1);
         $queryResult = new QueryResult([$dto], 1, new PaginationDto(1, 20, 1, 1));
-        $dataProvider = $this->createMock(DataProviderInterface::class);
+        $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->searcher->expects($this->once())
             ->method('search')
@@ -61,7 +61,7 @@ final class BookListViewFactoryTest extends Unit
             ->method('create')
             ->willReturn($dataProvider);
 
-        $request = $this->createMock(Request::class);
+        $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
             ['page', null, null, 1],
             ['limit', null, null, 20],
@@ -75,6 +75,7 @@ final class BookListViewFactoryTest extends Unit
 
     public function testGetListViewModelThrowsWhenInvalidDtoType(): void
     {
+        $this->dataProviderFactory->expects($this->never())->method($this->anything());
         $queryResult = new QueryResult([new \stdClass()], 1, new PaginationDto(1, 20, 1, 1));
 
         $this->searcher->expects($this->once())
@@ -82,7 +83,14 @@ final class BookListViewFactoryTest extends Unit
             ->with('', 1, 20)
             ->willReturn($queryResult);
 
-        $request = $this->createMock(Request::class);
+        $factory = new BookListViewFactory(
+            $this->searcher,
+            $this->createStub(PagedResultDataProviderFactory::class),
+            $this->urlResolver,
+            $this->viewModelMapper,
+        );
+
+        $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
             ['page', null, null, 1],
             ['limit', null, null, 20],
@@ -92,6 +100,6 @@ final class BookListViewFactoryTest extends Unit
         $this->expectExceptionMessage(BookReadDto::class);
         $this->expectExceptionMessage('stdClass');
 
-        $this->factory->getListViewModel($request);
+        $factory->getListViewModel($request);
     }
 }

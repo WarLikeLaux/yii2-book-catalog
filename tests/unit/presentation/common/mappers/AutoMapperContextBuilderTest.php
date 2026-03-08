@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\presentation\common\mappers;
 
 use app\presentation\common\mappers\AutoMapperContextBuilder;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AutoMapperContextBuilderTest extends Unit
+final class AutoMapperContextBuilderTest extends TestCase
 {
     public function testBuildCreatesConstructorArguments(): void
     {

@@ -10,13 +10,13 @@ use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookPublicationPolicyTest extends Unit
+final class BookPublicationPolicyTest extends TestCase
 {
     private BookPublicationPolicy $policy;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->policy = new BookPublicationPolicy();
     }

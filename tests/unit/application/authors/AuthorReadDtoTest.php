@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\application\authors;
 
 use app\application\authors\queries\AuthorReadDto;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AuthorReadDtoTest extends Unit
+final class AuthorReadDtoTest extends TestCase
 {
     public function testJsonSerialize(): void
     {

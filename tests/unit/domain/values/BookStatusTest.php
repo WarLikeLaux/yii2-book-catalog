@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\domain\values;
 
 use app\domain\values\BookStatus;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookStatusTest extends Unit
+final class BookStatusTest extends TestCase
 {
     public function testDraftToPublishedAllowed(): void
     {

@@ -6,9 +6,9 @@ namespace tests\unit\application\common\config;
 
 use app\application\common\config\RateLimitConfig;
 use app\application\common\exceptions\ConfigurationException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class RateLimitConfigTest extends Unit
+final class RateLimitConfigTest extends TestCase
 {
     public function testFromParamsBuildsConfig(): void
     {

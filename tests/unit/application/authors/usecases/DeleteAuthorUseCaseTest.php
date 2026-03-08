@@ -12,16 +12,16 @@ use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\repositories\AuthorRepositoryInterface;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-final class DeleteAuthorUseCaseTest extends Unit
+final class DeleteAuthorUseCaseTest extends TestCase
 {
     private AuthorRepositoryInterface&MockObject $authorRepository;
     private AuthorUsageCheckerInterface&MockObject $authorUsageChecker;
     private DeleteAuthorUseCase $useCase;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->authorRepository = $this->createMock(AuthorRepositoryInterface::class);
         $this->authorUsageChecker = $this->createMock(AuthorUsageCheckerInterface::class);

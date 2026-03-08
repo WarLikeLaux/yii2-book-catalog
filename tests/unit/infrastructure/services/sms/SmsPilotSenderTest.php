@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\sms;
 
 use app\infrastructure\services\sms\SmsPilotSender;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 
-final class SmsPilotSenderTest extends Unit
+final class SmsPilotSenderTest extends TestCase
 {
     private SmsPilotSender $sender;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $logger = $this->createMock(LoggerInterface::class);
+        $logger = $this->createStub(LoggerInterface::class);
         $this->sender = new SmsPilotSender('test-key', $logger);
     }
 

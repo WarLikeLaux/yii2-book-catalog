@@ -6,10 +6,10 @@ namespace tests\unit\infrastructure\factories;
 
 use app\application\ports\TracerInterface;
 use app\infrastructure\factories\TracingFactory;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use yii\di\Container;
 
-final class TracingFactoryTest extends Unit
+final class TracingFactoryTest extends TestCase
 {
     public function testCreateReturnsServiceWhenNoTracerAvailable(): void
     {
@@ -26,7 +26,7 @@ final class TracingFactoryTest extends Unit
     public function testCreateReturnsDecoratorWhenTracerAvailable(): void
     {
         $container = new Container();
-        $tracer = $this->createMock(TracerInterface::class);
+        $tracer = $this->createStub(TracerInterface::class);
         $container->setSingleton(TracerInterface::class, $tracer);
 
         $service = new \stdClass();

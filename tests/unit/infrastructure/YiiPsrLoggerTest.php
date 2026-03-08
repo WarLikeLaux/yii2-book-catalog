@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure;
 
 use app\infrastructure\services\YiiPsrLogger;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 use Yii;
 use yii\log\Logger;
 
-final class YiiPsrLoggerTest extends Unit
+final class YiiPsrLoggerTest extends TestCase
 {
     private YiiPsrLogger $logger;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->logger = new YiiPsrLogger('test');
     }

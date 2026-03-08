@@ -6,9 +6,9 @@ namespace tests\unit\domain\entities;
 
 use app\domain\entities\Author;
 use app\domain\exceptions\DomainException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AuthorTest extends Unit
+final class AuthorTest extends TestCase
 {
     public function testCreateAndGetters(): void
     {

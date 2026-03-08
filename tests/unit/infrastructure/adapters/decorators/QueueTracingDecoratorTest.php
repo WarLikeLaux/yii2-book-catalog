@@ -7,9 +7,9 @@ namespace tests\unit\infrastructure\adapters\decorators;
 use app\application\ports\QueueInterface;
 use app\application\ports\TracerInterface;
 use app\infrastructure\adapters\decorators\QueueTracingDecorator;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class QueueTracingDecoratorTest extends Unit
+final class QueueTracingDecoratorTest extends TestCase
 {
     public function testPushDelegatesToInnerQueueWithTracing(): void
     {

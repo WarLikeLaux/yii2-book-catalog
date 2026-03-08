@@ -7,14 +7,14 @@ namespace tests\unit\infrastructure\services;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
 use app\infrastructure\services\LibPhoneNormalizer;
-use Codeception\Test\Unit;
 use libphonenumber\PhoneNumberUtil;
+use PHPUnit\Framework\TestCase;
 
-final class LibPhoneNormalizerTest extends Unit
+final class LibPhoneNormalizerTest extends TestCase
 {
     private LibPhoneNormalizer $normalizer;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->normalizer = new LibPhoneNormalizer(PhoneNumberUtil::getInstance());
     }

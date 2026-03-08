@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\adapters;
 
 use app\infrastructure\adapters\YiiQueueAdapter;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use yii\queue\db\Queue;
 
-final class YiiQueueAdapterTest extends Unit
+final class YiiQueueAdapterTest extends TestCase
 {
     public function testPushDelegatesToYiiQueue(): void
     {

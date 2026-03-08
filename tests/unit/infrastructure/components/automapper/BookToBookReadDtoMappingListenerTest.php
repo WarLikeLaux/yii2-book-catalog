@@ -11,14 +11,13 @@ use AutoMapper\Event\GenerateMapperEvent;
 use AutoMapper\Event\PropertyMetadataEvent;
 use AutoMapper\Metadata\MapperMetadata;
 use AutoMapper\Transformer\CallableTransformer;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-final class BookToBookReadDtoMappingListenerTest extends Unit
+final class BookToBookReadDtoMappingListenerTest extends TestCase
 {
     private BookToBookReadDtoMappingListener $listener;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->listener = new BookToBookReadDtoMappingListener();
     }
@@ -87,7 +86,7 @@ final class BookToBookReadDtoMappingListenerTest extends Unit
     {
         $event = $this->createEventForMapping(Book::class, BookReadDto::class);
 
-        $existingProperty = $this->createMock(PropertyMetadataEvent::class);
+        $existingProperty = $this->createStub(PropertyMetadataEvent::class);
         $event->properties['authorIds'] = $existingProperty;
 
         ($this->listener)($event);
@@ -100,7 +99,7 @@ final class BookToBookReadDtoMappingListenerTest extends Unit
     {
         $event = $this->createEventForMapping(Book::class, BookReadDto::class);
 
-        $existingProperty = $this->createMock(PropertyMetadataEvent::class);
+        $existingProperty = $this->createStub(PropertyMetadataEvent::class);
         $event->properties['authorNames'] = $existingProperty;
 
         ($this->listener)($event);
@@ -113,7 +112,7 @@ final class BookToBookReadDtoMappingListenerTest extends Unit
     {
         $event = $this->createEventForMapping(Book::class, BookReadDto::class);
 
-        $existingProperty = $this->createMock(PropertyMetadataEvent::class);
+        $existingProperty = $this->createStub(PropertyMetadataEvent::class);
         $event->properties['coverUrl'] = $existingProperty;
 
         ($this->listener)($event);
@@ -128,8 +127,8 @@ final class BookToBookReadDtoMappingListenerTest extends Unit
      */
     private function createEventForMapping(string $sourceClass, string $targetClass): GenerateMapperEvent
     {
-        /** @var MapperMetadata&MockObject $mapperMetadata */
-        $mapperMetadata = $this->createMock(MapperMetadata::class);
+        /** @var MapperMetadata&\PHPUnit\Framework\MockObject\Stub $mapperMetadata */
+        $mapperMetadata = $this->createStub(MapperMetadata::class);
         $mapperMetadata->source = $sourceClass;
         $mapperMetadata->target = $targetClass;
 

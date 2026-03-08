@@ -6,9 +6,9 @@ namespace tests\unit\application\common\config;
 
 use app\application\common\config\ConfigReader;
 use app\application\common\exceptions\ConfigurationException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class ConfigReaderTest extends Unit
+final class ConfigReaderTest extends TestCase
 {
     public function testRequireSubsection(): void
     {

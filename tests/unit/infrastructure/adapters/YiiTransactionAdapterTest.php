@@ -5,30 +5,31 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\adapters;
 
 use app\infrastructure\adapters\YiiTransactionAdapter;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use yii\db\Connection;
 use yii\db\Transaction;
 
-final class YiiTransactionAdapterTest extends Unit
+final class YiiTransactionAdapterTest extends TestCase
 {
-    private Connection&MockObject $db;
+    private Connection $db;
     private YiiTransactionAdapter $adapter;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->db = $this->createMock(Connection::class);
+        $this->db = $this->createStub(Connection::class);
         $this->adapter = new YiiTransactionAdapter($this->db);
     }
 
     public function testBeginStartsTransaction(): void
     {
-        $transaction = $this->createMock(Transaction::class);
-        $this->db->expects($this->once())
+        $db = $this->createMock(Connection::class);
+        $transaction = $this->createStub(Transaction::class);
+        $db->expects($this->once())
             ->method('beginTransaction')
             ->willReturn($transaction);
 
-        $this->adapter->begin();
+        $adapter = new YiiTransactionAdapter($db);
+        $adapter->begin();
     }
 
     public function testCommitThrowsExceptionWhenNotStarted(): void
@@ -73,7 +74,7 @@ final class YiiTransactionAdapterTest extends Unit
 
     public function testAfterCommitCallbacksExecutedAfterCommit(): void
     {
-        $transaction = $this->createMock(Transaction::class);
+        $transaction = $this->createStub(Transaction::class);
         $transaction->method('getIsActive')->willReturn(true);
         $this->db->method('beginTransaction')->willReturn($transaction);
 
@@ -89,7 +90,7 @@ final class YiiTransactionAdapterTest extends Unit
 
     public function testAfterCommitCallbacksNotExecutedOnRollback(): void
     {
-        $transaction = $this->createMock(Transaction::class);
+        $transaction = $this->createStub(Transaction::class);
         $transaction->method('getIsActive')->willReturn(true);
         $this->db->method('beginTransaction')->willReturn($transaction);
 
@@ -105,7 +106,7 @@ final class YiiTransactionAdapterTest extends Unit
 
     public function testMultipleAfterCommitCallbacksExecutedInOrder(): void
     {
-        $transaction = $this->createMock(Transaction::class);
+        $transaction = $this->createStub(Transaction::class);
         $transaction->method('getIsActive')->willReturn(true);
         $this->db->method('beginTransaction')->willReturn($transaction);
 
@@ -139,14 +140,15 @@ final class YiiTransactionAdapterTest extends Unit
 
     public function testNestedTransactionsWithDifferentInstancesOnSameConnection(): void
     {
+        $db = $this->createMock(Connection::class);
         $activeTransaction = $this->createMock(Transaction::class);
         $activeTransaction->method('getIsActive')->willReturn(true);
 
-        $this->db->method('getTransaction')->willReturn($activeTransaction);
+        $db->method('getTransaction')->willReturn($activeTransaction);
 
-        $adapter1 = new YiiTransactionAdapter($this->db);
+        $adapter1 = new YiiTransactionAdapter($db);
 
-        $this->db->expects($this->never())->method('beginTransaction');
+        $db->expects($this->never())->method('beginTransaction');
         $activeTransaction->expects($this->never())->method('commit');
 
         $adapter1->begin();

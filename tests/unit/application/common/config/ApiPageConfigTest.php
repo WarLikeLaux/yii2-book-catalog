@@ -6,9 +6,9 @@ namespace tests\unit\application\common\config;
 
 use app\application\common\config\ApiPageConfig;
 use app\application\common\exceptions\ConfigurationException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class ApiPageConfigTest extends Unit
+final class ApiPageConfigTest extends TestCase
 {
     public function testFromParamsBuildsConfig(): void
     {

@@ -14,9 +14,9 @@ use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookTest extends Unit
+final class BookTest extends TestCase
 {
     private const ISBN_ALTERNATE = '979-10-90636-07-1';
     private function createBook(

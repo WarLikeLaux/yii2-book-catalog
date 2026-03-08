@@ -11,15 +11,15 @@ use app\domain\exceptions\EntityNotFoundException;
 use app\domain\repositories\BookRepositoryInterface;
 use app\domain\values\BookStatus;
 use BookTestHelper;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-final class DeleteBookUseCaseTest extends Unit
+final class DeleteBookUseCaseTest extends TestCase
 {
     private BookRepositoryInterface&MockObject $bookRepository;
     private DeleteBookUseCase $useCase;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
         $this->useCase = new DeleteBookUseCase($this->bookRepository);

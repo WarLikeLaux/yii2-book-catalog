@@ -8,9 +8,9 @@ use app\application\common\config\ApiPageConfig;
 use app\presentation\auth\dto\LoginViewModel;
 use app\presentation\auth\forms\LoginForm;
 use app\presentation\auth\handlers\AuthViewFactory;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AuthViewFactoryTest extends Unit
+final class AuthViewFactoryTest extends TestCase
 {
     public function testGetLoginViewModelReturnsViewModel(): void
     {

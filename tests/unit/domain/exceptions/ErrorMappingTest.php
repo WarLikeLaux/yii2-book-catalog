@@ -6,9 +6,9 @@ namespace tests\unit\domain\exceptions;
 
 use app\domain\exceptions\ErrorMapping;
 use app\domain\exceptions\ErrorType;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class ErrorMappingTest extends Unit
+final class ErrorMappingTest extends TestCase
 {
     public function testConstructWithTypeOnly(): void
     {

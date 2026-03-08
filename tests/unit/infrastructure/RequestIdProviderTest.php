@@ -6,16 +6,16 @@ namespace tests\unit\infrastructure;
 
 use app\application\ports\RequestIdProviderInterface;
 use app\infrastructure\services\observability\RequestIdProvider;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class RequestIdProviderTest extends Unit
+final class RequestIdProviderTest extends TestCase
 {
-    protected function _before(): void
+    protected function setUp(): void
     {
         RequestIdProvider::reset();
     }
 
-    protected function _after(): void
+    protected function tearDown(): void
     {
         RequestIdProvider::reset();
     }

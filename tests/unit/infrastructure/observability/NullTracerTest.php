@@ -6,13 +6,13 @@ namespace tests\unit\infrastructure\observability;
 
 use app\infrastructure\services\observability\NullSpan;
 use app\infrastructure\services\observability\NullTracer;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class NullTracerTest extends Unit
+final class NullTracerTest extends TestCase
 {
     private NullTracer $tracer;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->tracer = new NullTracer();
     }

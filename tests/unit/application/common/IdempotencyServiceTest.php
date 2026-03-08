@@ -11,19 +11,19 @@ use app\application\common\IdempotencyService;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\MutexInterface;
 use app\domain\values\BookStatus;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 
-final class IdempotencyServiceTest extends Unit
+final class IdempotencyServiceTest extends TestCase
 {
-    private IdempotencyInterface&MockObject $repository;
-    private MutexInterface&MockObject $mutex;
+    private IdempotencyInterface&Stub $repository;
+    private MutexInterface&Stub $mutex;
     private IdempotencyService $service;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->repository = $this->createMock(IdempotencyInterface::class);
-        $this->mutex = $this->createMock(MutexInterface::class);
+        $this->repository = $this->createStub(IdempotencyInterface::class);
+        $this->mutex = $this->createStub(MutexInterface::class);
         $this->service = new IdempotencyService($this->repository, $this->mutex);
     }
 
@@ -37,12 +37,14 @@ final class IdempotencyServiceTest extends Unit
             null,
         );
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('getRecord')
             ->with($key)
             ->willReturn($dto);
 
-        $result = $this->service->getRecord($key);
+        $service = new IdempotencyService($repository, $this->mutex);
+        $result = $service->getRecord($key);
 
         $this->assertNotNull($result);
         $this->assertSame(IdempotencyKeyStatus::Finished, $result->status);
@@ -61,12 +63,14 @@ final class IdempotencyServiceTest extends Unit
             '/view/123',
         );
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('getRecord')
             ->with($key)
             ->willReturn($dto);
 
-        $result = $this->service->getRecord($key);
+        $service = new IdempotencyService($repository, $this->mutex);
+        $result = $service->getRecord($key);
 
         $this->assertNotNull($result);
         $this->assertSame(IdempotencyKeyStatus::Finished, $result->status);
@@ -79,12 +83,14 @@ final class IdempotencyServiceTest extends Unit
         $key = 'test-key';
         $dto = new IdempotencyRecordDto(IdempotencyKeyStatus::Started, null, [], null);
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('getRecord')
             ->with($key)
             ->willReturn($dto);
 
-        $result = $this->service->getRecord($key);
+        $service = new IdempotencyService($repository, $this->mutex);
+        $result = $service->getRecord($key);
 
         $this->assertNotNull($result);
         $this->assertSame(IdempotencyKeyStatus::Started, $result->status);
@@ -98,12 +104,14 @@ final class IdempotencyServiceTest extends Unit
         $key = 'test-key';
         $dto = new IdempotencyRecordDto(IdempotencyKeyStatus::Started, null, [], null);
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('getRecord')
             ->with($key)
             ->willReturn($dto);
 
-        $result = $this->service->getRecord($key);
+        $service = new IdempotencyService($repository, $this->mutex);
+        $result = $service->getRecord($key);
 
         $this->assertNotNull($result);
         $this->assertSame(IdempotencyKeyStatus::Started, $result->status);
@@ -116,12 +124,14 @@ final class IdempotencyServiceTest extends Unit
     {
         $key = 'test-key';
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('getRecord')
             ->with($key)
             ->willReturn(null);
 
-        $result = $this->service->getRecord($key);
+        $service = new IdempotencyService($repository, $this->mutex);
+        $result = $service->getRecord($key);
 
         $this->assertNull($result);
     }
@@ -132,11 +142,13 @@ final class IdempotencyServiceTest extends Unit
         $result = ['id' => 456];
         $ttl = 3600;
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('saveResponse')
             ->with($key, 200, (string)json_encode($result), $ttl);
 
-        $this->service->saveResponse($key, 200, $result, null, $ttl);
+        $service = new IdempotencyService($repository, $this->mutex);
+        $service->saveResponse($key, 200, $result, null, $ttl);
     }
 
     public function testStartRequestDelegatesToRepository(): void
@@ -144,12 +156,14 @@ final class IdempotencyServiceTest extends Unit
         $key = 'test-key';
         $ttl = 3600;
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('saveStarted')
             ->with($key, $ttl)
             ->willReturn(true);
 
-        $this->assertTrue($this->service->startRequest($key, $ttl));
+        $service = new IdempotencyService($repository, $this->mutex);
+        $this->assertTrue($service->startRequest($key, $ttl));
     }
 
     public function testSaveResponsePreservesArrayPayload(): void
@@ -158,11 +172,13 @@ final class IdempotencyServiceTest extends Unit
         $result = ['id' => 456, 'title' => 'Test Book'];
         $ttl = 3600;
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('saveResponse')
             ->with($key, 200, (string)json_encode($result), $ttl);
 
-        $this->service->saveResponse($key, 200, $result, null, $ttl);
+        $service = new IdempotencyService($repository, $this->mutex);
+        $service->saveResponse($key, 200, $result, null, $ttl);
     }
 
     public function testSaveResponseEncodesRedirect(): void
@@ -171,11 +187,13 @@ final class IdempotencyServiceTest extends Unit
         $redirectUrl = '/success';
         $ttl = 3600;
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('saveResponse')
             ->with($key, 302, (string)json_encode(['redirect_url' => $redirectUrl]), $ttl);
 
-        $this->service->saveResponse($key, 302, [], $redirectUrl, $ttl);
+        $service = new IdempotencyService($repository, $this->mutex);
+        $service->saveResponse($key, 302, [], $redirectUrl, $ttl);
     }
 
     public function testSaveResponseSerializesJsonSerializableDto(): void
@@ -209,11 +227,13 @@ final class IdempotencyServiceTest extends Unit
             'version' => 1,
         ];
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('saveResponse')
             ->with($key, 201, (string)json_encode($expectedData), $ttl);
 
-        $this->service->saveResponse($key, 201, $dto, null, $ttl);
+        $service = new IdempotencyService($repository, $this->mutex);
+        $service->saveResponse($key, 201, $dto, null, $ttl);
     }
 
     public function testSaveResponseReturnsEmptyArrayForNonSerializableObjects(): void
@@ -221,11 +241,13 @@ final class IdempotencyServiceTest extends Unit
         $key = 'test-key';
         $ttl = 3600;
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(IdempotencyInterface::class);
+        $repository->expects($this->once())
             ->method('saveResponse')
             ->with($key, 200, (string)json_encode([]), $ttl);
 
-        $this->service->saveResponse($key, 200, new \stdClass(), null, $ttl);
+        $service = new IdempotencyService($repository, $this->mutex);
+        $service->saveResponse($key, 200, new \stdClass(), null, $ttl);
     }
 
     public function testAcquireLockDelegatesToMutexWithPrefix(): void
@@ -233,12 +255,15 @@ final class IdempotencyServiceTest extends Unit
         $key = 'test-key';
         $timeout = 5;
 
-        $this->mutex->expects($this->once())
+        $repository = $this->createStub(IdempotencyInterface::class);
+        $mutex = $this->createMock(MutexInterface::class);
+        $mutex->expects($this->once())
             ->method('acquire')
             ->with('idempotency:test-key', $timeout)
             ->willReturn(true);
 
-        $result = $this->service->acquireLock($key, $timeout);
+        $service = new IdempotencyService($repository, $mutex);
+        $result = $service->acquireLock($key, $timeout);
 
         $this->assertTrue($result);
     }
@@ -247,12 +272,15 @@ final class IdempotencyServiceTest extends Unit
     {
         $key = 'test-key';
 
-        $this->mutex->expects($this->once())
+        $repository = $this->createStub(IdempotencyInterface::class);
+        $mutex = $this->createMock(MutexInterface::class);
+        $mutex->expects($this->once())
             ->method('acquire')
             ->with('idempotency:test-key', 0)
             ->willReturn(false);
 
-        $result = $this->service->acquireLock($key);
+        $service = new IdempotencyService($repository, $mutex);
+        $result = $service->acquireLock($key);
 
         $this->assertFalse($result);
     }
@@ -261,10 +289,13 @@ final class IdempotencyServiceTest extends Unit
     {
         $key = 'test-key';
 
-        $this->mutex->expects($this->once())
+        $repository = $this->createStub(IdempotencyInterface::class);
+        $mutex = $this->createMock(MutexInterface::class);
+        $mutex->expects($this->once())
             ->method('release')
             ->with('idempotency:test-key');
 
-        $this->service->releaseLock($key);
+        $service = new IdempotencyService($repository, $mutex);
+        $service->releaseLock($key);
     }
 }

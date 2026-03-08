@@ -8,16 +8,16 @@ use app\application\common\services\TransactionalEventPublisher;
 use app\application\ports\EventPublisherInterface;
 use app\application\ports\TransactionInterface;
 use app\domain\events\BookDeletedEvent;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-final class TransactionalEventPublisherTest extends Unit
+final class TransactionalEventPublisherTest extends TestCase
 {
     private TransactionInterface&MockObject $transaction;
     private EventPublisherInterface&MockObject $publisher;
     private TransactionalEventPublisher $publisherService;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->transaction = $this->createMock(TransactionInterface::class);
         $this->publisher = $this->createMock(EventPublisherInterface::class);

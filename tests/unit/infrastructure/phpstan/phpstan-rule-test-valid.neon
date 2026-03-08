@@ -1,6 +1,0 @@
-includes:
-	- ../../../../phpstan-base.neon
-
-parameters:
-	paths:
-		- Rules/Fixtures/NoGhostQueryServiceInApplicationRule/valid-dto-no-violation.php

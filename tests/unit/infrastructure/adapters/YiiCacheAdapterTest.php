@@ -5,33 +5,25 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\adapters;
 
 use app\infrastructure\adapters\YiiCacheAdapter;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use yii\caching\CacheInterface as YiiCache;
 use yii\redis\Cache as RedisCache;
 use yii\redis\Connection as RedisConnection;
 
-final class YiiCacheAdapterTest extends Unit
+final class YiiCacheAdapterTest extends TestCase
 {
-    private YiiCache&MockObject $yiiCache;
-    private YiiCacheAdapter $adapter;
-
-    protected function _before(): void
-    {
-        $this->yiiCache = $this->createMock(YiiCache::class);
-        $this->adapter = new YiiCacheAdapter($this->yiiCache);
-    }
-
     public function testGetOrSetDelegatesToYiiCache(): void
     {
         $callback = static fn(): string => 'value';
 
-        $this->yiiCache->expects($this->once())
+        $yiiCache = $this->createMock(YiiCache::class);
+        $yiiCache->expects($this->once())
             ->method('getOrSet')
             ->with('key', $callback, 3600)
             ->willReturn('cached_value');
 
-        $result = $this->adapter->getOrSet('key', $callback);
+        $adapter = new YiiCacheAdapter($yiiCache);
+        $result = $adapter->getOrSet('key', $callback);
 
         $this->assertSame('cached_value', $result);
     }
@@ -40,38 +32,42 @@ final class YiiCacheAdapterTest extends Unit
     {
         $callback = static fn(): string => 'value';
 
-        $this->yiiCache->expects($this->once())
+        $yiiCache = $this->createMock(YiiCache::class);
+        $yiiCache->expects($this->once())
             ->method('getOrSet')
             ->with('key', $callback, 7200)
             ->willReturn('cached_value');
 
-        $result = $this->adapter->getOrSet('key', $callback, 7200);
+        $adapter = new YiiCacheAdapter($yiiCache);
+        $result = $adapter->getOrSet('key', $callback, 7200);
 
         $this->assertSame('cached_value', $result);
     }
 
     public function testDeleteDelegatesToYiiCache(): void
     {
-        $this->yiiCache->expects($this->once())
+        $yiiCache = $this->createMock(YiiCache::class);
+        $yiiCache->expects($this->once())
             ->method('delete')
             ->with('key');
 
-        $this->adapter->delete('key');
+        $adapter = new YiiCacheAdapter($yiiCache);
+        $adapter->delete('key');
     }
 
     public function testDeleteByPrefixDoesNothingForNonRedisCache(): void
     {
-        $this->adapter->deleteByPrefix('prefix:');
+        $yiiCache = $this->createStub(YiiCache::class);
+        $adapter = new YiiCacheAdapter($yiiCache);
+        $adapter->deleteByPrefix('prefix:');
 
         $this->assertTrue(true);
     }
 
     public function testDeleteByPrefixDoesNothingForNonConnectionRedis(): void
     {
-        /** @var RedisCache&MockObject $redisCache */
-        $redisCache = $this->getMockBuilder(RedisCache::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        /** @var RedisCache&\PHPUnit\Framework\MockObject\Stub $redisCache */
+        $redisCache = $this->createStub(RedisCache::class);
 
         $redisCache->redis = 'not-a-connection';
 
@@ -85,10 +81,8 @@ final class YiiCacheAdapterTest extends Unit
     {
         $redisConnection = $this->createMock(RedisConnection::class);
 
-        /** @var RedisCache&MockObject $redisCache */
-        $redisCache = $this->getMockBuilder(RedisCache::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        /** @var RedisCache&\PHPUnit\Framework\MockObject\Stub $redisCache */
+        $redisCache = $this->createStub(RedisCache::class);
 
         $redisCache->redis = $redisConnection;
         $redisCache->keyPrefix = 'yii:';
@@ -116,10 +110,8 @@ final class YiiCacheAdapterTest extends Unit
     {
         $redisConnection = $this->createMock(RedisConnection::class);
 
-        /** @var RedisCache&MockObject $redisCache */
-        $redisCache = $this->getMockBuilder(RedisCache::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        /** @var RedisCache&\PHPUnit\Framework\MockObject\Stub $redisCache */
+        $redisCache = $this->createStub(RedisCache::class);
 
         $redisCache->redis = $redisConnection;
         $redisCache->keyPrefix = '';
@@ -139,10 +131,8 @@ final class YiiCacheAdapterTest extends Unit
     {
         $redisConnection = $this->createMock(RedisConnection::class);
 
-        /** @var RedisCache&MockObject $redisCache */
-        $redisCache = $this->getMockBuilder(RedisCache::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        /** @var RedisCache&\PHPUnit\Framework\MockObject\Stub $redisCache */
+        $redisCache = $this->createStub(RedisCache::class);
 
         $redisCache->redis = $redisConnection;
         $redisCache->keyPrefix = '';

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\sms;
 
 use app\infrastructure\services\sms\PhoneMasker;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class PhoneMaskerTest extends Unit
+final class PhoneMaskerTest extends TestCase
 {
     public function testMaskShortPhoneFullyMasked(): void
     {

@@ -8,14 +8,14 @@ use app\domain\events\BookStatusChangedEvent;
 use app\domain\events\QueueableEvent;
 use app\domain\values\BookStatus;
 use app\infrastructure\adapters\EventSerializer;
-use Codeception\Test\Unit;
 use InvalidArgumentException;
+use PHPUnit\Framework\TestCase;
 
-final class EventSerializerTest extends Unit
+final class EventSerializerTest extends TestCase
 {
     private EventSerializer $serializer;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->serializer = new EventSerializer();
     }

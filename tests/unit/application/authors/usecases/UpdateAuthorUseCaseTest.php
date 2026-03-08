@@ -12,19 +12,20 @@ use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\repositories\AuthorRepositoryInterface;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 
-final class UpdateAuthorUseCaseTest extends Unit
+final class UpdateAuthorUseCaseTest extends TestCase
 {
     private AuthorRepositoryInterface&MockObject $authorRepository;
     private UpdateAuthorUseCase $useCase;
-    private AuthorExistenceCheckerInterface&MockObject $authorExistenceChecker;
+    private AuthorExistenceCheckerInterface&Stub $authorExistenceChecker;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->authorRepository = $this->createMock(AuthorRepositoryInterface::class);
-        $this->authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $this->authorExistenceChecker = $this->createStub(AuthorExistenceCheckerInterface::class);
         $this->useCase = new UpdateAuthorUseCase($this->authorRepository, $this->authorExistenceChecker);
     }
 
@@ -32,10 +33,12 @@ final class UpdateAuthorUseCaseTest extends Unit
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'Новое ФИО');
 
-        $this->authorExistenceChecker->expects($this->once())
+        $authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $authorExistenceChecker->expects($this->once())
             ->method('existsByFio')
             ->with('Новое ФИО', 42)
             ->willReturn(false);
+        $this->useCase = new UpdateAuthorUseCase($this->authorRepository, $authorExistenceChecker);
 
         $existingAuthor = Author::reconstitute(id: 42, fio: 'Старое ФИО');
 
@@ -58,8 +61,10 @@ final class UpdateAuthorUseCaseTest extends Unit
     {
         $command = new UpdateAuthorCommand(id: 999, fio: 'New Name');
 
-        $this->authorExistenceChecker->expects($this->never())
+        $authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $authorExistenceChecker->expects($this->never())
             ->method('existsByFio');
+        $this->useCase = new UpdateAuthorUseCase($this->authorRepository, $authorExistenceChecker);
 
         $this->authorRepository->expects($this->once())
             ->method('get')
@@ -99,16 +104,18 @@ final class UpdateAuthorUseCaseTest extends Unit
     {
         $command = new UpdateAuthorCommand(id: 42, fio: 'Duplicated Name');
 
+        $authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $authorExistenceChecker->expects($this->once())
+            ->method('existsByFio')
+            ->with('Duplicated Name', 42)
+            ->willReturn(true);
+        $this->useCase = new UpdateAuthorUseCase($this->authorRepository, $authorExistenceChecker);
+
         $existingAuthor = Author::reconstitute(id: 42, fio: 'Duplicated Name');
         $this->authorRepository->expects($this->once())
             ->method('get')
             ->with(42)
             ->willReturn($existingAuthor);
-
-        $this->authorExistenceChecker->expects($this->once())
-            ->method('existsByFio')
-            ->with('Duplicated Name', 42)
-            ->willReturn(true);
 
         $this->authorRepository->expects($this->never())->method('save');
 

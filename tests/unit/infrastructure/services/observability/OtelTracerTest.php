@@ -6,20 +6,20 @@ namespace tests\unit\infrastructure\services\observability;
 
 use app\infrastructure\services\observability\OtelSpan;
 use app\infrastructure\services\observability\OtelTracer;
-use Codeception\Test\Unit;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanInterface as OtelApiSpanInterface;
 use OpenTelemetry\API\Trace\TracerInterface as OtelApiTracerInterface;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
+use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
-final class OtelTracerTest extends Unit
+final class OtelTracerTest extends TestCase
 {
     public function testStartSpan(): void
     {
         $apiTracerMock = $this->createMock(OtelApiTracerInterface::class);
         $spanBuilderMock = $this->createMock(SpanBuilderInterface::class);
-        $otelSpanMock = $this->createMock(OtelApiSpanInterface::class);
+        $otelSpanMock = $this->createStub(OtelApiSpanInterface::class);
 
         $reflection = new ReflectionClass(OtelTracer::class);
         $tracer = $reflection->newInstanceWithoutConstructor();

@@ -12,12 +12,12 @@ use app\domain\specifications\StatusSpecification;
 use app\domain\specifications\YearSpecification;
 use app\domain\values\BookStatus;
 use app\infrastructure\queries\ActiveQueryBookSpecificationVisitor;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use yii\db\ActiveQuery;
 use yii\db\Connection;
 use yii\db\Expression;
 
-final class ActiveQueryBookSpecificationVisitorTest extends Unit
+final class ActiveQueryBookSpecificationVisitorTest extends TestCase
 {
     public function testVisitYearAddsWhereCondition(): void
     {

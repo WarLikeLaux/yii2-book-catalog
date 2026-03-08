@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\application\common\values;
 
 use app\application\common\values\AuthorIdCollection;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AuthorIdCollectionTest extends Unit
+final class AuthorIdCollectionTest extends TestCase
 {
     public function testFromMixedNormalizesNullToEmptyArray(): void
     {

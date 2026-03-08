@@ -8,16 +8,16 @@ use app\application\ports\TracerInterface;
 use app\domain\entities\Author;
 use app\domain\repositories\AuthorRepositoryInterface;
 use app\infrastructure\repositories\decorators\AuthorRepositoryTracingDecorator;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-final class AuthorRepositoryTracingDecoratorTest extends Unit
+final class AuthorRepositoryTracingDecoratorTest extends TestCase
 {
     private AuthorRepositoryInterface&MockObject $innerRepository;
     private TracerInterface&MockObject $tracer;
     private AuthorRepositoryTracingDecorator $decorator;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->innerRepository = $this->createMock(AuthorRepositoryInterface::class);
         $this->tracer = $this->createMock(TracerInterface::class);

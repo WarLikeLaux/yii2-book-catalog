@@ -6,9 +6,9 @@ namespace tests\unit\domain\values;
 
 use app\domain\exceptions\DomainException;
 use app\domain\values\BookYear;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookYearTest extends Unit
+final class BookYearTest extends TestCase
 {
     public function testCanCreateValidYear(): void
     {

@@ -13,13 +13,13 @@ use AutoMapper\Metadata\MapperMetadata;
 use AutoMapper\Metadata\SourcePropertyMetadata;
 use AutoMapper\Metadata\TargetPropertyMetadata;
 use AutoMapper\Metadata\TypesMatching;
-use Codeception\Test\Unit;
 use Countable;
 use DateTimeImmutable;
+use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use Stringable;
 
-final class ValueObjectStringPropertyTransformerTest extends Unit
+final class ValueObjectStringPropertyTransformerTest extends TestCase
 {
     private const COVER_PATH = '/files/cover.jpg';
     public function testSupportsCoverValueObject(): void
