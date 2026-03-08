@@ -3,6 +3,9 @@ FROM yiisoftware/yii2-php:8.5-fpm
 # PCOV для покрытия кода тестами
 RUN pecl install pcov && docker-php-ext-enable pcov
 
+# Protobuf для OTLP экспорта OpenTelemetry
+RUN pecl install protobuf && docker-php-ext-enable protobuf
+
 # Redis для кэширования
 RUN pecl install redis && docker-php-ext-enable redis
 
