@@ -5,6 +5,7 @@
         test test-unit test-integration test-e2e cov coverage test-coverage infection inf load-test test-migration \
         migrate seed db-mysql db-pgsql db-info db-fresh queue-info \
         docs swagger repomix tree comments ai \
+        ci-env ci-up ci-down ci-install ci-audit ci-openapi-check ci-quality ci-test-suite ci-e2e \
         diff d sdiff tag \
         review-fetch review-resolve \
         bin-exec
@@ -147,6 +148,12 @@ configure: bin-exec
 env: bin-exec
 	@./bin/setup-env
 
+ci-env:
+	@cp .env.example .env
+	@sed -i 's/^DB_DRIVER=.*/DB_DRIVER=$(DB_DRIVER)/' .env
+	@sed -i 's/^DB_NAME=.*/DB_NAME=$(DB_TEST_NAME)/' .env
+	@sed -i 's/^COOKIE_VALIDATION_KEY=.*/COOKIE_VALIDATION_KEY=testkeytestkeytestkeytestkeytestkey/' .env
+
 clean:
 	@echo "🧹 Очистка кэша и логов..."
 	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "rm -rf /app/runtime/debug/* /app/runtime/logs/* /app/runtime/cache/*"
@@ -154,6 +161,22 @@ clean:
 
 composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer install
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
+
+ci-up:
+	@driver=$${DB_DRIVER:-mysql}; \
+	if [ "$$driver" = "pgsql" ]; then \
+		$(COMPOSE) up -d pgsql redis php nginx selenium --remove-orphans; \
+	else \
+		$(COMPOSE) up -d db redis php nginx selenium --remove-orphans; \
+	fi
+
+ci-down:
+	-$(COMPOSE) down -v --remove-orphans
+
+ci-install:
+	$(COMPOSE) exec $(PHP_CONTAINER) composer install --no-interaction --prefer-dist --optimize-autoloader
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
 
@@ -237,6 +260,14 @@ arch: deptrac arkitect
 audit:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer audit
 
+ci-audit:
+	$(COMPOSE) exec $(PHP_CONTAINER) composer audit
+
+ci-openapi-check: swagger
+	git diff --exit-code -- docs/api/openapi.yaml
+
+ci-quality: ci-audit analyze ci-openapi-check
+
 # Тесты
 
 _test-init:
@@ -300,6 +331,10 @@ test-infection infection inf:
 test-load:
 	@echo "🚀 Load Testing (K6)..."
 	$(COMPOSE) run --rm k6 run /scripts/smoke.js
+
+ci-test-suite: test-full infection
+
+ci-e2e: test-e2e
 
 # База данных
 
