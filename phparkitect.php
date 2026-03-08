@@ -77,11 +77,8 @@ return static function (Config $config): void {
 
     $domainRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\domain\exceptions'))
-        ->andThat(new IsNotInterface())
-        ->andThat(new IsNotAbstract())
+        ->andThat(new IsA(Throwable::class))
         ->andThat(new NotHaveNameMatching('DomainException'))
-        ->andThat(new NotHaveNameMatching('ErrorMapping'))
-        ->andThat(new IsNotEnum())
         ->should(new IsA('app\domain\exceptions\DomainException'))
         ->because('Доменные исключения должны наследоваться от DomainException');
 
