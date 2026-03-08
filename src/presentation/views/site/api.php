@@ -48,7 +48,7 @@ $scheme = Yii::$app->request->isSecureConnection ? 'https://' : 'http://';
                     </code>
                     <p class="card-text small text-muted">Доступные эндпоинты:</p>
                     <ul class="small text-muted">
-                        <li><code>GET /books</code> — список книг (с пагинацией)</li>
+                        <li><code>GET /books</code> - список книг (с пагинацией)</li>
                     </ul>
                 </div>
             </div>

@@ -385,7 +385,7 @@ final class ProjectMapPrinter
         }
 
         if (!function_exists('exec')) {
-            $this->output?->stderr("git недоступен — фильтры отключены\n");
+            $this->output?->stderr("git недоступен - фильтры отключены\n");
             $this->isGitAvailable = false;
             return false;
         }
@@ -396,7 +396,7 @@ final class ProjectMapPrinter
         @exec($command, $output, $exitCode);
 
         if ($exitCode !== 0) {
-            $this->output?->stderr("git недоступен — фильтры отключены\n");
+            $this->output?->stderr("git недоступен - фильтры отключены\n");
             $this->isGitAvailable = false;
             return false;
         }

@@ -27,7 +27,7 @@ coverage:
         - src/infrastructure/**/*
         - src/presentation/**/*
     exclude:
-        # Шаблоны — не покрываются юнит-тестами
+        # Шаблоны - не покрываются юнит-тестами
         - src/presentation/views/*
         - src/presentation/widgets/*
         - src/presentation/mail/*
