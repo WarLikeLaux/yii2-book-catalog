@@ -7,7 +7,6 @@
         docs swagger repomix tree comments ai \
         ci-env ci-up ci-down ci-install ci-audit ci-openapi-check ci-quality ci-test-suite ci-e2e \
         diff d sdiff tag \
-        review-fetch review-resolve \
         bin-exec
 
 COMPOSE=docker compose
@@ -388,7 +387,7 @@ comments:
 docs:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/all
 	@./bin/update-sitemap
-	@echo "✅ Документация обновлена (docs/auto)."
+	@echo "✅ Документация обновлена (docs/generated)."
 
 tree:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/tree
@@ -443,11 +442,3 @@ diff d:
 
 sdiff:
 	@git diff --staged || true
-
-# PR review
-
-review-fetch:
-	@node bin/fetch-pr-comments.mjs
-
-review-resolve:
-	@node bin/resolve-pr-threads.mjs
