@@ -22,7 +22,7 @@ final class QueueTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'Queue::push',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
                 ['job_class' => \stdClass::class],
             )
             ->willReturnCallback(static fn(string $_name, callable $callback) => $callback());

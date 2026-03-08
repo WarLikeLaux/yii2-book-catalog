@@ -59,7 +59,9 @@ final class PagedResultDataProvider extends BaseDataProvider
             }
 
             if (is_array($model) && array_key_exists('id', $model)) {
-                $keys[] = $model['id'];
+                /** @var int|string $id */
+                $id = $model['id'];
+                $keys[] = $id;
                 continue;
             }
 

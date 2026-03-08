@@ -47,6 +47,7 @@ use app\infrastructure\services\observability\RequestIdProvider;
 use app\infrastructure\services\sms\LogSmsSender;
 use app\infrastructure\services\sms\SmsPilotSender;
 use app\infrastructure\services\YiiPsrLogger;
+use Env\Env;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use yii\di\Container;
@@ -59,7 +60,7 @@ return static function (array $params): array {
     return [
         'definitions' => [
             SmsSenderInterface::class => static function () {
-                $apiKey = (string)env('SMS_API_KEY', 'MOCK_KEY');
+                $apiKey = Env::get('SMS_API_KEY') ?? 'MOCK_KEY';
                 $logger = new YiiPsrLogger('sms');
 
                 if ($apiKey === 'MOCK_KEY') {

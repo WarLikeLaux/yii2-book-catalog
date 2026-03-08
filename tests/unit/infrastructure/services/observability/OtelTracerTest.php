@@ -10,6 +10,7 @@ use Codeception\Test\Unit;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanInterface as OtelApiSpanInterface;
 use OpenTelemetry\API\Trace\TracerInterface as OtelApiTracerInterface;
+use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use ReflectionClass;
 
 final class OtelTracerTest extends Unit
@@ -24,7 +25,6 @@ final class OtelTracerTest extends Unit
         $tracer = $reflection->newInstanceWithoutConstructor();
 
         $property = $reflection->getProperty('tracer');
-        $property->setAccessible(true);
         $property->setValue($tracer, $apiTracerMock);
 
         $apiTracerMock->expects($this->once())
@@ -45,5 +45,21 @@ final class OtelTracerTest extends Unit
 
         $this->assertInstanceOf(OtelSpan::class, $span);
         $this->assertSame($span, $tracer->activeSpan());
+    }
+
+    public function testFlushCallsTracerProvider(): void
+    {
+        $provider = $this->createMock(TracerProviderInterface::class);
+        $provider->expects($this->once())
+            ->method('forceFlush')
+            ->willReturn(true);
+
+        $reflection = new ReflectionClass(OtelTracer::class);
+        $tracer = $reflection->newInstanceWithoutConstructor();
+
+        $property = $reflection->getProperty('tracerProvider');
+        $property->setValue($tracer, $provider);
+
+        $tracer->flush();
     }
 }

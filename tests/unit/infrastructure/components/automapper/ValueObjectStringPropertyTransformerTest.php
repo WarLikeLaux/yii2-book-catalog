@@ -230,7 +230,6 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
     {
         $transformer = new ValueObjectStringPropertyTransformer();
         $method = new ReflectionMethod($transformer, 'isStringValueObject');
-        $method->setAccessible(true);
 
         $this->assertFalse($method->invoke($transformer, 'app\\domain\\values\\MissingValueObject'));
     }
@@ -239,7 +238,6 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
     {
         $transformer = new ValueObjectStringPropertyTransformer();
         $method = new ReflectionMethod($transformer, 'isStringValueObject');
-        $method->setAccessible(true);
         $valueObject = new class () {
         };
 
@@ -250,7 +248,6 @@ final class ValueObjectStringPropertyTransformerTest extends Unit
     {
         $transformer = new ValueObjectStringPropertyTransformer();
         $method = new ReflectionMethod($transformer, 'isStringValueObject');
-        $method->setAccessible(true);
         $valueObject = new class ('value') {
             public function __construct(public string|int $value)
             {

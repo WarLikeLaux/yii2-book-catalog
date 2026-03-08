@@ -18,13 +18,13 @@ return static function (RectorConfig $rectorConfig): void {
         __DIR__ . '/src',
     ]);
 
-    $rectorConfig->phpVersion(PhpVersion::PHP_84);
+    $rectorConfig->phpVersion(PhpVersion::PHP_85);
 
     $rectorConfig->importNames();
     $rectorConfig->importShortClasses(true);
 
     $rectorConfig->sets([
-        LevelSetList::UP_TO_PHP_83,
+        LevelSetList::UP_TO_PHP_85,
         SetList::DEAD_CODE,
         SetList::CODE_QUALITY,
         SetList::PRIVATIZATION,

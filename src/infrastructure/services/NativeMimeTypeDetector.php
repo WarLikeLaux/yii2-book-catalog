@@ -49,12 +49,7 @@ final readonly class NativeMimeTypeDetector implements MimeTypeDetectorInterface
     private function detectWithFinfo(string $path): string|false
     {
         $finfo = ($this->finfoFunctions->open)(FILEINFO_MIME_TYPE);
-        $mimeValue = $finfo === false ? false : ($this->finfoFunctions->file)($finfo, $path);
 
-        if ($finfo !== false) {
-            ($this->finfoFunctions->close)($finfo);
-        }
-
-        return $mimeValue;
+        return $finfo === false ? false : ($this->finfoFunctions->file)($finfo, $path);
     }
 }

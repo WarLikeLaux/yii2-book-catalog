@@ -15,8 +15,6 @@ final class CommentLinter
         'docs',
         '.git',
         '.idea',
-        'db-data',
-        'db-data-pgsql',
     ];
     private const array EXCLUDE_FILES = ['phparkitect.php'];
     private const array SUPPORTED_EXTENSIONS = ['php', 'js', 'mjs'];
@@ -49,7 +47,7 @@ final class CommentLinter
                 new RecursiveDirectoryIterator($this->rootPath, RecursiveDirectoryIterator::SKIP_DOTS),
                 static function (SplFileInfo $current): bool {
                     if ($current->isDir()) {
-                        return !in_array($current->getFilename(), self::EXCLUDE_DIRS, true);
+                        return $current->isReadable() && !in_array($current->getFilename(), self::EXCLUDE_DIRS, true);
                     }
 
                     if (in_array($current->getFilename(), self::EXCLUDE_FILES, true)) {

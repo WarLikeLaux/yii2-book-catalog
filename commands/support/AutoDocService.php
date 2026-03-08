@@ -17,7 +17,7 @@ use yii\web\UrlRule;
 final readonly class AutoDocService
 {
     private const string IDEMPOTENCY_GUARD = 'Idempotency';
-    private const string DOCS_PATH = '@app/docs/auto';
+    private const string DOCS_PATH = '@app/docs/generated';
 
     public function generateDbSchema(): void
     {

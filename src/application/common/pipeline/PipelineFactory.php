@@ -22,7 +22,7 @@ final readonly class PipelineFactory
 
     public function createDefault(): PipelineInterface
     {
-        return (new Pipeline())
+        return new Pipeline()
             ->pipe(new TracingMiddleware($this->tracer))
             ->pipe($this->exceptionTranslationMiddleware)
             ->pipe(new TransactionMiddleware($this->transaction));

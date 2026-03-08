@@ -1,7 +1,10 @@
-FROM yiisoftware/yii2-php:8.4-fpm
+FROM yiisoftware/yii2-php:8.5-fpm
 
 # PCOV для покрытия кода тестами
 RUN pecl install pcov && docker-php-ext-enable pcov
+
+# Protobuf для OTLP экспорта OpenTelemetry
+RUN pecl install protobuf && docker-php-ext-enable protobuf
 
 # Redis для кэширования
 RUN pecl install redis && docker-php-ext-enable redis
@@ -10,10 +13,10 @@ RUN pecl install redis && docker-php-ext-enable redis
 RUN docker-php-ext-install sockets
 
 # Node.js для Prettier и других инструментов
-RUN apt-get update && apt-get install -y nodejs npm && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/*
 
-# Фикс ошибки git ownership в Docker
-RUN git config --global --add safe.directory /app
+# Фикс ошибки git ownership в Docker (system-wide для всех пользователей)
+RUN git config --system --add safe.directory /app
 
 # Создаем пользователя с ID, переданным через аргументы сборки
 ARG UID=1000

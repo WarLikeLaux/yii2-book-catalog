@@ -1,12 +1,12 @@
 .PHONY: help install install-force init setup env configure perms clean \
         up down restart logs shell tinker sms-logs \
         composer req require req-dev require-dev \
-        dev _dev_full _dev_file fix ci check pr lint lint-fix rector rector-fix analyze prettier prettier-fix deptrac arkitect arch audit \
-        test test-unit test-integration test-e2e cov coverage test-coverage infection inf load-test \
-        migrate seed db-mysql db-pgsql db-info db-fresh queue-info \
+        dev _dev_full _dev_file fix ci check lint lint-fix rector rector-fix analyze prettier prettier-fix deptrac arkitect arch audit \
+        test test-unit test-integration test-e2e cov coverage test-coverage infection inf load-test test-migration \
+        migrate seed db-mysql db-pgsql db-info db-fresh db-test-fresh queue-info \
         docs swagger repomix tree comments ai \
-        diff d dc ds diff-staged diff-cached tag \
-        gs ga gfp ghr \
+        ci-env ci-up ci-down ci-install ci-audit ci-openapi-check ci-quality ci-test-suite ci-e2e \
+        diff d sdiff tag \
         bin-exec
 
 COMPOSE=docker compose
@@ -31,74 +31,69 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-# =================================================================================================
-# 🚀 ГЛАВНОЕ МЕНЮ И УПРАВЛЕНИЕ
-# =================================================================================================
+# Главное меню и управление
 
 help:
 	@echo "Использование: make [команда]"
 	@echo ""
 	@echo "🚀 СТАРТ:"
-	@echo "  install          📥 Установить и запустить проект"
-	@echo "  install-force    📥 Принудительная установка (без вопросов)"
+	@echo "  install              📥 Установить и запустить проект"
+	@echo "  install-force        📥 Принудительная установка (без вопросов)"
 	@echo ""
-	@echo "🛡️  КОНТРОЛЬ КАЧЕСТВА (QA):"
-	@echo "  test             ✅ Запуск тестов (unit + integration + coverage)"
-	@echo "  test-e2e         🎭 Только E2E-тесты (acceptance)"
-	@echo "  cov              📊 Отчет покрытия (из последнего запуска)"
-	@echo "  infection        🧟 Мутационное тестирование (только полный прогон)"
-	@echo "  arch             🏛️  Архитектурная проверка (Deptrac + Arkitect)"
-	@echo "  check            🛡️  Экспресс-проверка (dev + arch + test)"
-	@echo "  pr               🚀 Полная проверка (check + e2e + infection)"
-	@echo ""
-	@echo "💻 РАЗРАБОТКА:"
-	@echo "  dev              🛠️  Полный цикл (PHPCS Fixer + Rector + Comments)"
-	@echo "  dev [FILE]       🔍 Быстрая проверка файла (только PHPCS Fixer)"
-	@echo "  comments         📝 Показать TODO и заметки"
-	@echo "  tree             🌳 Показать структуру проекта"
+	@echo "💻 РАЗРАБОТКА И QA:"
+	@echo "  dev                  🛠️  Полный цикл (PHPCS Fixer + Rector + Comments)"
+	@echo "  dev [FILE]           🔍 Быстрая проверка файла (только PHPCS Fixer)"
+	@echo "  arch                 🏛️  Архитектурная проверка (Deptrac + Arkitect)"
+	@echo "  analyze              🔬 Статический анализ (lint + arch + rector + PHPStan)"
+	@echo "  test                 ✅ Запуск unit-тестов"
+	@echo "  test-integration     🔗 Запуск integration-тестов"
+	@echo "  test-full            🧪 Полный прогон (unit + integration + coverage)"
+	@echo "  test-e2e             🎭 Только E2E-тесты (acceptance)"
+	@echo "  test-load            📈 Нагрузочное тестирование (K6)"
+	@echo "  test-migration       🏗️  Тест миграций (up/down)"
+	@echo "  cov                  📊 Отчет покрытия (из последнего запуска)"
+	@echo "  infection            🧟 Мутационное тестирование (только полный прогон)"
+	@echo "  check                🛡️  Экспресс-проверка (dev + arch + test)"
+	@echo "  comments             📝 Показать TODO и заметки"
+	@echo "  tree                 🌳 Показать структуру проекта"
+	@echo "  clean                🧹 Очистка кэша и логов"
 	@echo ""
 	@echo "🛰️  GIT SHORTCUTS:"
-	@echo "  diff (d)         🔎 Показать изменения (включая untracked файлы)"
-	@echo "  dc               📌 Показать изменения в индексе (staged)"
-	@echo "  gs               📊 Статус репозитория (git status)"
-	@echo "  ga               ➕ Добавить все изменения (git add .)"
-	@echo "  gfp              🚀 Безопасный форс-пуш (force-with-lease)"
-	@echo "  ghr              🚨 Жесткий сброс изменений (reset --hard)"
+	@echo "  diff (d)             🔎 Показать изменения (включая untracked файлы)"
+	@echo "  sdiff                📌 Показать изменения в индексе (staged)"
 	@echo ""
 	@echo "📦 ПАКЕТЫ (COMPOSER):"
-	@echo "  composer         📥 Установка зависимостей (install)"
-	@echo "  update           🔝 Обновление пакетов (update)"
-	@echo "  outdated         🔍 Проверка доступных обновлений пакетов"
-	@echo "  req [package]    ➕ Добавить пакет (алиас: require)"
-	@echo "  req-dev [pkg]    ➕ Добавить dev-пакет (алиас: require-dev)"
+	@echo "  composer             📥 Установка зависимостей (install)"
+	@echo "  update               🔝 Обновление пакетов (update)"
+	@echo "  outdated             🔍 Проверка доступных обновлений пакетов"
+	@echo "  req [package]        ➕ Добавить пакет (алиас: require)"
+	@echo "  req-dev [pkg]        ➕ Добавить dev-пакет (алиас: require-dev)"
 	@echo ""
 	@echo "🐳 DOCKER & OPS:"
-	@echo "  up               ▶️  Запустить контейнеры"
-	@echo "  down             ⏹️  Остановить контейнеры"
-	@echo "  restart          🔁 Перезапустить контейнеры"
-	@echo "  logs             📄 Смотреть логи"
-	@echo "  sms-logs         📱 Логи отправленных SMS"
-	@echo "  shell            🐚 Зайти в контейнер PHP"
-	@echo "  tinker           🧪 Yii shell (php yii shell)"
+	@echo "  up                   ▶️  Запустить контейнеры"
+	@echo "  down                 ⏹️  Остановить контейнеры"
+	@echo "  restart              🔁 Перезапустить контейнеры"
+	@echo "  logs                 📄 Смотреть логи"
+	@echo "  sms-logs             📱 Логи отправленных SMS"
+	@echo "  shell                🐚 Зайти в контейнер PHP"
+	@echo "  tinker               🧪 Yii shell (php yii shell)"
 	@echo ""
 	@echo "🗄️  БАЗА ДАННЫХ:"
-	@echo "  migrate          🏗️  Применить миграции"
-	@echo "  seed             🌱 Залить тестовые данные"
-	@echo "  db-info          📊 Текущая конфигурация БД"
-	@echo "  db-mysql         🐬 Переключить на MySQL"
-	@echo "  db-pgsql         🐘 Переключить на PostgreSQL"
-	@echo "  db-fresh         🚨 Полный сброс БД (fresh + seed)"
-	@echo "  test-db-fresh    🧪 Полный сброс тестовой БД (fresh + migrations)"
-	@echo "  queue-info       📥 Статус очереди задач"
+	@echo "  migrate              🏗️  Применить миграции"
+	@echo "  seed                 🌱 Залить тестовые данные"
+	@echo "  db-info              📊 Текущая конфигурация БД"
+	@echo "  db-mysql             🐬 Переключить на MySQL"
+	@echo "  db-pgsql             🐘 Переключить на PostgreSQL"
+	@echo "  db-fresh             🚨 Полный сброс БД (fresh + seed)"
+	@echo "  db-test-fresh        🧪 Полный сброс тестовой БД (fresh + migrations)"
+	@echo "  queue-info           📥 Статус очереди задач"
 	@echo ""
 	@echo "📚 ДОКУМЕНТАЦИЯ:"
-	@echo "  docs             📑 Генерация Yii2 API Docs"
-	@echo "  swagger          🌐 Генерация OpenAPI/Swagger"
-	@echo "  repomix          🤖 Сборка контекста для LLM"
+	@echo "  docs                 📑 Генерация Yii2 API Docs"
+	@echo "  swagger              🌐 Генерация OpenAPI/Swagger"
+	@echo "  repomix              🤖 Сборка контекста для LLM"
 
-# =================================================================================================
-# 🐳 DOCKER И ОКРУЖЕНИЕ
-# =================================================================================================
+# Docker и окружение
 
 install: bin-exec init
 install-force: bin-exec init-force
@@ -134,9 +129,7 @@ tinker:
 sms-logs:
 	$(COMPOSE) exec $(PHP_CONTAINER) tail -f runtime/logs/sms.log
 
-# =================================================================================================
-# 🛠 НАСТРОЙКА (SETUP)
-# =================================================================================================
+# Настройка
 
 perms:
 	@echo "🔧 Исправление прав..."
@@ -154,6 +147,15 @@ configure: bin-exec
 env: bin-exec
 	@./bin/setup-env
 
+ci-env:
+	@cp .env.example .env
+	@sed -i 's/^DB_DRIVER=.*/DB_DRIVER=$(DB_DRIVER)/' .env
+	@sed -i 's/^DB_NAME=.*/DB_NAME=$(DB_TEST_NAME)/' .env
+	@sed -i 's/^COOKIE_VALIDATION_KEY=.*/COOKIE_VALIDATION_KEY=testkeytestkeytestkeytestkeytestkey/' .env
+	@sed -i "s/^UID=.*/UID=$$(id -u)/" .env
+	@sed -i "s/^GID=.*/GID=$$(id -g)/" .env
+	@mkdir -p runtime/cache runtime/logs runtime/sessions web/assets
+
 clean:
 	@echo "🧹 Очистка кэша и логов..."
 	@$(COMPOSE) exec -T $(PHP_CONTAINER) sh -c "rm -rf /app/runtime/debug/* /app/runtime/logs/* /app/runtime/cache/*"
@@ -161,6 +163,22 @@ clean:
 
 composer:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer install
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
+
+ci-up:
+	@driver=$${DB_DRIVER:-mysql}; \
+	if [ "$$driver" = "pgsql" ]; then \
+		$(COMPOSE) up -d --build pgsql redis php nginx selenium --remove-orphans; \
+	else \
+		$(COMPOSE) up -d --build db redis php nginx selenium --remove-orphans; \
+	fi
+
+ci-down:
+	-$(COMPOSE) down -v --remove-orphans
+
+ci-install:
+	$(COMPOSE) exec $(PHP_CONTAINER) composer install --no-interaction --prefer-dist --optimize-autoloader
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept build
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/grumphp git:init || true
 
@@ -179,9 +197,7 @@ req-dev require-dev:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer require --dev $(COMPOSER_ARGS)
 
 
-# =================================================================================================
-# 🛡️ КОНТРОЛЬ КАЧЕСТВА (QA)
-# =================================================================================================
+# Контроль качества
 
 ci: analyze
 fix: lint-fix rector-fix
@@ -213,8 +229,6 @@ _dev_file:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process --clear-cache $(FILE_ARG) || true
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs $(FILE_ARG) || true
 	@echo "✅ Готово"
-
-pr: dev prettier-fix analyze test-full docs
 
 lint:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpcs
@@ -248,9 +262,15 @@ arch: deptrac arkitect
 audit:
 	$(COMPOSE) exec $(PHP_CONTAINER) composer audit
 
-# =================================================================================================
-# 🧪 ТЕСТЫ
-# =================================================================================================
+ci-audit:
+	$(COMPOSE) exec $(PHP_CONTAINER) composer audit
+
+ci-openapi-check: swagger
+	git diff --exit-code -- docs/api/openapi.yaml
+
+ci-quality: ci-audit analyze ci-openapi-check
+
+# Тесты
 
 _test-init:
 	@DB_DRIVER=$(DB_DRIVER) DB_TEST_NAME=$(DB_TEST_NAME) COMPOSE="$(COMPOSE)" ./bin/test-db-prepare
@@ -298,6 +318,9 @@ test-e2e: _test-init
 	@echo "🚀 Запуск E2E тестов..."
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/codecept run e2e --ext DotReporter --no-colors
 
+test-migration:
+	bin/test-migration
+
 test-coverage coverage cov:
 	@if [ ! -f tests/_output/coverage.xml ]; then $(MAKE) test-full; fi
 	@./bin/coverage-report
@@ -311,9 +334,11 @@ test-load:
 	@echo "🚀 Load Testing (K6)..."
 	$(COMPOSE) run --rm k6 run /scripts/smoke.js
 
-# =================================================================================================
-# 📦 БАЗА ДАННЫХ
-# =================================================================================================
+ci-test-suite: test-full infection
+
+ci-e2e: test-e2e
+
+# База данных
 
 migrate:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./yii migrate --interactive=0
@@ -351,12 +376,10 @@ db-fresh:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii seed --interactive=0
 	@echo "✅ База данных очищена и заполнена заново."
 
-test-db-fresh:
+db-test-fresh:
 	@DB_DRIVER=$(DB_DRIVER) DB_TEST_NAME=$(DB_TEST_NAME) COMPOSE="$(COMPOSE)" ./bin/test-db-fresh
 
-# =================================================================================================
-# 📚 ДОКУМЕНТАЦИЯ И УТИЛИТЫ
-# =================================================================================================
+# Документация и утилиты
 
 queue-info:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./yii queue/info
@@ -367,7 +390,7 @@ comments:
 docs:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/all
 	@./bin/update-sitemap
-	@echo "✅ Документация обновлена (docs/auto)."
+	@echo "✅ Документация обновлена (docs/generated)."
 
 tree:
 	@$(COMPOSE) exec $(PHP_CONTAINER) ./yii docs/tree
@@ -414,47 +437,11 @@ tag:
 		} \
 	' docs/ai/*.md
 
-# =================================================================================================
-# 🛰️ GIT SHORTCUTS
-# =================================================================================================
+# Git
 
 diff d:
 	@git diff || true
 	@git ls-files -o --exclude-standard -z | xargs -0 -n1 git diff --no-index /dev/null -- 2>/dev/null || true
 
-diff-staged diff-cached ds dc:
+sdiff:
 	@git diff --staged || true
-
-gs:
-	@git status
-
-ga:
-	@git add .
-
-gfp:
-	@git push --force-with-lease
-
-ghr:
-	@echo "🚨 ВНИМАНИЕ: Это БЕЗВОЗВРАТНО удалит все незакоммиченные изменения (reset --hard)."
-	@read -p "   Вы уверены? [y/N] " ans; \
-	if [ "$$ans" != "y" ] && [ "$$ans" != "Y" ]; then \
-		echo "❌ Отменено."; \
-		exit 1; \
-	fi
-	@git reset --hard HEAD
-
-.PHONY: test-migration
-test-migration:
-	bin/test-migration
-
-# =================================================================================================
-# 🔍 PR REVIEW
-# =================================================================================================
-
-review-fetch:
-	@node bin/fetch-pr-comments.mjs
-
-review-resolve:
-	@node bin/resolve-pr-threads.mjs
-
-.PHONY: review-fetch review-resolve

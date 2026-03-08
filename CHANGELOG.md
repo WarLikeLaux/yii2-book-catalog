@@ -6,6 +6,73 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.21.0] - 2026-03-09 - "PHP 8.5, инфраструктурная зрелость и CI на Docker Compose"
+
+> Масштабная миграция на PHP 8.5 с обновлением всех зависимостей, Rector-правил и PHPStan-конфигов. CI-пайплайн полностью переведён на Docker Compose через Makefile-таргеты. Лицензия изменена с BSD-3-Clause на MIT. Внедрена библиотека oscarotero/env вместо кастомной функции env(). Стандартизированы em dash на дефисы по всему проекту. Добавлена поддержка protobuf для OTLP-экспорта OpenTelemetry. Инфраструктура переведена на named volumes, навыки AI-агента перенесены в .claude/skills.
+
+<details>
+<summary>Подробности изменений</summary>
+
+### 🚀 Новые функции и возможности
+
+- **#39** - добавлено расширение protobuf для OTLP-экспорта OpenTelemetry ([72f5af4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/72f5af4))
+- **#39** - добавлен POSTGRES_USER в .env.example ([a784bd7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a784bd7))
+
+### 🐛 Исправления
+
+- **#39** - исправлена совместимость с PHPUnit 13: замена удалённого isType() на callback(), исключение не-exception классов в arkitect-правиле ([2376c6c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2376c6c))
+- **#39** - исправлены ошибки PHPStan: невалидные named args в AlreadyExistsException, mixed return type в PagedResultDataProvider::prepareKeys() ([2c87b65](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2c87b65))
+- **#39** - исправлен CI: переключение на createUnsafeImmutable для работы Env::get через getenv() ([d1c26f4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d1c26f4))
+- **#39** - исправлен git safe.directory для использования system-wide конфига ([144b016](https://github.com/WarLikeLaux/yii2-book-catalog/commit/144b016))
+- **#39** - исправлено CI-окружение: добавлены UID/GID в ci-env, добавлен --build в ci-up ([f280b0a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f280b0a))
+
+### 🛠 Рефакторинг и архитектура
+
+- **#39** - обновлён проект до PHP 8.5 со всеми composer-зависимостями ([dcb1354](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dcb1354))
+- **#39** - рефакторинг кода с Rector PHP 8.5: array_any(), new без скобок, #[Override], удалён deprecated curl_close() ([11730bb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/11730bb))
+- **#39** - удалён deprecated finfo_close() для совместимости с PHP 8.5 ([4f35854](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4f35854))
+- **#39** - рефакторинг arkitect exception rule: фильтрация по Throwable вместо захардкоженных имён классов ([3abc5f5](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3abc5f5))
+- **#39** - заменена кастомная функция env() на библиотеку oscarotero/env (Env::get) ([80b7f26](https://github.com/WarLikeLaux/yii2-book-catalog/commit/80b7f26))
+- **#39** - стандартизировано em dash на дефис в коде и конфигах ([a77fc86](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a77fc86))
+- **#39** - стандартизировано em dash на дефис в документации ([190e765](https://github.com/WarLikeLaux/yii2-book-catalog/commit/190e765))
+- **#39** - стандартизировано em dash на дефис в определениях навыков ([cc5118f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cc5118f))
+- **#39** - удалены избыточные вызовы setAccessible(true) (не нужны с PHP 8.1) ([e880dea](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e880dea))
+
+### 🧪 Тестирование
+
+- **#39** - добавлен тест для OtelTracer::flush() и удалён setAccessible(true) ([fb9efa0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fb9efa0))
+
+### ⚙️ Инфраструктура
+
+- **#39** - рефакторинг CI workflow на Docker Compose через Makefile-таргеты ([b464d9d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b464d9d))
+- **#39** - обновлён CI на PHP 8.5 ([82856e0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/82856e0))
+- **#39** - обновлены конфиги Rector и PHPStan на PHP 8.5 ([e9df95a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e9df95a))
+- **#39** - обновлена лицензия с BSD-3-Clause на MIT ([ffc9d38](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ffc9d38))
+- **#39** - обновлён deptrac/deptrac с 4.x-dev до стабильного ^4.6 ([142744d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/142744d))
+- **#39** - упрощён Makefile: удалены git-ярлыки, очищены заголовки секций, реорганизованы таргеты ([c19bda7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/c19bda7))
+- **#39** - обновлён make help: объединены QA и dev секции, добавлены недостающие таргеты, удалён pr таргет ([2f8116f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2f8116f))
+- **#39** - переключение на named volumes для данных БД, удалены ссылки на db-data из тулинга ([60bd254](https://github.com/WarLikeLaux/yii2-book-catalog/commit/60bd254))
+- **#39** - обновлены метаданные composer.json: name, description, homepage, keywords ([cde98f2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/cde98f2))
+- **#39** - перенесены конфиги тестов PHPStan-правил в tests/unit/infrastructure/phpstan/ ([a62098e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a62098e))
+- **#39** - добавлен use import для класса Application ([5f01cb7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5f01cb7))
+- **#39** - удалён package.json: все скрипты дублировали Makefile-таргеты ([7080129](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7080129))
+- **#39** - удалены скрипты PR review, навык и связанный конфиг ([4a3859b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/4a3859b))
+- **#39** - удалён npm из Dockerfile (nodejs достаточно) ([6a7a944](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6a7a944))
+- **#39** - перенесены навыки из .agent/skills в .claude/skills ([5755a04](https://github.com/WarLikeLaux/yii2-book-catalog/commit/5755a04))
+- **#39** - упрощён repomix.config.json: удалены правила, уже покрытые .gitignore ([1497a03](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1497a03))
+- **#39** - переименован test-db-fresh в db-test-fresh ([f29a47e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f29a47e))
+- **#39** - переименован docs/auto в docs/generated ([6d335b9](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6d335b9))
+- **#39** - добавлен upload E2E-артефактов в CI, добавлены runtime-директории в ci-env ([16fe99c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/16fe99c))
+
+### 📝 Документация
+
+- **#39** - обновлена документация: PHP 8.4 → 8.5, метрики тестов 1007 тестов / 2479 assertions ([82c8a0c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/82c8a0c))
+- **#39** - обновлена landing page: PHP 8.5, уточнены описания trade-off ([96531f1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/96531f1))
+- **#39** - обновлена дата lastmod в sitemap ([14a475a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/14a475a))
+- **#39** - обновлены метрики тестов в README: 1008 тестов, 2480 assertions ([16fe99c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/16fe99c))
+
+</details>
+
 ## [0.20.0] - 2026-02-23 - "Доменная чистота, pull-модель событий и архитектурная зрелость"
 
 > Грандиозный архитектурный релиз, поднявший проект на качественно новый уровень DDD-чистоты. Реализована pull-модель доменных событий через RecordsEvents trait. Репозиторные интерфейсы перенесены в домен, хранилище файлов — в адаптеры. BookSearchSpecificationFactory вынесена из домена в application. Вычленён независимый CoverKeysScanner из BookQueryService. Внедрены inline invariant guards в агрегат Book, безопасное удаление авторов с FK RESTRICT-миграциями и проверками использования. Проведена масштабная стандартизация: FQCN-импорты в конфигах, BookStatus enum вместо magic strings, Phone VO, PhoneMasker, checker-интерфейсы. Система навыков AI-агента полностью переработана — audit разделён на hunt и reflect. Инфраструктура усилена Jaeger/OTel observability, health check endpoint и архитектурными правилами PHPArkitect.

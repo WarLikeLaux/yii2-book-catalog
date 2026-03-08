@@ -7,7 +7,16 @@
         <exclude-pattern>src/domain/entities/*</exclude-pattern>
     </rule>
 
-    <file>.</file>
+    <file>bin</file>
+    <file>commands</file>
+    <file>config</file>
+    <file>docs/api</file>
+    <file>migrations</file>
+    <file>src</file>
+    <file>tests</file>
+    <file>tools</file>
+    <file>web</file>
+    <file>yii</file>
 
     <arg name="extensions" value="php"/>
     <arg name="colors"/>
@@ -19,8 +28,6 @@
     <exclude-pattern>web/assets/*</exclude-pattern>
     <exclude-pattern>web/uploads/*</exclude-pattern>
     <exclude-pattern>_output/*</exclude-pattern>
-    <exclude-pattern>db-data/*</exclude-pattern>
-    <exclude-pattern>db-data-pgsql/*</exclude-pattern>
     <!-- Базовый стандарт Yii2 -->
     <rule ref="vendor/yiisoft/yii2-coding-standards/Yii2"/>
 

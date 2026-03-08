@@ -6,6 +6,7 @@ use app\infrastructure\components\AppMysqlMutex;
 use app\infrastructure\components\AppPgsqlMutex;
 use app\infrastructure\components\AppRedisConnection;
 use app\infrastructure\queue\HandlerAwareQueue;
+use Env\Env;
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
@@ -23,8 +24,8 @@ $config = [
     'components' => [
         'redis' => [
             'class' => AppRedisConnection::class,
-            'hostname' => env('REDIS_HOST', 'redis'),
-            'port' => (int)env('REDIS_PORT', '6379'),
+            'hostname' => Env::get('REDIS_HOST') ?? 'redis',
+            'port' => Env::get('REDIS_PORT') ?? '6379',
             'database' => 0,
         ],
         'cache' => [
@@ -47,7 +48,7 @@ $config = [
         ],
         'db' => $db,
         'mutex' => [
-            'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
+            'class' => (Env::get('DB_DRIVER') ?? 'mysql') === 'pgsql'
                 ? AppPgsqlMutex::class
                 : AppMysqlMutex::class,
             'db' => $db,

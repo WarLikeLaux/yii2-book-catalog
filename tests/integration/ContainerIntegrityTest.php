@@ -24,14 +24,12 @@ final class ContainerIntegrityTest extends Unit
         $reflection = new ReflectionClass($container);
 
         $definitionsProp = $reflection->getProperty('_definitions');
-        $definitionsProp->setAccessible(true);
 
         /** @var mixed $definitionsRaw */
         $definitionsRaw = $definitionsProp->getValue($container);
         $definitions = is_array($definitionsRaw) ? $definitionsRaw : [];
 
         $singletonsProp = $reflection->getProperty('_singletons');
-        $singletonsProp->setAccessible(true);
 
         /** @var mixed $singletonsRaw */
         $singletonsRaw = $singletonsProp->getValue($container);

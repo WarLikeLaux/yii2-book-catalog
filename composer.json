@@ -1,25 +1,23 @@
 {
-    "name": "yiisoft/yii2-app-basic",
-    "description": "Yii 2 Basic Project Template",
+    "name": "warlikelaux/yii2-book-catalog",
+    "description": "Book catalog showcase on Yii2 with Clean Architecture, DDD, CQS, and PHP 8.5",
     "keywords": [
         "yii2",
-        "framework",
-        "basic",
-        "project template"
+        "book-catalog",
+        "clean-architecture",
+        "ddd",
+        "cqs"
     ],
-    "homepage": "https://www.yiiframework.com/",
+    "homepage": "https://github.com/WarLikeLaux/yii2-book-catalog",
     "type": "project",
-    "license": "BSD-3-Clause",
+    "license": "MIT",
     "support": {
-        "issues": "https://github.com/yiisoft/yii2/issues?state=open",
-        "forum": "https://www.yiiframework.com/forum/",
-        "wiki": "https://www.yiiframework.com/wiki/",
-        "irc": "ircs://irc.libera.chat:6697/yii",
-        "source": "https://github.com/yiisoft/yii2"
+        "issues": "https://github.com/WarLikeLaux/yii2-book-catalog/issues",
+        "source": "https://github.com/WarLikeLaux/yii2-book-catalog"
     },
     "minimum-stability": "stable",
     "require": {
-        "php": ">=8.4.0",
+        "php": ">=8.5.0",
         "yiisoft/yii2": "~2.0.54",
         "yiisoft/yii2-bootstrap5": "~2.0.2",
         "yiisoft/yii2-symfonymailer": "~2.0.3",
@@ -37,11 +35,13 @@
         "npm-asset/htmx.org": "^2.0",
         "jolicode/automapper": "^9.5",
         "open-telemetry/sdk": "^1.13",
-        "open-telemetry/exporter-otlp": "^1.4"
+        "open-telemetry/exporter-otlp": "^1.4",
+        "oscarotero/env": "^2.1",
+        "nyholm/psr7": "^1.8"
     },
     "require-dev": {
         "npm-asset/prettier": "^3.7.4",
-        "symfony/var-dumper": "^5.4 || ^6.0 || ^7.0",
+        "symfony/var-dumper": "^8.0",
         "yiisoft/yii2-debug": "~2.1.0",
         "yiisoft/yii2-gii": "~2.2.0",
         "yiisoft/yii2-faker": "~2.0.0",
@@ -56,7 +56,7 @@
         "yiisoft/yii2-coding-standards": "^3.0",
         "slevomat/coding-standard": "^8.25",
         "phpstan/phpstan": "^2.1",
-        "deptrac/deptrac": "4.x-dev",
+        "deptrac/deptrac": "^4.6",
         "infection/infection": "^0.32.0",
         "infection/codeception-adapter": "^0.4.4",
         "rector/rector": "^2.3",
@@ -70,7 +70,7 @@
         "dg/bypass-finals": "^1.9",
         "psy/psysh": "^0.12.18",
         "symfony/yaml": "^7.4",
-        "phparkitect/phparkitect": "^0.7.0"
+        "phparkitect/phparkitect": "^0.8"
     },
     "autoload": {
         "psr-4": {
@@ -78,7 +78,6 @@
             "Tools\\": "tools/"
         },
         "files": [
-            "functions.php",
             "tools/PHPUnit/Framework/Attributes/CodeCoverageIgnore.php"
         ]
     },

@@ -1,16 +1,7 @@
 {
 	"ignore": {
 		"customPatterns": [
-			"composer.lock",
-			"package-lock.json",
-			"*.lock",
-			"repomix-output.txt",
-			"repomix-output.md",
-			"db-data",
-			"db-data-pgsql",
-			"runtime",
-			"vendor",
-			".git"
+			"*.lock"
 		]
 	}
 }

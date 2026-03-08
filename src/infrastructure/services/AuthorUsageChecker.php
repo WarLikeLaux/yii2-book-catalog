@@ -18,7 +18,7 @@ final readonly class AuthorUsageChecker implements AuthorUsageCheckerInterface
 
     public function isLinkedToPublishedBooks(int $authorId): bool
     {
-        return (new Query())
+        return new Query()
             ->from('book_authors')
             ->innerJoin('books', 'books.id = book_authors.book_id')
             ->where(['book_authors.author_id' => $authorId])
@@ -28,7 +28,7 @@ final readonly class AuthorUsageChecker implements AuthorUsageCheckerInterface
 
     public function hasSubscriptions(int $authorId): bool
     {
-        return (new Query())
+        return new Query()
             ->from('subscriptions')
             ->where(['author_id' => $authorId])
             ->exists($this->db);

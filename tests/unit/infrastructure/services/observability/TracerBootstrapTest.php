@@ -78,7 +78,6 @@ final class TracerBootstrapTest extends Unit
 
         $reflection = new \ReflectionClass($this->bootstrap);
         $tracerProp = $reflection->getProperty('tracer');
-        $tracerProp->setAccessible(true);
         $tracerProp->setValue($this->bootstrap, $tracer);
 
         $callbacks[BaseApplication::EVENT_BEFORE_REQUEST]();
@@ -89,7 +88,6 @@ final class TracerBootstrapTest extends Unit
     {
         $reflection = new \ReflectionClass($this->bootstrap);
         $tracerProp = $reflection->getProperty('tracer');
-        $tracerProp->setAccessible(true);
 
         $tracer = $this->createMock(TracerInterface::class);
         $tracer->expects($this->never())->method('startSpan');
@@ -105,7 +103,6 @@ final class TracerBootstrapTest extends Unit
             $app->method('getRequest')->willReturn($request);
 
             $method = $reflection->getMethod('startRootSpan');
-            $method->setAccessible(true);
             $method->invoke($this->bootstrap, $app);
         }
     }
@@ -134,11 +131,9 @@ final class TracerBootstrapTest extends Unit
 
         $reflection = new \ReflectionClass($this->bootstrap);
         $tracerProp = $reflection->getProperty('tracer');
-        $tracerProp->setAccessible(true);
         $tracerProp->setValue($this->bootstrap, $tracer);
 
         $method = $reflection->getMethod('startRootSpan');
-        $method->setAccessible(true);
         $method->invoke($this->bootstrap, $app);
     }
 
@@ -148,7 +143,6 @@ final class TracerBootstrapTest extends Unit
 
         $reflection = new \ReflectionClass($this->bootstrap);
         $method = $reflection->getMethod('startRootSpan');
-        $method->setAccessible(true);
 
         $method->invoke($this->bootstrap, $app);
 
@@ -172,11 +166,9 @@ final class TracerBootstrapTest extends Unit
 
         $reflection = new \ReflectionClass($this->bootstrap);
         $tracerProp = $reflection->getProperty('tracer');
-        $tracerProp->setAccessible(true);
         $tracerProp->setValue($this->bootstrap, null);
 
         $method = $reflection->getMethod('startRootSpan');
-        $method->setAccessible(true);
         $method->invoke($this->bootstrap, $app);
     }
 
@@ -186,7 +178,6 @@ final class TracerBootstrapTest extends Unit
 
         $reflection = new \ReflectionClass($this->bootstrap);
         $method = $reflection->getMethod('endRootSpan');
-        $method->setAccessible(true);
 
         $method->invoke($this->bootstrap, $app);
 

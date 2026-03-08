@@ -33,7 +33,7 @@ final class ReportQueryServiceCachingDecoratorTest extends Unit
             ->method('getOrSet')
             ->with(
                 "report:top_authors:{$currentYear}",
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
                 3600,
             )
             ->willReturn([]);
@@ -53,7 +53,7 @@ final class ReportQueryServiceCachingDecoratorTest extends Unit
             ->method('getOrSet')
             ->with(
                 "report:top_authors:{$year}",
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
                 3600,
             )
             ->willReturn([]);

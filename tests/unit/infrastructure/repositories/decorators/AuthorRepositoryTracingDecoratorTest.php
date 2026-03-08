@@ -30,7 +30,7 @@ final class AuthorRepositoryTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'AuthorRepo::removeAllBookLinks',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_name, callable $callback) => $callback());
 
@@ -49,7 +49,7 @@ final class AuthorRepositoryTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'AuthorRepo::save',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_name, callable $callback): int => $callback());
 
@@ -71,7 +71,7 @@ final class AuthorRepositoryTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'AuthorRepo::get',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_name, callable $callback): Author => $callback());
 
@@ -93,7 +93,7 @@ final class AuthorRepositoryTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'AuthorRepo::delete',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_name, callable $callback) => $callback());
 

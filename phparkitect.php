@@ -77,8 +77,7 @@ return static function (Config $config): void {
 
     $domainRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\domain\exceptions'))
-        ->andThat(new IsNotInterface())
-        ->andThat(new IsNotAbstract())
+        ->andThat(new IsA(Throwable::class))
         ->andThat(new NotHaveNameMatching('DomainException'))
         ->should(new IsA('app\domain\exceptions\DomainException'))
         ->because('Доменные исключения должны наследоваться от DomainException');
@@ -136,7 +135,7 @@ return static function (Config $config): void {
         ->that(new ResideInOneOfTheseNamespaces('app\application\*\queries'))
         ->andThat(new IsNotInterface())
         ->should(new NotDependsOnTheseNamespaces(['app\infrastructure', 'app\application\common\services']))
-        ->because('application/*/queries — DTO-only: без сервисов и инфраструктуры');
+        ->because('application/*/queries - DTO-only: без сервисов и инфраструктуры');
 
     $applicationRules[] = Rule::allClasses()
         ->that(new ResideInOneOfTheseNamespaces('app\application\ports'))

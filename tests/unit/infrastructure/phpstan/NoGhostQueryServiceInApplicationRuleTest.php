@@ -14,7 +14,7 @@ final class NoGhostQueryServiceInApplicationRuleTest extends Unit
     public function testGhostQueryServiceInApplicationTriggersError(): void
     {
         $root = dirname(__DIR__, 4);
-        $configPath = $root . '/phpstan-rule-test-violation.neon';
+        $configPath = __DIR__ . '/phpstan-rule-test-violation.neon';
 
         $output = [];
         $exitCode = 0;
@@ -69,7 +69,7 @@ final class NoGhostQueryServiceInApplicationRuleTest extends Unit
     public function testValidDtoDoesNotTriggerError(): void
     {
         $root = dirname(__DIR__, 4);
-        $configPath = $root . '/phpstan-rule-test-valid.neon';
+        $configPath = __DIR__ . '/phpstan-rule-test-valid.neon';
 
         $output = [];
         $exitCode = 0;

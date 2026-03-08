@@ -11,7 +11,6 @@ final readonly class FinfoFunctions
     public function __construct(
         public Closure $open,
         public Closure $file,
-        public Closure $close,
     ) {
     }
 
@@ -20,7 +19,6 @@ final readonly class FinfoFunctions
         return new self(
             finfo_open(...),
             finfo_file(...),
-            finfo_close(...),
         );
     }
 }

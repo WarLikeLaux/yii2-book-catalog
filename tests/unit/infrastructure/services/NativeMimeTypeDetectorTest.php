@@ -33,7 +33,6 @@ final class NativeMimeTypeDetectorTest extends Unit
             new FinfoFunctions(
                 static fn(int $option): mixed => $option === FILEINFO_MIME_TYPE ? 'handle' : false,
                 static fn(mixed $finfo, string $path): string|false => $finfo === 'handle' && $path !== '' ? 'application/x-finfo' : false,
-                static fn(mixed $finfo): bool => $finfo === 'handle',
             ),
         );
 
@@ -89,16 +88,11 @@ final class NativeMimeTypeDetectorTest extends Unit
     public function testDetectReturnsDefaultWhenFinfoOpenFails(): void
     {
         $fileCalled = false;
-        $closeCalled = false;
         $finfoFunctions = new FinfoFunctions(
             static fn(int $option): mixed => $option < 0,
             static function (mixed $finfo, string $path) use (&$fileCalled): string|false {
                 $fileCalled = true;
                 return $finfo === null ? false : ($path === '' ? '' : 'application/x-finfo');
-            },
-            static function (mixed $finfo) use (&$closeCalled): bool {
-                $closeCalled = true;
-                return $finfo !== null;
             },
         );
 
@@ -113,39 +107,5 @@ final class NativeMimeTypeDetectorTest extends Unit
 
         $this->assertSame('application/octet-stream', $result);
         $this->assertFalse($fileCalled);
-        $this->assertFalse($closeCalled);
-    }
-
-    /**
-     * @runInSeparateProcess
-     */
-    public function testDetectClosesFinfoHandle(): void
-    {
-        $fileCalled = false;
-        $closeCalled = false;
-        $finfoFunctions = new FinfoFunctions(
-            static fn(int $option): mixed => $option === FILEINFO_MIME_TYPE ? 'handle' : false,
-            static function (mixed $finfo, string $path) use (&$fileCalled): string|false {
-                $fileCalled = true;
-                return $finfo === 'handle' && $path !== '' ? 'application/x-finfo' : false;
-            },
-            static function (mixed $finfo) use (&$closeCalled): bool {
-                $closeCalled = true;
-                return $finfo === 'handle';
-            },
-        );
-
-        $detector = new NativeMimeTypeDetector(
-            static fn(): bool => false,
-            static fn(string $path): string|false => $path === '' ? '' : 'application/x-mime',
-            static fn(): bool => true,
-            $finfoFunctions,
-        );
-
-        $result = $detector->detect('path');
-
-        $this->assertSame('application/x-finfo', $result);
-        $this->assertTrue($fileCalled);
-        $this->assertTrue($closeCalled);
     }
 }
