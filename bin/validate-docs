@@ -59,7 +59,8 @@ final class DocsValidator
             $directoryIterator,
             static function (SplFileInfo $current): bool {
                 if ($current->isDir()) {
-                    return !preg_match('#/(vendor|runtime|tests/_output|db-data|db-data-pgsql)$#', $current->getPathname());
+                    return $current->isReadable()
+                        && !preg_match('#/(vendor|runtime|tests/_output)$#', $current->getPathname());
                 }
 
                 return true;
@@ -74,7 +75,7 @@ final class DocsValidator
             }
 
             $path = $file->getPathname();
-            if (preg_match('#/(vendor|runtime|tests/_output|db-data|db-data-pgsql)/#', $path)) {
+            if (preg_match('#/(vendor|runtime|tests/_output)/#', $path)) {
                 continue;
             }
 

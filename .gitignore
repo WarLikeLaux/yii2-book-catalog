@@ -20,10 +20,6 @@ phpunit.phar
 tests/_output/*
 tests/_support/_generated
 
-# Локальные данные базы данных
-/db-data
-/db-data-pgsql
-
 # Временные файлы приложения
 /runtime/*
 !/runtime/.gitkeep
