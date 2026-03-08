@@ -1,21 +1,19 @@
 {
-    "name": "yiisoft/yii2-app-basic",
-    "description": "Yii 2 Basic Project Template",
+    "name": "warlikelaux/yii2-book-catalog",
+    "description": "Book catalog showcase on Yii2 with Clean Architecture, DDD, CQS, and PHP 8.5",
     "keywords": [
         "yii2",
-        "framework",
-        "basic",
-        "project template"
+        "book-catalog",
+        "clean-architecture",
+        "ddd",
+        "cqs"
     ],
-    "homepage": "https://www.yiiframework.com/",
+    "homepage": "https://github.com/WarLikeLaux/yii2-book-catalog",
     "type": "project",
     "license": "MIT",
     "support": {
-        "issues": "https://github.com/yiisoft/yii2/issues?state=open",
-        "forum": "https://www.yiiframework.com/forum/",
-        "wiki": "https://www.yiiframework.com/wiki/",
-        "irc": "ircs://irc.libera.chat:6697/yii",
-        "source": "https://github.com/yiisoft/yii2"
+        "issues": "https://github.com/WarLikeLaux/yii2-book-catalog/issues",
+        "source": "https://github.com/WarLikeLaux/yii2-book-catalog"
     },
     "minimum-stability": "stable",
     "require": {
