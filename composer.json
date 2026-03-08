@@ -9,7 +9,7 @@
     ],
     "homepage": "https://www.yiiframework.com/",
     "type": "project",
-    "license": "BSD-3-Clause",
+    "license": "MIT",
     "support": {
         "issues": "https://github.com/yiisoft/yii2/issues?state=open",
         "forum": "https://www.yiiframework.com/forum/",
