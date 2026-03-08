@@ -19,7 +19,7 @@
     },
     "minimum-stability": "stable",
     "require": {
-        "php": ">=8.4.0",
+        "php": ">=8.5.0",
         "yiisoft/yii2": "~2.0.54",
         "yiisoft/yii2-bootstrap5": "~2.0.2",
         "yiisoft/yii2-symfonymailer": "~2.0.3",
@@ -43,7 +43,7 @@
     },
     "require-dev": {
         "npm-asset/prettier": "^3.7.4",
-        "symfony/var-dumper": "^5.4 || ^6.0 || ^7.0",
+        "symfony/var-dumper": "^8.0",
         "yiisoft/yii2-debug": "~2.1.0",
         "yiisoft/yii2-gii": "~2.2.0",
         "yiisoft/yii2-faker": "~2.0.0",
@@ -72,7 +72,7 @@
         "dg/bypass-finals": "^1.9",
         "psy/psysh": "^0.12.18",
         "symfony/yaml": "^7.4",
-        "phparkitect/phparkitect": "^0.7.0"
+        "phparkitect/phparkitect": "^0.8"
     },
     "autoload": {
         "psr-4": {
