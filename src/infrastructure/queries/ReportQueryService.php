@@ -39,7 +39,7 @@ final readonly class ReportQueryService implements ReportQueryServiceInterface
      */
     private function getTopAuthorsByYear(int $year, int $limit): array
     {
-        return (new Query())
+        return new Query()
             ->select(['a.id', 'a.fio', 'COUNT(DISTINCT b.id) as books_count'])
             ->from('{{%authors}} a')
             ->innerJoin('{{%book_authors}} ba', 'ba.author_id = a.id')

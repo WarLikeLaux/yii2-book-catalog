@@ -34,7 +34,7 @@ final class OtelTracer implements TracerInterface
             'service.name' => $serviceName,
         ])));
 
-        $transport = (new OtlpHttpTransportFactory())->create($endpoint, 'application/x-protobuf');
+        $transport = new OtlpHttpTransportFactory()->create($endpoint, 'application/x-protobuf');
         $exporter = new SpanExporter($transport);
         $spanProcessor = BatchSpanProcessor::builder($exporter)->build();
 

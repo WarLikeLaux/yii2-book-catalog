@@ -57,7 +57,7 @@ final readonly class Isbn implements Stringable
         $weightedDigits = [];
 
         foreach (str_split($isbn) as $index => $digit) {
-            $digitValue = $digit === 'X' || $digit === 'x' ? 10 : ord($digit) - 48;
+            $digitValue = $digit === 'X' || $digit === 'x' ? 10 : ord($digit[0]) - 48;
             $weightedDigits[] = $digitValue * (10 - $index);
         }
 
@@ -86,13 +86,7 @@ final readonly class Isbn implements Stringable
 
     private static function hasValidIsbn13Prefix(string $isbn): bool
     {
-        foreach (self::ISBN13_PREFIXES as $prefix) {
-            if (str_starts_with($isbn, $prefix)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::ISBN13_PREFIXES, static fn(string $prefix): bool => str_starts_with($isbn, $prefix));
     }
 
     public function getFormatted(): string

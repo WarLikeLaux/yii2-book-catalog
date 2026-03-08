@@ -18,7 +18,7 @@ final readonly class TracingMiddleware implements MiddlewareInterface
 
     public function process(CommandInterface $command, callable $next): mixed
     {
-        $shortName = (new ReflectionClass($command))->getShortName();
+        $shortName = new ReflectionClass($command)->getShortName();
         $spanName = 'UseCase::' . str_replace('Command', '', $shortName);
 
         return $this->tracer->trace(

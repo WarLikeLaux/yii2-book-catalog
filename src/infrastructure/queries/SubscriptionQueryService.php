@@ -21,7 +21,7 @@ final readonly class SubscriptionQueryService implements SubscriptionQueryServic
      */
     public function getSubscriberPhonesForBook(int $bookId, int $batchSize = 100): iterable
     {
-        $query = (new Query())
+        $query = new Query()
             ->from(['s' => Subscription::tableName()])
             ->select(['s.phone'])
             ->distinct()

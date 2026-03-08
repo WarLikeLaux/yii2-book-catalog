@@ -11,6 +11,7 @@ use yii\validators\Validator;
 
 final class IsbnValidator extends Validator
 {
+    #[Override]
     public $message;
 
     public function __construct(private readonly IsbnFormatValidator $formatValidator, array $config = [])

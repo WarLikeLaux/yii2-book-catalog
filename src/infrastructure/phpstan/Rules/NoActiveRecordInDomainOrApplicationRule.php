@@ -172,13 +172,7 @@ final readonly class NoActiveRecordInDomainOrApplicationRule implements Rule
             return false;
         }
 
-        foreach (self::PROTECTED_NAMESPACES as $protected) {
-            if ($namespace === $protected || str_starts_with($namespace, $protected . '\\')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::PROTECTED_NAMESPACES, static fn($protected): bool => $namespace === $protected || str_starts_with($namespace, $protected . '\\'));
     }
 
     private function findForbiddenClass(Type $type): ?string
