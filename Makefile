@@ -243,6 +243,7 @@ rector-fix:
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/rector process --clear-cache
 
 analyze: lint arch rector
+	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan clear-result-cache
 	$(COMPOSE) exec $(PHP_CONTAINER) ./vendor/bin/phpstan analyse --memory-limit=2G
 
 prettier:
