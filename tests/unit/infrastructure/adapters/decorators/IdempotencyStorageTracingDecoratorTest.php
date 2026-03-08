@@ -25,7 +25,7 @@ final class IdempotencyStorageTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'IdempotencyStorage::getRecord',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_name, callable $callback) => $callback());
 
@@ -69,7 +69,7 @@ final class IdempotencyStorageTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'IdempotencyStorage::saveStarted',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_name, callable $callback): bool => $callback());
 
@@ -93,7 +93,7 @@ final class IdempotencyStorageTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'IdempotencyStorage::saveResponse',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static function (string $_name, callable $callback): void {
                 $callback();

@@ -33,7 +33,7 @@ final class BookQueryServiceTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'BookQuery::findById',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_, callable $callback): ?BookReadDto => $callback());
 
@@ -66,7 +66,7 @@ final class BookQueryServiceTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'BookQuery::findByIdWithAuthors',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_, callable $callback): ?BookReadDto => $callback());
 
@@ -92,7 +92,7 @@ final class BookQueryServiceTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'BookQuery::search',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_, callable $callback): PagedResultInterface => $callback());
 
@@ -118,7 +118,7 @@ final class BookQueryServiceTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'BookQuery::searchPublished',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_, callable $callback): PagedResultInterface => $callback());
 
@@ -145,7 +145,7 @@ final class BookQueryServiceTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'BookQuery::searchBySpecification',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_, callable $callback): PagedResultInterface => $callback());
 

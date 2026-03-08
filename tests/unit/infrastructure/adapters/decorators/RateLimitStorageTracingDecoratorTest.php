@@ -24,7 +24,7 @@ final class RateLimitStorageTracingDecoratorTest extends Unit
             ->method('trace')
             ->with(
                 'RateLimitStorage::checkLimit',
-                $this->isType('callable'),
+                $this->callback(is_callable(...)),
             )
             ->willReturnCallback(static fn(string $_name, callable $callback): RateLimitResult => $callback());
 

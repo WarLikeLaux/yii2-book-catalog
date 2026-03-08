@@ -119,7 +119,7 @@ abstract readonly class BaseActiveRecordRepository
                     throw new AlreadyExistsException($duplicateError, 409, $e);
                 }
 
-                throw new AlreadyExistsException(previous: $e);
+                throw new AlreadyExistsException(message: $e->getMessage(), code: $e->getCode(), previous: $e);
             }
 
             throw $e;

@@ -80,6 +80,8 @@ return static function (Config $config): void {
         ->andThat(new IsNotInterface())
         ->andThat(new IsNotAbstract())
         ->andThat(new NotHaveNameMatching('DomainException'))
+        ->andThat(new NotHaveNameMatching('ErrorMapping'))
+        ->andThat(new IsNotEnum())
         ->should(new IsA('app\domain\exceptions\DomainException'))
         ->because('Доменные исключения должны наследоваться от DomainException');
 
