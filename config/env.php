@@ -7,7 +7,7 @@ use Dotenv\Dotenv;
 use Env\Env;
 
 $baseDir = dirname(__DIR__);
-$dotenv = Dotenv::createImmutable($baseDir);
+$dotenv = Dotenv::createUnsafeImmutable($baseDir);
 $dotenv->safeLoad();
 
 $dotenv->required('DB_DRIVER')->allowedValues(['mysql', 'pgsql']);
