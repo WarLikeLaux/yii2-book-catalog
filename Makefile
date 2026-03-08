@@ -152,6 +152,8 @@ ci-env:
 	@sed -i 's/^DB_DRIVER=.*/DB_DRIVER=$(DB_DRIVER)/' .env
 	@sed -i 's/^DB_NAME=.*/DB_NAME=$(DB_TEST_NAME)/' .env
 	@sed -i 's/^COOKIE_VALIDATION_KEY=.*/COOKIE_VALIDATION_KEY=testkeytestkeytestkeytestkeytestkey/' .env
+	@sed -i "s/^UID=.*/UID=$$(id -u)/" .env
+	@sed -i "s/^GID=.*/GID=$$(id -g)/" .env
 
 clean:
 	@echo "🧹 Очистка кэша и логов..."
@@ -166,9 +168,9 @@ composer:
 ci-up:
 	@driver=$${DB_DRIVER:-mysql}; \
 	if [ "$$driver" = "pgsql" ]; then \
-		$(COMPOSE) up -d pgsql redis php nginx selenium --remove-orphans; \
+		$(COMPOSE) up -d --build pgsql redis php nginx selenium --remove-orphans; \
 	else \
-		$(COMPOSE) up -d db redis php nginx selenium --remove-orphans; \
+		$(COMPOSE) up -d --build db redis php nginx selenium --remove-orphans; \
 	fi
 
 ci-down:
