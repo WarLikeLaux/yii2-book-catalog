@@ -36,7 +36,7 @@
 
 🆚 **Сравнение подходов (Yii2 MVC и Clean Architecture):** [docs/COMPARISON.md](docs/COMPARISON.md)
 
-🧾 **Автособираемая документация:** актуальные отчеты и сводки по коду: [docs/auto](docs/auto)
+🧾 **Автособираемая документация:** актуальные отчеты и сводки по коду: [docs/generated](docs/generated)
 
 > **🤯 Зачем так сложно?**
 >
@@ -334,7 +334,7 @@ docker/                 - Docker конфигурация
   ├── nginx/            - Конфигурация nginx
 docs/                   - Документация
   ├── ai/               - Правила и инструкции для AI
-  ├── auto/             - Автоматизированные материалы
+  ├── generated/        - Автоматизированные материалы
 messages/               - Переводы i18n
 migrations/             - Миграции БД
 runtime/                - Runtime кэш и логи

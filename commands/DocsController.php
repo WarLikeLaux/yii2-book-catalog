@@ -35,35 +35,35 @@ final class DocsController extends Controller
     public function actionDb(): int
     {
         $this->autoDocService->generateDbSchema();
-        $this->stdout("✅ Схема БД обновлена (docs/auto/db.yaml)\n");
+        $this->stdout("✅ Схема БД обновлена (docs/generated/db.yaml)\n");
         return ExitCode::OK;
     }
 
     public function actionRoutes(): int
     {
         $this->autoDocService->generateRoutes();
-        $this->stdout("✅ Маршруты обновлены (docs/auto/routes.yaml)\n");
+        $this->stdout("✅ Маршруты обновлены (docs/generated/routes.yaml)\n");
         return ExitCode::OK;
     }
 
     public function actionModels(): int
     {
         $this->autoDocService->generateModelsDoc();
-        $this->stdout("✅ Документация моделей обновлена (docs/auto/models.yaml)\n");
+        $this->stdout("✅ Документация моделей обновлена (docs/generated/models.yaml)\n");
         return ExitCode::OK;
     }
 
     public function actionUseCases(): int
     {
         $this->autoDocService->generateUseCasesDoc();
-        $this->stdout("✅ Реестр UseCases обновлен (docs/auto/usecases.yaml)\n");
+        $this->stdout("✅ Реестр UseCases обновлен (docs/generated/usecases.yaml)\n");
         return ExitCode::OK;
     }
 
     public function actionEvents(): int
     {
         $this->autoDocService->generateEventsDoc();
-        $this->stdout("✅ Карта событий обновлена (docs/auto/events.yaml)\n");
+        $this->stdout("✅ Карта событий обновлена (docs/generated/events.yaml)\n");
         return ExitCode::OK;
     }
 
