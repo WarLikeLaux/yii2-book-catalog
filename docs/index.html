@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чистая архитектура (Clean Architecture) на Yii 2: DDD, CQS, HTMX, асинхронный поиск, 100% Code Coverage и Infection Mutation Score ⚡️</title>
-    <meta name="description" content="Чистая архитектура корпоративного уровня на фреймворке Yii2 с PHP 8.4, DDD, CQS, HTMX и 100% мутационным покрытием.">
+    <meta name="description" content="Чистая архитектура на фреймворке Yii2 с PHP 8.5, DDD, CQS, HTMX и 100% мутационным покрытием.">
     <link rel="canonical" href="https://warlikelaux.github.io/yii2-book-catalog/" />
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://warlikelaux.github.io/yii2-book-catalog/">
     <meta property="og:title" content="Чистая архитектура на Yii2: DDD, CQS, HTMX и 100% покрытие.">
-    <meta property="og:description" content="Showcase проект корпоративного уровня на PHP 8.4: изоляция бизнес-логики, асинхронные очереди и мутационное тестирование.">
+    <meta property="og:description" content="Showcase-проект на PHP 8.5: изоляция бизнес-логики, асинхронные очереди и мутационное тестирование.">
     <meta property="og:image" content="https://warlikelaux.github.io/yii2-book-catalog/assets/hero-banner.png">
 
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://warlikelaux.github.io/yii2-book-catalog/">
     <meta property="twitter:title" content="Чистая архитектура на Yii2: DDD, CQS, HTMX и 100% покрытие.">
-    <meta property="twitter:description" content="Showcase проект корпоративного уровня на PHP 8.4: изоляция бизнес-логики, асинхронные очереди и мутационное тестирование.">
+    <meta property="twitter:description" content="Showcase-проект на PHP 8.5: изоляция бизнес-логики, асинхронные очереди и мутационное тестирование.">
     <meta property="twitter:image" content="https://warlikelaux.github.io/yii2-book-catalog/assets/hero-banner.png">
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡️</text></svg>">
@@ -48,9 +48,9 @@
             <div class="container hero-content">
                 <div class="hero-text">
                     <h1 class="hero-title">Чистая архитектура на <span class="highlight">Yii2</span></h1>
-                    <p class="hero-subtitle">Enterprise-решение на PHP 8.4 и Yii 2: Clean Architecture, DDD, CQS, HTMX, 100% Code Coverage и 100% Infection MSI.</p>
+                    <p class="hero-subtitle">Showcase-проект на PHP 8.5 и Yii 2: Clean Architecture, DDD, CQS, HTMX, 100% Code Coverage и 100% Infection MSI.</p>
                     <div class="hero-badges">
-                        <img src="https://img.shields.io/badge/PHP-8.4-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.4">
+                        <img src="https://img.shields.io/badge/PHP-8.5-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.5">
                         <img src="https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white" alt="Coverage 100%">
                         <img src="https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white" alt="MSI 100%">
                     </div>
@@ -120,7 +120,7 @@
                 <div class="feature-card">
                     <div class="feature-icon">🚀</div>
                     <h3 class="feature-title">HTMX UI</h3>
-                    <p>Бесконечный скролл и реактивный интерфейс без единой строчки кастомного JS.</p>
+                    <p>Бесконечный скролл и реактивный интерфейс на декларативных атрибутах — минимум кастомного JS.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🚦</div>
@@ -158,7 +158,7 @@
                     <div class="comparison-header highlight">Наша архитектура</div>
                     
                     <div class="comparison-row">
-                        <span>Толстые модели & AR</span>
+                        <span>AR = модель + persistence</span>
                         <span>Rich Domain Entities</span>
                     </div>
                     <div class="comparison-row">
@@ -175,7 +175,7 @@
                     </div>
                     <div class="comparison-row">
                         <span>Сложное тестирование</span>
-                        <span>100% Testable Design</span>
+                        <span>100% Coverage + Mutation Testing</span>
                     </div>
                 </div>
             </div>
@@ -187,27 +187,27 @@
                 <div class="feature-card">
                     <div class="feature-icon">🔢</div>
                     <h3 class="feature-title">Integer ID > UUID</h3>
-                    <p>UUID увеличивают размер индексов. Мы выбрали производительность и читаемость простых ID.</p>
+                    <p>UUID решает проблему распределённых систем — здесь монолит с одной БД. ID инкапсулирован в Value Object: замена на UUID затронет только инфраструктурный слой.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📉</div>
                     <h3 class="feature-title">No Outbox</h3>
-                    <p>Transactional Outbox - это сложно. Мы используем afterCommit, жертвуя 0.01% надежности ради простоты.</p>
+                    <p>Transactional Outbox гарантирует доставку событий при сбоях между коммитом и отправкой. afterCommit покрывает 99.9% случаев — Outbox добавим когда появится реальный брокер сообщений.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🛠️</div>
                     <h3 class="feature-title">ActiveRecord</h3>
-                    <p>AR - не антипаттерн, если он заперт в инфраструктуре. Используем его мощь, не загрязняя домен.</p>
+                    <p>AR используется как Data Mapper в инфраструктурном слое — удобный синтаксис запросов без утечки persistence-логики в домен.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📦</div>
                     <h3 class="feature-title">Grouped Handlers</h3>
-                    <p>Вместо 10 мелких классов - один сплоченный обработчик. High Cohesion важнее слепого SRP.</p>
+                    <p>Обработчики событий сгруппированы по агрегату: один класс = один контекст. Это снижает количество файлов без потери cohesion.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🪞</div>
                     <h3 class="feature-title">Reflection ID</h3>
-                    <p>PHP Reflection для установки ID - чистый домен без публичных setId(). Стандарт Doctrine ORM.</p>
+                    <p>PHP Reflection устанавливает ID после persist — домен не знает о генерации ключей и не нуждается в публичном setId().</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">✅</div>
@@ -220,7 +220,7 @@
         <section id="stack" class="stack container">
             <h2 class="section-title">Технологический стек</h2>
             <div class="stack-grid">
-                <div class="stack-item">PHP 8.4</div>
+                <div class="stack-item">PHP 8.5</div>
                 <div class="stack-item">Yii 2.0</div>
                 <div class="stack-item">MySQL / PgSQL</div>
                 <div class="stack-item">Redis</div>
@@ -259,7 +259,7 @@
 
     <footer class="footer">
         <div class="container footer-content">
-            <p>&copy; 2026 Yii2 Book Catalog: Чистая архитектура как искусство.</p>
+            <p>&copy; 2026 Yii2 Book Catalog</p>
             <div class="footer-links">
                 <a href="https://github.com/WarLikeLaux/yii2-book-catalog" target="_blank" rel="noopener">GitHub</a>
                 <a href="https://github.com/WarLikeLaux/yii2-book-catalog/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">Docs</a>
