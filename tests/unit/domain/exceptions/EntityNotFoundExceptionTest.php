@@ -6,9 +6,9 @@ namespace tests\unit\domain\exceptions;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class EntityNotFoundExceptionTest extends Unit
+final class EntityNotFoundExceptionTest extends TestCase
 {
     public function testExceptionHasDefaultValues(): void
     {

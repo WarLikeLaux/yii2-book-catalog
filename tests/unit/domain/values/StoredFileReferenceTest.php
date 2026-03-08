@@ -6,9 +6,9 @@ namespace tests\unit\domain\values;
 
 use app\domain\exceptions\ValidationException;
 use app\domain\values\StoredFileReference;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class StoredFileReferenceTest extends Unit
+final class StoredFileReferenceTest extends TestCase
 {
     public function testGetPathReturnsPath(): void
     {

@@ -7,31 +7,33 @@ namespace tests\unit\application\common\middleware;
 use app\application\common\middleware\TransactionMiddleware;
 use app\application\ports\CommandInterface;
 use app\application\ports\TransactionInterface;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class TransactionMiddlewareTest extends Unit
+final class TransactionMiddlewareTest extends TestCase
 {
-    private TransactionInterface&MockObject $transaction;
+    private TransactionInterface&Stub $transaction;
     private TransactionMiddleware $middleware;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->transaction = $this->createMock(TransactionInterface::class);
+        $this->transaction = $this->createStub(TransactionInterface::class);
         $this->middleware = new TransactionMiddleware($this->transaction);
     }
 
     public function testProcessCommitsOnSuccess(): void
     {
-        $command = $this->createMock(CommandInterface::class);
+        $command = $this->createStub(CommandInterface::class);
         $expectedResult = 'success';
 
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->once())->method('commit');
-        $this->transaction->expects($this->never())->method('rollBack');
+        $transaction = $this->createMock(TransactionInterface::class);
+        $transaction->expects($this->once())->method('begin');
+        $transaction->expects($this->once())->method('commit');
+        $transaction->expects($this->never())->method('rollBack');
 
-        $result = $this->middleware->process(
+        $middleware = new TransactionMiddleware($transaction);
+        $result = $middleware->process(
             $command,
             static fn(CommandInterface $_cmd): string => $expectedResult,
         );
@@ -41,17 +43,20 @@ final class TransactionMiddlewareTest extends Unit
 
     public function testProcessRollsBackOnException(): void
     {
-        $command = $this->createMock(CommandInterface::class);
+        $command = $this->createStub(CommandInterface::class);
         $exception = new RuntimeException('Test error');
 
-        $this->transaction->expects($this->once())->method('begin');
-        $this->transaction->expects($this->never())->method('commit');
-        $this->transaction->expects($this->once())->method('rollBack');
+        $transaction = $this->createMock(TransactionInterface::class);
+        $transaction->expects($this->once())->method('begin');
+        $transaction->expects($this->never())->method('commit');
+        $transaction->expects($this->once())->method('rollBack');
+
+        $middleware = new TransactionMiddleware($transaction);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Test error');
 
-        $this->middleware->process(
+        $middleware->process(
             $command,
             static fn(CommandInterface $_cmd) => throw $exception,
         );
@@ -59,20 +64,22 @@ final class TransactionMiddlewareTest extends Unit
 
     public function testProcessBeginsTransactionBeforeExecution(): void
     {
-        $command = $this->createMock(CommandInterface::class);
+        $command = $this->createStub(CommandInterface::class);
         $callOrder = [];
 
-        $this->transaction->method('begin')
+        $transaction = $this->createStub(TransactionInterface::class);
+        $transaction->method('begin')
             ->willReturnCallback(static function () use (&$callOrder): void {
                 $callOrder[] = 'begin';
             });
 
-        $this->transaction->method('commit')
+        $transaction->method('commit')
             ->willReturnCallback(static function () use (&$callOrder): void {
                 $callOrder[] = 'commit';
             });
 
-        $this->middleware->process(
+        $middleware = new TransactionMiddleware($transaction);
+        $middleware->process(
             $command,
             static function (CommandInterface $_cmd) use (&$callOrder): string {
                 $callOrder[] = 'execute';
@@ -86,15 +93,18 @@ final class TransactionMiddlewareTest extends Unit
 
     public function testProcessRethrowsExceptionAfterRollback(): void
     {
-        $command = $this->createMock(CommandInterface::class);
+        $command = $this->createStub(CommandInterface::class);
         $exception = new RuntimeException('Original error');
         $thrownException = null;
 
-        $this->transaction->method('begin');
-        $this->transaction->method('rollBack');
+        $transaction = $this->createStub(TransactionInterface::class);
+        $transaction->method('begin');
+        $transaction->method('rollBack');
+
+        $middleware = new TransactionMiddleware($transaction);
 
         try {
-            $this->middleware->process(
+            $middleware->process(
                 $command,
                 static fn(CommandInterface $_cmd) => throw $exception,
             );

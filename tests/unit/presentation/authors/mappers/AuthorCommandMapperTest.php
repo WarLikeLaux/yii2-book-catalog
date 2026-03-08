@@ -10,16 +10,16 @@ use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\mappers\AuthorCommandMapper;
 use app\presentation\common\mappers\AutoMapperContextBuilder;
 use AutoMapper\AutoMapperInterface;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-final class AuthorCommandMapperTest extends Unit
+final class AuthorCommandMapperTest extends TestCase
 {
     private AutoMapperInterface&MockObject $autoMapper;
     private AutoMapperContextBuilder&MockObject $contextBuilder;
     private AuthorCommandMapper $mapper;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->autoMapper = $this->createMock(AutoMapperInterface::class);
         $this->contextBuilder = $this->createMock(AutoMapperContextBuilder::class);
@@ -28,8 +28,9 @@ final class AuthorCommandMapperTest extends Unit
 
     public function testToCreateCommandMapsForm(): void
     {
-        $form = $this->createMock(AuthorForm::class);
-        $command = $this->createMock(CreateAuthorCommand::class);
+        $this->contextBuilder->expects($this->never())->method($this->anything());
+        $form = $this->createStub(AuthorForm::class);
+        $command = $this->createStub(CreateAuthorCommand::class);
 
         $this->autoMapper->expects($this->once())
             ->method('map')
@@ -43,8 +44,8 @@ final class AuthorCommandMapperTest extends Unit
 
     public function testToUpdateCommandUsesContextBuilder(): void
     {
-        $form = $this->createMock(AuthorForm::class);
-        $command = $this->createMock(UpdateAuthorCommand::class);
+        $form = $this->createStub(AuthorForm::class);
+        $command = $this->createStub(UpdateAuthorCommand::class);
 
         $context = ['constructor_arguments' => [UpdateAuthorCommand::class => ['id' => 5]]];
 

@@ -10,18 +10,18 @@ use app\application\common\services\UploadedFileStorage;
 use app\application\ports\ContentStorageInterface;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class UploadedFileStorageTest extends Unit
+final class UploadedFileStorageTest extends TestCase
 {
-    private ContentStorageInterface&MockObject $contentStorage;
+    private ContentStorageInterface&Stub $contentStorage;
     private UploadedFileStorage $service;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->contentStorage = $this->createMock(ContentStorageInterface::class);
+        $this->contentStorage = $this->createStub(ContentStorageInterface::class);
         $this->service = new UploadedFileStorage($this->contentStorage);
     }
 
@@ -40,12 +40,14 @@ final class UploadedFileStorageTest extends Unit
         $hash = str_repeat('a', 64);
         $fileKey = new FileKey($hash);
 
-        $this->contentStorage->expects($this->once())
+        $contentStorage = $this->createMock(ContentStorageInterface::class);
+        $contentStorage->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(FileContent::class))
             ->willReturn($fileKey);
 
-        $result = $this->service->store($payload);
+        $service = new UploadedFileStorage($contentStorage);
+        $result = $service->store($payload);
 
         if (file_exists($filePath)) {
             unlink($filePath);
@@ -56,12 +58,13 @@ final class UploadedFileStorageTest extends Unit
 
     public function testStoreThrowsApplicationExceptionWhenFileMissing(): void
     {
+        $service = new UploadedFileStorage($this->createStub(ContentStorageInterface::class));
         $payload = new UploadedFilePayload('/tmp/missing-file-' . uniqid('', true), 'txt', 'text/plain');
 
         $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage('file.error.not_found');
 
-        $this->service->store($payload);
+        $service->store($payload);
     }
 
     public function testStoreThrowsApplicationExceptionWhenPathIsDirectory(): void
@@ -70,12 +73,13 @@ final class UploadedFileStorageTest extends Unit
         mkdir($tempDir, 0777, true);
 
         try {
+            $service = new UploadedFileStorage($this->createStub(ContentStorageInterface::class));
             $payload = new UploadedFilePayload($tempDir, 'txt', 'text/plain');
 
             $this->expectException(ApplicationException::class);
             $this->expectExceptionMessage('file.error.not_found');
 
-            $this->service->store($payload);
+            $service->store($payload);
         } finally {
             rmdir($tempDir);
         }
@@ -97,12 +101,14 @@ final class UploadedFileStorageTest extends Unit
         $hash = str_repeat('b', 64);
         $fileKey = new FileKey($hash);
 
-        $this->contentStorage->expects($this->once())
+        $contentStorage = $this->createMock(ContentStorageInterface::class);
+        $contentStorage->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn (FileContent $content): bool => $content->extension === 'jpg'))
             ->willReturn($fileKey);
 
-        $result = $this->service->store($payload);
+        $service = new UploadedFileStorage($contentStorage);
+        $result = $service->store($payload);
 
         if (file_exists($filePath)) {
             unlink($filePath);
@@ -127,7 +133,8 @@ final class UploadedFileStorageTest extends Unit
         /** @var ?resource $capturedStream */
         $capturedStream = null;
 
-        $this->contentStorage->expects($this->once())
+        $contentStorage = $this->createMock(ContentStorageInterface::class);
+        $contentStorage->expects($this->once())
             ->method('save')
             ->with($this->callback(static function (FileContent $content) use (&$capturedStream): bool {
                 $capturedStream = $content->getStream();
@@ -135,7 +142,8 @@ final class UploadedFileStorageTest extends Unit
             }))
             ->willReturn($fileKey);
 
-        $this->service->store($payload);
+        $service = new UploadedFileStorage($contentStorage);
+        $service->store($payload);
 
         $this->assertNotNull($capturedStream);
         $this->assertFalse(is_resource($capturedStream));
@@ -162,7 +170,8 @@ final class UploadedFileStorageTest extends Unit
         /** @var ?resource $capturedStream */
         $capturedStream = null;
 
-        $this->contentStorage->expects($this->once())
+        $contentStorage = $this->createMock(ContentStorageInterface::class);
+        $contentStorage->expects($this->once())
             ->method('save')
             ->with($this->callback(static function (FileContent $content) use (&$capturedStream): bool {
                 $capturedStream = $content->getStream();
@@ -170,8 +179,10 @@ final class UploadedFileStorageTest extends Unit
             }))
             ->willThrowException(new RuntimeException('Storage failure'));
 
+        $service = new UploadedFileStorage($contentStorage);
+
         try {
-            $this->service->store($payload);
+            $service->store($payload);
             $this->fail('Expected exception was not thrown');
         } catch (RuntimeException) {
         }
@@ -198,12 +209,13 @@ final class UploadedFileStorageTest extends Unit
         chmod($tempFile, 0000);
 
         try {
+            $service = new UploadedFileStorage($this->createStub(ContentStorageInterface::class));
             $payload = new UploadedFilePayload($tempFile, 'txt', 'text/plain');
 
             $this->expectException(ApplicationException::class);
             $this->expectExceptionMessage('file.error.open_failed');
 
-            $this->service->store($payload);
+            $service->store($payload);
         } finally {
             chmod($tempFile, 0644);
             unlink($tempFile);

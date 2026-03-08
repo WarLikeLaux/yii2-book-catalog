@@ -7,13 +7,13 @@ namespace tests\unit\application\common;
 use app\application\common\dto\RateLimitResult;
 use app\application\common\RateLimitService;
 use app\application\ports\RateLimitInterface;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class RateLimitServiceTest extends Unit
+final class RateLimitServiceTest extends TestCase
 {
     public function testIsAllowedReturnsTrueWhenBelowLimit(): void
     {
-        $repository = $this->createMock(RateLimitInterface::class);
+        $repository = $this->createStub(RateLimitInterface::class);
         $repository->method('checkLimit')
             ->willReturn(new RateLimitResult(true, 30, 60, 1735929661));
 
@@ -28,7 +28,7 @@ final class RateLimitServiceTest extends Unit
 
     public function testIsAllowedReturnsFalseWhenExceedsLimit(): void
     {
-        $repository = $this->createMock(RateLimitInterface::class);
+        $repository = $this->createStub(RateLimitInterface::class);
         $repository->method('checkLimit')
             ->willReturn(new RateLimitResult(false, 60, 60, 1735929661));
 
@@ -43,7 +43,7 @@ final class RateLimitServiceTest extends Unit
 
     public function testIsAllowedReturnsCorrectCurrentCount(): void
     {
-        $repository = $this->createMock(RateLimitInterface::class);
+        $repository = $this->createStub(RateLimitInterface::class);
         $repository->method('checkLimit')
             ->willReturn(new RateLimitResult(true, 45, 60, 1735929661));
 
@@ -55,7 +55,7 @@ final class RateLimitServiceTest extends Unit
 
     public function testIsAllowedReturnsCorrectResetAt(): void
     {
-        $repository = $this->createMock(RateLimitInterface::class);
+        $repository = $this->createStub(RateLimitInterface::class);
         $repository->method('checkLimit')
             ->willReturn(new RateLimitResult(true, 30, 60, 1735929661));
 
@@ -68,7 +68,7 @@ final class RateLimitServiceTest extends Unit
 
     public function testIsAllowedReturnsRateLimitResultDto(): void
     {
-        $repository = $this->createMock(RateLimitInterface::class);
+        $repository = $this->createStub(RateLimitInterface::class);
         $repository->method('checkLimit')
             ->willReturn(new RateLimitResult(true, 30, 60, 1735929661));
 

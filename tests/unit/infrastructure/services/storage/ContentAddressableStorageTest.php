@@ -11,11 +11,11 @@ use app\domain\exceptions\ValidationException;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
 use app\infrastructure\services\storage\ContentAddressableStorage;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use tests\_support\RemovesDirectoriesTrait;
 
-final class ContentAddressableStorageTest extends Unit
+final class ContentAddressableStorageTest extends TestCase
 {
     use RemovesDirectoriesTrait;
 
@@ -30,7 +30,7 @@ final class ContentAddressableStorageTest extends Unit
     private string $tempDir;
     private ContentAddressableStorage $storage;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->tempDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cas-test-' . uniqid('', true);
 
@@ -43,7 +43,7 @@ final class ContentAddressableStorageTest extends Unit
         );
     }
 
-    protected function _after(): void
+    protected function tearDown(): void
     {
         if (!isset($this->tempDir) || !is_dir($this->tempDir)) {
             return;

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\components\hydrator;
 
 use app\infrastructure\components\hydrator\ActiveRecordHydrator;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use yii\db\ActiveRecord;
 
-final class ActiveRecordHydratorTest extends Unit
+final class ActiveRecordHydratorTest extends TestCase
 {
     private ActiveRecordHydrator $hydrator;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->hydrator = new ActiveRecordHydrator();
     }

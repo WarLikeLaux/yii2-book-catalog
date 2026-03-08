@@ -7,17 +7,17 @@ namespace tests\unit\application\common\middleware;
 use app\application\common\middleware\TracingMiddleware;
 use app\application\ports\CommandInterface;
 use app\application\ports\TracerInterface;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 
-final class TracingMiddlewareTest extends Unit
+final class TracingMiddlewareTest extends TestCase
 {
-    private TracerInterface&MockObject $tracer;
+    private TracerInterface&Stub $tracer;
     private TracingMiddleware $middleware;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->tracer = $this->createMock(TracerInterface::class);
+        $this->tracer = $this->createStub(TracerInterface::class);
         $this->middleware = new TracingMiddleware($this->tracer);
     }
 
@@ -27,7 +27,8 @@ final class TracingMiddlewareTest extends Unit
         };
         $expectedResult = 'test-result';
 
-        $this->tracer->expects($this->once())
+        $tracer = $this->createMock(TracerInterface::class);
+        $tracer->expects($this->once())
             ->method('trace')
             ->willReturnCallback(
                 function (string $spanName, callable $callback, array $attributes) use ($expectedResult): mixed {
@@ -38,7 +39,8 @@ final class TracingMiddlewareTest extends Unit
                 },
             );
 
-        $result = $this->middleware->process(
+        $middleware = new TracingMiddleware($tracer);
+        $result = $middleware->process(
             $command,
             static fn(CommandInterface $_cmd): string => $expectedResult,
         );
@@ -50,7 +52,8 @@ final class TracingMiddlewareTest extends Unit
     {
         $command = new TestCommand();
 
-        $this->tracer->expects($this->once())
+        $tracer = $this->createMock(TracerInterface::class);
+        $tracer->expects($this->once())
             ->method('trace')
             ->willReturnCallback(
                 function (string $spanName, callable $callback, array $_attributes): mixed {
@@ -60,7 +63,8 @@ final class TracingMiddlewareTest extends Unit
                 },
             );
 
-        $this->middleware->process(
+        $middleware = new TracingMiddleware($tracer);
+        $middleware->process(
             $command,
             static fn(CommandInterface $_cmd): bool => true,
         );
@@ -71,10 +75,12 @@ final class TracingMiddlewareTest extends Unit
         $command = new TestCommand();
         $passedCommand = null;
 
-        $this->tracer->method('trace')
+        $tracer = $this->createStub(TracerInterface::class);
+        $tracer->method('trace')
             ->willReturnCallback(static fn(string $_n, callable $cb, array $_a): mixed => $cb());
 
-        $this->middleware->process(
+        $middleware = new TracingMiddleware($tracer);
+        $middleware->process(
             $command,
             static function (CommandInterface $cmd) use (&$passedCommand): bool {
                 $passedCommand = $cmd;

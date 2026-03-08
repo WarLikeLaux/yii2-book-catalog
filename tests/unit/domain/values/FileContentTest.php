@@ -7,9 +7,9 @@ namespace tests\unit\domain\values;
 use app\domain\exceptions\DomainException;
 use app\domain\values\FileContent;
 use app\domain\values\FileKey;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class FileContentTest extends Unit
+final class FileContentTest extends TestCase
 {
     private const string MEMORY_STREAM = 'php://memory';
     private const string MIME_TYPE = 'text/plain';

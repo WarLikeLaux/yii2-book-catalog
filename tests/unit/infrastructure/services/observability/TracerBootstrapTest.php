@@ -7,18 +7,18 @@ namespace tests\unit\infrastructure\services\observability;
 use app\application\ports\SpanInterface;
 use app\application\ports\TracerInterface;
 use app\infrastructure\services\observability\TracerBootstrap;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use yii\base\Application as BaseApplication;
 use yii\web\Application;
 use yii\web\HeaderCollection;
 use yii\web\Request;
 use yii\web\Response;
 
-final class TracerBootstrapTest extends Unit
+final class TracerBootstrapTest extends TestCase
 {
     private TracerBootstrap $bootstrap;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->bootstrap = new TracerBootstrap();
     }
@@ -27,7 +27,7 @@ final class TracerBootstrapTest extends Unit
     {
         $this->bootstrap->enabled = false;
 
-        $app = $this->createMock(Application::class);
+        $app = $this->createStub(Application::class);
 
         $this->bootstrap->bootstrap($app);
 
@@ -60,7 +60,7 @@ final class TracerBootstrapTest extends Unit
         $span->expects($this->once())->method('setStatus')->with(true);
         $span->expects($this->once())->method('end');
 
-        $request = $this->createMock(Request::class);
+        $request = $this->createStub(Request::class);
         $request->method('getPathInfo')->willReturn('site/index');
         $request->method('getMethod')->willReturn('GET');
         $request->method('getAbsoluteUrl')->willReturn('http://localhost/site/index');
@@ -70,7 +70,7 @@ final class TracerBootstrapTest extends Unit
         $request->method('getHeaders')->willReturn(new HeaderCollection());
         $request->method('getQueryParams')->willReturn([]);
 
-        $response = $this->createMock(Response::class);
+        $response = $this->createStub(Response::class);
         $response->method('getStatusCode')->willReturn(200);
 
         $app->method('getRequest')->willReturn($request);
@@ -96,8 +96,8 @@ final class TracerBootstrapTest extends Unit
         $ignoredPaths = ['debug/default/index', 'gii/default/index', '.well-known/security.txt'];
 
         foreach ($ignoredPaths as $path) {
-            $app = $this->createMock(Application::class);
-            $request = $this->createMock(Request::class);
+            $app = $this->createStub(Application::class);
+            $request = $this->createStub(Request::class);
 
             $request->method('getPathInfo')->willReturn($path);
             $app->method('getRequest')->willReturn($request);
@@ -109,10 +109,10 @@ final class TracerBootstrapTest extends Unit
 
     public function testStartRootSpanWithValidPath(): void
     {
-        $app = $this->createMock(Application::class);
-        $request = $this->createMock(Request::class);
+        $app = $this->createStub(Application::class);
+        $request = $this->createStub(Request::class);
         $tracer = $this->createMock(TracerInterface::class);
-        $span = $this->createMock(SpanInterface::class);
+        $span = $this->createStub(SpanInterface::class);
 
         $request->method('getPathInfo')->willReturn('api/books');
         $request->method('getMethod')->willReturn('GET');
@@ -139,7 +139,7 @@ final class TracerBootstrapTest extends Unit
 
     public function testStartRootSpanReturnsForNonWebApplication(): void
     {
-        $app = $this->createMock(BaseApplication::class);
+        $app = $this->createStub(BaseApplication::class);
 
         $reflection = new \ReflectionClass($this->bootstrap);
         $method = $reflection->getMethod('startRootSpan');
@@ -151,8 +151,10 @@ final class TracerBootstrapTest extends Unit
 
     public function testStartRootSpanReturnsWhenSpanNotCreated(): void
     {
-        $app = $this->createMock(Application::class);
-        $request = $this->createMock(Request::class);
+        $this->expectNotToPerformAssertions();
+
+        $app = $this->createStub(Application::class);
+        $request = $this->createStub(Request::class);
 
         $request->method('getPathInfo')->willReturn('site/index');
         $request->method('getMethod')->willReturn('GET');
@@ -174,7 +176,7 @@ final class TracerBootstrapTest extends Unit
 
     public function testEndRootSpanReturnsWhenNoSpan(): void
     {
-        $app = $this->createMock(Application::class);
+        $app = $this->createStub(Application::class);
 
         $reflection = new \ReflectionClass($this->bootstrap);
         $method = $reflection->getMethod('endRootSpan');

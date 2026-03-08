@@ -6,9 +6,9 @@ namespace tests\unit\domain\exceptions;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class ValidationExceptionTest extends Unit
+final class ValidationExceptionTest extends TestCase
 {
     public function testExceptionHasDefaultHttpCode(): void
     {

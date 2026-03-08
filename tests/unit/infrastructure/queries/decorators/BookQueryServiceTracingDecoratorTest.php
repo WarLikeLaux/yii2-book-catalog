@@ -10,9 +10,9 @@ use app\application\ports\PagedResultInterface;
 use app\application\ports\TracerInterface;
 use app\domain\specifications\BookSpecificationInterface;
 use app\infrastructure\queries\decorators\BookQueryServiceTracingDecorator;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookQueryServiceTracingDecoratorTest extends Unit
+final class BookQueryServiceTracingDecoratorTest extends TestCase
 {
     public function testFindByIdDelegatesToServiceWithTracing(): void
     {
@@ -82,7 +82,7 @@ final class BookQueryServiceTracingDecoratorTest extends Unit
 
     public function testSearchDelegatesToServiceWithTracing(): void
     {
-        $expected = $this->createMock(PagedResultInterface::class);
+        $expected = $this->createStub(PagedResultInterface::class);
 
         $service = $this->createMock(BookQueryServiceInterface::class);
         $tracer = $this->createMock(TracerInterface::class);
@@ -108,7 +108,7 @@ final class BookQueryServiceTracingDecoratorTest extends Unit
 
     public function testSearchPublishedDelegatesToServiceWithTracing(): void
     {
-        $expected = $this->createMock(PagedResultInterface::class);
+        $expected = $this->createStub(PagedResultInterface::class);
 
         $service = $this->createMock(BookQueryServiceInterface::class);
         $tracer = $this->createMock(TracerInterface::class);
@@ -134,8 +134,8 @@ final class BookQueryServiceTracingDecoratorTest extends Unit
 
     public function testSearchBySpecificationDelegatesToServiceWithTracing(): void
     {
-        $expected = $this->createMock(PagedResultInterface::class);
-        $specification = $this->createMock(BookSpecificationInterface::class);
+        $expected = $this->createStub(PagedResultInterface::class);
+        $specification = $this->createStub(BookSpecificationInterface::class);
 
         $service = $this->createMock(BookQueryServiceInterface::class);
         $tracer = $this->createMock(TracerInterface::class);

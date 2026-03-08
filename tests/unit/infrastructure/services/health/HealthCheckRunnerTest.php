@@ -7,17 +7,17 @@ namespace tests\unit\infrastructure\services\health;
 use app\application\common\dto\HealthCheckResult;
 use app\application\ports\HealthCheckInterface;
 use app\infrastructure\services\health\HealthCheckRunner;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class HealthCheckRunnerTest extends Unit
+final class HealthCheckRunnerTest extends TestCase
 {
     public function testRunSuccess(): void
     {
-        $check1 = $this->createMock(HealthCheckInterface::class);
+        $check1 = $this->createStub(HealthCheckInterface::class);
         $check1->method('check')
             ->willReturn(new HealthCheckResult('test1', true, 1.0));
 
-        $check2 = $this->createMock(HealthCheckInterface::class);
+        $check2 = $this->createStub(HealthCheckInterface::class);
         $check2->method('check')
             ->willReturn(new HealthCheckResult('test2', true, 2.0));
 
@@ -32,11 +32,11 @@ final class HealthCheckRunnerTest extends Unit
 
     public function testRunFailure(): void
     {
-        $check1 = $this->createMock(HealthCheckInterface::class);
+        $check1 = $this->createStub(HealthCheckInterface::class);
         $check1->method('check')
             ->willReturn(new HealthCheckResult('test1', true, 1.0));
 
-        $check2 = $this->createMock(HealthCheckInterface::class);
+        $check2 = $this->createStub(HealthCheckInterface::class);
         $check2->method('check')
             ->willReturn(new HealthCheckResult('test2', false, 2.0));
 

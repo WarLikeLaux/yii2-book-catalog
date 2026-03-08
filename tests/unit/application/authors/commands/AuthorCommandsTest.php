@@ -7,9 +7,9 @@ namespace tests\unit\application\authors\commands;
 use app\application\authors\commands\CreateAuthorCommand;
 use app\application\authors\commands\DeleteAuthorCommand;
 use app\application\authors\commands\UpdateAuthorCommand;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AuthorCommandsTest extends Unit
+final class AuthorCommandsTest extends TestCase
 {
     public function testCreateAuthorCommandStoresFio(): void
     {

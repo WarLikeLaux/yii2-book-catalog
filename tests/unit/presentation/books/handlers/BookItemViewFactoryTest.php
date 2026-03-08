@@ -14,11 +14,11 @@ use app\presentation\books\handlers\BookItemViewFactory;
 use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\services\FileUrlResolver;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use yii\web\NotFoundHttpException;
 
-final class BookItemViewFactoryTest extends Unit
+final class BookItemViewFactoryTest extends TestCase
 {
     private BookQueryServiceInterface&MockObject $finder;
     private AuthorQueryServiceInterface&MockObject $authorQueryService;
@@ -26,7 +26,7 @@ final class BookItemViewFactoryTest extends Unit
     private BookDtoUrlResolver $urlResolver;
     private BookItemViewFactory $factory;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->finder = $this->createMock(BookQueryServiceInterface::class);
         $this->authorQueryService = $this->createMock(AuthorQueryServiceInterface::class);
@@ -43,6 +43,7 @@ final class BookItemViewFactoryTest extends Unit
 
     public function testGetCreateViewModelReturnsModel(): void
     {
+        $this->finder->expects($this->never())->method($this->anything());
         $authors = [
             new AuthorReadDto(1, 'Author A'),
         ];
@@ -96,11 +97,10 @@ final class BookItemViewFactoryTest extends Unit
 
     public function testGetBookViewThrowsNotFound(): void
     {
+        $this->authorQueryService->expects($this->never())->method($this->anything());
 
         $this->finder->expects($this->once())
-
                 ->method('findById')
-
                 ->willReturn(null);
 
         $this->expectException(NotFoundHttpException::class);

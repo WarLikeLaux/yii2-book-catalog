@@ -13,9 +13,9 @@ use app\domain\specifications\IsbnPrefixSpecification;
 use app\domain\specifications\StatusSpecification;
 use app\domain\specifications\YearSpecification;
 use app\domain\values\BookStatus;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookSpecificationsTest extends Unit
+final class BookSpecificationsTest extends TestCase
 {
     public function testYearSpecificationGetterAndAccept(): void
     {

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\presentation\books\forms;
 
 use app\presentation\books\forms\BookForm;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookFormTest extends Unit
+final class BookFormTest extends TestCase
 {
     private const AUTHOR_NAME = 'Author 1';
     public function testGetAuthorInitValueTextReturnsEmptyWhenAuthorIdsIsNull(): void

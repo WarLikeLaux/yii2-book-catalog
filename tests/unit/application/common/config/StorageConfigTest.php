@@ -6,9 +6,9 @@ namespace tests\unit\application\common\config;
 
 use app\application\common\config\StorageConfig;
 use app\application\common\exceptions\ConfigurationException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class StorageConfigTest extends Unit
+final class StorageConfigTest extends TestCase
 {
     public function testFromParamsBuildsConfig(): void
     {

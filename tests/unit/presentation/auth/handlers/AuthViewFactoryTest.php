@@ -8,9 +8,9 @@ use app\application\common\config\ApiPageConfig;
 use app\presentation\auth\dto\LoginViewModel;
 use app\presentation\auth\forms\LoginForm;
 use app\presentation\auth\handlers\AuthViewFactory;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AuthViewFactoryTest extends Unit
+final class AuthViewFactoryTest extends TestCase
 {
     public function testGetLoginViewModelReturnsViewModel(): void
     {
@@ -29,11 +29,20 @@ final class AuthViewFactoryTest extends Unit
     {
         $factory = new AuthViewFactory(new ApiPageConfig(8080, 8000));
 
-        $viewModel = $factory->getApiInfoViewModel('example.test');
+        $viewModel = $factory->getApiInfoViewModel('example.test', false);
 
-        $this->assertSame(8080, $viewModel->swaggerPort);
-        $this->assertSame(8000, $viewModel->appPort);
-        $this->assertSame('example.test', $viewModel->host);
+        $this->assertSame('http://example.test:8080', $viewModel->swaggerUrl);
+        $this->assertSame('http://example.test:8000/api/v1', $viewModel->baseApiUrl);
+    }
+
+    public function testGetApiInfoViewModelReturnsHttpsUrls(): void
+    {
+        $factory = new AuthViewFactory(new ApiPageConfig(8080, 8000));
+
+        $viewModel = $factory->getApiInfoViewModel('example.test', true);
+
+        $this->assertSame('https://example.test:8080', $viewModel->swaggerUrl);
+        $this->assertSame('https://example.test:8000/api/v1', $viewModel->baseApiUrl);
     }
 
     private function createApiPageConfig(): ApiPageConfig

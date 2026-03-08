@@ -9,9 +9,9 @@ use app\application\common\IdempotencyKeyStatus;
 use app\application\ports\IdempotencyInterface;
 use app\application\ports\TracerInterface;
 use app\infrastructure\adapters\decorators\IdempotencyStorageTracingDecorator;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class IdempotencyStorageTracingDecoratorTest extends Unit
+final class IdempotencyStorageTracingDecoratorTest extends TestCase
 {
     public function testGetRecordDelegatesToDecoratedWithTracing(): void
     {

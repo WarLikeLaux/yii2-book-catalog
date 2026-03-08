@@ -6,15 +6,15 @@ namespace tests\unit\infrastructure\repositories;
 
 use app\domain\common\IdentifiableEntityInterface;
 use app\infrastructure\repositories\IdentityAssignmentTrait;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class IdentityAssignmentTraitTest extends Unit
+final class IdentityAssignmentTraitTest extends TestCase
 {
     private IdentifiableEntityInterface $entity;
     private ?object $traitObject = null;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->entity = new class implements IdentifiableEntityInterface {
             public ?int $id = null;

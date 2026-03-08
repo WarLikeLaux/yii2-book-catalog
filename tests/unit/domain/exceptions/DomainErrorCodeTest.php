@@ -6,10 +6,10 @@ namespace tests\unit\domain\exceptions;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ErrorMapping;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use ReflectionEnum;
 
-final class DomainErrorCodeTest extends Unit
+final class DomainErrorCodeTest extends TestCase
 {
     public function testAllCasesHaveErrorMappingAttribute(): void
     {

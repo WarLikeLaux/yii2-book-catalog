@@ -8,14 +8,14 @@ use app\application\books\queries\BookReadDto;
 use app\domain\values\BookStatus;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\services\FileUrlResolver;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookDtoUrlResolverTest extends Unit
+final class BookDtoUrlResolverTest extends TestCase
 {
     private FileUrlResolver $fileUrlResolver;
     private BookDtoUrlResolver $resolver;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->fileUrlResolver = new FileUrlResolver('/uploads');
         $this->resolver = new BookDtoUrlResolver($this->fileUrlResolver);

@@ -8,9 +8,9 @@ use app\domain\entities\Subscription;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
 use app\domain\values\Phone;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class SubscriptionTest extends Unit
+final class SubscriptionTest extends TestCase
 {
     public function testCreateAndGetters(): void
     {

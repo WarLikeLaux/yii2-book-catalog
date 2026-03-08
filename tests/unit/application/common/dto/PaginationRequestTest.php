@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\application\common\dto;
 
 use app\application\common\dto\PaginationRequest;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class PaginationRequestTest extends Unit
+final class PaginationRequestTest extends TestCase
 {
     public function testDefaultValues(): void
     {

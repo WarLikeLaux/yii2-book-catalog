@@ -8,9 +8,9 @@ use app\application\common\dto\RateLimitResult;
 use app\application\ports\RateLimitInterface;
 use app\application\ports\TracerInterface;
 use app\infrastructure\adapters\decorators\RateLimitStorageTracingDecorator;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class RateLimitStorageTracingDecoratorTest extends Unit
+final class RateLimitStorageTracingDecoratorTest extends TestCase
 {
     public function testCheckLimitDelegatesToDecoratedWithTracing(): void
     {

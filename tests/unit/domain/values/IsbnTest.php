@@ -6,9 +6,10 @@ namespace tests\unit\domain\values;
 
 use app\domain\exceptions\DomainException;
 use app\domain\values\Isbn;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-final class IsbnTest extends Unit
+final class IsbnTest extends TestCase
 {
     public static function validIsbnProvider(): array
     {
@@ -74,6 +75,7 @@ final class IsbnTest extends Unit
     /**
      * @dataProvider validIsbnProvider
      */
+    #[DataProvider('validIsbnProvider')]
     public function testCanCreateValidIsbn(string $input, string $expected): void
     {
         $isbn = new Isbn($input);
@@ -83,6 +85,7 @@ final class IsbnTest extends Unit
     /**
      * @dataProvider invalidFormatProvider
      */
+    #[DataProvider('invalidFormatProvider')]
     public function testThrowsOnInvalidFormat(string $invalidIsbn): void
     {
         $this->expectException(DomainException::class);
@@ -97,6 +100,7 @@ final class IsbnTest extends Unit
     /**
      * @dataProvider equalsProvider
      */
+    #[DataProvider('equalsProvider')]
     public function testEqualsWorks(string $isbn1Input, string $isbn2Input, bool $expected): void
     {
         $isbn1 = new Isbn($isbn1Input);
@@ -107,6 +111,7 @@ final class IsbnTest extends Unit
     /**
      * @dataProvider formattedProvider
      */
+    #[DataProvider('formattedProvider')]
     public function testGetFormattedWorks(string $input, string $expected): void
     {
         $isbn = new Isbn($input);

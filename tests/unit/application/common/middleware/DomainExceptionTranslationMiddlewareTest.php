@@ -10,14 +10,14 @@ use app\application\common\middleware\DomainExceptionTranslationMiddleware;
 use app\application\ports\CommandInterface;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class DomainExceptionTranslationMiddlewareTest extends Unit
+final class DomainExceptionTranslationMiddlewareTest extends TestCase
 {
     private DomainExceptionTranslationMiddleware $middleware;
     private DomainErrorMappingRegistry $registry;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->registry = new DomainErrorMappingRegistry();
         $this->middleware = new DomainExceptionTranslationMiddleware($this->registry);
@@ -25,7 +25,7 @@ final class DomainExceptionTranslationMiddlewareTest extends Unit
 
     public function testProcessReturnsResultWhenNoException(): void
     {
-        $command = $this->createMock(CommandInterface::class);
+        $command = $this->createStub(CommandInterface::class);
 
         $result = $this->middleware->process(
             $command,
@@ -43,7 +43,7 @@ final class DomainExceptionTranslationMiddlewareTest extends Unit
             'title',
         );
 
-        $command = $this->createMock(CommandInterface::class);
+        $command = $this->createStub(CommandInterface::class);
 
         $this->expectException(OperationFailedException::class);
         $this->expectExceptionMessage(DomainErrorCode::BookTitleEmpty->value);
@@ -58,7 +58,7 @@ final class DomainExceptionTranslationMiddlewareTest extends Unit
 
     public function testProcessRethrowsDomainExceptionWhenNoMapping(): void
     {
-        $command = $this->createMock(CommandInterface::class);
+        $command = $this->createStub(CommandInterface::class);
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(DomainErrorCode::BookTitleEmpty->value);
@@ -78,7 +78,7 @@ final class DomainExceptionTranslationMiddlewareTest extends Unit
             OperationFailedException::class,
         );
 
-        $command = $this->createMock(CommandInterface::class);
+        $command = $this->createStub(CommandInterface::class);
         $original = new ValidationException(DomainErrorCode::BookNotFound);
 
         try {
@@ -103,7 +103,7 @@ final class DomainExceptionTranslationMiddlewareTest extends Unit
             'isbn',
         );
 
-        $command = $this->createMock(CommandInterface::class);
+        $command = $this->createStub(CommandInterface::class);
 
         try {
             $this->middleware->process(

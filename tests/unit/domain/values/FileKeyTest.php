@@ -7,9 +7,10 @@ namespace tests\unit\domain\values;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\ValidationException;
 use app\domain\values\FileKey;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-final class FileKeyTest extends Unit
+final class FileKeyTest extends TestCase
 {
     private const string VALID_HASH = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
 
@@ -91,6 +92,7 @@ final class FileKeyTest extends Unit
     /**
      * @dataProvider validHashProvider
      */
+    #[DataProvider('validHashProvider')]
     public function testCanCreateWithValidHash(string $input, string $expected): void
     {
         $key = new FileKey($input);
@@ -100,6 +102,7 @@ final class FileKeyTest extends Unit
     /**
      * @dataProvider invalidHashProvider
      */
+    #[DataProvider('invalidHashProvider')]
     public function testThrowsOnInvalidHash(string $invalidHash): void
     {
         $this->expectException(DomainException::class);
@@ -147,6 +150,7 @@ final class FileKeyTest extends Unit
     /**
      * @dataProvider extendedPathProvider
      */
+    #[DataProvider('extendedPathProvider')]
     public function testGetExtendedPathReturnsCorrectFormat(
         string $hash,
         string $extension,
@@ -159,6 +163,7 @@ final class FileKeyTest extends Unit
     /**
      * @dataProvider invalidExtensionProvider
      */
+    #[DataProvider('invalidExtensionProvider')]
     public function testGetExtendedPathThrowsOnInvalidExtension(string $extension): void
     {
         $key = new FileKey(self::VALID_HASH);

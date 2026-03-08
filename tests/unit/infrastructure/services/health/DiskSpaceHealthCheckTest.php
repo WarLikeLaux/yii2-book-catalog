@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\health;
 
 use app\infrastructure\services\health\DiskSpaceHealthCheck;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class DiskSpaceHealthCheckTest extends Unit
+final class DiskSpaceHealthCheckTest extends TestCase
 {
     public function testCheckSuccess(): void
     {

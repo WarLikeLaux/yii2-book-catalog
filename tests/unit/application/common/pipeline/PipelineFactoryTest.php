@@ -9,21 +9,21 @@ use app\application\common\pipeline\PipelineFactory;
 use app\application\ports\PipelineInterface;
 use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 
-final class PipelineFactoryTest extends Unit
+final class PipelineFactoryTest extends TestCase
 {
-    private TracerInterface&MockObject $tracer;
-    private TransactionInterface&MockObject $transaction;
-    private DomainExceptionTranslationMiddleware&MockObject $exceptionTranslationMiddleware;
+    private TracerInterface&Stub $tracer;
+    private TransactionInterface&Stub $transaction;
+    private DomainExceptionTranslationMiddleware&Stub $exceptionTranslationMiddleware;
     private PipelineFactory $factory;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->tracer = $this->createMock(TracerInterface::class);
-        $this->transaction = $this->createMock(TransactionInterface::class);
-        $this->exceptionTranslationMiddleware = $this->createMock(DomainExceptionTranslationMiddleware::class);
+        $this->tracer = $this->createStub(TracerInterface::class);
+        $this->transaction = $this->createStub(TransactionInterface::class);
+        $this->exceptionTranslationMiddleware = $this->createStub(DomainExceptionTranslationMiddleware::class);
 
         $this->factory = new PipelineFactory(
             $this->tracer,

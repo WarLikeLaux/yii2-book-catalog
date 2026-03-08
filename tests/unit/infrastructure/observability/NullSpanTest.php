@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\observability;
 
 use app\infrastructure\services\observability\NullSpan;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class NullSpanTest extends Unit
+final class NullSpanTest extends TestCase
 {
     private NullSpan $span;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->span = new NullSpan();
     }

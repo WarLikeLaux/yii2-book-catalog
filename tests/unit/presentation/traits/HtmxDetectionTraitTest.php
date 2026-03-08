@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace tests\unit\presentation\traits;
 
 use app\presentation\common\traits\HtmxDetectionTrait;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use yii\web\HeaderCollection;
 use yii\web\Request;
 
-final class HtmxDetectionTraitTest extends Unit
+final class HtmxDetectionTraitTest extends TestCase
 {
     public function testIsHtmxRequestReturnsTrueWhenHeaderPresent(): void
     {
@@ -61,31 +61,31 @@ final class HtmxDetectionTraitTest extends Unit
 
     public function testGetHtmxTriggerReturnsNullWhenArrayEmpty(): void
     {
-        $trait = $this->createTraitInstanceWithHeaderValue('HX-Trigger', []);
+        $trait = $this->createTraitInstanceWithHeaderValue([]);
         $this->assertNull($trait->callGetHtmxTrigger());
     }
 
     public function testGetHtmxTriggerReturnsFirstValueWhenMockedArray(): void
     {
-        $trait = $this->createTraitInstanceWithHeaderValue('HX-Trigger', ['first', 'second']);
+        $trait = $this->createTraitInstanceWithHeaderValue(['first', 'second']);
         $this->assertSame('first', $trait->callGetHtmxTrigger());
     }
 
     public function testGetHtmxTriggerReturnsScalarWhenArrayFirstIsScalar(): void
     {
-        $trait = $this->createTraitInstanceWithHeaderValue('HX-Trigger', [123, 'second']);
+        $trait = $this->createTraitInstanceWithHeaderValue([123, 'second']);
         $this->assertSame('123', $trait->callGetHtmxTrigger());
     }
 
     public function testGetHtmxTriggerReturnsScalarWhenNonStringValue(): void
     {
-        $trait = $this->createTraitInstanceWithHeaderValue('HX-Trigger', 456);
+        $trait = $this->createTraitInstanceWithHeaderValue(456);
         $this->assertSame('456', $trait->callGetHtmxTrigger());
     }
 
     public function testGetHtmxTriggerReturnsNullWhenNonScalarValue(): void
     {
-        $trait = $this->createTraitInstanceWithHeaderValue('HX-Trigger', new \stdClass());
+        $trait = $this->createTraitInstanceWithHeaderValue(new \stdClass());
         $this->assertNull($trait->callGetHtmxTrigger());
     }
 
@@ -106,7 +106,7 @@ final class HtmxDetectionTraitTest extends Unit
             }
         }
 
-        $request = $this->createMock(Request::class);
+        $request = $this->createStub(Request::class);
         $request->method('getHeaders')->willReturn($headerCollection);
 
         return new class ($request) {
@@ -125,14 +125,13 @@ final class HtmxDetectionTraitTest extends Unit
         };
     }
 
-    private function createTraitInstanceWithHeaderValue(string $headerName, mixed $value): object
+    private function createTraitInstanceWithHeaderValue(mixed $value): object
     {
-        $headers = $this->createMock(HeaderCollection::class);
+        $headers = $this->createStub(HeaderCollection::class);
         $headers->method('get')
-            ->with($headerName)
             ->willReturn($value);
 
-        $request = $this->createMock(Request::class);
+        $request = $this->createStub(Request::class);
         $request->method('getHeaders')->willReturn($headers);
 
         return new class ($request) {

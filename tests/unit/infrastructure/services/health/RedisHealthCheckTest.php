@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\health;
 
 use app\infrastructure\services\health\RedisHealthCheck;
-use Codeception\Test\Unit;
 use Exception;
+use PHPUnit\Framework\TestCase;
 use yii\redis\Connection;
 
-final class RedisHealthCheckTest extends Unit
+final class RedisHealthCheckTest extends TestCase
 {
     public function testCheckSuccess(): void
     {

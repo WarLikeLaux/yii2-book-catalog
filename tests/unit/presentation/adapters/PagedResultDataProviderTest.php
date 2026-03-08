@@ -7,9 +7,9 @@ namespace tests\unit\presentation\adapters;
 use app\application\common\dto\PaginationDto;
 use app\application\ports\PagedResultInterface;
 use app\presentation\common\adapters\PagedResultDataProvider;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class PagedResultDataProviderTest extends Unit
+final class PagedResultDataProviderTest extends TestCase
 {
     public function testPrepareKeysWithObjectModels(): void
     {
@@ -18,7 +18,7 @@ final class PagedResultDataProviderTest extends Unit
             (object)['id' => 2, 'name' => 'Second'],
         ];
 
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn($models);
         $result->method('getTotalCount')->willReturn(2);
         $result->method('getPagination')->willReturn(null);
@@ -36,7 +36,7 @@ final class PagedResultDataProviderTest extends Unit
             ['id' => 20, 'name' => 'Second'],
         ];
 
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn($models);
         $result->method('getTotalCount')->willReturn(2);
         $result->method('getPagination')->willReturn(null);
@@ -55,7 +55,7 @@ final class PagedResultDataProviderTest extends Unit
             'plain string',
         ];
 
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn($models);
         $result->method('getTotalCount')->willReturn(3);
         $result->method('getPagination')->willReturn(null);
@@ -75,7 +75,7 @@ final class PagedResultDataProviderTest extends Unit
             totalPages: 5,
         );
 
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn([]);
         $result->method('getTotalCount')->willReturn(100);
         $result->method('getPagination')->willReturn($paginationDto);
@@ -91,7 +91,7 @@ final class PagedResultDataProviderTest extends Unit
 
     public function testPaginationDisabledWhenNoPaginationDto(): void
     {
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn([]);
         $result->method('getTotalCount')->willReturn(0);
         $result->method('getPagination')->willReturn(null);
@@ -104,7 +104,7 @@ final class PagedResultDataProviderTest extends Unit
     public function testGetTotalCountDelegatesToResult(): void
     {
         $expectedCount = 42;
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn([]);
         $result->method('getTotalCount')->willReturn($expectedCount);
 

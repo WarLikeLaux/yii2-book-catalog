@@ -6,9 +6,9 @@ namespace tests\unit\domain\exceptions;
 
 use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BusinessRuleExceptionTest extends Unit
+final class BusinessRuleExceptionTest extends TestCase
 {
     public function testExceptionHasDefaultHttpCode(): void
     {

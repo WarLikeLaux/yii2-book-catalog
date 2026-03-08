@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\presentation\forms;
 
 use app\presentation\subscriptions\forms\SubscriptionForm;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class SubscriptionFormTest extends Unit
+final class SubscriptionFormTest extends TestCase
 {
     public function testValidateRequiredFields(): void
     {

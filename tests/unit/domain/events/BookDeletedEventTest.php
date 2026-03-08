@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\domain\events;
 
 use app\domain\events\BookDeletedEvent;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookDeletedEventTest extends Unit
+final class BookDeletedEventTest extends TestCase
 {
     public function testEventTypeAndProperties(): void
     {

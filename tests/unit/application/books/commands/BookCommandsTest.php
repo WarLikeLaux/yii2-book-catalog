@@ -8,9 +8,9 @@ use app\application\books\commands\CreateBookCommand;
 use app\application\books\commands\DeleteBookCommand;
 use app\application\books\commands\UpdateBookCommand;
 use app\application\common\values\AuthorIdCollection;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookCommandsTest extends Unit
+final class BookCommandsTest extends TestCase
 {
     public function testCreateBookCommandStoresAllProperties(): void
     {

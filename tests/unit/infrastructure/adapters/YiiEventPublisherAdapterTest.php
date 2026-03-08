@@ -15,18 +15,14 @@ use app\infrastructure\adapters\EventToJobMapper;
 use app\infrastructure\adapters\EventToJobMapperInterface;
 use app\infrastructure\adapters\YiiEventPublisherAdapter;
 use app\infrastructure\queue\NotifySubscribersJob;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-final class YiiEventPublisherAdapterTest extends Unit
+final class YiiEventPublisherAdapterTest extends TestCase
 {
-    private QueueInterface&MockObject $queue;
     private EventToJobMapperInterface $jobMapper;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->queue = $this->createMock(QueueInterface::class);
-
         $registry = new EventJobMappingRegistry(
             [BookStatusChangedEvent::class => NotifySubscribersJob::class],
             new EventSerializer(),
@@ -36,10 +32,11 @@ final class YiiEventPublisherAdapterTest extends Unit
 
     public function testPublishQueueableEventPushesToQueue(): void
     {
-        $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper);
+        $queue = $this->createMock(QueueInterface::class);
+        $adapter = new YiiEventPublisherAdapter($queue, $this->jobMapper);
         $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
-        $this->queue->expects($this->once())
+        $queue->expects($this->once())
             ->method('push')
             ->with($this->callback(static fn(NotifySubscribersJob $job): bool => $job->bookId === 42));
 
@@ -54,33 +51,36 @@ final class YiiEventPublisherAdapterTest extends Unit
         );
         $mapper = new EventToJobMapper($registry);
 
-        $adapter = new YiiEventPublisherAdapter($this->queue, $mapper);
+        $queue = $this->createMock(QueueInterface::class);
+        $adapter = new YiiEventPublisherAdapter($queue, $mapper);
         $event = new BookStatusChangedEvent(42, BookStatus::Published, BookStatus::Draft, 2024);
 
-        $this->queue->expects($this->never())->method('push');
+        $queue->expects($this->never())->method('push');
 
         $adapter->publishEvent($event);
     }
 
     public function testPublishNonQueueableEventDoesNotPushToQueue(): void
     {
-        $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper);
+        $queue = $this->createMock(QueueInterface::class);
+        $adapter = new YiiEventPublisherAdapter($queue, $this->jobMapper);
         $event = new BookDeletedEvent(42, 2024, false);
 
-        $this->queue->expects($this->never())->method('push');
+        $queue->expects($this->never())->method('push');
 
         $adapter->publishEvent($event);
     }
 
     public function testPublishEventDispatchesToListeners(): void
     {
+        $queue = $this->createStub(QueueInterface::class);
         $listener = $this->createMock(EventListenerInterface::class);
         $listener->method('subscribedEvents')->willReturn([BookStatusChangedEvent::class]);
         $listener->expects($this->once())
             ->method('handle')
             ->with($this->isInstanceOf(BookStatusChangedEvent::class));
 
-        $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper, $listener);
+        $adapter = new YiiEventPublisherAdapter($queue, $this->jobMapper, $listener);
         $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $adapter->publishEvent($event);
@@ -88,11 +88,12 @@ final class YiiEventPublisherAdapterTest extends Unit
 
     public function testPublishEventSkipsUnsubscribedListeners(): void
     {
+        $queue = $this->createStub(QueueInterface::class);
         $listener = $this->createMock(EventListenerInterface::class);
         $listener->method('subscribedEvents')->willReturn([BookDeletedEvent::class]);
         $listener->expects($this->never())->method('handle');
 
-        $adapter = new YiiEventPublisherAdapter($this->queue, $this->jobMapper, $listener);
+        $adapter = new YiiEventPublisherAdapter($queue, $this->jobMapper, $listener);
         $event = new BookStatusChangedEvent(42, BookStatus::Draft, BookStatus::Published, 2024);
 
         $adapter->publishEvent($event);

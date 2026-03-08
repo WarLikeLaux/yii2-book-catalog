@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\observability;
 
 use app\infrastructure\services\observability\OtelSpan;
-use Codeception\Test\Unit;
 use OpenTelemetry\API\Trace\SpanInterface as OtelApiSpanInterface;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\ScopeInterface;
+use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class OtelSpanTest extends Unit
+final class OtelSpanTest extends TestCase
 {
     public function testSetAttribute(): void
     {

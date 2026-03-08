@@ -6,9 +6,9 @@ namespace tests\unit\presentation\common\exceptions;
 
 use app\application\books\queries\BookReadDto;
 use app\presentation\common\exceptions\UnexpectedDtoTypeException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class UnexpectedDtoTypeExceptionTest extends Unit
+final class UnexpectedDtoTypeExceptionTest extends TestCase
 {
     public function testMessageContainsExpectedAndActualType(): void
     {
