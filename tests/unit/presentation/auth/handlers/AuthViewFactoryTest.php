@@ -29,11 +29,20 @@ final class AuthViewFactoryTest extends TestCase
     {
         $factory = new AuthViewFactory(new ApiPageConfig(8080, 8000));
 
-        $viewModel = $factory->getApiInfoViewModel('example.test');
+        $viewModel = $factory->getApiInfoViewModel('example.test', false);
 
-        $this->assertSame(8080, $viewModel->swaggerPort);
-        $this->assertSame(8000, $viewModel->appPort);
-        $this->assertSame('example.test', $viewModel->host);
+        $this->assertSame('http://example.test:8080', $viewModel->swaggerUrl);
+        $this->assertSame('http://example.test:8000/api/v1', $viewModel->baseApiUrl);
+    }
+
+    public function testGetApiInfoViewModelReturnsHttpsUrls(): void
+    {
+        $factory = new AuthViewFactory(new ApiPageConfig(8080, 8000));
+
+        $viewModel = $factory->getApiInfoViewModel('example.test', true);
+
+        $this->assertSame('https://example.test:8080', $viewModel->swaggerUrl);
+        $this->assertSame('https://example.test:8000/api/v1', $viewModel->baseApiUrl);
     }
 
     private function createApiPageConfig(): ApiPageConfig
