@@ -37,7 +37,9 @@
         "npm-asset/htmx.org": "^2.0",
         "jolicode/automapper": "^9.5",
         "open-telemetry/sdk": "^1.13",
-        "open-telemetry/exporter-otlp": "^1.4"
+        "open-telemetry/exporter-otlp": "^1.4",
+        "oscarotero/env": "^2.1",
+        "nyholm/psr7": "^1.8"
     },
     "require-dev": {
         "npm-asset/prettier": "^3.7.4",
@@ -78,7 +80,6 @@
             "Tools\\": "tools/"
         },
         "files": [
-            "functions.php",
             "tools/PHPUnit/Framework/Attributes/CodeCoverageIgnore.php"
         ]
     },

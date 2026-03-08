@@ -11,11 +11,12 @@ use app\infrastructure\persistence\User;
 use app\infrastructure\queue\HandlerAwareQueue;
 use app\infrastructure\services\observability\RequestIdProvider;
 use app\infrastructure\services\observability\TracerBootstrap;
+use Env\Env;
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
-if (!YII_ENV_DEV && env('COOKIE_VALIDATION_KEY', '') === '') {
+if (!YII_ENV_DEV && (Env::get('COOKIE_VALIDATION_KEY') ?? '') === '') {
     throw new RuntimeException('COOKIE_VALIDATION_KEY must be set in production');
 }
 
@@ -40,7 +41,7 @@ $config = [
     ],
     'components' => [
         'request' => [
-            'cookieValidationKey' => env('COOKIE_VALIDATION_KEY', ''),
+            'cookieValidationKey' => Env::get('COOKIE_VALIDATION_KEY') ?? '',
         ],
         'session' => [
             'class' => 'yii\web\Session',
@@ -57,8 +58,8 @@ $config = [
         ],
         'redis' => [
             'class' => AppRedisConnection::class,
-            'hostname' => env('REDIS_HOST', 'redis'),
-            'port' => (int)env('REDIS_PORT', '6379'),
+            'hostname' => Env::get('REDIS_HOST') ?? 'redis',
+            'port' => Env::get('REDIS_PORT') ?? '6379',
             'database' => 0,
         ],
         'cache' => [
@@ -92,11 +93,11 @@ $config = [
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
             'viewPath' => '@app/src/presentation/mail',
-            'useFileTransport' => env('MAILER_USE_FILE_TRANSPORT', true),
+            'useFileTransport' => Env::get('MAILER_USE_FILE_TRANSPORT') ?? true,
             'transport' => [
                 'scheme' => 'smtp',
-                'host' => env('MAILER_HOST', '127.0.0.1'),
-                'port' => (int)env('MAILER_PORT', 1025),
+                'host' => Env::get('MAILER_HOST') ?? '127.0.0.1',
+                'port' => Env::get('MAILER_PORT') ?? 1025,
                 'dsn' => 'native://default',
             ],
         ],
@@ -120,7 +121,7 @@ $config = [
         ],
         'db' => $db,
         'mutex' => [
-            'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
+            'class' => (Env::get('DB_DRIVER') ?? 'mysql') === 'pgsql'
                 ? AppPgsqlMutex::class
                 : AppMysqlMutex::class,
             'db' => $db,

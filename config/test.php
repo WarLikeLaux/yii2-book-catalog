@@ -7,6 +7,7 @@ use app\infrastructure\components\AppPgsqlMutex;
 use app\infrastructure\components\AppRedisConnection;
 use app\infrastructure\persistence\User;
 use app\infrastructure\queue\HandlerAwareQueue;
+use Env\Env;
 use yii\mutex\MysqlMutex;
 use yii\mutex\PgsqlMutex;
 
@@ -42,12 +43,12 @@ $config = [
         'db' => $db,
         'redis' => [
             'class' => AppRedisConnection::class,
-            'hostname' => env('REDIS_HOST', 'localhost'),
-            'port' => (int)env('REDIS_PORT', 6379),
+            'hostname' => Env::get('REDIS_HOST') ?? 'localhost',
+            'port' => Env::get('REDIS_PORT') ?? 6379,
             'database' => 15,
         ],
         'mutex' => [
-            'class' => env('DB_DRIVER', 'mysql') === 'pgsql'
+            'class' => (Env::get('DB_DRIVER') ?? 'mysql') === 'pgsql'
                 ? AppPgsqlMutex::class
                 : AppMysqlMutex::class,
         ],
@@ -56,7 +57,7 @@ $config = [
             'db' => $db,
             'tableName' => '{{%queue}}',
             'channel' => 'queue',
-            'mutex' => env('DB_DRIVER', 'mysql') === 'pgsql'
+            'mutex' => (Env::get('DB_DRIVER') ?? 'mysql') === 'pgsql'
                 ? PgsqlMutex::class
                 : MysqlMutex::class,
         ],
