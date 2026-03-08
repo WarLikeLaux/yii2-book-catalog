@@ -154,6 +154,7 @@ ci-env:
 	@sed -i 's/^COOKIE_VALIDATION_KEY=.*/COOKIE_VALIDATION_KEY=testkeytestkeytestkeytestkeytestkey/' .env
 	@sed -i "s/^UID=.*/UID=$$(id -u)/" .env
 	@sed -i "s/^GID=.*/GID=$$(id -g)/" .env
+	@mkdir -p runtime/cache runtime/logs runtime/sessions web/assets
 
 clean:
 	@echo "🧹 Очистка кэша и логов..."
