@@ -50,9 +50,6 @@ infection.log
 repomix-output.md
 repomix-output.txt
 
-# Обучающие материалы
-docs/learning
-
 # Загрузчики AI-агентов: симлинки на CLAUDE.md
 GEMINI.md
 AGENTS.md
