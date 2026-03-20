@@ -9,7 +9,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL_/_PgSQL-Multi_DB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-1008_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-1009_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -86,7 +86,7 @@
 | 🔹 **📦 CAS (File Storage)**<br>Контентно-адресуемое хранилище                   | 📈 **Observability**<br>OpenTelemetry + Inspector APM               |
 | 🔹 **Доменные события**<br>`BookStatusChangedEvent`, `BookUpdatedEvent`, fan-out | 🩺 **Эндпоинт здоровья (Health Check)**<br>Prod-readiness `/health` |
 | **🧪 Качество кода**                                                             | **🐳 DevOps Ready**                                                 |
-| ✅ **1008+ тестов** (2480+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
+| ✅ **1009+ тестов** (2479+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
 | ✅ **PHPStan Level 9**<br>10 кастомных правил (Custom Rules)                     | 🛠 **Makefile**<br>Автоматизация рутины                             |
 | ✅ **Мутационное тестирование**<br>Infection PHP (MSI 100%)                      | 📚 **Генерация документации**<br>Yii2 API + OpenAPI                 |
 | ✅ **Авто-рефакторинг**<br>Rector                                                | 🏗 **Контроль архитектуры**<br>Deptrac + Arkitect                   |
@@ -234,10 +234,10 @@ make env   # или make configure
 
 <table>
 <tr>
-<td align="center"><b>1008</b><br>Tests</td>
-<td align="center"><b>2480+</b><br>Assertions</td>
+<td align="center"><b>1009</b><br>Tests</td>
+<td align="center"><b>2479+</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~20s</b><br>Runtime</td>
+<td align="center"><b>~13s</b><br>Runtime</td>
 </tr>
 </table>
 
@@ -366,7 +366,7 @@ web/                    - Web root
 ### 📊 Статистика проекта
 
 ![Source Code](https://img.shields.io/badge/Source_Code-11k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-17.4k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-17.9k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
 ![Source Files](https://img.shields.io/badge/Source_Files-335-purple?style=for-the-badge&logo=php&logoColor=white)
 ![Test Files](https://img.shields.io/badge/Test_Files-223-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
