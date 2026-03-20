@@ -535,6 +535,7 @@ public function actionCreate()
 public function execute(object $command): int
 {
     $authorIds = $command->authorIds->toArray();
+    $isbn = new Isbn($command->isbn);
 
     if ($this->bookIsbnChecker->existsByIsbn($command->isbn)) {
         throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
@@ -550,7 +551,7 @@ public function execute(object $command): int
     $book = Book::create(
         title: $command->title,
         year: new BookYear($command->year, $currentYear),
-        isbn: new Isbn($command->isbn),
+        isbn: $isbn,
         description: $command->description,
         coverImage: $coverImage,
     );
@@ -847,7 +848,7 @@ final class Book implements RecordableEntityInterface
             throw new BusinessRuleException(DomainErrorCode::BookInvalidStatusTransition);
         }
 
-        if ($this->status === BookStatus::Draft && $target === BookStatus::Published) {
+        if ($target === BookStatus::Published) {
             if (!$policy instanceof BookPublicationPolicy) {
                 throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutPolicy);
             }
@@ -858,9 +859,11 @@ final class Book implements RecordableEntityInterface
         $oldStatus = $this->status;
         $this->status = $target;
 
-        if ($this->id !== null) {
-            $this->recordEvent(new BookStatusChangedEvent($this->id, $oldStatus, $target, $this->year->value));
+        if ($this->id === null) {
+            return;
         }
+
+        $this->recordEvent(new BookStatusChangedEvent($this->id, $oldStatus, $target, $this->year->value));
     }
 
     public function markAsDeleted(): void
@@ -1001,7 +1004,7 @@ public function create(Book $model)
 // application/common/pipeline/PipelineFactory.php
 public function createDefault(): PipelineInterface
 {
-    return (new Pipeline())
+    return new Pipeline()
         ->pipe(new TracingMiddleware($this->tracer))
         ->pipe($this->exceptionTranslationMiddleware)
         ->pipe(new TransactionMiddleware($this->transaction));
@@ -1110,7 +1113,7 @@ protected function persist(
                 throw new AlreadyExistsException($duplicateError, 409, $e);
             }
 
-            throw new AlreadyExistsException(previous: $e);
+            throw new AlreadyExistsException(DomainErrorCode::EntityAlreadyExists, 409, $e);
         }
 
         throw $e;

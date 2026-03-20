@@ -199,7 +199,7 @@ graph TD
 
 - **Rich Entities:** сущность `Book` управляет статусом и авторами, соблюдая бизнес-правила. Конструктор приватный - создание через `Book::create()`, восстановление из БД через `Book::reconstitute()`.
 - **Контроль изменяемости:** доменные сущности используют `private(set)` и меняются через методы.
-- **Value Objects:** `Isbn`, `BookYear`, `StoredFileReference`, `FileContent`, `FileKey` гарантируют валидность данных при создании.
+- **Value Objects:** `Isbn`, `BookYear`, `StoredFileReference`, `FileContent`, `FileKey`, `Phone` гарантируют валидность данных при создании.
 - **Status FSM:** статус книги моделируется через `BookStatus` enum (черновик / опубликована / в архиве) с переходами через `transitionTo(target, policy)`.
 - **Domain Events:** `BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` накапливаются в сущности при мутации и связывают части системы без прямых зависимостей.
 - **Domain Guards:** `replaceAuthors()` запрещает убирать всех авторов у опубликованных/архивных книг.
@@ -330,7 +330,7 @@ public function createBook(BookForm $form): int
 - Rector для авто-рефакторинга и миграций синтаксиса.
 - Код-стайл через `phpcs.xml.dist`.
 - Архитектурные ограничения через Deptrac и Arkitect.
-- Deptrac: все 7 поддиректорий domain покрыты слоями - `DomainShared` (values, events, exceptions, common), `DomainEntities`, `DomainServices`, `DomainSpecifications`, `DomainRepositories`.
+- Deptrac: все 8 поддиректорий domain покрыты слоями - `DomainShared` (values, events, exceptions, common), `DomainEntities`, `DomainServices`, `DomainSpecifications`, `DomainRepositories`.
 - Arkitect: domain isolation - `app\domain` не может зависеть от `yii`, `app\application`, `app\infrastructure`, `app\presentation` (изоляция домена от фреймворка и внешних слоёв).
 - Arkitect: `application/*/queries` - final, readonly, NotDependsOn(infrastructure) (контракт DTO-only).
 
@@ -407,7 +407,7 @@ public function createBook(BookForm $form): int
 
 ### 16. Маппинг данных (AutoMapper и Hydrator)
 
-- Read-side использует `AutoMapper` и атрибуты `#[MapTo]` в ActiveRecord моделях.
+- Read-side использует `AutoMapper` и MappingListeners (`Yii2ActiveRecordMappingListener` парсит `@property` из PHPDoc ActiveRecord-моделей, `BookToBookReadDtoMappingListener` маппит связанные данные).
 - Write-side использует `ActiveRecordHydrator` в репозиториях (например, `BookRepository`).
 
 [↑ К навигации](#-навигация)
