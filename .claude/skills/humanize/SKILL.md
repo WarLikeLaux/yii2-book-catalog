@@ -10,7 +10,7 @@ Apply these rules to ALL text you generate in this session. After generating any
 ## Extra Typography Rules
 
 - **No em dashes (—):** replace all em dashes with regular dashes (-).
-- **No colons (:):** restructure the sentence to avoid colons entirely.
+- **No colons (:) in prose:** don't use colons to glue two independent clauses. Structural colons are fine - labels, list intros, tips, table cells.
 - **No semicolons (;):** split into separate sentences or restructure.
 
 ---
