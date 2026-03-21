@@ -12,18 +12,16 @@ use app\application\books\usecases\ChangeBookStatusUseCase;
 use app\application\books\usecases\CreateBookUseCase;
 use app\application\books\usecases\DeleteBookUseCase;
 use app\application\books\usecases\UpdateBookUseCase;
-use app\application\common\dto\UploadedFilePayload;
 use app\application\common\exceptions\ApplicationException;
 use app\application\common\exceptions\OperationFailedException;
-use app\application\common\services\UploadedFileStorage;
 use app\domain\values\BookStatus;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\handlers\BookCommandHandler;
+use app\presentation\books\handlers\BookUseCases;
 use app\presentation\books\mappers\BookCommandMapper;
-use app\presentation\common\adapters\UploadedFileAdapter;
+use app\presentation\books\services\CoverUploadService;
 use app\presentation\common\services\WebOperationRunner;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use yii\web\UploadedFile;
@@ -33,35 +31,28 @@ final class BookCommandHandlerTest extends TestCase
     private const COVER_PATH = 'covers/test.jpg';
     private const MSG_MAPPER_FAILED = 'mapper failed';
     private BookCommandMapper&MockObject $commandMapper;
-    private CreateBookUseCase&Stub $createBookUseCase;
-    private UpdateBookUseCase&Stub $updateBookUseCase;
-    private DeleteBookUseCase&Stub $deleteBookUseCase;
-    private ChangeBookStatusUseCase&Stub $changeBookStatusUseCase;
+    private BookUseCases $useCases;
     private WebOperationRunner&MockObject $operationRunner;
-    private UploadedFileStorage&Stub $uploadedFileStorage;
-    private UploadedFileAdapter&Stub $uploadedFileAdapter;
+    private CoverUploadService&MockObject $coverUploadService;
     private BookCommandHandler $handler;
 
     protected function setUp(): void
     {
         $this->commandMapper = $this->createMock(BookCommandMapper::class);
-        $this->createBookUseCase = $this->createStub(CreateBookUseCase::class);
-        $this->updateBookUseCase = $this->createStub(UpdateBookUseCase::class);
-        $this->deleteBookUseCase = $this->createStub(DeleteBookUseCase::class);
-        $this->changeBookStatusUseCase = $this->createStub(ChangeBookStatusUseCase::class);
+        $this->useCases = new BookUseCases(
+            $this->createStub(CreateBookUseCase::class),
+            $this->createStub(UpdateBookUseCase::class),
+            $this->createStub(DeleteBookUseCase::class),
+            $this->createStub(ChangeBookStatusUseCase::class),
+        );
         $this->operationRunner = $this->createMock(WebOperationRunner::class);
-        $this->uploadedFileStorage = $this->createStub(UploadedFileStorage::class);
-        $this->uploadedFileAdapter = $this->createStub(UploadedFileAdapter::class);
+        $this->coverUploadService = $this->createMock(CoverUploadService::class);
 
         $this->handler = new BookCommandHandler(
             $this->commandMapper,
-            $this->createBookUseCase,
-            $this->updateBookUseCase,
-            $this->deleteBookUseCase,
-            $this->changeBookStatusUseCase,
+            $this->useCases,
             $this->operationRunner,
-            $this->uploadedFileStorage,
-            $this->uploadedFileAdapter,
+            $this->coverUploadService,
         );
     }
 
@@ -99,7 +90,8 @@ final class BookCommandHandlerTest extends TestCase
             ->method('runStep')
             ->willReturnCallback(static fn($operation) => $operation());
 
-        $this->mockContentStorageWithCover();
+        $this->coverUploadService->method('upload')->willReturn(self::COVER_PATH);
+
         $this->commandMapper->expects($this->once())
             ->method('toCreateCommand')
             ->with($form, self::COVER_PATH)
@@ -143,13 +135,9 @@ final class BookCommandHandlerTest extends TestCase
 
         $handler = new BookCommandHandler(
             $this->commandMapper,
-            $this->createBookUseCase,
-            $this->updateBookUseCase,
-            $this->deleteBookUseCase,
-            $this->changeBookStatusUseCase,
+            $this->useCases,
             $operationRunner,
-            $this->uploadedFileStorage,
-            $this->uploadedFileAdapter,
+            $this->coverUploadService,
         );
 
         $this->expectException(RuntimeException::class);
@@ -202,7 +190,8 @@ final class BookCommandHandlerTest extends TestCase
 
         $this->operationRunner->method('runStep')->willReturnCallback(static fn($op) => $op());
 
-        $this->mockContentStorageWithCover();
+        $this->coverUploadService->method('upload')->willReturn(self::COVER_PATH);
+
         $this->commandMapper->expects($this->once())
             ->method('toUpdateCommand')
             ->with(7, $form, self::COVER_PATH)
@@ -228,13 +217,9 @@ final class BookCommandHandlerTest extends TestCase
 
         $handler = new BookCommandHandler(
             $this->commandMapper,
-            $this->createBookUseCase,
-            $this->updateBookUseCase,
-            $this->deleteBookUseCase,
-            $this->changeBookStatusUseCase,
+            $this->useCases,
             $operationRunner,
-            $this->uploadedFileStorage,
-            $this->uploadedFileAdapter,
+            $this->coverUploadService,
         );
 
         $this->expectException(RuntimeException::class);
@@ -315,30 +300,13 @@ final class BookCommandHandlerTest extends TestCase
         ]);
     }
 
-    private function mockContentStorageWithCover(): void
-    {
-        $payload = new UploadedFilePayload('/tmp/test.jpg', 'jpg', 'image/jpeg');
-
-        $this->uploadedFileAdapter
-            ->method('toPayload')
-            ->willReturn($payload);
-
-        $this->uploadedFileStorage
-            ->method('store')
-            ->willReturn(self::COVER_PATH);
-    }
-
     private function createHandlerWithStubMapper(): BookCommandHandler
     {
         return new BookCommandHandler(
             $this->createStub(BookCommandMapper::class),
-            $this->createBookUseCase,
-            $this->updateBookUseCase,
-            $this->deleteBookUseCase,
-            $this->changeBookStatusUseCase,
+            $this->useCases,
             $this->operationRunner,
-            $this->uploadedFileStorage,
-            $this->uploadedFileAdapter,
+            $this->coverUploadService,
         );
     }
 
