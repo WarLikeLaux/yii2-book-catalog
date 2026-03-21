@@ -48,7 +48,7 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
 
         $currentYear = (int) $this->clock->now()->format('Y');
 
-        $book = $this->bookRepository->getByIdAndVersion($command->id, $command->version);
+        $book = $this->bookRepository->get($command->id);
 
         $book->rename($command->title);
         $book->changeYear(new BookYear($command->year, $currentYear));
@@ -63,7 +63,7 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
 
         $book->replaceAuthors($authorIds);
 
-        $this->bookRepository->save($book);
+        $this->bookRepository->save($book, $command->version);
 
         return true;
     }

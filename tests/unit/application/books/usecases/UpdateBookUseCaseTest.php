@@ -77,14 +77,17 @@ final class UpdateBookUseCaseTest extends TestCase
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
-                    && $book->authorIds === [1, 2]))
+            ->with(
+                $this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
+                    && $book->authorIds === [1, 2]),
+                1,
+            )
             ->willReturn(42);
 
         $this->useCase->execute($command);
@@ -127,8 +130,8 @@ final class UpdateBookUseCaseTest extends TestCase
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -139,10 +142,10 @@ final class UpdateBookUseCaseTest extends TestCase
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsStaleDataExceptionWhenVersionMismatchOrNotFound(): void
+    public function testExecuteThrowsStaleDataExceptionWhenVersionMismatch(): void
     {
         $command = new UpdateBookCommand(
-            id: 999,
+            id: 42,
             title: 'Title',
             year: 2024,
             description: 'Description',
@@ -151,9 +154,23 @@ final class UpdateBookUseCaseTest extends TestCase
             version: 1,
         );
 
+        $existingBook = BookTestHelper::createBook(
+            id: 42,
+            title: 'Old Title',
+            year: 2020,
+            description: 'Description',
+            authorIds: [1],
+            status: BookStatus::Draft,
+            version: 2,
+        );
+
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(999, 1)
+            ->method('get')
+            ->with(42)
+            ->willReturn($existingBook);
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
             ->willThrowException(new StaleDataException(DomainErrorCode::BookStaleData));
 
         $this->expectException(StaleDataException::class);
@@ -184,8 +201,8 @@ final class UpdateBookUseCaseTest extends TestCase
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -221,8 +238,8 @@ final class UpdateBookUseCaseTest extends TestCase
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -257,8 +274,8 @@ final class UpdateBookUseCaseTest extends TestCase
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -293,8 +310,8 @@ final class UpdateBookUseCaseTest extends TestCase
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -330,8 +347,8 @@ final class UpdateBookUseCaseTest extends TestCase
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -366,8 +383,8 @@ final class UpdateBookUseCaseTest extends TestCase
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -401,8 +418,8 @@ final class UpdateBookUseCaseTest extends TestCase
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->never())->method('save');
@@ -436,7 +453,7 @@ final class UpdateBookUseCaseTest extends TestCase
             version: 1,
         );
 
-        $this->bookRepository->expects($this->never())->method('getByIdAndVersion');
+        $this->bookRepository->expects($this->never())->method('get');
         $this->bookRepository->expects($this->never())->method('save');
 
         $this->expectException(AlreadyExistsException::class);
@@ -467,7 +484,7 @@ final class UpdateBookUseCaseTest extends TestCase
             version: 1,
         );
 
-        $this->bookRepository->expects($this->never())->method('getByIdAndVersion');
+        $this->bookRepository->expects($this->never())->method('get');
         $this->bookRepository->expects($this->never())->method('save');
 
         $this->expectException(EntityNotFoundException::class);
