@@ -41,6 +41,7 @@
 - **#41** - добавлена константа `MAX_PORT_NUMBER` в `ApiPageConfig`, заменён magic number 65535 ([8067fd0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8067fd0))
 - **#41** - рефакторинг ошибок файлового хранилища из `DomainErrorCode` в `StorageException`, удалены 5 кейсов из доменного enum ([2243aef](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2243aef))
 - **#41** - рефакторинг расположения пунктов меню в основном layout ([0fa458e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0fa458e))
+- **#41** - убрана избыточная валидация `$id <= 0` в `AuthorIdCollection` (дублировала `AuthorId`), добавлено типизированное замыкание в `Isbn::validateIsbn10` ([fd2d034](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fd2d034))
 - **#40** - рефакторинг `ApiInfoViewModel`: сырые порты заменены на готовые URL, добавлена поддержка HTTPS ([25e652e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/25e652e))
 - **#40** - стандартизировано форматирование views: breadcrumbs и HTMX load-more блок ([11092b0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/11092b0))
 
@@ -51,13 +52,14 @@
 - **#41** - добавлены тесты для вложенных composite specifications и null-skip ветвей в `buildConditionFor()` ([2b5eb41](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2b5eb41))
 - **#41** - добавлены тесты `applySortToQuery` и сортировки в `PagedResultDataProvider` ([7a83d20](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7a83d20))
 - **#41** - обновлены тесты для `AuthorId` VO, `StorageException`, `BookReadDto`, `FileContent`/`FileKey` и удаления `PagedResultDataProviderFactory` ([1c8b16a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1c8b16a), [0d73e05](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0d73e05), [dfff2d6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dfff2d6), [dc5ad22](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dc5ad22), [471b4b8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/471b4b8), [e6a498e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e6a498e))
+- **#41** - добавлен тест удаления несуществующего автора из опубликованной книги ([bc4fffa](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bc4fffa))
 - **#40** - добавлена конфигурация source directory в phpunit.xml.dist ([11a97fb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/11a97fb))
 
 ### 📝 Документация
 
 - **#41** - обновлена документация: удалены ссылки на Jaeger/OpenTelemetry/tracing из ARCHITECTURE, README, COMPARISON, learning docs, deptrac ([ecb458b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ecb458b))
 - **#41** - добавлены учебные материалы и структурированная документация по архитектуре проекта ([ed5c4d3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ed5c4d3), [6658775](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6658775))
-- **#41** - обновлена документация проекта ([ca48b20](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ca48b20))
+- **#41** - обновлена документация проекта ([ca48b20](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ca48b20), [9790c41](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9790c41))
 - **#41** - обновлены метрики тестов в README ([1567156](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1567156))
 - **#41** - обновлены инструкции workflow и инспекции кода ([0ab41a3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0ab41a3), [f392e6a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f392e6a))
 - **#41** - обновлена документация навыков: подходы аудита кода, типографика, методология ([b32c30b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b32c30b), [d51f433](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d51f433), [2a46d7a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2a46d7a))
