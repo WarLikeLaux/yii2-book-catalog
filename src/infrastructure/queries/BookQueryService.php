@@ -7,6 +7,7 @@ namespace app\infrastructure\queries;
 use app\application\books\factories\BookSearchSpecificationFactory;
 use app\application\books\queries\BookColumnFilterDto;
 use app\application\books\queries\BookReadDto;
+use app\application\common\dto\SortRequest;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\domain\specifications\BookSpecificationInterface;
@@ -19,6 +20,8 @@ use yii\db\Expression;
 
 final readonly class BookQueryService extends BaseQueryService implements BookQueryServiceInterface
 {
+    private const array SORT_FIELDS = ['id', 'title', 'year', 'isbn', 'status', 'created_at'];
+
     public function findById(int $id): ?BookReadDto
     {
         return $this->findByIdWithAuthors($id);
@@ -35,30 +38,32 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
         return $this->mapToDto($book, BookReadDto::class);
     }
 
-    public function search(string $term, int $page, int $limit): PagedResultInterface
+    public function search(string $term, int $page, int $limit, ?SortRequest $sort = null): PagedResultInterface
     {
         $factory = new BookSearchSpecificationFactory();
         $specification = $factory->createFromSearchTerm($term);
 
-        return $this->searchBySpecification($specification, $page, $limit);
+        return $this->searchBySpecification($specification, $page, $limit, $sort);
     }
 
-    public function searchPublished(string $term, int $page, int $limit): PagedResultInterface
+    public function searchPublished(string $term, int $page, int $limit, ?SortRequest $sort = null): PagedResultInterface
     {
         $factory = new BookSearchSpecificationFactory();
         $searchSpec = $factory->createFromSearchTerm($term);
         $publishedSpec = new StatusSpecification(BookStatus::Published);
         $combinedSpec = new CompositeAndSpecification([$publishedSpec, $searchSpec]);
 
-        return $this->searchBySpecification($combinedSpec, $page, $limit);
+        return $this->searchBySpecification($combinedSpec, $page, $limit, $sort);
     }
 
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
         int $limit,
+        ?SortRequest $sort = null,
     ): PagedResultInterface {
-        $query = Book::find()->withAuthors()->orderedByCreatedAt();
+        $query = Book::find()->withAuthors();
+        $this->applySortToQuery($query, $sort, self::SORT_FIELDS, 'created_at', SORT_DESC);
 
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->db);
         $specification->accept($visitor);
@@ -66,9 +71,14 @@ final readonly class BookQueryService extends BaseQueryService implements BookQu
         return $this->getPagedResult($query, $page, $limit, BookReadDto::class);
     }
 
-    public function searchWithFilters(BookColumnFilterDto $filter, int $page, int $limit): PagedResultInterface
-    {
-        $query = Book::find()->withAuthors()->orderedByCreatedAt();
+    public function searchWithFilters(
+        BookColumnFilterDto $filter,
+        int $page,
+        int $limit,
+        ?SortRequest $sort = null,
+    ): PagedResultInterface {
+        $query = Book::find()->withAuthors();
+        $this->applySortToQuery($query, $sort, self::SORT_FIELDS, 'created_at', SORT_DESC);
 
         if ($filter->id !== null) {
             $query->andWhere(['books.id' => $filter->id]);

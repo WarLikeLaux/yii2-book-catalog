@@ -9,8 +9,11 @@ use yii\data\DataProviderInterface;
 
 final readonly class PagedResultDataProviderFactory
 {
-    public function create(PagedResultInterface $result): DataProviderInterface
+    /**
+     * @param string[] $sortAttributes
+     */
+    public function create(PagedResultInterface $result, array $sortAttributes = []): DataProviderInterface
     {
-        return new PagedResultDataProvider($result);
+        return new PagedResultDataProvider($result, $sortAttributes);
     }
 }

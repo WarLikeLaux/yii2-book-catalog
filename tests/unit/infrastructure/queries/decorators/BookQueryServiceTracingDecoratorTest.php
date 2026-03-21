@@ -6,6 +6,8 @@ namespace tests\unit\infrastructure\queries\decorators;
 
 use app\application\books\queries\BookColumnFilterDto;
 use app\application\books\queries\BookReadDto;
+use app\application\common\dto\SortDirection;
+use app\application\common\dto\SortRequest;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\application\ports\TracerInterface;
@@ -183,6 +185,62 @@ final class BookQueryServiceTracingDecoratorTest extends TestCase
             ->willReturn($expected);
 
         $result = $decorator->searchWithFilters($filter, 1, 20);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testSearchWithFiltersDelegatesSortToService(): void
+    {
+        $expected = $this->createStub(PagedResultInterface::class);
+        $filter = new BookColumnFilterDto();
+        $sort = new SortRequest('title', SortDirection::DESC);
+
+        $service = $this->createMock(BookQueryServiceInterface::class);
+        $tracer = $this->createMock(TracerInterface::class);
+        $decorator = new BookQueryServiceTracingDecorator($service, $tracer);
+
+        $tracer->expects($this->once())
+            ->method('trace')
+            ->with(
+                'BookQuery::searchWithFilters',
+                $this->callback(is_callable(...)),
+            )
+            ->willReturnCallback(static fn(string $_, callable $callback): PagedResultInterface => $callback());
+
+        $service->expects($this->once())
+            ->method('searchWithFilters')
+            ->with($filter, 1, 20, $sort)
+            ->willReturn($expected);
+
+        $result = $decorator->searchWithFilters($filter, 1, 20, $sort);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testSearchBySpecificationDelegatesSortToService(): void
+    {
+        $expected = $this->createStub(PagedResultInterface::class);
+        $specification = $this->createStub(BookSpecificationInterface::class);
+        $sort = new SortRequest('year', SortDirection::ASC);
+
+        $service = $this->createMock(BookQueryServiceInterface::class);
+        $tracer = $this->createMock(TracerInterface::class);
+        $decorator = new BookQueryServiceTracingDecorator($service, $tracer);
+
+        $tracer->expects($this->once())
+            ->method('trace')
+            ->with(
+                'BookQuery::searchBySpecification',
+                $this->callback(is_callable(...)),
+            )
+            ->willReturnCallback(static fn(string $_, callable $callback): PagedResultInterface => $callback());
+
+        $service->expects($this->once())
+            ->method('searchBySpecification')
+            ->with($specification, 1, 10, $sort)
+            ->willReturn($expected);
+
+        $result = $decorator->searchBySpecification($specification, 1, 10, $sort);
 
         $this->assertSame($expected, $result);
     }

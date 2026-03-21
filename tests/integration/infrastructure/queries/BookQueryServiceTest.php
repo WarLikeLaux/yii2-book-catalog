@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace tests\integration\infrastructure\queries;
 
 use app\application\books\queries\BookColumnFilterDto;
+use app\application\common\dto\SortDirection;
+use app\application\common\dto\SortRequest;
 use app\application\ports\BookQueryServiceInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\repositories\BookRepositoryInterface;
@@ -405,5 +407,21 @@ final class BookQueryServiceTest extends Unit
         $result = $this->queryService->searchWithFilters($filter, 1, 10);
 
         $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchWithFiltersSortByTitleAsc(): void
+    {
+        $bookA = BookEntity::create('Alpha', new BookYear(2024), new Isbn('9783161484100'), null, null);
+        $bookZ = BookEntity::create('Zeta', new BookYear(2024), new Isbn('9780132350884'), null, null);
+        $this->repository->save($bookZ);
+        $this->repository->save($bookA);
+
+        $filter = new BookColumnFilterDto();
+        $sort = new SortRequest('title', SortDirection::ASC);
+        $result = $this->queryService->searchWithFilters($filter, 1, 10, $sort);
+
+        $models = $result->getModels();
+        $this->assertGreaterThanOrEqual(2, count($models));
+        $this->assertSame('Alpha', $models[0]->title);
     }
 }

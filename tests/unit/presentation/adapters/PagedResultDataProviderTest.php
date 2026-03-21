@@ -108,7 +108,7 @@ final class PagedResultDataProviderTest extends TestCase
         $result->method('getModels')->willReturn([]);
         $result->method('getTotalCount')->willReturn($expectedCount);
 
-        $provider = new PagedResultDataProvider($result, [
+        $provider = new PagedResultDataProvider($result, [], [
             'pagination' => [
                 'pageSize' => 10,
             ],

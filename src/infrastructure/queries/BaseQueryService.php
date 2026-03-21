@@ -6,6 +6,7 @@ namespace app\infrastructure\queries;
 
 use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
+use app\application\common\dto\SortRequest;
 use app\application\ports\PagedResultInterface;
 use AutoMapper\AutoMapperInterface;
 use LogicException;
@@ -88,6 +89,24 @@ abstract readonly class BaseQueryService
         }
 
         return $dto;
+    }
+
+    /**
+     * @param string[] $allowedFields
+     */
+    protected function applySortToQuery(
+        ActiveQuery $query,
+        ?SortRequest $sort,
+        array $allowedFields,
+        string $defaultField,
+        int $defaultDirection,
+    ): void {
+        if ($sort instanceof SortRequest && in_array($sort->field, $allowedFields, true)) {
+            $query->orderBy([$sort->field => $sort->direction->toSortOrder()]);
+            return;
+        }
+
+        $query->orderBy([$defaultField => $defaultDirection]);
     }
 
     protected function exists(ActiveQueryInterface $query, mixed $excludeId = null): bool

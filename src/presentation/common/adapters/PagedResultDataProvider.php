@@ -8,11 +8,16 @@ use app\application\common\dto\PaginationDto;
 use app\application\ports\PagedResultInterface;
 use yii\data\BaseDataProvider;
 use yii\data\Pagination;
+use yii\data\Sort;
 
 final class PagedResultDataProvider extends BaseDataProvider
 {
+    /**
+     * @param string[] $sortAttributes
+     */
     public function __construct(
         private readonly PagedResultInterface $result,
+        array $sortAttributes = [],
         array $config = [],
     ) {
         if (!array_key_exists('pagination', $config)) {
@@ -29,6 +34,10 @@ final class PagedResultDataProvider extends BaseDataProvider
             }
 
             $config['pagination'] = $pagination;
+        }
+
+        if ($sortAttributes !== [] && !array_key_exists('sort', $config)) {
+            $config['sort'] = $this->buildSort($sortAttributes);
         }
 
         parent::__construct($config);
@@ -74,5 +83,25 @@ final class PagedResultDataProvider extends BaseDataProvider
     protected function prepareTotalCount(): int
     {
         return $this->result->getTotalCount();
+    }
+
+    /**
+     * @param string[] $attributes
+     */
+    private function buildSort(array $attributes): Sort
+    {
+        $sortAttributes = [];
+
+        foreach ($attributes as $attr) {
+            $sortAttributes[$attr] = [
+                'asc' => [$attr => SORT_ASC],
+                'desc' => [$attr => SORT_DESC],
+            ];
+        }
+
+        return new Sort([
+            'attributes' => $sortAttributes,
+            'enableMultiSort' => false,
+        ]);
     }
 }
