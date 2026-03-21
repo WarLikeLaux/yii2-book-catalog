@@ -196,7 +196,7 @@ graph TD
 
 - **Rich Entities:** сущность `Book` управляет статусом и авторами, соблюдая бизнес-правила. Конструктор приватный - создание через `Book::create()`, восстановление из БД через `Book::reconstitute()`.
 - **Контроль изменяемости:** доменные сущности используют `private(set)` и меняются через методы.
-- **Value Objects:** `Isbn`, `BookYear`, `StoredFileReference`, `FileContent`, `FileKey`, `Phone` гарантируют валидность данных при создании.
+- **Value Objects:** `Isbn`, `BookYear`, `StoredFileReference`, `Phone`, `AuthorId` гарантируют валидность данных при создании.
 - **Status FSM:** статус книги моделируется через `BookStatus` enum (черновик / опубликована / в архиве) с переходами через `transitionTo(target, policy)`.
 - **Domain Events:** `BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` накапливаются в сущности при мутации и связывают части системы без прямых зависимостей.
 - **Domain Guards:** `replaceAuthors()` запрещает убирать всех авторов у опубликованных/архивных книг.
@@ -273,14 +273,14 @@ public function createBook(BookForm $form): int
     );
 
     if ($form->cover instanceof UploadedFile && $cover === null) {
-        throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+        throw new OperationFailedException(StorageErrorCode::OperationFailed->value, field: 'cover');
     }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
 
     $result = $this->operationRunner->executeAndPropagate(
         $command,
-        $this->createBookUseCase,
+        $this->useCases->create,
         Yii::t('app', 'book.success.created'),
     );
     assert(is_int($result));
@@ -448,7 +448,6 @@ src/application/        - Слой приложения (Application Logic)
 src/infrastructure/     - Инфраструктурный слой (Framework Logic)
   ├── adapters/         - Адаптеры инфраструктуры
   ├── components/       - Вспомогательные компоненты
-  ├── factories/        - Фабрики инфраструктуры
   ├── listeners/        - Event Listeners
   ├── mapping/          - Настройки маппинга
   ├── persistence/      - ActiveRecord модели (Mapping)

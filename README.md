@@ -9,7 +9,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL_/_PgSQL-Multi_DB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-1009_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-1006_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -83,12 +83,12 @@
 | :------------------------------------------------------------------------------- | :------------------------------------------------------------------ |
 | 🔹 **Clean Architecture**<br>Компромисс между чистотой и прагматизмом            | 🚀 **Async Fan-out**<br>Паттерн для масштабируемых уведомлений      |
 | 🔹 **Паттерн CQS**<br>Разделение команд и запросов                               | 🔍 **Гибридный поиск**<br>FullText + откат к LIKE                   |
-| 🔹 **Value Objects**<br>`Isbn`, `BookYear`, `BookStatus`, `StoredFileReference`  | 🛡 **Idempotency + Mutex**<br>Защита от дублей без гонок            |
+| 🔹 **Value Objects**<br>`Isbn`, `BookYear`, `BookStatus`, `Phone`, `AuthorId`, `StoredFileReference` | 🛡 **Idempotency + Mutex**<br>Защита от дублей без гонок            |
 | 🔹 **🚦 Status FSM**<br>Конечный автомат статусов книги                          | ⚡ **HTMX**<br>Infinite Scroll и реактивные формы                   |
 | 🔹 **📦 CAS (File Storage)**<br>Контентно-адресуемое хранилище                   | 📈 **Observability**<br>Structured Logging + Inspector APM          |
-| 🔹 **Доменные события**<br>`BookStatusChangedEvent`, `BookUpdatedEvent`, fan-out | 🩺 **Эндпоинт здоровья (Health Check)**<br>Prod-readiness `/health` |
+| 🔹 **Доменные события**<br>`BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` | 🩺 **Эндпоинт здоровья (Health Check)**<br>Prod-readiness `/health` |
 | **🧪 Качество кода**                                                             | **🐳 DevOps Ready**                                                 |
-| ✅ **1009+ тестов** (2479+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
+| ✅ **1006+ тестов** (2400+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
 | ✅ **PHPStan Level 9**<br>10 кастомных правил (Custom Rules)                     | 🛠 **Makefile**<br>Автоматизация рутины                             |
 | ✅ **Мутационное тестирование**<br>Infection PHP (MSI 100%)                      | 📚 **Генерация документации**<br>Yii2 API + OpenAPI                 |
 | ✅ **Авто-рефакторинг**<br>Rector                                                | 🏗 **Контроль архитектуры**<br>Deptrac + Arkitect                   |
@@ -216,7 +216,7 @@ make env   # или make configure
 | **Очереди**         | `yii2-queue`                                                                                                         | DB Driver + Fan-out Pattern                          |
 | **Тестирование**    | [![Codeception](https://img.shields.io/badge/Codeception-5.0-purple)](https://codeception.com/)                      | Unit + Integration + E2E, 100% Coverage              |
 | **Инфраструктура**  | [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) | PHP 8.5 + MySQL 8 / PgSQL 16 + Redis + очередь       |
-| **UX / Front**      | [![HTMX](https://img.shields.io/badge/HTMX-2.0-blue)](https://htmx.org/)                                             | Infinite Scroll, Reactive Forms, Modal dialogs       |
+| **UX / Front**      | [![HTMX](https://img.shields.io/badge/HTMX-2.0-blue)](https://htmx.org/)                                             | Infinite Scroll, Reactive Forms                      |
 | **Качество**        | `Rector`, `PHPStan`, `Deptrac`, `Arkitect`                                                                           | Strict Static Analysis & Architectural Guardrails    |
 
 [↑ К навигации](#-навигация)
@@ -231,10 +231,10 @@ make env   # или make configure
 
 <table>
 <tr>
-<td align="center"><b>1009</b><br>Tests</td>
-<td align="center"><b>2479+</b><br>Assertions</td>
+<td align="center"><b>1006</b><br>Tests</td>
+<td align="center"><b>2400+</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~13s</b><br>Runtime</td>
+<td align="center"><b>~14s</b><br>Runtime</td>
 </tr>
 </table>
 
@@ -358,10 +358,10 @@ web/                    - Web root
 
 ### 📊 Статистика проекта
 
-![Source Code](https://img.shields.io/badge/Source_Code-11k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-17.9k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-335-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-223-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Code](https://img.shields.io/badge/Source_Code-10.8k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-17.5k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-326-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-213-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)

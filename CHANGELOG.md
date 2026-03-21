@@ -6,6 +6,72 @@
 
 Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.22.0] - 2026-03-21 - "Строгая типизация, CRUD-фильтрация и архитектурное упрощение"
+
+> Масштабный рефакторинг с фокусом на строгую типизацию и упрощение архитектуры. Введён Value Object `AuthorId`, реализованы сортировка и фильтрация по колонкам в CRUD-интерфейсах. Полностью удалена инфраструктура трейсинга (Jaeger/OpenTelemetry) - 7 декораторов, фабрики и конфиги. Упрощены command handlers через UseCases-реестры, удалены `BookViewModel` и `PagedResultDataProviderFactory`. Оптимистичная блокировка перенесена в `save()`. Unit-тесты переведены на PHPUnit. Ошибки файлового хранилища выделены в отдельную иерархию `StorageException`.
+
+<details>
+<summary>Подробности изменений</summary>
+
+### 🚀 Новые функции и возможности
+
+- **#41** - добавлен Value Object `AuthorId` с валидацией, `equals()` и `Stringable`; доменные сущности (`Book`, `Subscription`) переведены на `AuthorId` вместо `int[]`; `AuthorIdCollection` обновлён на `AuthorId[]` с `toIntArray()`; инфраструктурные репозитории обновлены для маппинга `AuthorId` ↔ `int` ([9f0fffd](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9f0fffd), [abe2021](https://github.com/WarLikeLaux/yii2-book-catalog/commit/abe2021), [0a5e264](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0a5e264), [6c548f7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6c548f7))
+- **#41** - добавлены `StorageErrorCode` enum и `StorageException` для иерархии ошибок файлового хранилища ([3dfe9f7](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3dfe9f7))
+- **#41** - реализована сортировка: `SortDirection` enum, `SortRequest` DTO, `applySortToQuery()` в `BaseQueryService`; добавлено извлечение параметров сортировки в `BookListViewFactory` и `AuthorListViewFactory` ([8e4344e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8e4344e), [dd098a1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dd098a1), [12a0e81](https://github.com/WarLikeLaux/yii2-book-catalog/commit/12a0e81))
+- **#41** - добавлена фильтрация по колонкам через `searchWithFilters` в query service портах; созданы форм-модели фильтров для книг и авторов с view model и фабриками ([9cfc1fe](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9cfc1fe), [ac64cdb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ac64cdb))
+- **#41** - добавлены `BookUseCases`, `AuthorUseCases` и `CoverUploadService` для агрегации сценариев ([e856f60](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e856f60))
+- **#41** - добавлена обработка ошибок с логированием в `YiiEventPublisherAdapter` и `YiiTransactionAdapter` ([d9981c2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d9981c2))
+
+### 🐛 Исправления
+
+- **#41** - исправлен тихий fallback в `ReportsConfig`: заменён на `ConfigurationException`, добавлены константы `MIN_CACHE_TTL`/`MAX_CACHE_TTL` ([a0bc77e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a0bc77e))
+- **#41** - исправлен `buildConditionFor()` для обработки вложенных `CompositeAnd`/`CompositeOr`, тихий null заменён на `InvalidArgumentException` ([0a419c8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0a419c8))
+- **#40** - исправлены `excludePaths` PHPStan после переноса тестов, добавлена очистка кэша в `make analyze` ([18c599e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/18c599e))
+
+### 🛠 Рефакторинг и архитектура
+
+- **#41** - удалена инфраструктура трейсинга: 7 декораторов, `TracerInterface`, `OtelTracer`, `NullTracer`, `TracingFactory`, `TracingMiddleware`, `JaegerConfig`; удалён контейнер Jaeger и пакеты OpenTelemetry ([856aef6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/856aef6), [3628189](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3628189), [ba023cf](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ba023cf))
+- **#41** - удалены `BookViewModel` и `BookViewModelMapper`, views и handlers используют `BookReadDto` напрямую ([76e992f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/76e992f))
+- **#41** - рефакторинг оптимистичной блокировки: проверка версии перенесена в `save(expectedVersion)`, удалены `incrementVersion()` и `getByIdAndVersion()` ([6eacac8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6eacac8), [7e28cc1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7e28cc1), [b3d4b93](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b3d4b93))
+- **#41** - перемещены `FileContent` и `FileKey` из `domain/values/` в `application/common/values/` ([0bb4f8a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0bb4f8a))
+- **#41** - рефакторинг `AuthorIdCollection`: удалён `fromMixed()`, `fromArray()` стал строгим с `ValidationException`; `BookForm` использует явное приведение к `int` ([9d286f2](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9d286f2), [fd4eef1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fd4eef1))
+- **#41** - упрощены `BookCommandHandler` (8 → 4 параметра) и `AuthorCommandHandler` (5 → 3 параметра) через `UseCases`-реестры ([531128c](https://github.com/WarLikeLaux/yii2-book-catalog/commit/531128c), [9d7b7a4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/9d7b7a4))
+- **#41** - удалён `PagedResultDataProviderFactory`, handlers используют `PagedResultDataProvider` напрямую ([7badf25](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7badf25))
+- **#41** - рефакторинг `Isbn`: magic numbers заменены на именованные константы ([358c064](https://github.com/WarLikeLaux/yii2-book-catalog/commit/358c064))
+- **#41** - добавлена константа `MAX_PORT_NUMBER` в `ApiPageConfig`, заменён magic number 65535 ([8067fd0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/8067fd0))
+- **#41** - рефакторинг ошибок файлового хранилища из `DomainErrorCode` в `StorageException`, удалены 5 кейсов из доменного enum ([2243aef](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2243aef))
+- **#41** - рефакторинг расположения пунктов меню в основном layout ([0fa458e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0fa458e))
+- **#40** - рефакторинг `ApiInfoViewModel`: сырые порты заменены на готовые URL, добавлена поддержка HTTPS ([25e652e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/25e652e))
+- **#40** - стандартизировано форматирование views: breadcrumbs и HTMX load-more блок ([11092b0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/11092b0))
+
+### 🧪 Тестирование
+
+- **#40** - миграция unit-тестов на PHPUnit: удалены Yii2-зависимости, integration-тесты перемещены в отдельную сьюту ([d75173f](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d75173f), [a2977a8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a2977a8), [a74246e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/a74246e))
+- **#41** - добавлены тесты обработки ошибок в `YiiEventPublisherAdapter` и `YiiTransactionAdapter` ([bec2332](https://github.com/WarLikeLaux/yii2-book-catalog/commit/bec2332))
+- **#41** - добавлены тесты для вложенных composite specifications и null-skip ветвей в `buildConditionFor()` ([2b5eb41](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2b5eb41))
+- **#41** - добавлены тесты `applySortToQuery` и сортировки в `PagedResultDataProvider` ([7a83d20](https://github.com/WarLikeLaux/yii2-book-catalog/commit/7a83d20))
+- **#41** - обновлены тесты для `AuthorId` VO, `StorageException`, `BookReadDto`, `FileContent`/`FileKey` и удаления `PagedResultDataProviderFactory` ([1c8b16a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1c8b16a), [0d73e05](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0d73e05), [dfff2d6](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dfff2d6), [dc5ad22](https://github.com/WarLikeLaux/yii2-book-catalog/commit/dc5ad22), [471b4b8](https://github.com/WarLikeLaux/yii2-book-catalog/commit/471b4b8), [e6a498e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e6a498e))
+- **#40** - добавлена конфигурация source directory в phpunit.xml.dist ([11a97fb](https://github.com/WarLikeLaux/yii2-book-catalog/commit/11a97fb))
+
+### 📝 Документация
+
+- **#41** - обновлена документация: удалены ссылки на Jaeger/OpenTelemetry/tracing из ARCHITECTURE, README, COMPARISON, learning docs, deptrac ([ecb458b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ecb458b))
+- **#41** - добавлены учебные материалы и структурированная документация по архитектуре проекта ([ed5c4d3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ed5c4d3), [6658775](https://github.com/WarLikeLaux/yii2-book-catalog/commit/6658775))
+- **#41** - обновлена документация проекта ([ca48b20](https://github.com/WarLikeLaux/yii2-book-catalog/commit/ca48b20))
+- **#41** - обновлены метрики тестов в README ([1567156](https://github.com/WarLikeLaux/yii2-book-catalog/commit/1567156))
+- **#41** - обновлены инструкции workflow и инспекции кода ([0ab41a3](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0ab41a3), [f392e6a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f392e6a))
+- **#41** - обновлена документация навыков: подходы аудита кода, типографика, методология ([b32c30b](https://github.com/WarLikeLaux/yii2-book-catalog/commit/b32c30b), [d51f433](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d51f433), [2a46d7a](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2a46d7a))
+- **#39** - добавлена запись CHANGELOG v0.21.0 ([d43a955](https://github.com/WarLikeLaux/yii2-book-catalog/commit/d43a955))
+
+### ⚙️ Инфраструктура
+
+- **#41** - добавлены настройки concurrency в CI workflow ([232005d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/232005d))
+- **#41** - добавлены навыки badges, docs, readme и humanize для проверки AI-трафаретов ([3894075](https://github.com/WarLikeLaux/yii2-book-catalog/commit/3894075), [f5c76d4](https://github.com/WarLikeLaux/yii2-book-catalog/commit/f5c76d4))
+- **#41** - удалены устаревшие навыки (commit-staged, discuss, migrate, test), обновлены commit, docs, hunt ([e2cf69d](https://github.com/WarLikeLaux/yii2-book-catalog/commit/e2cf69d))
+- **#39** - запущен CI ([42b4386](https://github.com/WarLikeLaux/yii2-book-catalog/commit/42b4386))
+
+</details>
+
 ## [0.21.0] - 2026-03-09 - "PHP 8.5, инфраструктурная зрелость и CI на Docker Compose"
 
 > Масштабная миграция на PHP 8.5 с обновлением всех зависимостей, Rector-правил и PHPStan-конфигов. CI-пайплайн полностью переведён на Docker Compose через Makefile-таргеты. Лицензия изменена с BSD-3-Clause на MIT. Внедрена библиотека oscarotero/env вместо кастомной функции env(). Стандартизированы em dash на дефисы по всему проекту. Добавлена поддержка protobuf для OTLP-экспорта OpenTelemetry. Инфраструктура переведена на named volumes, навыки AI-агента перенесены в .claude/skills.

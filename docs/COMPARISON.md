@@ -294,14 +294,14 @@ public function createBook(BookForm $form): int
     );
 
     if ($form->cover instanceof UploadedFile && $cover === null) {
-        throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+        throw new OperationFailedException(StorageErrorCode::OperationFailed->value, field: 'cover');
     }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
 
     $result = $this->operationRunner->executeAndPropagate(
         $command,
-        $this->createBookUseCase,
+        $this->useCases->create,
         Yii::t('app', 'book.success.created'),
     );
     assert(is_int($result));
@@ -534,14 +534,14 @@ public function actionCreate()
 // application/books/usecases/CreateBookUseCase.php
 public function execute(object $command): int
 {
-    $authorIds = $command->authorIds->toArray();
+    $authorIntIds = $command->authorIds->toIntArray();
     $isbn = new Isbn($command->isbn);
 
     if ($this->bookIsbnChecker->existsByIsbn($command->isbn)) {
         throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
     }
 
-    if ($authorIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIds)) {
+    if ($authorIntIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIntIds)) {
         throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
     }
 
@@ -555,7 +555,7 @@ public function execute(object $command): int
         description: $command->description,
         coverImage: $coverImage,
     );
-    $book->replaceAuthors($authorIds);
+    $book->replaceAuthors($command->authorIds->toArray());
 
     return $this->bookRepository->save($book);
 }
@@ -581,21 +581,25 @@ Book::find()->where(['id' => $id])->one();
 // domain/repositories/BookRepositoryInterface.php
 interface BookRepositoryInterface
 {
-    public function save(Book $book): int;
+    public function save(Book $book, ?int $expectedVersion = null): int;
     public function get(int $id): Book;
-    public function getByIdAndVersion(int $id, int $expectedVersion): Book;
     public function delete(Book $book): void;
 }
 ```
 
 ```php
 // infrastructure/repositories/BookRepository.php
-public function save(BookEntity $book): int
+public function save(BookEntity $book, ?int $expectedVersion = null): int
 {
     /** @var int */
-    return $this->db->transaction(function () use ($book): int {
+    return $this->db->transaction(function () use ($book, $expectedVersion): int {
         $isNew = $book->getId() === null;
         $model = $isNew ? new Book() : $this->getArForEntity($book, Book::class, DomainErrorCode::BookNotFound);
+
+        if ($expectedVersion !== null) {
+            $this->ensureVersionMatch($model, $expectedVersion);
+        }
+
         $model->version = $book->version;
 
         $this->hydrator->hydrate($model, $book, [
@@ -829,7 +833,7 @@ final class Book implements RecordableEntityInterface
         public private(set) int $version,
     ) {
         $this->title = $title;
-        $this->authorIds = array_map(intval(...), $authorIds);
+        $this->authorIds = $authorIds;
     }
 
     public static function create(/* ... */): self
@@ -895,13 +899,9 @@ final class Book implements RecordableEntityInterface
         }
     }
 
-    public function addAuthor(int $authorId): void
+    public function addAuthor(AuthorId $authorId): void
     {
-        if ($authorId <= 0) {
-            throw new ValidationException(DomainErrorCode::BookInvalidAuthorId);
-        }
-
-        if (in_array($authorId, $this->authorIds, true)) {
+        if ($this->hasAuthor($authorId)) {
             return;
         }
 
@@ -1039,14 +1039,14 @@ public function createBook(BookForm $form): int
     );
 
     if ($form->cover instanceof UploadedFile && $cover === null) {
-        throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+        throw new OperationFailedException(StorageErrorCode::OperationFailed->value, field: 'cover');
     }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
 
     $result = $this->operationRunner->executeAndPropagate(
         $command,
-        $this->createBookUseCase,
+        $this->useCases->create,
         Yii::t('app', 'book.success.created'),
     );
     assert(is_int($result));
@@ -1208,9 +1208,8 @@ interface BookRepositoryInterface {
 ```php
 interface BookRepositoryInterface
 {
-    public function save(Book $book): int;
+    public function save(Book $book, ?int $expectedVersion = null): int;
     public function get(int $id): Book;
-    public function getByIdAndVersion(int $id, int $expectedVersion): Book;
     public function delete(Book $book): void;
 }
 
@@ -1222,12 +1221,13 @@ interface BookFinderInterface
 
 interface BookSearcherInterface
 {
-    public function search(string $term, int $page, int $limit): PagedResultInterface;
-    public function searchPublished(string $term, int $page, int $limit): PagedResultInterface;
+    public function search(string $term, int $page, int $limit, ?SortRequest $sort = null): PagedResultInterface;
+    public function searchPublished(string $term, int $page, int $limit, ?SortRequest $sort = null): PagedResultInterface;
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
         int $limit,
+        ?SortRequest $sort = null,
     ): PagedResultInterface;
 }
 ```
