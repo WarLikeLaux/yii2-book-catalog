@@ -65,13 +65,13 @@ final readonly class Isbn implements Stringable
         ? self::ISBN10_X_VALUE
         : (int)$char;
 
-        $checksum = 0;
+        $weightedDigits = [];
 
         foreach (str_split($isbn) as $index => $digit) {
-            $checksum += $toDigitValue($digit) * (self::ISBN10_LENGTH - $index);
+            $weightedDigits[] = $toDigitValue($digit) * (self::ISBN10_LENGTH - $index);
         }
 
-        return $checksum % self::ISBN10_CHECKSUM_MODULO === 0;
+        return array_sum($weightedDigits) % self::ISBN10_CHECKSUM_MODULO === 0;
     }
 
     private static function validateIsbn13(string $isbn): bool
