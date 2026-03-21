@@ -30,10 +30,6 @@ final readonly class AuthorIdCollection
                 throw new ValidationException(DomainErrorCode::BookInvalidAuthorId);
             }
 
-            if ($id <= 0) {
-                throw new ValidationException(DomainErrorCode::BookInvalidAuthorId);
-            }
-
             if (isset($seen[$id])) {
                 continue;
             }
