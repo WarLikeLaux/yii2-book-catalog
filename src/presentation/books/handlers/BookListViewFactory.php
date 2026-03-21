@@ -13,7 +13,7 @@ use app\application\ports\BookSearcherInterface;
 use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\forms\BookFilterForm;
 use app\presentation\books\services\BookDtoUrlResolver;
-use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\common\adapters\PagedResultDataProvider;
 use app\presentation\common\exceptions\UnexpectedDtoTypeException;
 use yii\data\DataProviderInterface;
 use yii\web\Request;
@@ -25,7 +25,6 @@ final readonly class BookListViewFactory
 
     public function __construct(
         private BookSearcherInterface $searcher,
-        private PagedResultDataProviderFactory $dataProviderFactory,
         private BookDtoUrlResolver $urlResolver,
     ) {
     }
@@ -79,7 +78,7 @@ final readonly class BookListViewFactory
             $queryResult->getPagination(),
         );
 
-        return $this->dataProviderFactory->create($newResult, self::SORT_ATTRIBUTES);
+        return new PagedResultDataProvider($newResult, self::SORT_ATTRIBUTES);
     }
 
     private function buildFilterDto(BookFilterForm $form): BookColumnFilterDto

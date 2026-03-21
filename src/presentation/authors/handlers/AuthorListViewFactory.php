@@ -9,7 +9,7 @@ use app\application\common\dto\SortRequest;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\authors\dto\AuthorListViewModel;
 use app\presentation\authors\forms\AuthorFilterForm;
-use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\common\adapters\PagedResultDataProvider;
 use yii\data\DataProviderInterface;
 use yii\web\Request;
 
@@ -20,7 +20,6 @@ final readonly class AuthorListViewFactory
 
     public function __construct(
         private AuthorQueryServiceInterface $queryService,
-        private PagedResultDataProviderFactory $dataProviderFactory,
     ) {
     }
 
@@ -63,6 +62,6 @@ final readonly class AuthorListViewFactory
             $sort,
         );
 
-        return $this->dataProviderFactory->create($queryResult, self::SORT_ATTRIBUTES);
+        return new PagedResultDataProvider($queryResult, self::SORT_ATTRIBUTES);
     }
 }
