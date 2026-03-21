@@ -6,18 +6,22 @@ namespace tests\unit\infrastructure\adapters;
 
 use app\infrastructure\adapters\YiiTransactionAdapter;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use RuntimeException;
 use yii\db\Connection;
 use yii\db\Transaction;
 
 final class YiiTransactionAdapterTest extends TestCase
 {
     private Connection $db;
+    private LoggerInterface $logger;
     private YiiTransactionAdapter $adapter;
 
     protected function setUp(): void
     {
         $this->db = $this->createStub(Connection::class);
-        $this->adapter = new YiiTransactionAdapter($this->db);
+        $this->logger = $this->createStub(LoggerInterface::class);
+        $this->adapter = new YiiTransactionAdapter($this->db, $this->logger);
     }
 
     public function testBeginStartsTransaction(): void
@@ -28,7 +32,7 @@ final class YiiTransactionAdapterTest extends TestCase
             ->method('beginTransaction')
             ->willReturn($transaction);
 
-        $adapter = new YiiTransactionAdapter($db);
+        $adapter = new YiiTransactionAdapter($db, $this->logger);
         $adapter->begin();
     }
 
@@ -146,7 +150,7 @@ final class YiiTransactionAdapterTest extends TestCase
 
         $db->method('getTransaction')->willReturn($activeTransaction);
 
-        $adapter1 = new YiiTransactionAdapter($db);
+        $adapter1 = new YiiTransactionAdapter($db, $this->logger);
 
         $db->expects($this->never())->method('beginTransaction');
         $activeTransaction->expects($this->never())->method('commit');
@@ -171,5 +175,52 @@ final class YiiTransactionAdapterTest extends TestCase
         $this->expectException('RuntimeException'::class);
         $this->expectExceptionMessage('Transaction not started');
         $this->adapter->commit();
+    }
+
+    public function testAfterCommitCallbackExceptionIsLoggedAndDoesNotPropagate(): void
+    {
+        $transaction = $this->createStub(Transaction::class);
+        $transaction->method('getIsActive')->willReturn(true);
+        $this->db->method('beginTransaction')->willReturn($transaction);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $adapter = new YiiTransactionAdapter($this->db, $logger);
+
+        $logger->expects($this->once())
+            ->method('error')
+            ->with('Callback failed', $this->callback(
+                static fn(array $ctx): bool => isset($ctx['exception']),
+            ));
+
+        $adapter->begin();
+        $adapter->afterCommit(static function (): void {
+            throw new RuntimeException('Callback failed');
+        });
+
+        $adapter->commit();
+    }
+
+    public function testAfterCommitCallbackExceptionDoesNotPreventOtherCallbacks(): void
+    {
+        $transaction = $this->createStub(Transaction::class);
+        $transaction->method('getIsActive')->willReturn(true);
+        $this->db->method('beginTransaction')->willReturn($transaction);
+
+        $logger = $this->createStub(LoggerInterface::class);
+        $adapter = new YiiTransactionAdapter($this->db, $logger);
+
+        $secondExecuted = false;
+
+        $adapter->begin();
+        $adapter->afterCommit(static function (): void {
+            throw new RuntimeException('first fails');
+        });
+        $adapter->afterCommit(static function () use (&$secondExecuted): void {
+            $secondExecuted = true;
+        });
+
+        $adapter->commit();
+
+        $this->assertTrue($secondExecuted);
     }
 }
