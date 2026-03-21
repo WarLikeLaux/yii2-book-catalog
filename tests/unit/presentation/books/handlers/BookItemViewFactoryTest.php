@@ -11,7 +11,6 @@ use app\application\ports\BookQueryServiceInterface;
 use app\domain\values\BookStatus;
 use app\presentation\books\dto\BookEditViewModel;
 use app\presentation\books\handlers\BookItemViewFactory;
-use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\services\FileUrlResolver;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -37,7 +36,6 @@ final class BookItemViewFactoryTest extends TestCase
             $this->finder,
             $this->authorQueryService,
             $this->urlResolver,
-            new BookViewModelMapper(),
         );
     }
 

@@ -11,7 +11,6 @@ use app\application\ports\PagedResultInterface;
 use app\presentation\books\dto\BookIndexViewModel;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\books\handlers\BookSearchViewFactory;
-use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -25,7 +24,6 @@ final class BookSearchViewFactoryTest extends TestCase
     private BookQueryServiceInterface&MockObject $bookQueryService;
     private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private BookDtoUrlResolver&MockObject $urlResolver;
-    private BookViewModelMapper $viewModelMapper;
     private BookSearchViewFactory $viewFactory;
 
     protected function setUp(): void
@@ -33,13 +31,11 @@ final class BookSearchViewFactoryTest extends TestCase
         $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $this->urlResolver = $this->createMock(BookDtoUrlResolver::class);
-        $this->viewModelMapper = new BookViewModelMapper();
 
         $this->viewFactory = new BookSearchViewFactory(
             $this->bookQueryService,
             $this->dataProviderFactory,
             $this->urlResolver,
-            $this->viewModelMapper,
         );
     }
 
@@ -67,7 +63,6 @@ final class BookSearchViewFactoryTest extends TestCase
             $this->bookQueryService,
             $this->dataProviderFactory,
             $this->createStub(BookDtoUrlResolver::class),
-            $this->viewModelMapper,
         );
 
         $result = $viewFactory->prepareIndexViewModel($request);

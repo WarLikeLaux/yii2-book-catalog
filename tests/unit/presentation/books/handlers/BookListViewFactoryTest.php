@@ -15,7 +15,6 @@ use app\domain\values\BookStatus;
 use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\forms\BookFilterForm;
 use app\presentation\books\handlers\BookListViewFactory;
-use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\common\exceptions\UnexpectedDtoTypeException;
@@ -37,13 +36,11 @@ final class BookListViewFactoryTest extends TestCase
         $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $resolver = new FileUrlResolver('/uploads');
         $urlResolver = new BookDtoUrlResolver($resolver);
-        $viewModelMapper = new BookViewModelMapper();
 
         $this->factory = new BookListViewFactory(
             $this->searcher,
             $this->dataProviderFactory,
             $urlResolver,
-            $viewModelMapper,
         );
     }
 
