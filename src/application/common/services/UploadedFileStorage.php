@@ -6,11 +6,10 @@ namespace app\application\common\services;
 
 use app\application\common\dto\UploadedFilePayload;
 use app\application\common\exceptions\ApplicationException;
+use app\application\common\exceptions\StorageErrorCode;
+use app\application\common\exceptions\StorageException;
 use app\application\common\values\FileContent;
 use app\application\ports\ContentStorageInterface;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\DomainException;
-use app\domain\exceptions\ValidationException;
 
 final readonly class UploadedFileStorage
 {
@@ -34,25 +33,25 @@ final readonly class UploadedFileStorage
                     fclose($stream);
                 }
             }
-        } catch (DomainException $exception) {
-            throw ApplicationException::fromDomainException($exception);
+        } catch (StorageException $exception) {
+            throw new ApplicationException($exception->errorCode->value, $exception->getCode(), $exception);
         }
     }
 
     private function createFileContent(UploadedFilePayload $payload): FileContent
     {
         if (!is_file($payload->path)) {
-            throw new ValidationException(DomainErrorCode::FileNotFound);
+            throw new StorageException(StorageErrorCode::NotFound);
         }
 
         if (!is_readable($payload->path)) {
-            throw new ValidationException(DomainErrorCode::FileOpenFailed);
+            throw new StorageException(StorageErrorCode::OpenFailed);
         }
 
         $stream = fopen($payload->path, 'rb');
 
         if ($stream === false) {
-            throw new ValidationException(DomainErrorCode::FileOpenFailed); // @codeCoverageIgnore
+            throw new StorageException(StorageErrorCode::OpenFailed); // @codeCoverageIgnore
         }
 
         $extension = $payload->extension !== ''

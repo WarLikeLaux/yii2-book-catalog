@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\application\common\values;
 
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\ValidationException;
+use app\application\common\exceptions\StorageErrorCode;
+use app\application\common\exceptions\StorageException;
 use Stringable;
 
 final readonly class FileKey implements Stringable
@@ -19,7 +19,7 @@ final readonly class FileKey implements Stringable
         $normalized = strtolower($hash);
 
         if (!$this->isValidHash($normalized)) {
-            throw new ValidationException(DomainErrorCode::FileKeyInvalidFormat);
+            throw new StorageException(StorageErrorCode::InvalidFormat);
         }
 
         $this->value = $normalized;
@@ -42,7 +42,7 @@ final readonly class FileKey implements Stringable
         $normalizedExtension = strtolower(ltrim($extension, '.'));
 
         if ($normalizedExtension !== '' && preg_match('/^[a-z0-9_-]+$/', $normalizedExtension) !== 1) {
-            throw new ValidationException(DomainErrorCode::FileKeyInvalidFormat);
+            throw new StorageException(StorageErrorCode::InvalidFormat);
         }
 
         return $normalizedExtension;

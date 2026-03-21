@@ -7,7 +7,7 @@ namespace app\presentation\books\handlers;
 use app\application\books\commands\ChangeBookStatusCommand;
 use app\application\books\commands\DeleteBookCommand;
 use app\application\common\exceptions\OperationFailedException;
-use app\domain\exceptions\DomainErrorCode;
+use app\application\common\exceptions\StorageErrorCode;
 use app\domain\values\BookStatus;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookCommandMapper;
@@ -34,7 +34,7 @@ final readonly class BookCommandHandler
         );
 
         if ($form->cover instanceof UploadedFile && $cover === null) {
-            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+            throw new OperationFailedException(StorageErrorCode::OperationFailed->value, field: 'cover');
         }
 
         $command = $this->commandMapper->toCreateCommand($form, $cover);
@@ -58,7 +58,7 @@ final readonly class BookCommandHandler
         );
 
         if ($form->cover instanceof UploadedFile && $cover === null) {
-            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+            throw new OperationFailedException(StorageErrorCode::OperationFailed->value, field: 'cover');
         }
 
         $command = $this->commandMapper->toUpdateCommand($id, $form, $cover);

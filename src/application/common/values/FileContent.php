@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\application\common\values;
 
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\ValidationException;
+use app\application\common\exceptions\StorageErrorCode;
+use app\application\common\exceptions\StorageException;
 
 final readonly class FileContent
 {
@@ -18,7 +18,7 @@ final readonly class FileContent
         public string $mimeType,
     ) {
         if (!is_resource($stream) || get_resource_type($stream) !== 'stream') {
-            throw new ValidationException(DomainErrorCode::FileContentInvalidStream);
+            throw new StorageException(StorageErrorCode::InvalidStream);
         }
     }
 
