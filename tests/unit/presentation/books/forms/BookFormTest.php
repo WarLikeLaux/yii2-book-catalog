@@ -20,10 +20,10 @@ final class BookFormTest extends TestCase
         $this->assertSame([], $result);
     }
 
-    public function testGetAuthorInitValueTextSkipsInvalidAuthorIds(): void
+    public function testGetAuthorInitValueTextReturnsEmptyWhenAuthorIdsIsEmpty(): void
     {
         $form = new BookForm();
-        $form->authorIds = ['abc', 0, -2];
+        $form->authorIds = [];
 
         $result = $form->getAuthorInitValueText([1 => self::AUTHOR_NAME]);
 

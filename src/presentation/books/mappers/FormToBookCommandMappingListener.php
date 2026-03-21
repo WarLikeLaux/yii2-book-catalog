@@ -22,6 +22,21 @@ final class FormToBookCommandMappingListener
         UpdateBookCommand::class,
     ];
 
+    public static function transformAuthorIds(mixed $value): AuthorIdCollection
+    {
+        if (!is_array($value)) {
+            return AuthorIdCollection::fromArray([]);
+        }
+
+        $ids = [];
+
+        foreach ($value as $v) {
+            $ids[] = is_numeric($v) ? (int) $v : 0;
+        }
+
+        return AuthorIdCollection::fromArray($ids);
+    }
+
     public function __invoke(GenerateMapperEvent $event): void
     {
         if ($event->mapperMetadata->source !== BookForm::class) {
@@ -36,7 +51,7 @@ final class FormToBookCommandMappingListener
             return;
         }
 
-        $transformer = new CallableTransformer(AuthorIdCollection::class . '::fromMixed');
+        $transformer = new CallableTransformer(self::class . '::transformAuthorIds');
         $propertyEvent = new PropertyMetadataEvent(
             mapperMetadata: $event->mapperMetadata,
             source: new SourcePropertyMetadata(self::AUTHOR_IDS),
