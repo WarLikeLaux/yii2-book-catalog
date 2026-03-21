@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\infrastructure\queries\decorators;
 
+use app\application\books\queries\BookColumnFilterDto;
 use app\application\books\queries\BookReadDto;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
@@ -52,6 +53,14 @@ final readonly class BookQueryServiceTracingDecorator implements BookQueryServic
         return $this->tracer->trace(
             'BookQuery::' . __FUNCTION__,
             fn(): PagedResultInterface => $this->service->searchBySpecification($specification, $page, $limit),
+        );
+    }
+
+    public function searchWithFilters(BookColumnFilterDto $filter, int $page, int $limit): PagedResultInterface
+    {
+        return $this->tracer->trace(
+            'BookQuery::' . __FUNCTION__,
+            fn(): PagedResultInterface => $this->service->searchWithFilters($filter, $page, $limit),
         );
     }
 }

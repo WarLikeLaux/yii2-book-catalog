@@ -45,4 +45,19 @@ final readonly class AuthorQueryService extends BaseQueryService implements Auth
 
         return $this->getPagedResult($query, $page, $limit, AuthorReadDto::class);
     }
+
+    public function searchWithFilters(?int $id, string $fio, int $page, int $limit): PagedResultInterface
+    {
+        $query = Author::find()->orderBy(['fio' => SORT_ASC]);
+
+        if ($id !== null) {
+            $query->andWhere(['id' => $id]);
+        }
+
+        if ($fio !== '') {
+            $query->andWhere(['like', 'fio', $fio]);
+        }
+
+        return $this->getPagedResult($query, $page, $limit, AuthorReadDto::class);
+    }
 }

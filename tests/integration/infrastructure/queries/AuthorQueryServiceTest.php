@@ -92,4 +92,47 @@ final class AuthorQueryServiceTest extends Unit
     {
         $this->assertNull($this->queryService->findById(99999));
     }
+
+    public function testSearchWithFiltersById(): void
+    {
+        $author = AuthorEntity::create('Filter Author');
+        $this->repository->save($author);
+
+        $result = $this->queryService->searchWithFilters($author->id, '', 1, 10);
+
+        $this->assertSame(1, $result->getTotalCount());
+        $this->assertSame('Filter Author', $result->getModels()[0]->fio);
+    }
+
+    public function testSearchWithFiltersByFio(): void
+    {
+        $author1 = AuthorEntity::create('Alice Filter');
+        $author2 = AuthorEntity::create('Bob Other');
+        $this->repository->save($author1);
+        $this->repository->save($author2);
+
+        $result = $this->queryService->searchWithFilters(null, 'Alice', 1, 10);
+
+        $this->assertSame(1, $result->getTotalCount());
+    }
+
+    public function testSearchWithFiltersByIdAndFio(): void
+    {
+        $author = AuthorEntity::create('Combined Filter');
+        $this->repository->save($author);
+
+        $result = $this->queryService->searchWithFilters($author->id, 'Combined', 1, 10);
+
+        $this->assertSame(1, $result->getTotalCount());
+    }
+
+    public function testSearchWithFiltersEmptyReturnsAll(): void
+    {
+        $author = AuthorEntity::create('All Filter');
+        $this->repository->save($author);
+
+        $result = $this->queryService->searchWithFilters(null, '', 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
 }

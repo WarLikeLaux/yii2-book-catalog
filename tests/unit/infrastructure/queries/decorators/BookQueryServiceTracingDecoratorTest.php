@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\queries\decorators;
 
+use app\application\books\queries\BookColumnFilterDto;
 use app\application\books\queries\BookReadDto;
 use app\application\ports\BookQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
@@ -155,6 +156,33 @@ final class BookQueryServiceTracingDecoratorTest extends TestCase
             ->willReturn($expected);
 
         $result = $decorator->searchBySpecification($specification, 3, 15);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testSearchWithFiltersDelegatesToServiceWithTracing(): void
+    {
+        $expected = $this->createStub(PagedResultInterface::class);
+        $filter = new BookColumnFilterDto(title: 'clean');
+
+        $service = $this->createMock(BookQueryServiceInterface::class);
+        $tracer = $this->createMock(TracerInterface::class);
+        $decorator = new BookQueryServiceTracingDecorator($service, $tracer);
+
+        $tracer->expects($this->once())
+            ->method('trace')
+            ->with(
+                'BookQuery::searchWithFilters',
+                $this->callback(is_callable(...)),
+            )
+            ->willReturnCallback(static fn(string $_, callable $callback): PagedResultInterface => $callback());
+
+        $service->expects($this->once())
+            ->method('searchWithFilters')
+            ->with($filter, 1, 20)
+            ->willReturn($expected);
+
+        $result = $decorator->searchWithFilters($filter, 1, 20);
 
         $this->assertSame($expected, $result);
     }

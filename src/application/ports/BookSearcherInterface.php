@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\application\ports;
 
+use app\application\books\queries\BookColumnFilterDto;
 use app\domain\specifications\BookSpecificationInterface;
 
 interface BookSearcherInterface
@@ -17,4 +18,6 @@ interface BookSearcherInterface
         int $page,
         int $limit,
     ): PagedResultInterface;
+
+    public function searchWithFilters(BookColumnFilterDto $filter, int $page, int $limit): PagedResultInterface;
 }

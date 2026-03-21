@@ -16,6 +16,9 @@ final class BookFilterForm extends Model
     public string $author = '';
 
     /** @var int|string|null */
+    public $id;
+
+    /** @var int|string|null */
     public $year;
 
     #[Override]
@@ -25,7 +28,7 @@ final class BookFilterForm extends Model
         return [
             [['title', 'isbn', 'status', 'author'], 'trim'],
             [['title', 'isbn', 'status', 'author'], 'string'],
-            ['year', 'integer'],
+            [['id', 'year'], 'integer'],
         ];
     }
 

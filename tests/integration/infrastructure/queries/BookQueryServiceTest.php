@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\integration\infrastructure\queries;
 
+use app\application\books\queries\BookColumnFilterDto;
 use app\application\ports\BookQueryServiceInterface;
 use app\domain\entities\Book as BookEntity;
 use app\domain\repositories\BookRepositoryInterface;
@@ -321,5 +322,88 @@ final class BookQueryServiceTest extends Unit
         $result = $this->queryService->searchBySpecification($composite, 1, 10);
 
         $this->assertGreaterThanOrEqual(1, $result->getTotalCount());
+    }
+
+    public function testSearchWithFiltersById(): void
+    {
+        $book = BookEntity::create('Filter By Id', new BookYear(2024), new Isbn('9783161484100'), null, null);
+        $this->repository->save($book);
+
+        $filter = new BookColumnFilterDto(id: $book->id);
+        $result = $this->queryService->searchWithFilters($filter, 1, 10);
+
+        $this->assertSame(1, $result->getTotalCount());
+        $this->assertSame('Filter By Id', $result->getModels()[0]->title);
+    }
+
+    public function testSearchWithFiltersByTitle(): void
+    {
+        $book = BookEntity::create('UniqueFilterTitle', new BookYear(2024), new Isbn('9783161484100'), null, null);
+        $this->repository->save($book);
+
+        $filter = new BookColumnFilterDto(title: 'UniqueFilterTitle');
+        $result = $this->queryService->searchWithFilters($filter, 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchWithFiltersByYear(): void
+    {
+        $book = BookEntity::create('Year Filter', new BookYear(1999), new Isbn('9783161484100'), null, null);
+        $this->repository->save($book);
+
+        $filter = new BookColumnFilterDto(year: 1999);
+        $result = $this->queryService->searchWithFilters($filter, 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchWithFiltersByIsbn(): void
+    {
+        $book = BookEntity::create('ISBN Filter', new BookYear(2024), new Isbn('9780132350884'), null, null);
+        $this->repository->save($book);
+
+        $filter = new BookColumnFilterDto(isbn: '978013');
+        $result = $this->queryService->searchWithFilters($filter, 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchWithFiltersByStatus(): void
+    {
+        $book = BookEntity::create('Status Filter', new BookYear(2024), new Isbn('9783161484100'), null, null);
+        $this->repository->save($book);
+
+        $filter = new BookColumnFilterDto(status: 'draft');
+        $result = $this->queryService->searchWithFilters($filter, 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchWithFiltersByAuthor(): void
+    {
+        $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'FilterAuthorName']);
+
+        $book = BookEntity::create('Author Filter', new BookYear(2024), new Isbn('9783161484100'), null, null);
+        $book->replaceAuthors([$authorId]);
+        $this->repository->save($book);
+
+        Yii::$app->db->getTransaction()->commit();
+
+        $filter = new BookColumnFilterDto(author: 'FilterAuthorName');
+        $result = $this->queryService->searchWithFilters($filter, 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
+    }
+
+    public function testSearchWithFiltersEmptyReturnsAll(): void
+    {
+        $book = BookEntity::create('Empty Filter', new BookYear(2024), new Isbn('9783161484100'), null, null);
+        $this->repository->save($book);
+
+        $filter = new BookColumnFilterDto();
+        $result = $this->queryService->searchWithFilters($filter, 1, 10);
+
+        $this->assertGreaterThan(0, $result->getTotalCount());
     }
 }

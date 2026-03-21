@@ -44,7 +44,17 @@ final readonly class AuthorListViewFactory
         AuthorFilterForm $filterForm,
         PaginationRequest $pagination,
     ): DataProviderInterface {
-        $queryResult = $this->queryService->search($filterForm->fio, $pagination->page, $pagination->limit);
+        $idValue = $filterForm->id !== null && $filterForm->id !== ''
+        ? (int)$filterForm->id
+        : null;
+
+        $queryResult = $this->queryService->searchWithFilters(
+            $idValue,
+            $filterForm->fio,
+            $pagination->page,
+            $pagination->limit,
+        );
+
         return $this->dataProviderFactory->create($queryResult);
     }
 }

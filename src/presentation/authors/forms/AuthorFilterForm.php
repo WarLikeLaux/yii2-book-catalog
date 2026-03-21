@@ -12,6 +12,9 @@ final class AuthorFilterForm extends Model
 {
     public string $fio = '';
 
+    /** @var int|string|null */
+    public $id;
+
     #[Override]
     #[CodeCoverageIgnore]
     public function rules(): array
@@ -19,6 +22,7 @@ final class AuthorFilterForm extends Model
         return [
             ['fio', 'trim'],
             ['fio', 'string'],
+            ['id', 'integer'],
         ];
     }
 

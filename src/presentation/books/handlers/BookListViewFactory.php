@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\presentation\books\handlers;
 
-use app\application\books\factories\BookSearchSpecificationFactory;
+use app\application\books\queries\BookColumnFilterDto;
 use app\application\books\queries\BookReadDto;
 use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
@@ -28,7 +28,6 @@ final readonly class BookListViewFactory
         private PagedResultDataProviderFactory $dataProviderFactory,
         private BookDtoUrlResolver $urlResolver,
         private BookViewModelMapper $viewModelMapper,
-        private BookSearchSpecificationFactory $specificationFactory,
     ) {
     }
 
@@ -54,20 +53,10 @@ final readonly class BookListViewFactory
         BookFilterForm $filterForm,
         PaginationRequest $pagination,
     ): DataProviderInterface {
-        $yearValue = $filterForm->year !== null && $filterForm->year !== ''
-        ? (int)$filterForm->year
-        : null;
+        $filter = $this->buildFilterDto($filterForm);
 
-        $specification = $this->specificationFactory->createFromColumnFilters(
-            $filterForm->title !== '' ? $filterForm->title : null,
-            $yearValue,
-            $filterForm->isbn !== '' ? $filterForm->isbn : null,
-            $filterForm->status !== '' ? $filterForm->status : null,
-            $filterForm->author !== '' ? $filterForm->author : null,
-        );
-
-        $queryResult = $this->searcher->searchBySpecification(
-            $specification,
+        $queryResult = $this->searcher->searchWithFilters(
+            $filter,
             $pagination->page,
             $pagination->limit,
         );
@@ -86,5 +75,17 @@ final readonly class BookListViewFactory
         );
 
         return $this->dataProviderFactory->create($newResult);
+    }
+
+    private function buildFilterDto(BookFilterForm $form): BookColumnFilterDto
+    {
+        return new BookColumnFilterDto(
+            id: $form->id !== null && $form->id !== '' ? (int)$form->id : null,
+            title: $form->title !== '' ? $form->title : null,
+            year: $form->year !== null && $form->year !== '' ? (int)$form->year : null,
+            isbn: $form->isbn !== '' ? $form->isbn : null,
+            status: $form->status !== '' ? $form->status : null,
+            author: $form->author !== '' ? $form->author : null,
+        );
     }
 }

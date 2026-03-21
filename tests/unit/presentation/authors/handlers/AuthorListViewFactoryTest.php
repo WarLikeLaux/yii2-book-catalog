@@ -38,8 +38,8 @@ final class AuthorListViewFactoryTest extends TestCase
         $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->queryService->expects($this->once())
-            ->method('search')
-            ->with('', 1, 20)
+            ->method('searchWithFilters')
+            ->with(null, '', 1, 20)
             ->willReturn($pagedResult);
 
         $this->dataProviderFactory->expects($this->once())
@@ -66,8 +66,8 @@ final class AuthorListViewFactoryTest extends TestCase
         $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->queryService->expects($this->once())
-            ->method('search')
-            ->with('Пушкин', 1, 20)
+            ->method('searchWithFilters')
+            ->with(null, 'Пушкин', 1, 20)
             ->willReturn($pagedResult);
 
         $this->dataProviderFactory->expects($this->once())
@@ -84,5 +84,31 @@ final class AuthorListViewFactoryTest extends TestCase
         $result = $this->factory->getListViewModel($request);
 
         $this->assertSame('Пушкин', $result->filterModel->fio);
+    }
+
+    public function testGetListViewModelWithIdFilterPassesToSearch(): void
+    {
+        $pagedResult = $this->createStub(PagedResultInterface::class);
+        $dataProvider = $this->createStub(DataProviderInterface::class);
+
+        $this->queryService->expects($this->once())
+            ->method('searchWithFilters')
+            ->with(5, '', 1, 20)
+            ->willReturn($pagedResult);
+
+        $this->dataProviderFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($dataProvider);
+
+        $request = $this->createStub(Request::class);
+        $request->method('get')->willReturnMap([
+            ['page', null, 1],
+            ['limit', null, 20],
+            [null, null, ['id' => '5']],
+        ]);
+
+        $result = $this->factory->getListViewModel($request);
+
+        $this->assertSame('5', $result->filterModel->id);
     }
 }
