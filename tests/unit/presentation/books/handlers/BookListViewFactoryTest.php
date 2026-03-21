@@ -16,30 +16,26 @@ use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\forms\BookFilterForm;
 use app\presentation\books\handlers\BookListViewFactory;
 use app\presentation\books\services\BookDtoUrlResolver;
-use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\common\adapters\PagedResultDataProvider;
 use app\presentation\common\exceptions\UnexpectedDtoTypeException;
 use app\presentation\services\FileUrlResolver;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use yii\data\DataProviderInterface;
 use yii\web\Request;
 
 final class BookListViewFactoryTest extends TestCase
 {
     private BookSearcherInterface&MockObject $searcher;
-    private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private BookListViewFactory $factory;
 
     protected function setUp(): void
     {
         $this->searcher = $this->createMock(BookSearcherInterface::class);
-        $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $resolver = new FileUrlResolver('/uploads');
         $urlResolver = new BookDtoUrlResolver($resolver);
 
         $this->factory = new BookListViewFactory(
             $this->searcher,
-            $this->dataProviderFactory,
             $urlResolver,
         );
     }
@@ -48,16 +44,11 @@ final class BookListViewFactoryTest extends TestCase
     {
         $dto = new BookReadDto(1, 'T', 2020, null, 'ISBN', [], [], null, BookStatus::Draft->value, 1);
         $queryResult = new QueryResult([$dto], 1, new PaginationDto(1, 20, 1, 1));
-        $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->searcher->expects($this->once())
             ->method('searchWithFilters')
             ->with($this->isInstanceOf(BookColumnFilterDto::class), 1, 20, null)
             ->willReturn($queryResult);
-
-        $this->dataProviderFactory->expects($this->once())
-            ->method('create')
-            ->willReturn($dataProvider);
 
         $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
@@ -69,13 +60,12 @@ final class BookListViewFactoryTest extends TestCase
         $result = $this->factory->getListViewModel($request);
 
         $this->assertInstanceOf(BookListViewModel::class, $result);
-        $this->assertSame($dataProvider, $result->dataProvider);
+        $this->assertInstanceOf(PagedResultDataProvider::class, $result->dataProvider);
         $this->assertInstanceOf(BookFilterForm::class, $result->filterModel);
     }
 
     public function testGetListViewModelThrowsWhenInvalidDtoType(): void
     {
-        $this->dataProviderFactory->expects($this->never())->method($this->anything());
         $queryResult = new QueryResult([new \stdClass()], 1, new PaginationDto(1, 20, 1, 1));
 
         $this->searcher->expects($this->once())
@@ -100,7 +90,6 @@ final class BookListViewFactoryTest extends TestCase
     {
         $dto = new BookReadDto(1, 'Clean Code', 2008, null, '978', [], [], null, BookStatus::Published->value, 1);
         $queryResult = new QueryResult([$dto], 1, new PaginationDto(1, 20, 1, 1));
-        $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->searcher->expects($this->once())
             ->method('searchWithFilters')
@@ -111,10 +100,6 @@ final class BookListViewFactoryTest extends TestCase
                 null,
             )
             ->willReturn($queryResult);
-
-        $this->dataProviderFactory->expects($this->once())
-            ->method('create')
-            ->willReturn($dataProvider);
 
         $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
@@ -133,7 +118,6 @@ final class BookListViewFactoryTest extends TestCase
     {
         $dto = new BookReadDto(1, 'T', 2020, null, 'ISBN', [], [], null, BookStatus::Draft->value, 1);
         $queryResult = new QueryResult([$dto], 1, new PaginationDto(1, 20, 1, 1));
-        $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->searcher->expects($this->once())
             ->method('searchWithFilters')
@@ -148,10 +132,6 @@ final class BookListViewFactoryTest extends TestCase
                 ),
             )
             ->willReturn($queryResult);
-
-        $this->dataProviderFactory->expects($this->once())
-            ->method('create')
-            ->willReturn($dataProvider);
 
         $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([

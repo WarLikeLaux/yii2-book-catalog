@@ -12,29 +12,25 @@ use app\presentation\books\dto\BookIndexViewModel;
 use app\presentation\books\forms\BookSearchForm;
 use app\presentation\books\handlers\BookSearchViewFactory;
 use app\presentation\books\services\BookDtoUrlResolver;
-use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\common\adapters\PagedResultDataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use yii\data\ArrayDataProvider;
 use yii\web\Request;
 
 final class BookSearchViewFactoryTest extends TestCase
 {
     private const ISBN_DEFAULT = '978-3-16-148410-0';
     private BookQueryServiceInterface&MockObject $bookQueryService;
-    private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private BookDtoUrlResolver&MockObject $urlResolver;
     private BookSearchViewFactory $viewFactory;
 
     protected function setUp(): void
     {
         $this->bookQueryService = $this->createMock(BookQueryServiceInterface::class);
-        $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
         $this->urlResolver = $this->createMock(BookDtoUrlResolver::class);
 
         $this->viewFactory = new BookSearchViewFactory(
             $this->bookQueryService,
-            $this->dataProviderFactory,
             $this->urlResolver,
         );
     }
@@ -52,16 +48,10 @@ final class BookSearchViewFactoryTest extends TestCase
             },
         );
 
-        $this->dataProviderFactory
-            ->expects($this->once())
-            ->method('create')
-            ->willReturn(new ArrayDataProvider(['allModels' => []]));
-
         $this->bookQueryService->expects($this->never())->method('searchPublished');
 
         $viewFactory = new BookSearchViewFactory(
             $this->bookQueryService,
-            $this->dataProviderFactory,
             $this->createStub(BookDtoUrlResolver::class),
         );
 
@@ -69,7 +59,7 @@ final class BookSearchViewFactoryTest extends TestCase
 
         $this->assertInstanceOf(BookIndexViewModel::class, $result);
         $this->assertInstanceOf(BookSearchForm::class, $result->searchModel);
-        $this->assertInstanceOf(ArrayDataProvider::class, $result->dataProvider);
+        $this->assertInstanceOf(PagedResultDataProvider::class, $result->dataProvider);
         $this->assertTrue($result->searchModel->hasErrors());
     }
 
@@ -112,17 +102,13 @@ final class BookSearchViewFactoryTest extends TestCase
             ->with($dto)
             ->willReturn($resolvedDto);
 
-        $this->dataProviderFactory->expects($this->once())
-            ->method('create')
-            ->with($this->callback(static function (PagedResultInterface $result) use ($dto) {
-                $models = $result->getModels();
-                return count($models) === 1 && $models[0]->coverUrl === 'resolved.jpg';
-            }))
-            ->willReturn(new ArrayDataProvider(['allModels' => [$dto]]));
-
         $result = $this->viewFactory->prepareIndexViewModel($request);
 
         $this->assertInstanceOf(BookIndexViewModel::class, $result);
+        $this->assertInstanceOf(PagedResultDataProvider::class, $result->dataProvider);
         $this->assertFalse($result->searchModel->hasErrors());
+        $models = $result->dataProvider->getModels();
+        $this->assertCount(1, $models);
+        $this->assertSame('resolved.jpg', $models[0]->coverUrl);
     }
 }

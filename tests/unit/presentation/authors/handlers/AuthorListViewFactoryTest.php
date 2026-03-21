@@ -11,43 +11,33 @@ use app\application\ports\PagedResultInterface;
 use app\presentation\authors\dto\AuthorListViewModel;
 use app\presentation\authors\forms\AuthorFilterForm;
 use app\presentation\authors\handlers\AuthorListViewFactory;
-use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\common\adapters\PagedResultDataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use yii\data\DataProviderInterface;
 use yii\web\Request;
 
 final class AuthorListViewFactoryTest extends TestCase
 {
     private AuthorQueryServiceInterface&MockObject $queryService;
-    private PagedResultDataProviderFactory&MockObject $dataProviderFactory;
     private AuthorListViewFactory $factory;
 
     protected function setUp(): void
     {
         $this->queryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $this->dataProviderFactory = $this->createMock(PagedResultDataProviderFactory::class);
 
         $this->factory = new AuthorListViewFactory(
             $this->queryService,
-            $this->dataProviderFactory,
         );
     }
 
     public function testGetListViewModelReturnsModel(): void
     {
         $pagedResult = $this->createStub(PagedResultInterface::class);
-        $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->queryService->expects($this->once())
             ->method('searchWithFilters')
             ->with(null, '', 1, 20, null)
             ->willReturn($pagedResult);
-
-        $this->dataProviderFactory->expects($this->once())
-            ->method('create')
-            ->with($pagedResult, ['id', 'fio'])
-            ->willReturn($dataProvider);
 
         $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
@@ -59,23 +49,18 @@ final class AuthorListViewFactoryTest extends TestCase
         $result = $this->factory->getListViewModel($request);
 
         $this->assertInstanceOf(AuthorListViewModel::class, $result);
-        $this->assertSame($dataProvider, $result->dataProvider);
+        $this->assertInstanceOf(PagedResultDataProvider::class, $result->dataProvider);
         $this->assertInstanceOf(AuthorFilterForm::class, $result->filterModel);
     }
 
     public function testGetListViewModelWithFioFilterPassesToSearch(): void
     {
         $pagedResult = $this->createStub(PagedResultInterface::class);
-        $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->queryService->expects($this->once())
             ->method('searchWithFilters')
             ->with(null, 'Пушкин', 1, 20, null)
             ->willReturn($pagedResult);
-
-        $this->dataProviderFactory->expects($this->once())
-            ->method('create')
-            ->willReturn($dataProvider);
 
         $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
@@ -93,16 +78,11 @@ final class AuthorListViewFactoryTest extends TestCase
     public function testGetListViewModelWithIdFilterPassesToSearch(): void
     {
         $pagedResult = $this->createStub(PagedResultInterface::class);
-        $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->queryService->expects($this->once())
             ->method('searchWithFilters')
             ->with(5, '', 1, 20, null)
             ->willReturn($pagedResult);
-
-        $this->dataProviderFactory->expects($this->once())
-            ->method('create')
-            ->willReturn($dataProvider);
 
         $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
@@ -120,7 +100,6 @@ final class AuthorListViewFactoryTest extends TestCase
     public function testGetListViewModelWithSortPassesSortRequest(): void
     {
         $pagedResult = $this->createStub(PagedResultInterface::class);
-        $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->queryService->expects($this->once())
             ->method('searchWithFilters')
@@ -136,10 +115,6 @@ final class AuthorListViewFactoryTest extends TestCase
                 ),
             )
             ->willReturn($pagedResult);
-
-        $this->dataProviderFactory->expects($this->once())
-            ->method('create')
-            ->willReturn($dataProvider);
 
         $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
