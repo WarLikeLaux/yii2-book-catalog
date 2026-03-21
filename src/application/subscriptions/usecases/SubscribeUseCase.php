@@ -14,6 +14,7 @@ use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\repositories\SubscriptionRepositoryInterface;
+use app\domain\values\AuthorId;
 use app\domain\values\Phone;
 
 /**
@@ -45,7 +46,7 @@ final readonly class SubscribeUseCase implements UseCaseInterface
             throw new BusinessRuleException(DomainErrorCode::SubscriptionAlreadySubscribed);
         }
 
-        $subscription = Subscription::create($phone, $command->authorId);
+        $subscription = Subscription::create($phone, new AuthorId($command->authorId));
         $this->subscriptionRepository->save($subscription);
 
         return true;

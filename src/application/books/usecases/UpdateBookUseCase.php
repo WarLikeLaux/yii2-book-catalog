@@ -35,14 +35,14 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
      */
     public function execute(object $command): bool
     {
-        $authorIds = $command->authorIds->toArray();
+        $authorIntIds = $command->authorIds->toIntArray();
         $isbn = new Isbn($command->isbn);
 
         if ($this->bookIsbnChecker->existsByIsbn($command->isbn, $command->id)) {
             throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
         }
 
-        if ($authorIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIds)) {
+        if ($authorIntIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIntIds)) {
             throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
         }
 
@@ -61,7 +61,7 @@ final readonly class UpdateBookUseCase implements UseCaseInterface
             $book->updateCover(new StoredFileReference($command->storedCover));
         }
 
-        $book->replaceAuthors($authorIds);
+        $book->replaceAuthors($command->authorIds->toArray());
 
         $this->bookRepository->save($book, $command->version);
 

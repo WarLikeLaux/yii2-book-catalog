@@ -6,11 +6,12 @@ namespace app\application\common\values;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
+use app\domain\values\AuthorId;
 
 final readonly class AuthorIdCollection
 {
     /**
-     * @param array<int> $ids
+     * @param AuthorId[] $ids
      */
     private function __construct(private array $ids)
     {
@@ -22,6 +23,7 @@ final readonly class AuthorIdCollection
     public static function fromArray(array $ids): self
     {
         $validated = [];
+        $seen = [];
 
         foreach ($ids as $id) {
             if (!is_int($id)) {
@@ -32,17 +34,30 @@ final readonly class AuthorIdCollection
                 throw new ValidationException(DomainErrorCode::BookInvalidAuthorId);
             }
 
-            $validated[] = $id;
+            if (isset($seen[$id])) {
+                continue;
+            }
+
+            $seen[$id] = true;
+            $validated[] = new AuthorId($id);
         }
 
-        return new self(array_values(array_unique($validated)));
+        return new self($validated);
     }
 
     /**
-     * @return array<int>
+     * @return AuthorId[]
      */
     public function toArray(): array
     {
         return $this->ids;
+    }
+
+    /**
+     * @return int[]
+     */
+    public function toIntArray(): array
+    {
+        return array_map(static fn(AuthorId $id): int => $id->value, $this->ids);
     }
 }

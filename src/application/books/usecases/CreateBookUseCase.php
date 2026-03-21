@@ -36,14 +36,14 @@ final readonly class CreateBookUseCase implements UseCaseInterface
      */
     public function execute(object $command): int
     {
-        $authorIds = $command->authorIds->toArray();
+        $authorIntIds = $command->authorIds->toIntArray();
         $isbn = new Isbn($command->isbn);
 
         if ($this->bookIsbnChecker->existsByIsbn($command->isbn)) {
             throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
         }
 
-        if ($authorIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIds)) {
+        if ($authorIntIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIntIds)) {
             throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
         }
 
@@ -57,7 +57,7 @@ final readonly class CreateBookUseCase implements UseCaseInterface
             description: $command->description,
             coverImage: $coverImage,
         );
-        $book->replaceAuthors($authorIds);
+        $book->replaceAuthors($command->authorIds->toArray());
 
         return $this->bookRepository->save($book);
     }
