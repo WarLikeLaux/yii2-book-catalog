@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace app\application\common\values;
 
+use app\domain\exceptions\DomainErrorCode;
+use app\domain\exceptions\ValidationException;
+
 final readonly class AuthorIdCollection
 {
     /**
@@ -14,49 +17,25 @@ final readonly class AuthorIdCollection
     }
 
     /**
-     * @param array<int> $ids
+     * @param array<mixed> $ids
      */
     public static function fromArray(array $ids): self
     {
-        return new self(self::normalize($ids));
-    }
+        $validated = [];
 
-    public static function fromMixed(mixed $value): self
-    {
-        if (!is_array($value)) {
-            $value = $value === null ? [] : [$value];
-        }
-
-        return new self(self::normalize($value));
-    }
-
-    /**
-     * @param array<mixed> $value
-     * @return array<int>
-     */
-    private static function normalize(array $value): array
-    {
-        $normalized = [];
-
-        foreach ($value as $rawId) {
-            if (!is_int($rawId) && !is_string($rawId)) {
-                continue;
+        foreach ($ids as $id) {
+            if (!is_int($id)) {
+                throw new ValidationException(DomainErrorCode::BookInvalidAuthorId);
             }
-
-            if (is_string($rawId) && !ctype_digit($rawId)) {
-                continue;
-            }
-
-            $id = (int) $rawId;
 
             if ($id <= 0) {
-                continue;
+                throw new ValidationException(DomainErrorCode::BookInvalidAuthorId);
             }
 
-            $normalized[] = $id;
+            $validated[] = $id;
         }
 
-        return array_values(array_unique($normalized));
+        return new self(array_values(array_unique($validated)));
     }
 
     /**

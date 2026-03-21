@@ -5,50 +5,16 @@ declare(strict_types=1);
 namespace tests\unit\application\common\values;
 
 use app\application\common\values\AuthorIdCollection;
+use app\domain\exceptions\ValidationException;
 use PHPUnit\Framework\TestCase;
 
 final class AuthorIdCollectionTest extends TestCase
 {
-    public function testFromMixedNormalizesNullToEmptyArray(): void
+    public function testFromArrayAcceptsValidIds(): void
     {
-        $collection = AuthorIdCollection::fromMixed(null);
+        $collection = AuthorIdCollection::fromArray([1, 2, 3]);
 
-        $this->assertSame([], $collection->toArray());
-    }
-
-    public function testFromMixedWrapsScalarValue(): void
-    {
-        $collection = AuthorIdCollection::fromMixed('5');
-
-        $this->assertSame([5], $collection->toArray());
-    }
-
-    public function testFromArraySkipsInvalidValues(): void
-    {
-        $collection = AuthorIdCollection::fromArray([1, '2', 'foo', 0, -3, true, [], new \stdClass()]);
-
-        $this->assertSame([1, 2], $collection->toArray());
-    }
-
-    public function testFromArrayKeepsValidValuesAfterInvalidOnes(): void
-    {
-        $collection = AuthorIdCollection::fromArray(['nope', 7]);
-
-        $this->assertSame([7], $collection->toArray());
-    }
-
-    public function testFromArraySkipsNonStringTypesAndKeepsFollowing(): void
-    {
-        $collection = AuthorIdCollection::fromArray([true, 5]);
-
-        $this->assertSame([5], $collection->toArray());
-    }
-
-    public function testFromArraySkipsNonPositiveValuesAndKeepsFollowing(): void
-    {
-        $collection = AuthorIdCollection::fromArray([0, -1, 3]);
-
-        $this->assertSame([3], $collection->toArray());
+        $this->assertSame([1, 2, 3], $collection->toArray());
     }
 
     public function testFromArrayDeduplicatesIds(): void
@@ -56,5 +22,48 @@ final class AuthorIdCollectionTest extends TestCase
         $collection = AuthorIdCollection::fromArray([5, 5, 3, 5, 3]);
 
         $this->assertSame([5, 3], $collection->toArray());
+    }
+
+    public function testFromArrayAcceptsEmptyArray(): void
+    {
+        $collection = AuthorIdCollection::fromArray([]);
+
+        $this->assertSame([], $collection->toArray());
+    }
+
+    public function testFromArrayThrowsOnNonIntValue(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        AuthorIdCollection::fromArray([1, 'abc']);
+    }
+
+    public function testFromArrayThrowsOnZero(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        AuthorIdCollection::fromArray([0]);
+    }
+
+    public function testFromArrayThrowsOnNegativeId(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        AuthorIdCollection::fromArray([-5]);
+    }
+
+    public function testFromArrayThrowsOnStringDigit(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        AuthorIdCollection::fromArray(['2']);
+    }
+
+    public function testFromArrayThrowsOnBoolValue(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        /** @phpstan-ignore argument.type */
+        AuthorIdCollection::fromArray([true]);
     }
 }
