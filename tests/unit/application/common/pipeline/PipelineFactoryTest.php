@@ -7,26 +7,22 @@ namespace tests\unit\application\common\pipeline;
 use app\application\common\middleware\DomainExceptionTranslationMiddleware;
 use app\application\common\pipeline\PipelineFactory;
 use app\application\ports\PipelineInterface;
-use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 final class PipelineFactoryTest extends TestCase
 {
-    private TracerInterface&Stub $tracer;
     private TransactionInterface&Stub $transaction;
     private DomainExceptionTranslationMiddleware&Stub $exceptionTranslationMiddleware;
     private PipelineFactory $factory;
 
     protected function setUp(): void
     {
-        $this->tracer = $this->createStub(TracerInterface::class);
         $this->transaction = $this->createStub(TransactionInterface::class);
         $this->exceptionTranslationMiddleware = $this->createStub(DomainExceptionTranslationMiddleware::class);
 
         $this->factory = new PipelineFactory(
-            $this->tracer,
             $this->transaction,
             $this->exceptionTranslationMiddleware,
         );
