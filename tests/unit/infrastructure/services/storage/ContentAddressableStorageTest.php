@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\storage;
 
 use app\application\common\config\StorageConfig;
+use app\application\common\exceptions\StorageErrorCode;
+use app\application\common\exceptions\StorageException;
 use app\application\common\values\FileContent;
 use app\application\common\values\FileKey;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\OperationFailedException;
-use app\domain\exceptions\ValidationException;
 use app\infrastructure\services\storage\ContentAddressableStorage;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -138,8 +137,8 @@ final class ContentAddressableStorageTest extends TestCase
     {
         $key = new FileKey(str_repeat('f', 64));
 
-        $this->expectException(OperationFailedException::class);
-        $this->expectExceptionMessage(DomainErrorCode::FileStorageOperationFailed->value);
+        $this->expectException(StorageException::class);
+        $this->expectExceptionMessage(StorageErrorCode::OperationFailed->value);
 
         $this->storage->getModificationTime($key, self::EXTENSION);
     }
@@ -221,8 +220,8 @@ final class ContentAddressableStorageTest extends TestCase
     {
         $key = new FileKey(self::VALID_HASH);
 
-        $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(DomainErrorCode::FileKeyInvalidFormat->value);
+        $this->expectException(StorageException::class);
+        $this->expectExceptionMessage(StorageErrorCode::InvalidFormat->value);
 
         $this->storage->exists($key, '../invalid');
     }

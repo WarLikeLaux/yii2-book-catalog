@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace tests\unit\domain\values;
 
+use app\application\common\exceptions\StorageException;
 use app\application\common\values\FileContent;
 use app\application\common\values\FileKey;
-use app\domain\exceptions\DomainException;
 use PHPUnit\Framework\TestCase;
 
 final class FileContentTest extends TestCase
@@ -30,7 +30,7 @@ final class FileContentTest extends TestCase
 
     public function testThrowsOnInvalidResource(): void
     {
-        $this->expectException(DomainException::class);
+        $this->expectException(StorageException::class);
         $this->expectExceptionMessage('file.error.content_invalid_stream');
 
         $_ = new FileContent('not a stream', self::EXTENSION, self::MIME_TYPE);
@@ -41,7 +41,7 @@ final class FileContentTest extends TestCase
         $stream = fopen(self::MEMORY_STREAM, 'r+b');
         fclose($stream);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(StorageException::class);
         $this->expectExceptionMessage('file.error.content_invalid_stream');
 
         $_ = new FileContent($stream, self::EXTENSION, self::MIME_TYPE);

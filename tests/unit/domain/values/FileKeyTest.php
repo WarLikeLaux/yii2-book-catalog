@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace tests\unit\domain\values;
 
+use app\application\common\exceptions\StorageException;
 use app\application\common\values\FileKey;
-use app\domain\exceptions\DomainException;
-use app\domain\exceptions\ValidationException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -105,9 +104,9 @@ final class FileKeyTest extends TestCase
     #[DataProvider('invalidHashProvider')]
     public function testThrowsOnInvalidHash(string $invalidHash): void
     {
-        $this->expectException(DomainException::class);
+        $this->expectException(StorageException::class);
 
-        new FileKey($invalidHash); // NOSONAR: S1848
+        new FileKey($invalidHash);
     }
 
     public function testFromStreamCreatesValidKey(): void
@@ -168,7 +167,7 @@ final class FileKeyTest extends TestCase
     {
         $key = new FileKey(self::VALID_HASH);
 
-        $this->expectException(ValidationException::class);
+        $this->expectException(StorageException::class);
 
         $key->getExtendedPath($extension);
     }
