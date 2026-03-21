@@ -8,6 +8,7 @@ use app\domain\entities\Author as AuthorEntity;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
 use app\domain\repositories\AuthorRepositoryInterface;
+use app\domain\values\AuthorId;
 use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use app\infrastructure\persistence\Author;
 use yii\db\Connection;
@@ -65,15 +66,15 @@ final readonly class AuthorRepository extends BaseActiveRecordRepository impleme
         }
 
         $this->db->transaction(function () use ($author, $id): void {
-            $this->removeAllBookLinks($id);
+            $this->removeAllBookLinks(new AuthorId($id));
             $this->deleteEntity($author, Author::class, DomainErrorCode::AuthorNotFound);
         });
     }
 
-    public function removeAllBookLinks(int $authorId): void
+    public function removeAllBookLinks(AuthorId $authorId): void
     {
         $this->db->createCommand()
-            ->delete('book_authors', ['author_id' => $authorId])
+            ->delete('book_authors', ['author_id' => $authorId->value])
             ->execute();
     }
 }

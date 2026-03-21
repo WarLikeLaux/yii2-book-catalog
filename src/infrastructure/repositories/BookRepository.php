@@ -10,6 +10,7 @@ use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
 use app\domain\repositories\BookRepositoryInterface;
+use app\domain\values\AuthorId;
 use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
@@ -133,7 +134,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     {
         /** @var Author[] $authors */
         $authors = $ar->authors;
-        $authorIds = array_map(static fn(Author $a): int => (int)$a->id, $authors);
+        $authorIds = array_map(static fn(Author $a): AuthorId => new AuthorId((int)$a->id), $authors);
 
         return BookEntity::reconstitute(
             id: (int)$ar->id,
@@ -160,7 +161,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             return;
         }
 
-        $this->syncManyToMany($this->db, 'book_authors', 'book_id', 'author_id', $bookId, $book->authorIds);
+        $this->syncManyToMany($this->db, 'book_authors', 'book_id', 'author_id', $bookId, $book->getAuthorIdValues());
         $this->updateAuthorSnapshot($book);
     }
 
@@ -170,7 +171,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             return true;
         }
 
-        $current = $book->authorIds;
+        $current = $book->getAuthorIdValues();
         $snapshotSorted = $this->authorSnapshots[$book];
 
         $currentSorted = [...$current];
@@ -181,7 +182,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
 
     private function updateAuthorSnapshot(BookEntity $book): void
     {
-        $ids = $book->authorIds;
+        $ids = $book->getAuthorIdValues();
         sort($ids);
         $this->authorSnapshots[$book] = $ids;
     }

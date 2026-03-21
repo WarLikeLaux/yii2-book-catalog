@@ -7,6 +7,7 @@ namespace app\infrastructure\repositories\decorators;
 use app\application\ports\TracerInterface;
 use app\domain\entities\Author;
 use app\domain\repositories\AuthorRepositoryInterface;
+use app\domain\values\AuthorId;
 use Override;
 
 final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositoryInterface
@@ -36,7 +37,7 @@ final readonly class AuthorRepositoryTracingDecorator implements AuthorRepositor
     }
 
     #[Override]
-    public function removeAllBookLinks(int $authorId): void
+    public function removeAllBookLinks(AuthorId $authorId): void
     {
         $this->tracer->trace('AuthorRepo::' . __FUNCTION__, fn() => $this->repository->removeAllBookLinks($authorId));
     }
