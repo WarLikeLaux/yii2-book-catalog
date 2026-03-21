@@ -186,25 +186,6 @@ final class BookTest extends TestCase
         $book->replaceAuthors([]);
     }
 
-    public function testIncrementVersion(): void
-    {
-        $book = Book::reconstitute(
-            1,
-            'Title',
-            new BookYear(2023),
-            new Isbn('978-3-16-148410-0'),
-            null,
-            null,
-            [],
-            BookStatus::Draft,
-            5,
-        );
-
-        $book->incrementVersion();
-
-        $this->assertSame(6, $book->version);
-    }
-
     public function testTransitionDraftToPublishedRequiresAuthors(): void
     {
         $book = $this->createBook();

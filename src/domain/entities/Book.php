@@ -260,12 +260,4 @@ final class Book implements RecordableEntityInterface
             $this->status === BookStatus::Published,
         ));
     }
-
-    /**
-     * @internal
-     */
-    public function incrementVersion(): void
-    {
-        $this->version++;
-    }
 }
