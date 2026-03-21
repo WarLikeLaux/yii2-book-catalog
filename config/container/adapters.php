@@ -43,6 +43,7 @@ use app\infrastructure\services\YiiPsrLogger;
 use Env\Env;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
+use yii\db\Connection as DbConnection;
 use yii\di\Container;
 use yii\di\Instance;
 use yii\redis\Connection as RedisConnection;
@@ -69,7 +70,10 @@ return static function (array $params): array {
 
             MutexInterface::class => YiiMutexAdapter::class,
 
-            TransactionInterface::class => YiiTransactionAdapter::class,
+            TransactionInterface::class => static fn(Container $c): TransactionInterface => new YiiTransactionAdapter(
+                $c->get(DbConnection::class),
+                $c->get(LoggerInterface::class),
+            ),
 
             AsyncIdempotencyStorageInterface::class => [
                 'class' => AsyncIdempotencyStorage::class,
@@ -116,6 +120,7 @@ return static function (array $params): array {
             EventPublisherInterface::class => static fn(Container $c): EventPublisherInterface => new YiiEventPublisherAdapter(
                 $c->get(QueueInterface::class),
                 $c->get(EventToJobMapperInterface::class),
+                $c->get(LoggerInterface::class),
                 $c->get(ReportCacheInvalidationListener::class),
             ),
 

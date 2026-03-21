@@ -9,6 +9,8 @@ use app\application\ports\EventPublisherInterface;
 use app\application\ports\QueueInterface;
 use app\domain\events\DomainEvent;
 use app\domain\events\QueueableEvent;
+use Psr\Log\LoggerInterface;
+use Throwable;
 use yii\queue\JobInterface;
 
 final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
@@ -19,6 +21,7 @@ final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
     public function __construct(
         private QueueInterface $queue,
         private EventToJobMapperInterface $jobMapper,
+        private LoggerInterface $logger,
         EventListenerInterface ...$listeners,
     ) {
         $this->listeners = $listeners;
@@ -37,7 +40,15 @@ final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
                 continue;
             }
 
-            $listener->handle($event);
+            try {
+                $listener->handle($event);
+            } catch (Throwable $e) {
+                $this->logger->error($e->getMessage(), [
+                    'listener' => $listener::class,
+                    'event' => $event::class,
+                    'exception' => $e,
+                ]);
+            }
         }
     }
 
@@ -53,6 +64,14 @@ final readonly class YiiEventPublisherAdapter implements EventPublisherInterface
             return;
         }
 
-        $this->queue->push($job);
+        try {
+            $this->queue->push($job);
+        } catch (Throwable $e) {
+            $this->logger->error($e->getMessage(), [
+                'job' => $job::class,
+                'event' => $event::class,
+                'exception' => $e,
+            ]);
+        }
     }
 }
