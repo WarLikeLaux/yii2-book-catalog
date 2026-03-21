@@ -34,8 +34,6 @@
         "npm-asset/glightbox": "^3.3",
         "npm-asset/htmx.org": "^2.0",
         "jolicode/automapper": "^9.5",
-        "open-telemetry/sdk": "^1.13",
-        "open-telemetry/exporter-otlp": "^1.4",
         "oscarotero/env": "^2.1",
         "nyholm/psr7": "^1.8"
     },
