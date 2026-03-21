@@ -11,10 +11,10 @@ use app\application\authors\usecases\DeleteAuthorUseCase;
 use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorCommandHandler;
+use app\presentation\authors\handlers\AuthorUseCases;
 use app\presentation\authors\mappers\AuthorCommandMapper;
 use app\presentation\common\services\WebOperationRunner;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -22,25 +22,23 @@ final class AuthorCommandHandlerTest extends TestCase
 {
     private const MSG_MAPPER_FAILED = 'mapper failed';
     private AuthorCommandMapper&MockObject $commandMapper;
-    private CreateAuthorUseCase&Stub $createAuthorUseCase;
-    private UpdateAuthorUseCase&Stub $updateAuthorUseCase;
-    private DeleteAuthorUseCase&Stub $deleteAuthorUseCase;
+    private AuthorUseCases $useCases;
     private WebOperationRunner&MockObject $operationRunner;
     private AuthorCommandHandler $handler;
 
     protected function setUp(): void
     {
         $this->commandMapper = $this->createMock(AuthorCommandMapper::class);
-        $this->createAuthorUseCase = $this->createStub(CreateAuthorUseCase::class);
-        $this->updateAuthorUseCase = $this->createStub(UpdateAuthorUseCase::class);
-        $this->deleteAuthorUseCase = $this->createStub(DeleteAuthorUseCase::class);
+        $this->useCases = new AuthorUseCases(
+            $this->createStub(CreateAuthorUseCase::class),
+            $this->createStub(UpdateAuthorUseCase::class),
+            $this->createStub(DeleteAuthorUseCase::class),
+        );
         $this->operationRunner = $this->createMock(WebOperationRunner::class);
 
         $this->handler = new AuthorCommandHandler(
             $this->commandMapper,
-            $this->createAuthorUseCase,
-            $this->updateAuthorUseCase,
-            $this->deleteAuthorUseCase,
+            $this->useCases,
             $this->operationRunner,
         );
     }
@@ -74,9 +72,7 @@ final class AuthorCommandHandlerTest extends TestCase
 
         $handler = new AuthorCommandHandler(
             $this->commandMapper,
-            $this->createAuthorUseCase,
-            $this->updateAuthorUseCase,
-            $this->deleteAuthorUseCase,
+            $this->useCases,
             $operationRunner,
         );
 
@@ -114,9 +110,7 @@ final class AuthorCommandHandlerTest extends TestCase
 
         $handler = new AuthorCommandHandler(
             $this->commandMapper,
-            $this->createAuthorUseCase,
-            $this->updateAuthorUseCase,
-            $this->deleteAuthorUseCase,
+            $this->useCases,
             $operationRunner,
         );
 
@@ -136,9 +130,7 @@ final class AuthorCommandHandlerTest extends TestCase
 
         $handler = new AuthorCommandHandler(
             $commandMapper,
-            $this->createAuthorUseCase,
-            $this->updateAuthorUseCase,
-            $this->deleteAuthorUseCase,
+            $this->useCases,
             $this->operationRunner,
         );
 
