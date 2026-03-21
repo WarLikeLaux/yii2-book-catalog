@@ -21,15 +21,28 @@ final class ReportsConfigTest extends TestCase
         $this->assertSame(120, $config->cacheTtl);
     }
 
-    public function testFromParamsDefaultsWhenOutOfRange(): void
+    public function testFromParamsThrowsWhenCacheTtlTooLow(): void
     {
-        $config = ReportsConfig::fromParams([
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('reports.cacheTtl');
+
+        ReportsConfig::fromParams([
             'reports' => [
                 'cacheTtl' => 0,
             ],
         ]);
+    }
 
-        $this->assertSame(3600, $config->cacheTtl);
+    public function testFromParamsThrowsWhenCacheTtlTooHigh(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('reports.cacheTtl');
+
+        ReportsConfig::fromParams([
+            'reports' => [
+                'cacheTtl' => 86401,
+            ],
+        ]);
     }
 
     public function testFromParamsThrowsWhenSectionMissing(): void
