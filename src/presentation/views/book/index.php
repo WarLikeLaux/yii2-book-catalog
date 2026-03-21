@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use app\application\books\queries\BookReadDto;
 use app\domain\values\BookStatus;
 use app\presentation\books\dto\BookListViewModel;
-use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\widgets\BookStatusBadge;
 use yii\bootstrap5\LinkPager;
 use yii\grid\GridView;
@@ -52,14 +52,14 @@ foreach (BookStatus::cases() as $case) {
                 'attribute' => 'authorNames',
                 'label' => Yii::t('app', 'ui.authors'),
                 'filterAttribute' => 'author',
-                'value' => static fn (BookViewModel $model): string => implode(', ', $model->authorNames),
+                'value' => static fn (BookReadDto $model): string => implode(', ', $model->authorNames),
             ],
             [
                 'attribute' => 'status',
                 'label' => Yii::t('app', 'ui.status'),
                 'format' => 'raw',
                 'filter' => $statusOptions,
-                'value' => static fn (BookViewModel $model): string => BookStatusBadge::widget(['status' => $model->status]),
+                'value' => static fn (BookReadDto $model): string => BookStatusBadge::widget(['status' => $model->status]),
             ],
             ['class' => 'yii\grid\ActionColumn'],
         ],

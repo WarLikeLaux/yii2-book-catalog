@@ -11,9 +11,7 @@ use app\application\common\dto\QueryResult;
 use app\application\common\dto\SortRequest;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\dto\BookListViewModel;
-use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\forms\BookFilterForm;
-use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use app\presentation\common\exceptions\UnexpectedDtoTypeException;
@@ -29,7 +27,6 @@ final readonly class BookListViewFactory
         private BookSearcherInterface $searcher,
         private PagedResultDataProviderFactory $dataProviderFactory,
         private BookDtoUrlResolver $urlResolver,
-        private BookViewModelMapper $viewModelMapper,
     ) {
     }
 
@@ -70,8 +67,8 @@ final readonly class BookListViewFactory
         );
 
         $dtos = array_map(
-            fn(mixed $dto): BookViewModel => $dto instanceof BookReadDto
-                ? $this->viewModelMapper->map($this->urlResolver->resolveUrl($dto))
+            fn(mixed $dto): BookReadDto => $dto instanceof BookReadDto
+                ? $this->urlResolver->resolveUrl($dto)
                 : throw new UnexpectedDtoTypeException(BookReadDto::class, $dto),
             $queryResult->getModels(),
         );

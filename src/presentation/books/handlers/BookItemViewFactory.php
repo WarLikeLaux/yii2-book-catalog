@@ -10,7 +10,6 @@ use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\dto\BookEditViewModel;
 use app\presentation\books\dto\BookViewViewModel;
 use app\presentation\books\forms\BookForm;
-use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
 use yii\web\NotFoundHttpException;
 
@@ -20,7 +19,6 @@ final readonly class BookItemViewFactory
         private BookQueryServiceInterface $finder,
         private AuthorQueryServiceInterface $authorQueryService,
         private BookDtoUrlResolver $urlResolver,
-        private BookViewModelMapper $viewModelMapper,
     ) {
     }
 
@@ -44,14 +42,14 @@ final readonly class BookItemViewFactory
         return new BookEditViewModel(
             $form ?? $this->populateFormFromDto($dto),
             $this->getAuthorsList(),
-            $this->viewModelMapper->map($this->urlResolver->resolveRealUrl($dto)),
+            $this->urlResolver->resolveRealUrl($dto),
         );
     }
 
     public function getBookViewModel(int $id): BookViewViewModel
     {
         return new BookViewViewModel(
-            $this->viewModelMapper->map($this->getBookView($id)),
+            $this->getBookView($id),
         );
     }
 
