@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\domain\values;
+namespace app\application\common\values;
 
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;

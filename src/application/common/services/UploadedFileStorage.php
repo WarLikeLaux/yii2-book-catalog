@@ -6,11 +6,11 @@ namespace app\application\common\services;
 
 use app\application\common\dto\UploadedFilePayload;
 use app\application\common\exceptions\ApplicationException;
+use app\application\common\values\FileContent;
 use app\application\ports\ContentStorageInterface;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\ValidationException;
-use app\domain\values\FileContent;
 
 final readonly class UploadedFileStorage
 {
