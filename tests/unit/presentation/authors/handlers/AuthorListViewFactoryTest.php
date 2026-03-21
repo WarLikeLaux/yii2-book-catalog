@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace tests\unit\presentation\authors\handlers;
 
+use app\application\common\dto\SortDirection;
+use app\application\common\dto\SortRequest;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\presentation\authors\dto\AuthorListViewModel;
@@ -39,18 +41,19 @@ final class AuthorListViewFactoryTest extends TestCase
 
         $this->queryService->expects($this->once())
             ->method('searchWithFilters')
-            ->with(null, '', 1, 20)
+            ->with(null, '', 1, 20, null)
             ->willReturn($pagedResult);
 
         $this->dataProviderFactory->expects($this->once())
             ->method('create')
-            ->with($pagedResult)
+            ->with($pagedResult, ['id', 'fio'])
             ->willReturn($dataProvider);
 
         $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
             ['page', null, 1],
             ['limit', null, 20],
+            ['sort', null, null],
         ]);
 
         $result = $this->factory->getListViewModel($request);
@@ -67,7 +70,7 @@ final class AuthorListViewFactoryTest extends TestCase
 
         $this->queryService->expects($this->once())
             ->method('searchWithFilters')
-            ->with(null, 'Пушкин', 1, 20)
+            ->with(null, 'Пушкин', 1, 20, null)
             ->willReturn($pagedResult);
 
         $this->dataProviderFactory->expects($this->once())
@@ -78,6 +81,7 @@ final class AuthorListViewFactoryTest extends TestCase
         $request->method('get')->willReturnMap([
             ['page', null, 1],
             ['limit', null, 20],
+            ['sort', null, null],
             [null, null, ['fio' => 'Пушкин']],
         ]);
 
@@ -93,7 +97,7 @@ final class AuthorListViewFactoryTest extends TestCase
 
         $this->queryService->expects($this->once())
             ->method('searchWithFilters')
-            ->with(5, '', 1, 20)
+            ->with(5, '', 1, 20, null)
             ->willReturn($pagedResult);
 
         $this->dataProviderFactory->expects($this->once())
@@ -104,11 +108,46 @@ final class AuthorListViewFactoryTest extends TestCase
         $request->method('get')->willReturnMap([
             ['page', null, 1],
             ['limit', null, 20],
+            ['sort', null, null],
             [null, null, ['id' => '5']],
         ]);
 
         $result = $this->factory->getListViewModel($request);
 
         $this->assertSame('5', $result->filterModel->id);
+    }
+
+    public function testGetListViewModelWithSortPassesSortRequest(): void
+    {
+        $pagedResult = $this->createStub(PagedResultInterface::class);
+        $dataProvider = $this->createStub(DataProviderInterface::class);
+
+        $this->queryService->expects($this->once())
+            ->method('searchWithFilters')
+            ->with(
+                null,
+                '',
+                1,
+                20,
+                $this->callback(
+                    static fn(?SortRequest $s): bool => $s instanceof SortRequest
+                        && $s->field === 'fio'
+                        && $s->direction === SortDirection::ASC,
+                ),
+            )
+            ->willReturn($pagedResult);
+
+        $this->dataProviderFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($dataProvider);
+
+        $request = $this->createStub(Request::class);
+        $request->method('get')->willReturnMap([
+            ['page', null, 1],
+            ['limit', null, 20],
+            ['sort', null, 'fio'],
+        ]);
+
+        $this->factory->getListViewModel($request);
     }
 }

@@ -8,6 +8,7 @@ use app\application\books\queries\BookColumnFilterDto;
 use app\application\books\queries\BookReadDto;
 use app\application\common\dto\PaginationRequest;
 use app\application\common\dto\QueryResult;
+use app\application\common\dto\SortRequest;
 use app\application\ports\BookSearcherInterface;
 use app\presentation\books\dto\BookListViewModel;
 use app\presentation\books\dto\BookViewModel;
@@ -22,6 +23,7 @@ use yii\web\Request;
 final readonly class BookListViewFactory
 {
     private const int DEFAULT_LIMIT = 20;
+    private const array SORT_ATTRIBUTES = ['id', 'title', 'year', 'isbn', 'status'];
 
     public function __construct(
         private BookSearcherInterface $searcher,
@@ -43,8 +45,12 @@ final readonly class BookListViewFactory
         $filterForm->load((array)$request->get());
         $filterForm->validate();
 
+        /** @var ?string $sortParam */
+        $sortParam = $request->get('sort');
+        $sort = SortRequest::fromRequest(is_string($sortParam) ? $sortParam : null);
+
         return new BookListViewModel(
-            $this->getIndexDataProvider($filterForm, $pagination),
+            $this->getIndexDataProvider($filterForm, $pagination, $sort),
             $filterForm,
         );
     }
@@ -52,6 +58,7 @@ final readonly class BookListViewFactory
     private function getIndexDataProvider(
         BookFilterForm $filterForm,
         PaginationRequest $pagination,
+        ?SortRequest $sort,
     ): DataProviderInterface {
         $filter = $this->buildFilterDto($filterForm);
 
@@ -59,6 +66,7 @@ final readonly class BookListViewFactory
             $filter,
             $pagination->page,
             $pagination->limit,
+            $sort,
         );
 
         $dtos = array_map(
@@ -74,7 +82,7 @@ final readonly class BookListViewFactory
             $queryResult->getPagination(),
         );
 
-        return $this->dataProviderFactory->create($newResult);
+        return $this->dataProviderFactory->create($newResult, self::SORT_ATTRIBUTES);
     }
 
     private function buildFilterDto(BookFilterForm $form): BookColumnFilterDto

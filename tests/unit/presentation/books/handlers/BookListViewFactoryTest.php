@@ -8,6 +8,8 @@ use app\application\books\queries\BookColumnFilterDto;
 use app\application\books\queries\BookReadDto;
 use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
+use app\application\common\dto\SortDirection;
+use app\application\common\dto\SortRequest;
 use app\application\ports\BookSearcherInterface;
 use app\domain\values\BookStatus;
 use app\presentation\books\dto\BookListViewModel;
@@ -53,7 +55,7 @@ final class BookListViewFactoryTest extends TestCase
 
         $this->searcher->expects($this->once())
             ->method('searchWithFilters')
-            ->with($this->isInstanceOf(BookColumnFilterDto::class), 1, 20)
+            ->with($this->isInstanceOf(BookColumnFilterDto::class), 1, 20, null)
             ->willReturn($queryResult);
 
         $this->dataProviderFactory->expects($this->once())
@@ -64,6 +66,7 @@ final class BookListViewFactoryTest extends TestCase
         $request->method('get')->willReturnMap([
             ['page', null, null, 1],
             ['limit', null, null, 20],
+            ['sort', null, null, null],
         ]);
 
         $result = $this->factory->getListViewModel($request);
@@ -80,13 +83,13 @@ final class BookListViewFactoryTest extends TestCase
 
         $this->searcher->expects($this->once())
             ->method('searchWithFilters')
-            ->with($this->isInstanceOf(BookColumnFilterDto::class), 1, 20)
             ->willReturn($queryResult);
 
         $request = $this->createStub(Request::class);
         $request->method('get')->willReturnMap([
             ['page', null, null, 1],
             ['limit', null, null, 20],
+            ['sort', null, null, null],
         ]);
 
         $this->expectException(UnexpectedDtoTypeException::class);
@@ -108,6 +111,7 @@ final class BookListViewFactoryTest extends TestCase
                 $this->callback(static fn(BookColumnFilterDto $f): bool => $f->title === 'Clean' && $f->id === null),
                 1,
                 20,
+                null,
             )
             ->willReturn($queryResult);
 
@@ -119,6 +123,7 @@ final class BookListViewFactoryTest extends TestCase
         $request->method('get')->willReturnMap([
             ['page', null, null, 1],
             ['limit', null, null, 20],
+            ['sort', null, null, null],
             [null, null, null, ['title' => 'Clean']],
         ]);
 
@@ -127,18 +132,23 @@ final class BookListViewFactoryTest extends TestCase
         $this->assertSame('Clean', $result->filterModel->title);
     }
 
-    public function testGetListViewModelWithIdAndYearFilters(): void
+    public function testGetListViewModelWithSortPassesSortRequest(): void
     {
-        $dto = new BookReadDto(42, 'T', 2024, null, 'ISBN', [], [], null, BookStatus::Draft->value, 1);
+        $dto = new BookReadDto(1, 'T', 2020, null, 'ISBN', [], [], null, BookStatus::Draft->value, 1);
         $queryResult = new QueryResult([$dto], 1, new PaginationDto(1, 20, 1, 1));
         $dataProvider = $this->createStub(DataProviderInterface::class);
 
         $this->searcher->expects($this->once())
             ->method('searchWithFilters')
             ->with(
-                $this->callback(static fn(BookColumnFilterDto $f): bool => $f->id === 42 && $f->year === 2024),
+                $this->isInstanceOf(BookColumnFilterDto::class),
                 1,
                 20,
+                $this->callback(
+                    static fn(?SortRequest $s): bool => $s instanceof SortRequest
+                        && $s->field === 'title'
+                        && $s->direction === SortDirection::DESC,
+                ),
             )
             ->willReturn($queryResult);
 
@@ -150,12 +160,9 @@ final class BookListViewFactoryTest extends TestCase
         $request->method('get')->willReturnMap([
             ['page', null, null, 1],
             ['limit', null, null, 20],
-            [null, null, null, ['id' => '42', 'year' => '2024']],
+            ['sort', null, null, '-title'],
         ]);
 
-        $result = $this->factory->getListViewModel($request);
-
-        $this->assertSame('42', $result->filterModel->id);
-        $this->assertSame('2024', $result->filterModel->year);
+        $this->factory->getListViewModel($request);
     }
 }
