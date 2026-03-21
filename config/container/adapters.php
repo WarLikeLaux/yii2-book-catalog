@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use app\application\common\config\JaegerConfig;
 use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\application\ports\AuthServiceInterface;
 use app\application\ports\CacheInterface;
@@ -15,15 +14,11 @@ use app\application\ports\RateLimitInterface;
 use app\application\ports\RequestIdProviderInterface;
 use app\application\ports\SmsSenderInterface;
 use app\application\ports\SystemInfoProviderInterface;
-use app\application\ports\TracerInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
 use app\domain\events\BookStatusChangedEvent;
 use app\domain\values\BookStatus;
 use app\infrastructure\adapters\AsyncIdempotencyStorage;
-use app\infrastructure\adapters\decorators\IdempotencyStorageTracingDecorator;
-use app\infrastructure\adapters\decorators\QueueTracingDecorator;
-use app\infrastructure\adapters\decorators\RateLimitStorageTracingDecorator;
 use app\infrastructure\adapters\EventJobMappingRegistry;
 use app\infrastructure\adapters\EventSerializer;
 use app\infrastructure\adapters\EventToJobMapper;
@@ -38,11 +33,9 @@ use app\infrastructure\adapters\YiiMutexAdapter;
 use app\infrastructure\adapters\YiiQueueAdapter;
 use app\infrastructure\adapters\YiiTransactionAdapter;
 use app\infrastructure\adapters\YiiTranslatorAdapter;
-use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\listeners\ReportCacheInvalidationListener;
 use app\infrastructure\queue\NotifySubscribersJob;
 use app\infrastructure\services\notifications\FlashNotificationService;
-use app\infrastructure\services\observability\OtelTracer;
 use app\infrastructure\services\observability\RequestIdProvider;
 use app\infrastructure\services\sms\LogSmsSender;
 use app\infrastructure\services\sms\SmsPilotSender;
@@ -99,23 +92,11 @@ return static function (array $params): array {
                 ],
             ],
 
-            IdempotencyInterface::class => static fn(Container $c): IdempotencyInterface => TracingFactory::create(
-                $c,
-                IdempotencyStorage::class,
-                IdempotencyStorageTracingDecorator::class,
-            ),
+            IdempotencyInterface::class => IdempotencyStorage::class,
 
-            RateLimitInterface::class => static fn(Container $c): RateLimitInterface => TracingFactory::create(
-                $c,
-                RateLimitStorage::class,
-                RateLimitStorageTracingDecorator::class,
-            ),
+            RateLimitInterface::class => RateLimitStorage::class,
 
-            QueueInterface::class => static fn(Container $c): QueueInterface => TracingFactory::create(
-                $c,
-                YiiQueueAdapter::class,
-                QueueTracingDecorator::class,
-            ),
+            QueueInterface::class => YiiQueueAdapter::class,
 
             CacheInterface::class => YiiCacheAdapter::class,
 
@@ -142,15 +123,6 @@ return static function (array $params): array {
 
             RequestIdProviderInterface::class => RequestIdProvider::class,
         ],
-        'singletons' => [
-            TracerInterface::class => static function (Container $c): TracerInterface {
-                $config = $c->get(JaegerConfig::class);
-
-                return new OtelTracer(
-                    $config->serviceName,
-                    $config->endpoint,
-                );
-            },
-        ],
+        'singletons' => [],
     ];
 };

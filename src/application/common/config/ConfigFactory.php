@@ -34,11 +34,6 @@ final readonly class ConfigFactory
         return StorageConfig::fromParams($this->params);
     }
 
-    public function jaeger(): JaegerConfig
-    {
-        return JaegerConfig::fromParams($this->params);
-    }
-
     public function apiPage(): ApiPageConfig
     {
         return ApiPageConfig::fromParams($this->params);

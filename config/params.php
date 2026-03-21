@@ -11,7 +11,6 @@ return [
     'bsVersion' => '5',
     'appPort' => Env::get('APP_PORT') ?? 8000,
     'swaggerPort' => Env::get('SWAGGER_PORT') ?? 8081,
-    'jaegerUiPort' => Env::get('JAEGER_UI_PORT') ?? 16686,
     'storage' => [
         'basePath' => '@app/web/uploads',
         'baseUrl' => '/uploads',
@@ -36,10 +35,6 @@ return [
             'domain' => 2,
             'application' => 3,
         ],
-    ],
-    'jaeger' => [
-        'endpoint' => Env::get('JAEGER_ENDPOINT') ?? 'http://jaeger:4318/v1/traces',
-        'serviceName' => 'yii2-book-catalog',
     ],
     'health' => [
         'disk' => [

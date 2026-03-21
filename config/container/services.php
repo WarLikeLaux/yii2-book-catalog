@@ -5,7 +5,6 @@ declare(strict_types=1);
 use app\application\common\config\ApiPageConfig;
 use app\application\common\config\ConfigFactory;
 use app\application\common\config\IdempotencyConfig;
-use app\application\common\config\JaegerConfig;
 use app\application\common\config\RateLimitConfig;
 use app\application\common\config\ReportsConfig;
 use app\application\common\config\StorageConfig as AppStorageConfig;
@@ -34,11 +33,9 @@ use app\application\ports\SmsSenderInterface;
 use app\application\ports\SubscriptionQueryServiceInterface;
 use app\application\ports\TransactionInterface;
 use app\application\ports\TranslatorInterface;
-use app\infrastructure\factories\TracingFactory;
 use app\infrastructure\queries\AuthorQueryService;
 use app\infrastructure\queries\BookQueryService;
 use app\infrastructure\queries\CoverKeysScanner;
-use app\infrastructure\queries\decorators\BookQueryServiceTracingDecorator;
 use app\infrastructure\queries\decorators\ReportQueryServiceCachingDecorator;
 use app\infrastructure\queries\ReportQueryService;
 use app\infrastructure\queries\SubscriptionQueryService as InfraSubscriptionQueryService;
@@ -64,11 +61,7 @@ return static function (array $params): array {
 
     return [
         'definitions' => [
-            BookQueryServiceInterface::class => static fn(Container $c): BookQueryServiceInterface => TracingFactory::create(
-                $c,
-                BookQueryService::class,
-                BookQueryServiceTracingDecorator::class,
-            ),
+            BookQueryServiceInterface::class => BookQueryService::class,
 
             BookFinderInterface::class => BookQueryServiceInterface::class,
             BookSearcherInterface::class => BookQueryServiceInterface::class,
@@ -117,8 +110,6 @@ return static function (array $params): array {
             ApiPageConfig::class => static fn(): ApiPageConfig => $configFactory->apiPage(),
             ReportsConfig::class => static fn(): ReportsConfig => $configFactory->reports(),
             AppStorageConfig::class => static fn(): AppStorageConfig => $configFactory->storage(),
-            JaegerConfig::class => static fn(): JaegerConfig => $configFactory->jaeger(),
-
             NotifySingleSubscriberHandler::class => static function (Container $c): NotifySingleSubscriberHandler {
                 $idempotencyConfig = $c->get(IdempotencyConfig::class);
                 return new NotifySingleSubscriberHandler(
