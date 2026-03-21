@@ -46,19 +46,12 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             $menuItems = [
                 ['label' => Yii::t('app', 'ui.catalog'), 'url' => ['/site/index']],
                 ['label' => Yii::t('app', 'ui.report'), 'url' => ['/report/index']],
-                ['label' => 'API', 'url' => ['/site/api']],
             ];
             if (!Yii::$app->user->isGuest) {
                 $menuItems[] = ['label' => Yii::t('app', 'ui.books'), 'url' => ['/book/index']];
                 $menuItems[] = ['label' => Yii::t('app', 'ui.authors'), 'url' => ['/author/index']];
-                if (YII_ENV_DEV) {
-                    $menuItems[] = [
-                        'label' => Yii::t('app', 'ui.traces'),
-                        'url' => (Yii::$app->request->isSecureConnection ? 'https://' : 'http://') . Yii::$app->request->serverName . ':' . Yii::$app->params['jaegerUiPort'],
-                        'linkOptions' => ['target' => '_blank'],
-                    ];
-                }
             }
+            $menuItems[] = ['label' => 'API', 'url' => ['/site/api']];
             $menuItems[] = Yii::$app->user->isGuest
                 ? ['label' => Yii::t('app', 'ui.login'), 'url' => ['/site/login']]
                 : '<li class="nav-item">' . Html::beginForm(['/site/logout']) . Html::submitButton(Yii::t('app', 'ui.logout', ['username' => Yii::$app->user->identity->username]), ['class' => 'nav-link btn btn-link logout']) . Html::endForm() . '</li>';

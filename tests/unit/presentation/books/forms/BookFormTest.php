@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\presentation\books\forms;
 
 use app\presentation\books\forms\BookForm;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookFormTest extends Unit
+final class BookFormTest extends TestCase
 {
     private const AUTHOR_NAME = 'Author 1';
     public function testGetAuthorInitValueTextReturnsEmptyWhenAuthorIdsIsNull(): void
@@ -20,10 +20,10 @@ final class BookFormTest extends Unit
         $this->assertSame([], $result);
     }
 
-    public function testGetAuthorInitValueTextSkipsInvalidAuthorIds(): void
+    public function testGetAuthorInitValueTextReturnsEmptyWhenAuthorIdsIsEmpty(): void
     {
         $form = new BookForm();
-        $form->authorIds = ['abc', 0, -2];
+        $form->authorIds = [];
 
         $result = $form->getAuthorInitValueText([1 => self::AUTHOR_NAME]);
 

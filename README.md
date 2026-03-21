@@ -9,7 +9,7 @@
 [![Yii2](https://img.shields.io/badge/Yii2-Framework-blue?style=for-the-badge&logo=yii&logoColor=white)](https://www.yiiframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL_/_PgSQL-Multi_DB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-1008_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
+[![Tests](https://img.shields.io/badge/Tests-1006_passed-success?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#-тестирование-и-покрытие-кода)
 [![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)](#-тестирование-и-покрытие-кода)
 
@@ -26,32 +26,34 @@
 
 Этот проект - практическая реализация каталога книг на базе **Yii2** и **PHP 8.5**. Используется **Clean Architecture**, демонстрирующая возможности написания масштабируемого кода на классическом фреймворке.
 
-Хотя принято считать, что AI-агенты лучше «дружат» с Python или Laravel, работа над этим проектом показала: классический **Yii2** всё ещё позволяет внедрять современные инженерные стандарты. Здесь выстроена чистая архитектура, доказывающая, что даже на «олдскульном» фреймворке можно работать качественно и актуально, используя нейросети как инструмент.
+Принято считать, что AI-агенты лучше «дружат» с Python или Laravel. Этот проект показал обратное - классический **Yii2** тоже позволяет внедрять современные инженерные стандарты. На «олдскульном» фреймворке можно работать качественно и актуально, используя нейросети как инструмент.
 
-Главная цель - **отделить бизнес-логику от фреймворка**, добавить строгую типизацию и сделать асинхронные процессы надежными. Это прагматичный подход: мощи **Yii2** в вебе и базе данных используются в полной мере, но **Use Cases** и **порты** удерживаются в изоляции. Так код получается чистым, понятным и на 100% покрытым тестами.
+Главная цель - **отделить бизнес-логику от фреймворка**, добавить строгую типизацию и сделать асинхронные процессы надежными. **Yii2** в полной мере используется для веба и базы данных, но **Use Cases** и **порты** удерживаются в изоляции. Так код получается чистым, понятным и на 100% покрытым тестами.
 
 📋 Подробная история изменений доступна в [CHANGELOG.md](CHANGELOG.md).
 
-🏗 **Архитектурные решения и диаграммы:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+🏗 **Архитектурные решения и диаграммы** - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-🆚 **Сравнение подходов (Yii2 MVC и Clean Architecture):** [docs/COMPARISON.md](docs/COMPARISON.md)
+🆚 **Сравнение подходов (Yii2 MVC и Clean Architecture)** - [docs/COMPARISON.md](docs/COMPARISON.md)
 
-🧾 **Автособираемая документация:** актуальные отчеты и сводки по коду: [docs/generated](docs/generated)
+📖 **Изучение проекта** - пошаговое руководство от проблем классического Yii2 до Clean Architecture [docs/learning.md](docs/learning.md)
+
+🧾 **Автособираемая документация** - актуальные отчеты и сводки по коду [docs/generated](docs/generated)
 
 > **🤯 Зачем так сложно?**
 >
-> Этот проект - **Architectural Showcase**. Он демонстрирует, что **Yii2** - это не только «быстрый старт» для новичков, но и отличный фундамент для серьезных систем. Главное - правильно его «приготовить»: добавить **Clean Architecture**, **DDD** и **SOLID**.
+> Этот проект - **Architectural Showcase**. Он показывает, что **Yii2** может быть и «быстрым стартом» для новичков, и фундаментом для серьезных систем. Главное - правильно его «приготовить», добавив **Clean Architecture**, **DDD** и **SOLID**.
 >
-> Здесь всё серьезно: **Deptrac** и **Arkitect** следят, чтобы слои не перемешивались, **Infection** проверяет качество тестов, а **PHPStan** на максималках (Level 9 + 10 кастомных правил) ловит даже малейшие неточности.
+> Здесь всё серьезно. **Deptrac** и **Arkitect** следят, чтобы слои не перемешивались, **Infection** проверяет качество тестов, а **PHPStan** на максималках (Level 9 + 10 кастомных правил) ловит даже малейшие неточности.
 >
 > **🦖 Зачем взял этого "динозавра" (Yii2)?**
 >
-> Многие считают Yii2 устаревшим, но проект показывает крутой симбиоз: проверенное временем ядро плюс возможности **PHP 8.5** (Enums, Readonly, Attributes).
-> «Магия» глобальных переменных полностью убрана: управлением занимается **Dependency Injection**. Код честный: если классу что-то нужно, он запрашивает это в конструкторе.
+> Многие считают Yii2 устаревшим, но проект показывает крутой симбиоз - проверенное временем ядро плюс возможности **PHP 8.5** (Enums, Readonly, Attributes).
+> «Магия» глобальных переменных полностью убрана, управлением занимается **Dependency Injection**. Код честный - если классу что-то нужно, он запрашивает это в конструкторе.
 >
 > **🧠 Это просто генерация от AI?**
 >
-> Нет. Это не «нейрослоп» и не бездумная копипаста. Немаловажную часть кода написали автономные AI-агенты, работающие прямо в терминале под полным контролем. Они используются как мощный «экзоскелет»: агенты пишут код по строгим правилам и контрактам, с проверкой и направлением каждого решения. Это пример того, как Senior + AI могут строить качественную архитектуру в разы быстрее, сохраняя контроль над качеством.
+> Нет. Немаловажную часть кода написали автономные AI-агенты, работающие прямо в терминале под полным контролем. Они используются как мощный «экзоскелет» - агенты пишут код по строгим правилам и контрактам, с проверкой и направлением каждого решения. Это пример того, как Senior + AI могут строить качественную архитектуру в разы быстрее, сохраняя контроль над качеством.
 >
 > **🤔 А есть подвох?**
 >
@@ -59,7 +61,7 @@
 >
 > `ActiveRecord` сохранен в инфраструктуре, кастомные решения для БД не создавались. Где фреймворк реально экономит время (формы, роутинг, запросы к БД) - он используется.
 >
-> **Но есть важное правило:** фреймворк заперт внутри инфраструктуры. Он инструмент, а не основа. Наша бизнес-логика вообще не знает о его существовании. Подробнее про эти решения и осознанные компромиссы: [docs/DECISIONS.md](docs/DECISIONS.md)
+> Но есть важное правило - фреймворк заперт внутри инфраструктуры. Он инструмент, а не основа. Бизнес-логика вообще не знает о его существовании. Подробнее про эти решения и осознанные компромиссы - [docs/DECISIONS.md](docs/DECISIONS.md)
 
 ---
 
@@ -81,12 +83,12 @@
 | :------------------------------------------------------------------------------- | :------------------------------------------------------------------ |
 | 🔹 **Clean Architecture**<br>Компромисс между чистотой и прагматизмом            | 🚀 **Async Fan-out**<br>Паттерн для масштабируемых уведомлений      |
 | 🔹 **Паттерн CQS**<br>Разделение команд и запросов                               | 🔍 **Гибридный поиск**<br>FullText + откат к LIKE                   |
-| 🔹 **Value Objects**<br>`Isbn`, `BookYear`, `BookStatus`, `StoredFileReference`  | 🛡 **Idempotency + Mutex**<br>Защита от дублей без гонок            |
+| 🔹 **Value Objects**<br>`Isbn`, `BookYear`, `BookStatus`, `Phone`, `AuthorId`, `StoredFileReference` | 🛡 **Idempotency + Mutex**<br>Защита от дублей без гонок            |
 | 🔹 **🚦 Status FSM**<br>Конечный автомат статусов книги                          | ⚡ **HTMX**<br>Infinite Scroll и реактивные формы                   |
-| 🔹 **📦 CAS (File Storage)**<br>Контентно-адресуемое хранилище                   | 📈 **Observability**<br>OpenTelemetry + Inspector APM               |
-| 🔹 **Доменные события**<br>`BookStatusChangedEvent`, `BookUpdatedEvent`, fan-out | 🩺 **Эндпоинт здоровья (Health Check)**<br>Prod-readiness `/health` |
+| 🔹 **📦 CAS (File Storage)**<br>Контентно-адресуемое хранилище                   | 📈 **Observability**<br>Structured Logging + Inspector APM          |
+| 🔹 **Доменные события**<br>`BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` | 🩺 **Эндпоинт здоровья (Health Check)**<br>Prod-readiness `/health` |
 | **🧪 Качество кода**                                                             | **🐳 DevOps Ready**                                                 |
-| ✅ **1008+ тестов** (2480+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
+| ✅ **1006+ тестов** (2400+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
 | ✅ **PHPStan Level 9**<br>10 кастомных правил (Custom Rules)                     | 🛠 **Makefile**<br>Автоматизация рутины                             |
 | ✅ **Мутационное тестирование**<br>Infection PHP (MSI 100%)                      | 📚 **Генерация документации**<br>Yii2 API + OpenAPI                 |
 | ✅ **Авто-рефакторинг**<br>Rector                                                | 🏗 **Контроль архитектуры**<br>Deptrac + Arkitect                   |
@@ -184,13 +186,10 @@ make up         # управление контейнерами (up/down) 🐳
 
 ### 🔍 Инфраструктура и отладка
 
-Для локальной разработки используется распределенный трейсинг через [Jaeger OTLP](https://www.jaegertracing.io/).
-
 | Переменная          | Порт    | Сервис                                      |
 | :------------------ | :------ | :------------------------------------------ |
 | `APP_PORT`          | `8000`  | Основной веб-сервер приложения              |
 | `SWAGGER_PORT`      | `8081`  | Swagger UI документация                     |
-| `JAEGER_UI_PORT`    | `16686` | Дашборд отладки (Traces, Waterfall, Search) |
 | `REDIS_PUBLIC_PORT` | `6379`  | Внешний доступ к Redis                      |
 
 > 💡 **Совет:** Если порты заняты, просто измените их в `.env` и перезапустите контейнеры через `make up`.
@@ -217,7 +216,7 @@ make env   # или make configure
 | **Очереди**         | `yii2-queue`                                                                                                         | DB Driver + Fan-out Pattern                          |
 | **Тестирование**    | [![Codeception](https://img.shields.io/badge/Codeception-5.0-purple)](https://codeception.com/)                      | Unit + Integration + E2E, 100% Coverage              |
 | **Инфраструктура**  | [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) | PHP 8.5 + MySQL 8 / PgSQL 16 + Redis + очередь       |
-| **UX / Front**      | [![HTMX](https://img.shields.io/badge/HTMX-2.0-blue)](https://htmx.org/)                                             | Infinite Scroll, Reactive Forms, Modal dialogs       |
+| **UX / Front**      | [![HTMX](https://img.shields.io/badge/HTMX-2.0-blue)](https://htmx.org/)                                             | Infinite Scroll, Reactive Forms                      |
 | **Качество**        | `Rector`, `PHPStan`, `Deptrac`, `Arkitect`                                                                           | Strict Static Analysis & Architectural Guardrails    |
 
 [↑ К навигации](#-навигация)
@@ -228,16 +227,14 @@ make env   # или make configure
 
 #### 🎯 Почему тестов так много и они такие быстрые?
 
-- **Decoupling:** бизнес-логика (Use Cases) полностью отделена от фреймворка и БД. Тестируется «чистый PHP», что позволяет выполнять сотни Unit-тестов за миллисекунды.
-- **Strict DI:** все зависимости внедряются через конструктор. Это позволяет легко подменять тяжелые части (БД, очереди, SMS-шлюзы) на сверхбыстрые **Mocks** или **In-memory** реализации.
-- **No Global State:** отсутствие обращений к `Yii::$app` в доменном слое делает тесты изолированными и стабильными.
+Бизнес-логика (Use Cases) полностью отделена от фреймворка и БД - тестируется «чистый PHP», что позволяет выполнять сотни Unit-тестов за миллисекунды. Все зависимости внедряются через конструктор, и тяжелые части (БД, очереди, SMS-шлюзы) легко подменяются на **Mocks** или **In-memory** реализации. Отсутствие обращений к `Yii::$app` в доменном слое делает тесты изолированными и стабильными.
 
 <table>
 <tr>
-<td align="center"><b>1008</b><br>Tests</td>
-<td align="center"><b>2480+</b><br>Assertions</td>
+<td align="center"><b>1006</b><br>Tests</td>
+<td align="center"><b>2400+</b><br>Assertions</td>
 <td align="center"><b>100%</b><br>Coverage</td>
-<td align="center"><b>~20s</b><br>Runtime</td>
+<td align="center"><b>~14s</b><br>Runtime</td>
 </tr>
 </table>
 
@@ -245,25 +242,22 @@ make env   # или make configure
 
 #### 🏗 Пирамида тестирования
 
-1.  **Unit Tests:** тестируют доменные сущности, Value Objects и Use Cases в полной изоляции. Это фундамент стабильности.
+1.  Unit тесты покрывают доменные сущности, Value Objects и Use Cases в полной изоляции.
     ```bash
     make test-unit
     ```
-2.  **Integration Tests:** проверяют взаимодействие слоев: работу репозиториев с реальной БД (MySQL/PgSQL), маппинг событий в очереди и интеграцию с Yii2 компонентами.
+2.  Integration тесты проверяют взаимодействие слоев - работу репозиториев с реальной БД (MySQL/PgSQL), маппинг событий в очереди и интеграцию с Yii2 компонентами.
     ```bash
     make test-integration
     ```
-3.  **E2E Tests (17):** имитируют действия пользователя в браузере. Проверка критических путей: создание книги, публикация, подписка (прогон выполняется отдельно).
+3.  E2E тесты (17 сценариев) имитируют действия пользователя в браузере - создание книги, публикация, подписка. Прогон выполняется отдельно.
     ```bash
     make test-e2e
     ```
 
 #### 🦠 Мутационное тестирование (Infection)
 
-Проект выходит за рамки простого покрытия строк (Line Coverage). Выполняется **Infection Testing** - это «тестирование тестов».
-
-- Infection вносит ошибки в исходный код (мутанты) и проверяет, "заметят" ли это тесты.
-- **Mutation Code Coverage 100%** и **MSI (Mutation Score Indicator) 100%** означают, что большая часть изменений логики не пройдет незамеченной.
+Помимо покрытия строк (Line Coverage) выполняется **Infection Testing** - «тестирование тестов». Infection вносит ошибки в исходный код (мутанты) и проверяет, "заметят" ли это тесты. **Mutation Code Coverage 100%** и **MSI (Mutation Score Indicator) 100%** означают, что большая часть изменений логики не пройдет незамеченной.
 
 ```bash
 make test-infection
@@ -330,7 +324,6 @@ commands/               - Console контроллеры
 config/                 - Конфигурация приложения
   ├── container/        - Конфигурация контейнера зависимостей
 docker/                 - Docker конфигурация
-  ├── jaeger/          
   ├── nginx/            - Конфигурация nginx
 docs/                   - Документация
   ├── ai/               - Правила и инструкции для AI
@@ -365,10 +358,10 @@ web/                    - Web root
 
 ### 📊 Статистика проекта
 
-![Source Code](https://img.shields.io/badge/Source_Code-11k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
-![Test Code](https://img.shields.io/badge/Test_Code-17.4k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
-![Source Files](https://img.shields.io/badge/Source_Files-335-purple?style=for-the-badge&logo=php&logoColor=white)
-![Test Files](https://img.shields.io/badge/Test_Files-223-orange?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Code](https://img.shields.io/badge/Source_Code-10.8k+-blue?style=for-the-badge&logo=icloud&logoColor=white)
+![Test Code](https://img.shields.io/badge/Test_Code-17.5k+-blue?style=for-the-badge&logo=codecov&logoColor=white)
+![Source Files](https://img.shields.io/badge/Source_Files-326-purple?style=for-the-badge&logo=php&logoColor=white)
+![Test Files](https://img.shields.io/badge/Test_Files-213-orange?style=for-the-badge&logo=codecov&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
 ![Mutation Score](https://img.shields.io/badge/MSI-100%25-brightgreen?style=for-the-badge&logo=probot&logoColor=white)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level_9_+_Strict-brightgreen?style=for-the-badge&logo=probot&logoColor=white)

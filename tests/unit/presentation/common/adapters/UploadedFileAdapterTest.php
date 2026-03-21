@@ -7,18 +7,18 @@ namespace tests\unit\presentation\common\adapters;
 use app\application\common\dto\UploadedFilePayload;
 use app\infrastructure\services\NativeMimeTypeDetector;
 use app\presentation\common\adapters\UploadedFileAdapter;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use tests\_support\RemovesDirectoriesTrait;
 use yii\web\UploadedFile;
 
-final class UploadedFileAdapterTest extends Unit
+final class UploadedFileAdapterTest extends TestCase
 {
     use RemovesDirectoriesTrait;
 
     private string $tempDir;
     private UploadedFileAdapter $adapter;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->tempDir = sys_get_temp_dir() . '/adapter-test-' . uniqid('', true);
 
@@ -29,7 +29,7 @@ final class UploadedFileAdapterTest extends Unit
         $this->adapter = new UploadedFileAdapter(new NativeMimeTypeDetector());
     }
 
-    protected function _after(): void
+    protected function tearDown(): void
     {
         $this->removeDir($this->tempDir);
     }

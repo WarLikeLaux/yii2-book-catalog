@@ -23,10 +23,9 @@ $hasMore = $currentPage < $pageCount - 1;
     <?php endforeach; ?>
 </div>
 
-<?php if ($hasMore):
-    $nextPage = $currentPage + 2;
-    $nextUrl = Url::current(['page' => $nextPage]);
-    ?>
+<?php if ($hasMore): ?>
+    <?php $nextPage = $currentPage + 2;
+    $nextUrl = Url::current(['page' => $nextPage]); ?>
     <div id="load-more-container" class="mt-4">
         <div
             hx-get="<?= Html::encode($nextUrl) ?>"

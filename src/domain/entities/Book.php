@@ -13,6 +13,7 @@ use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
 use app\domain\services\BookPublicationPolicy;
+use app\domain\values\AuthorId;
 use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
@@ -26,7 +27,7 @@ final class Book implements RecordableEntityInterface
     private const int MAX_TITLE_LENGTH = 255;
 
     // phpcs:disable PSR2.Classes.PropertyDeclaration,Generic.WhiteSpace.ScopeIndent,SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing
-    /** @var int[] */
+    /** @var AuthorId[] */
     public private(set) array $authorIds = [];
     public private(set) string $title {
         set {
@@ -43,7 +44,7 @@ final class Book implements RecordableEntityInterface
     // phpcs:enable
 
     /**
-     * @param int[] $authorIds
+     * @param AuthorId[] $authorIds
      */
     private function __construct(
         public private(set) ?int $id,
@@ -57,7 +58,7 @@ final class Book implements RecordableEntityInterface
         public private(set) int $version,
     ) {
         $this->title = $title;
-        $this->authorIds = array_map(intval(...), $authorIds);
+        $this->authorIds = $authorIds;
     }
 
     public static function create(
@@ -81,7 +82,7 @@ final class Book implements RecordableEntityInterface
     }
 
     /**
-     * @param int[] $authorIds
+     * @param AuthorId[] $authorIds
      */
     public static function reconstitute(
         int $id,
@@ -171,24 +172,20 @@ final class Book implements RecordableEntityInterface
         $this->coverImage = $coverImage;
     }
 
-    public function addAuthor(int $authorId): void
+    public function addAuthor(AuthorId $authorId): void
     {
-        if ($authorId <= 0) {
-            throw new ValidationException(DomainErrorCode::BookInvalidAuthorId);
-        }
-
-        if (in_array($authorId, $this->authorIds, true)) {
+        if ($this->hasAuthor($authorId)) {
             return;
         }
 
         $this->authorIds[] = $authorId;
     }
 
-    public function removeAuthor(int $authorId): void
+    public function removeAuthor(AuthorId $authorId): void
     {
-        $key = array_search($authorId, $this->authorIds, true);
+        $key = $this->findAuthorKey($authorId);
 
-        if ($key === false) {
+        if ($key === null) {
             return;
         }
 
@@ -200,13 +197,13 @@ final class Book implements RecordableEntityInterface
         $this->authorIds = array_values($this->authorIds);
     }
 
-    public function hasAuthor(int $authorId): bool
+    public function hasAuthor(AuthorId $authorId): bool
     {
-        return in_array($authorId, $this->authorIds, true);
+        return $this->findAuthorKey($authorId) !== null;
     }
 
     /**
-     * @param int[] $authorIds
+     * @param AuthorId[] $authorIds
      */
     public function replaceAuthors(array $authorIds): void
     {
@@ -262,10 +259,21 @@ final class Book implements RecordableEntityInterface
     }
 
     /**
-     * @internal
+     * @return int[]
      */
-    public function incrementVersion(): void
+    public function getAuthorIdValues(): array
     {
-        $this->version++;
+        return array_map(static fn(AuthorId $id): int => $id->value, $this->authorIds);
+    }
+
+    private function findAuthorKey(AuthorId $authorId): ?int
+    {
+        foreach ($this->authorIds as $key => $existing) {
+            if ($existing->equals($authorId)) {
+                return $key;
+            }
+        }
+
+        return null;
     }
 }

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\presentation\authors\forms;
 
 use app\presentation\authors\forms\AuthorForm;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AuthorFormTest extends Unit
+final class AuthorFormTest extends TestCase
 {
     public function testValidateFioRequired(): void
     {

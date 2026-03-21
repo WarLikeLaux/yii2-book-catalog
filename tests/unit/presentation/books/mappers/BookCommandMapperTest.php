@@ -10,16 +10,16 @@ use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookCommandMapper;
 use app\presentation\common\mappers\AutoMapperContextBuilder;
 use AutoMapper\AutoMapperInterface;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-final class BookCommandMapperTest extends Unit
+final class BookCommandMapperTest extends TestCase
 {
     private AutoMapperInterface&MockObject $autoMapper;
     private AutoMapperContextBuilder&MockObject $contextBuilder;
     private BookCommandMapper $mapper;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->autoMapper = $this->createMock(AutoMapperInterface::class);
         $this->contextBuilder = $this->createMock(AutoMapperContextBuilder::class);
@@ -28,7 +28,7 @@ final class BookCommandMapperTest extends Unit
 
     public function testToCreateCommandMapsForm(): void
     {
-        $form = $this->createMock(BookForm::class);
+        $form = $this->createStub(BookForm::class);
         $form->title = 'Test';
         $form->year = '2024';
         $form->description = 'Desc';
@@ -37,7 +37,7 @@ final class BookCommandMapperTest extends Unit
         $form->version = 1;
 
         $cover = 'covers/test.jpg';
-        $command = $this->createMock(CreateBookCommand::class);
+        $command = $this->createStub(CreateBookCommand::class);
         $context = ['constructor_arguments' => [CreateBookCommand::class => ['storedCover' => $cover]]];
 
         $this->contextBuilder->expects($this->once())
@@ -61,7 +61,7 @@ final class BookCommandMapperTest extends Unit
 
     public function testToUpdateCommandMapsForm(): void
     {
-        $form = $this->createMock(BookForm::class);
+        $form = $this->createStub(BookForm::class);
         $form->title = 'Test';
         $form->year = 2024;
         $form->description = '';
@@ -70,7 +70,7 @@ final class BookCommandMapperTest extends Unit
         $form->version = 3;
 
         $cover = 'covers/test.jpg';
-        $command = $this->createMock(UpdateBookCommand::class);
+        $command = $this->createStub(UpdateBookCommand::class);
         $context = ['constructor_arguments' => [UpdateBookCommand::class => ['id' => 10, 'storedCover' => $cover]]];
 
         $this->contextBuilder->expects($this->once())

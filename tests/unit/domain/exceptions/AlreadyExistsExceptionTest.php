@@ -6,9 +6,9 @@ namespace tests\unit\domain\exceptions;
 
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\DomainErrorCode;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AlreadyExistsExceptionTest extends Unit
+final class AlreadyExistsExceptionTest extends TestCase
 {
     public function testExceptionHasDefaultValues(): void
     {

@@ -5,25 +5,16 @@ declare(strict_types=1);
 namespace app\presentation\authors\handlers;
 
 use app\application\authors\commands\DeleteAuthorCommand;
-use app\application\authors\usecases\CreateAuthorUseCase;
-use app\application\authors\usecases\DeleteAuthorUseCase;
-use app\application\authors\usecases\UpdateAuthorUseCase;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\mappers\AuthorCommandMapper;
 use app\presentation\common\services\WebOperationRunner;
 use Yii;
 
-/**
- * NOTE: Прагматичный компромисс: группировка всех команд сущности в одном классе.
- * @see docs/DECISIONS.md (см. пункт "3. Группировка хендлеров по сущностям")
- */
 final readonly class AuthorCommandHandler
 {
     public function __construct(
         private AuthorCommandMapper $commandMapper,
-        private CreateAuthorUseCase $createAuthorUseCase,
-        private UpdateAuthorUseCase $updateAuthorUseCase,
-        private DeleteAuthorUseCase $deleteAuthorUseCase,
+        private AuthorUseCases $useCases,
         private WebOperationRunner $operationRunner,
     ) {
     }
@@ -35,7 +26,7 @@ final readonly class AuthorCommandHandler
         /** @var int */
         return $this->operationRunner->executeAndPropagate(
             $command,
-            $this->createAuthorUseCase,
+            $this->useCases->create,
             Yii::t('app', 'author.success.created'),
         );
     }
@@ -46,7 +37,7 @@ final readonly class AuthorCommandHandler
 
         $this->operationRunner->executeAndPropagate(
             $command,
-            $this->updateAuthorUseCase,
+            $this->useCases->update,
             Yii::t('app', 'author.success.updated'),
         );
     }
@@ -57,7 +48,7 @@ final readonly class AuthorCommandHandler
 
         $this->operationRunner->executeAndPropagate(
             $command,
-            $this->deleteAuthorUseCase,
+            $this->useCases->delete,
             Yii::t('app', 'author.success.deleted'),
         );
     }

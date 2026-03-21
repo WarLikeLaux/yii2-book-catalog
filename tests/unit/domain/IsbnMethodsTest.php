@@ -6,9 +6,9 @@ namespace tests\unit\domain;
 
 use app\domain\exceptions\DomainException;
 use app\domain\values\Isbn;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class IsbnMethodsTest extends Unit
+final class IsbnMethodsTest extends TestCase
 {
     public function testIsbn10ToString(): void
     {

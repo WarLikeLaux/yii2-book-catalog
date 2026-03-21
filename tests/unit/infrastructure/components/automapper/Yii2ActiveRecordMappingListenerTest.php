@@ -8,13 +8,13 @@ use app\infrastructure\components\automapper\Yii2ActiveRecordMappingListener;
 use AutoMapper\Event\GenerateMapperEvent;
 use AutoMapper\Event\PropertyMetadataEvent;
 use AutoMapper\Metadata\MapperMetadata;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class Yii2ActiveRecordMappingListenerTest extends Unit
+final class Yii2ActiveRecordMappingListenerTest extends TestCase
 {
     private Yii2ActiveRecordMappingListener $listener;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->listener = new Yii2ActiveRecordMappingListener();
     }
@@ -64,8 +64,7 @@ final class Yii2ActiveRecordMappingListenerTest extends Unit
     {
         $event = $this->createEventForSource(TestActiveRecord::class);
 
-        /** @var PropertyMetadataEvent&MockObject $existingProperty */
-        $existingProperty = $this->createMock(PropertyMetadataEvent::class);
+        $existingProperty = $this->createStub(PropertyMetadataEvent::class);
         $event->properties['title'] = $existingProperty;
 
         ($this->listener)($event);
@@ -101,8 +100,8 @@ final class Yii2ActiveRecordMappingListenerTest extends Unit
      */
     private function createEventForSource(string $sourceClass): GenerateMapperEvent
     {
-        /** @var MapperMetadata&MockObject $mapperMetadata */
-        $mapperMetadata = $this->createMock(MapperMetadata::class);
+        /** @var MapperMetadata&\PHPUnit\Framework\MockObject\Stub $mapperMetadata */
+        $mapperMetadata = $this->createStub(MapperMetadata::class);
         $mapperMetadata->source = $sourceClass;
         $mapperMetadata->target = 'TestDto';
 

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\sms;
 
 use app\infrastructure\services\sms\LogSmsSender;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-final class LogSmsSenderTest extends Unit
+final class LogSmsSenderTest extends TestCase
 {
     public function testSendLogsMessageAndReturnsTrue(): void
     {

@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\notifications;
 
 use app\infrastructure\services\notifications\LogNotificationService;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-final class LogNotificationServiceTest extends Unit
+final class LogNotificationServiceTest extends TestCase
 {
     private const NOTIFICATION_PREFIX = 'Notification: ';
     private LoggerInterface $logger;
     private LogNotificationService $service;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->service = new LogNotificationService($this->logger);

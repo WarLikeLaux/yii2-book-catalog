@@ -11,14 +11,14 @@ use app\application\ports\MiddlewareInterface;
 use app\application\ports\UseCaseInterface;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ValidationException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class PipelineTest extends Unit
+final class PipelineTest extends TestCase
 {
     public function testExecuteCallsUseCaseDirectlyWithoutMiddleware(): void
     {
         $pipeline = new Pipeline();
-        $command = $this->createMock(CommandInterface::class);
+        $command = $this->createStub(CommandInterface::class);
         $useCase = $this->createMock(UseCaseInterface::class);
         $expectedResult = 'result';
 
@@ -34,8 +34,8 @@ final class PipelineTest extends Unit
 
     public function testExecutePassesCommandThroughSingleMiddleware(): void
     {
-        $command = $this->createMock(CommandInterface::class);
-        $useCase = $this->createMock(UseCaseInterface::class);
+        $command = $this->createStub(CommandInterface::class);
+        $useCase = $this->createStub(UseCaseInterface::class);
         $middlewareCalled = false;
 
         $middleware = new class ($middlewareCalled) implements MiddlewareInterface {
@@ -61,8 +61,8 @@ final class PipelineTest extends Unit
 
     public function testExecuteRunsMiddlewareInCorrectOrder(): void
     {
-        $command = $this->createMock(CommandInterface::class);
-        $useCase = $this->createMock(UseCaseInterface::class);
+        $command = $this->createStub(CommandInterface::class);
+        $useCase = $this->createStub(UseCaseInterface::class);
         $order = [];
 
         $m1 = $this->createOrderTrackingMiddleware($order, '1');
@@ -87,7 +87,7 @@ final class PipelineTest extends Unit
     public function testPipeReturnsNewImmutablePipeline(): void
     {
         $pipeline1 = new Pipeline();
-        $middleware = $this->createMock(MiddlewareInterface::class);
+        $middleware = $this->createStub(MiddlewareInterface::class);
 
         $pipeline2 = $pipeline1->pipe($middleware);
 
@@ -96,8 +96,8 @@ final class PipelineTest extends Unit
 
     public function testExecuteReturnsUseCaseResult(): void
     {
-        $command = $this->createMock(CommandInterface::class);
-        $useCase = $this->createMock(UseCaseInterface::class);
+        $command = $this->createStub(CommandInterface::class);
+        $useCase = $this->createStub(UseCaseInterface::class);
         $expectedResult = ['id' => 42, 'name' => 'test'];
 
         $middleware = new class implements MiddlewareInterface {
@@ -117,8 +117,8 @@ final class PipelineTest extends Unit
 
     public function testMiddlewareCanModifyResult(): void
     {
-        $command = $this->createMock(CommandInterface::class);
-        $useCase = $this->createMock(UseCaseInterface::class);
+        $command = $this->createStub(CommandInterface::class);
+        $useCase = $this->createStub(UseCaseInterface::class);
 
         $middleware = new class implements MiddlewareInterface {
             public function process(CommandInterface $command, callable $next): mixed
@@ -140,8 +140,8 @@ final class PipelineTest extends Unit
     public function testExecuteWrapsDomainException(): void
     {
         $pipeline = new Pipeline();
-        $command = $this->createMock(CommandInterface::class);
-        $useCase = $this->createMock(UseCaseInterface::class);
+        $command = $this->createStub(CommandInterface::class);
+        $useCase = $this->createStub(UseCaseInterface::class);
 
         $useCase->method('execute')
             ->willThrowException(new ValidationException(DomainErrorCode::BookTitleEmpty));

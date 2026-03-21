@@ -10,9 +10,9 @@ use app\domain\specifications\CompositeOrSpecification;
 use app\domain\specifications\FullTextSpecification;
 use app\domain\specifications\IsbnPrefixSpecification;
 use app\domain\specifications\YearSpecification;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookSearchSpecificationFactoryTest extends Unit
+final class BookSearchSpecificationFactoryTest extends TestCase
 {
     public function testCreatesYearSpecForFourDigitNumber(): void
     {

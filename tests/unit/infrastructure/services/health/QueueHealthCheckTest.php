@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\health;
 
 use app\infrastructure\services\health\QueueHealthCheck;
-use Codeception\Test\Unit;
 use Exception;
+use PHPUnit\Framework\TestCase;
 use yii\db\Command;
 use yii\db\Connection;
 
-final class QueueHealthCheckTest extends Unit
+final class QueueHealthCheckTest extends TestCase
 {
     public function testCheckSuccess(): void
     {

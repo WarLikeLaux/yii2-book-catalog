@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace app\presentation\books\forms;
 
-use app\application\common\values\AuthorIdCollection;
 use app\presentation\books\validators\IsbnValidator;
 use Override;
 use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
@@ -57,7 +56,7 @@ final class BookForm extends Model
             [['title'], 'string', 'max' => 255],
             [['isbn'], 'string', 'max' => 20],
             [['isbn'], IsbnValidator::class],
-            [['authorIds'], 'each', 'rule' => ['integer']],
+            [['authorIds'], 'each', 'rule' => ['integer', 'min' => 1]],
             [['version'], 'integer', 'min' => 1],
             [
                 ['cover'],
@@ -89,15 +88,13 @@ final class BookForm extends Model
      */
     public function getAuthorInitValueText(array $authors): array
     {
-        $authorIds = AuthorIdCollection::fromMixed($this->authorIds)->toArray();
-
-        if ($authorIds === []) {
+        if (!is_array($this->authorIds) || $this->authorIds === []) {
             return [];
         }
 
         return array_map(
             static fn(int $authorId): string => $authors[$authorId] ?? (string)$authorId,
-            $authorIds,
+            $this->authorIds,
         );
     }
 }

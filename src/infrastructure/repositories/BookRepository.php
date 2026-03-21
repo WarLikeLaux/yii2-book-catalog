@@ -10,6 +10,7 @@ use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\exceptions\StaleDataException;
 use app\domain\repositories\BookRepositoryInterface;
+use app\domain\values\AuthorId;
 use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
@@ -17,6 +18,7 @@ use app\domain\values\StoredFileReference;
 use app\infrastructure\components\hydrator\ActiveRecordHydrator;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
+use ReflectionProperty;
 use RuntimeException;
 use WeakMap;
 use yii\base\InvalidConfigException;
@@ -38,12 +40,17 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
         $this->authorSnapshots = new WeakMap();
     }
 
-    public function save(BookEntity $book): int
+    public function save(BookEntity $book, ?int $expectedVersion = null): int
     {
         /** @var int */
-        return $this->db->transaction(function () use ($book): int {
+        return $this->db->transaction(function () use ($book, $expectedVersion): int {
             $isNew = $book->getId() === null;
             $model = $isNew ? new Book() : $this->getArForEntity($book, Book::class, DomainErrorCode::BookNotFound);
+
+            if ($expectedVersion !== null) {
+                $this->ensureVersionMatch($model, $expectedVersion);
+            }
+
             $model->version = $book->version;
 
             $this->hydrator->hydrate($model, $book, [
@@ -64,7 +71,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
 
                 $this->assignId($book, $model->id);
             } else {
-                $book->incrementVersion();
+                $this->assignVersion($book, $model->version);
             }
 
             $this->registerIdentity($book, $model);
@@ -94,35 +101,25 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
 
     /**
      * @throws EntityNotFoundException
-     * @throws StaleDataException
-     */
-    public function getByIdAndVersion(int $id, int $expectedVersion): BookEntity
-    {
-        $ar = $this->getArWithAuthors($id);
-
-        if (!$ar instanceof Book) {
-            throw new EntityNotFoundException(DomainErrorCode::BookNotFound);
-        }
-
-        if ($ar->version !== $expectedVersion) {
-            throw new StaleDataException(DomainErrorCode::BookStaleData);
-        }
-
-        $entity = $this->mapToEntity($ar);
-        $this->registerIdentity($entity, $ar);
-        $this->updateAuthorSnapshot($entity);
-
-        return $entity;
-    }
-
-    /**
-     * @throws EntityNotFoundException
      * @throws InvalidConfigException
      */
     public function delete(BookEntity $book): void
     {
         $this->publishRecordedEvents($book);
         $this->deleteEntity($book, Book::class, DomainErrorCode::BookNotFound);
+    }
+
+    private function ensureVersionMatch(Book $model, int $expectedVersion): void
+    {
+        if ($model->version !== $expectedVersion) {
+            throw new StaleDataException(DomainErrorCode::BookStaleData);
+        }
+    }
+
+    private function assignVersion(BookEntity $book, int $version): void
+    {
+        $property = new ReflectionProperty(BookEntity::class, 'version');
+        $property->setValue($book, $version);
     }
 
     private function getArWithAuthors(int $id): ?Book
@@ -137,7 +134,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
     {
         /** @var Author[] $authors */
         $authors = $ar->authors;
-        $authorIds = array_map(static fn(Author $a): int => (int)$a->id, $authors);
+        $authorIds = array_map(static fn(Author $a): AuthorId => new AuthorId((int)$a->id), $authors);
 
         return BookEntity::reconstitute(
             id: (int)$ar->id,
@@ -164,7 +161,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             return;
         }
 
-        $this->syncManyToMany($this->db, 'book_authors', 'book_id', 'author_id', $bookId, $book->authorIds);
+        $this->syncManyToMany($this->db, 'book_authors', 'book_id', 'author_id', $bookId, $book->getAuthorIdValues());
         $this->updateAuthorSnapshot($book);
     }
 
@@ -174,7 +171,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
             return true;
         }
 
-        $current = $book->authorIds;
+        $current = $book->getAuthorIdValues();
         $snapshotSorted = $this->authorSnapshots[$book];
 
         $currentSorted = [...$current];
@@ -185,7 +182,7 @@ final readonly class BookRepository extends BaseActiveRecordRepository implement
 
     private function updateAuthorSnapshot(BookEntity $book): void
     {
-        $ids = $book->authorIds;
+        $ids = $book->getAuthorIdValues();
         sort($ids);
         $this->authorSnapshots[$book] = $ids;
     }

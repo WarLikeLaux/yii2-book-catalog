@@ -6,36 +6,23 @@ namespace app\presentation\books\handlers;
 
 use app\application\books\commands\ChangeBookStatusCommand;
 use app\application\books\commands\DeleteBookCommand;
-use app\application\books\usecases\ChangeBookStatusUseCase;
-use app\application\books\usecases\CreateBookUseCase;
-use app\application\books\usecases\DeleteBookUseCase;
-use app\application\books\usecases\UpdateBookUseCase;
 use app\application\common\exceptions\OperationFailedException;
-use app\application\common\services\UploadedFileStorage;
-use app\domain\exceptions\DomainErrorCode;
+use app\application\common\exceptions\StorageErrorCode;
 use app\domain\values\BookStatus;
 use app\presentation\books\forms\BookForm;
 use app\presentation\books\mappers\BookCommandMapper;
-use app\presentation\common\adapters\UploadedFileAdapter;
+use app\presentation\books\services\CoverUploadService;
 use app\presentation\common\services\WebOperationRunner;
 use Yii;
 use yii\web\UploadedFile;
 
-/**
- * NOTE: Прагматичный компромисс: группировка всех команд сущности в одном классе.
- * @see docs/DECISIONS.md (см. пункт "3. Группировка хендлеров по сущностям")
- */
 final readonly class BookCommandHandler
 {
     public function __construct(
         private BookCommandMapper $commandMapper,
-        private CreateBookUseCase $createBookUseCase,
-        private UpdateBookUseCase $updateBookUseCase,
-        private DeleteBookUseCase $deleteBookUseCase,
-        private ChangeBookStatusUseCase $changeBookStatusUseCase,
+        private BookUseCases $useCases,
         private WebOperationRunner $operationRunner,
-        private UploadedFileStorage $uploadedFileStorage,
-        private UploadedFileAdapter $uploadedFileAdapter,
+        private CoverUploadService $coverUploadService,
     ) {
     }
 
@@ -47,14 +34,14 @@ final readonly class BookCommandHandler
         );
 
         if ($form->cover instanceof UploadedFile && $cover === null) {
-            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+            throw new OperationFailedException(StorageErrorCode::OperationFailed->value, field: 'cover');
         }
 
         $command = $this->commandMapper->toCreateCommand($form, $cover);
 
         $result = $this->operationRunner->executeAndPropagate(
             $command,
-            $this->createBookUseCase,
+            $this->useCases->create,
             Yii::t('app', 'book.success.created'),
         );
         assert(is_int($result));
@@ -71,14 +58,14 @@ final readonly class BookCommandHandler
         );
 
         if ($form->cover instanceof UploadedFile && $cover === null) {
-            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+            throw new OperationFailedException(StorageErrorCode::OperationFailed->value, field: 'cover');
         }
 
         $command = $this->commandMapper->toUpdateCommand($id, $form, $cover);
 
         $this->operationRunner->executeAndPropagate(
             $command,
-            $this->updateBookUseCase,
+            $this->useCases->update,
             Yii::t('app', 'book.success.updated'),
         );
     }
@@ -89,7 +76,7 @@ final readonly class BookCommandHandler
 
         $this->operationRunner->executeAndPropagate(
             $command,
-            $this->deleteBookUseCase,
+            $this->useCases->delete,
             Yii::t('app', 'book.success.deleted'),
         );
     }
@@ -100,7 +87,7 @@ final readonly class BookCommandHandler
 
         $this->operationRunner->executeAndPropagate(
             $command,
-            $this->changeBookStatusUseCase,
+            $this->useCases->changeStatus,
             $successMessage,
         );
     }
@@ -111,7 +98,6 @@ final readonly class BookCommandHandler
             return null;
         }
 
-        $payload = $this->uploadedFileAdapter->toPayload($form->cover);
-        return $this->uploadedFileStorage->store($payload);
+        return $this->coverUploadService->upload($form->cover);
     }
 }

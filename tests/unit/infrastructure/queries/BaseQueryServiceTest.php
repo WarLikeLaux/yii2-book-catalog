@@ -4,22 +4,24 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\queries;
 
+use app\application\common\dto\SortDirection;
+use app\application\common\dto\SortRequest;
 use AutoMapper\AutoMapperInterface;
-use Codeception\Test\Unit;
 use LogicException;
+use PHPUnit\Framework\TestCase;
 use tests\_support\TestableBaseQueryService;
 use yii\db\ActiveQuery;
 use yii\db\ActiveQueryInterface;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
 
-final class BaseQueryServiceTest extends Unit
+final class BaseQueryServiceTest extends TestCase
 {
     private Connection $conn;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->conn = $this->createMock(Connection::class);
+        $this->conn = $this->createStub(Connection::class);
     }
 
     public function testExistsWithActiveQueryAndExcludeId(): void
@@ -54,7 +56,7 @@ final class BaseQueryServiceTest extends Unit
     {
         $service = $this->createService();
 
-        $nonActiveQuery = $this->makeEmpty(ActiveQueryInterface::class);
+        $nonActiveQuery = $this->createStub(ActiveQueryInterface::class);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Query must be an instance of ActiveQuery to support dynamic primary key exclusion');
@@ -150,16 +152,67 @@ final class BaseQueryServiceTest extends Unit
         $service->checkExists($query, 123);
     }
 
+    public function testApplySortWithValidFieldSetsCustomOrder(): void
+    {
+        $service = $this->createService();
+        $query = $this->createMock(ActiveQuery::class);
+
+        $query->expects($this->once())
+            ->method('orderBy')
+            ->with(['title' => SORT_ASC]);
+
+        $sort = new SortRequest('title', SortDirection::ASC);
+        $service->checkApplySort($query, $sort, ['title', 'year'], 'created_at', SORT_DESC);
+    }
+
+    public function testApplySortWithInvalidFieldUsesDefault(): void
+    {
+        $service = $this->createService();
+        $query = $this->createMock(ActiveQuery::class);
+
+        $query->expects($this->once())
+            ->method('orderBy')
+            ->with(['created_at' => SORT_DESC]);
+
+        $sort = new SortRequest('hacked_field', SortDirection::ASC);
+        $service->checkApplySort($query, $sort, ['title', 'year'], 'created_at', SORT_DESC);
+    }
+
+    public function testApplySortWithNullUsesDefault(): void
+    {
+        $service = $this->createService();
+        $query = $this->createMock(ActiveQuery::class);
+
+        $query->expects($this->once())
+            ->method('orderBy')
+            ->with(['fio' => SORT_ASC]);
+
+        $service->checkApplySort($query, null, ['id', 'fio'], 'fio', SORT_ASC);
+    }
+
+    public function testApplySortDescDirection(): void
+    {
+        $service = $this->createService();
+        $query = $this->createMock(ActiveQuery::class);
+
+        $query->expects($this->once())
+            ->method('orderBy')
+            ->with(['year' => SORT_DESC]);
+
+        $sort = new SortRequest('year', SortDirection::DESC);
+        $service->checkApplySort($query, $sort, ['title', 'year'], 'created_at', SORT_DESC);
+    }
+
     private function createService(): object
     {
-        $mapper = $this->makeEmpty(AutoMapperInterface::class);
+        $mapper = $this->createStub(AutoMapperInterface::class);
 
         return new TestableBaseQueryService($this->conn, $mapper);
     }
 
     private function createActiveQueryWithPrimaryKey(array $primaryKey): ActiveQuery
     {
-        $query = $this->createMock(ActiveQuery::class);
+        $query = $this->createStub(ActiveQuery::class);
         $query->modelClass = $this->createActiveRecordClass($primaryKey);
 
         return $query;

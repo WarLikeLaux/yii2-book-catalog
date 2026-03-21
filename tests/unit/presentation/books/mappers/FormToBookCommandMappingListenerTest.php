@@ -12,14 +12,14 @@ use AutoMapper\Event\GenerateMapperEvent;
 use AutoMapper\Event\PropertyMetadataEvent;
 use AutoMapper\Metadata\MapperMetadata;
 use AutoMapper\Transformer\CallableTransformer;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 
-final class FormToBookCommandMappingListenerTest extends Unit
+final class FormToBookCommandMappingListenerTest extends TestCase
 {
     private FormToBookCommandMappingListener $listener;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->listener = new FormToBookCommandMappingListener();
     }
@@ -64,10 +64,24 @@ final class FormToBookCommandMappingListenerTest extends Unit
         $this->assertCount(0, $event->properties);
     }
 
+    public function testTransformAuthorIdsWithArrayConvertsToInts(): void
+    {
+        $collection = FormToBookCommandMappingListener::transformAuthorIds(['1', '2', '3']);
+
+        $this->assertSame([1, 2, 3], $collection->toIntArray());
+    }
+
+    public function testTransformAuthorIdsWithNonArrayReturnsEmpty(): void
+    {
+        $collection = FormToBookCommandMappingListener::transformAuthorIds(null);
+
+        $this->assertSame([], $collection->toIntArray());
+    }
+
     public function testInvokeDoesNotOverrideExistingAuthorIds(): void
     {
         $event = $this->createEventForMapping(BookForm::class, CreateBookCommand::class);
-        $existingProperty = $this->createMock(PropertyMetadataEvent::class);
+        $existingProperty = $this->createStub(PropertyMetadataEvent::class);
         $event->properties['authorIds'] = $existingProperty;
 
         ($this->listener)($event);
@@ -81,8 +95,8 @@ final class FormToBookCommandMappingListenerTest extends Unit
      */
     private function createEventForMapping(string $sourceClass, string $targetClass): GenerateMapperEvent
     {
-        /** @var MapperMetadata&MockObject $mapperMetadata */
-        $mapperMetadata = $this->createMock(MapperMetadata::class);
+        /** @var MapperMetadata&Stub $mapperMetadata */
+        $mapperMetadata = $this->createStub(MapperMetadata::class);
         $mapperMetadata->source = $sourceClass;
         $mapperMetadata->target = $targetClass;
 

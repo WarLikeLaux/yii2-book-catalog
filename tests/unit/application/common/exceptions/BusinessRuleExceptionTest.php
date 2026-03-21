@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\application\common\exceptions;
 
 use app\application\common\exceptions\BusinessRuleException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BusinessRuleExceptionTest extends Unit
+final class BusinessRuleExceptionTest extends TestCase
 {
     public function testDefaultValues(): void
     {

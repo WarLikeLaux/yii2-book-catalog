@@ -6,9 +6,9 @@ namespace tests\unit\application\dto;
 
 use app\application\common\dto\PaginationDto;
 use app\application\common\dto\QueryResult;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class QueryResultTest extends Unit
+final class QueryResultTest extends TestCase
 {
     public function testGetModels(): void
     {

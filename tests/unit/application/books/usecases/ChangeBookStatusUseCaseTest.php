@@ -11,19 +11,19 @@ use app\domain\repositories\BookRepositoryInterface;
 use app\domain\services\BookPublicationPolicy;
 use app\domain\values\BookStatus;
 use BookTestHelper;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 
-final class ChangeBookStatusUseCaseTest extends Unit
+final class ChangeBookStatusUseCaseTest extends TestCase
 {
-    private BookRepositoryInterface&MockObject $bookRepository;
+    private BookRepositoryInterface&Stub $bookRepository;
     private ChangeBookStatusUseCase $useCase;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
+        $this->bookRepository = $this->createStub(BookRepositoryInterface::class);
 
         $this->useCase = new ChangeBookStatusUseCase(
             $this->bookRepository,
@@ -41,8 +41,10 @@ final class ChangeBookStatusUseCaseTest extends Unit
             status: BookStatus::Draft,
         );
 
-        $this->bookRepository->method('get')->willReturn($book);
-        $this->bookRepository->expects($this->once())->method('save');
+        $bookRepository = $this->createMock(BookRepositoryInterface::class);
+        $bookRepository->method('get')->willReturn($book);
+        $bookRepository->expects($this->once())->method('save');
+        $this->useCase = new ChangeBookStatusUseCase($bookRepository, new BookPublicationPolicy());
 
         $result = $this->useCase->execute(new ChangeBookStatusCommand(1, BookStatus::Published));
 
@@ -58,8 +60,10 @@ final class ChangeBookStatusUseCaseTest extends Unit
             status: BookStatus::Published,
         );
 
-        $this->bookRepository->method('get')->willReturn($book);
-        $this->bookRepository->expects($this->once())->method('save');
+        $bookRepository = $this->createMock(BookRepositoryInterface::class);
+        $bookRepository->method('get')->willReturn($book);
+        $bookRepository->expects($this->once())->method('save');
+        $this->useCase = new ChangeBookStatusUseCase($bookRepository, new BookPublicationPolicy());
 
         $result = $this->useCase->execute(new ChangeBookStatusCommand(1, BookStatus::Draft));
 
@@ -75,8 +79,10 @@ final class ChangeBookStatusUseCaseTest extends Unit
             status: BookStatus::Published,
         );
 
-        $this->bookRepository->method('get')->willReturn($book);
-        $this->bookRepository->expects($this->once())->method('save');
+        $bookRepository = $this->createMock(BookRepositoryInterface::class);
+        $bookRepository->method('get')->willReturn($book);
+        $bookRepository->expects($this->once())->method('save');
+        $this->useCase = new ChangeBookStatusUseCase($bookRepository, new BookPublicationPolicy());
 
         $result = $this->useCase->execute(new ChangeBookStatusCommand(1, BookStatus::Archived));
 
@@ -92,8 +98,10 @@ final class ChangeBookStatusUseCaseTest extends Unit
             status: BookStatus::Archived,
         );
 
-        $this->bookRepository->method('get')->willReturn($book);
-        $this->bookRepository->expects($this->once())->method('save');
+        $bookRepository = $this->createMock(BookRepositoryInterface::class);
+        $bookRepository->method('get')->willReturn($book);
+        $bookRepository->expects($this->once())->method('save');
+        $this->useCase = new ChangeBookStatusUseCase($bookRepository, new BookPublicationPolicy());
 
         $result = $this->useCase->execute(new ChangeBookStatusCommand(1, BookStatus::Draft));
 

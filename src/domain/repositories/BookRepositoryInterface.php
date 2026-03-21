@@ -8,11 +8,9 @@ use app\domain\entities\Book;
 
 interface BookRepositoryInterface
 {
-    public function save(Book $book): int;
+    public function save(Book $book, ?int $expectedVersion = null): int;
 
     public function get(int $id): Book;
-
-    public function getByIdAndVersion(int $id, int $expectedVersion): Book;
 
     public function delete(Book $book): void;
 }

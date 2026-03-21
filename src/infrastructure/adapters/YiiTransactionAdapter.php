@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace app\infrastructure\adapters;
 
 use app\application\ports\TransactionInterface;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Throwable;
 use yii\db\Connection;
 use yii\db\Transaction;
 
@@ -20,6 +22,7 @@ final class YiiTransactionAdapter implements TransactionInterface
 
     public function __construct(
         private readonly Connection $db,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -67,7 +70,13 @@ final class YiiTransactionAdapter implements TransactionInterface
         $this->afterCommitCallbacks = [];
 
         foreach ($callbacks as $callback) {
-            $callback();
+            try {
+                $callback();
+            } catch (Throwable $e) {
+                $this->logger->error($e->getMessage(), [
+                    'exception' => $e,
+                ]);
+            }
         }
     }
 

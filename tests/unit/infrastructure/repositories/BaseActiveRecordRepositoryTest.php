@@ -13,14 +13,14 @@ use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use tests\_support\StubActiveRecord;
 use tests\_support\StubActiveRecordRepository;
 use yii\db\ActiveRecord;
 use yii\db\IntegrityException;
 use yii\db\StaleObjectException;
 
-final class BaseActiveRecordRepositoryTest extends Unit
+final class BaseActiveRecordRepositoryTest extends TestCase
 {
     private const string SAVE_FAILED_MESSAGE = 'save failed';
     private const string DUPLICATE_ENTRY = 'Duplicate entry';
@@ -31,26 +31,26 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
     private StubActiveRecordRepository $repository;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->repository = new StubActiveRecordRepository();
     }
 
     public function testPersistSuccess(): void
     {
-        $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static fn(bool $_runValidation = true) => true,
-        ]);
+        $this->expectNotToPerformAssertions();
+
+        $model = $this->createStub(ActiveRecord::class);
+        $model->method('save')->willReturn(true);
 
         $this->repository->testPersist($model, DomainErrorCode::BookStaleData);
     }
 
     public function testPersistThrowsRuntimeExceptionOnSaveFailure(): void
     {
-        $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static fn(bool $_runValidation = true) => false,
-            'getFirstErrors' => ['error' => self::SAVE_FAILED_MESSAGE],
-        ]);
+        $model = $this->createStub(ActiveRecord::class);
+        $model->method('save')->willReturn(false);
+        $model->method('getFirstErrors')->willReturn(['error' => self::SAVE_FAILED_MESSAGE]);
 
         $this->expectException(OperationFailedException::class);
         $this->expectExceptionMessage('error.entity_persist_failed');
@@ -60,11 +60,8 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
     public function testPersistThrowsStaleDataExceptionOnStaleObject(): void
     {
-        $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static function (...$_args) {
-                throw new StaleObjectException('Stale object');
-            },
-        ]);
+        $model = $this->createStub(ActiveRecord::class);
+        $model->method('save')->willThrowException(new StaleObjectException('Stale object'));
 
         $this->expectException(StaleDataException::class);
 
@@ -74,11 +71,8 @@ final class BaseActiveRecordRepositoryTest extends Unit
     public function testPersistThrowsAlreadyExistsExceptionOnDuplicate(): void
     {
         $exception = new IntegrityException(self::DUPLICATE_ENTRY, [self::DUPLICATE_SQLSTATE, self::DUPLICATE_CODE, self::DUPLICATE_ENTRY]);
-        $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static function (...$_args) use ($exception) {
-                throw $exception;
-            },
-        ]);
+        $model = $this->createStub(ActiveRecord::class);
+        $model->method('save')->willThrowException($exception);
 
         $this->expectException(AlreadyExistsException::class);
         $this->expectExceptionCode(409);
@@ -89,11 +83,8 @@ final class BaseActiveRecordRepositoryTest extends Unit
     public function testPersistThrowsGenericAlreadyExistsExceptionOnDuplicateWithoutCode(): void
     {
         $exception = new IntegrityException(self::DUPLICATE_ENTRY, [self::DUPLICATE_SQLSTATE, self::DUPLICATE_CODE, self::DUPLICATE_ENTRY]);
-        $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static function (...$_args) use ($exception) {
-                throw $exception;
-            },
-        ]);
+        $model = $this->createStub(ActiveRecord::class);
+        $model->method('save')->willThrowException($exception);
 
         $this->expectException(AlreadyExistsException::class);
 
@@ -103,11 +94,8 @@ final class BaseActiveRecordRepositoryTest extends Unit
     public function testPersistRethrowsGenericIntegrityException(): void
     {
         $exception = new IntegrityException(self::OTHER_ERROR, [self::DUPLICATE_SQLSTATE, self::OTHER_ERROR_CODE, self::OTHER_ERROR]);
-        $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static function (...$_args) use ($exception) {
-                throw $exception;
-            },
-        ]);
+        $model = $this->createStub(ActiveRecord::class);
+        $model->method('save')->willThrowException($exception);
 
         $this->expectException(IntegrityException::class);
 
@@ -117,11 +105,8 @@ final class BaseActiveRecordRepositoryTest extends Unit
     public function testPersistRethrowsIntegrityExceptionWhenErrorInfoIsNull(): void
     {
         $exception = new IntegrityException(self::OTHER_ERROR);
-        $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static function (...$_args) use ($exception) {
-                throw $exception;
-            },
-        ]);
+        $model = $this->createStub(ActiveRecord::class);
+        $model->method('save')->willThrowException($exception);
 
         $this->expectException(IntegrityException::class);
         $this->expectExceptionMessage(self::OTHER_ERROR);
@@ -131,10 +116,9 @@ final class BaseActiveRecordRepositoryTest extends Unit
 
     public function testPersistThrowsRuntimeExceptionWithDefaultMessageOnSaveFailureWithoutErrors(): void
     {
-        $model = $this->makeEmpty(ActiveRecord::class, [
-            'save' => static fn(bool $_runValidation = true) => false,
-            'getFirstErrors' => [],
-        ]);
+        $model = $this->createStub(ActiveRecord::class);
+        $model->method('save')->willReturn(false);
+        $model->method('getFirstErrors')->willReturn([]);
 
         $this->expectException(OperationFailedException::class);
         $this->expectExceptionMessage('error.entity_persist_failed');

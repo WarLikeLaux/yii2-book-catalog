@@ -21,7 +21,7 @@
   - [10. Асинхронные операции (fan-out)](#10-асинхронные-операции-fan-out)
   - [11. Пагинация и кеширование](#11-пагинация-и-кеширование)
   - [12. Внедрение зависимостей](#12-внедрение-зависимостей)
-  - [13. Наблюдаемость и трассировка](#13-наблюдаемость-и-трассировка)
+  - [13. Наблюдаемость и логирование](#13-наблюдаемость-и-логирование)
   - [14. Хранилище файлов (CAS)](#14-хранилище-файлов-cas)
   - [15. Инфраструктурное ядро](#15-инфраструктурное-ядро)
   - [16. Маппинг данных (AutoMapper и Hydrator)](#16-маппинг-данных-automapper-и-hydrator)
@@ -69,15 +69,12 @@ graph TD
     User((User/Admin))
     System[Book Catalog System]
     SMS["SMS Provider (External)"]
-    Jaeger["Jaeger (Tracing)"]
 
     User -- "Browses & Manages Books" --> System
     System -- "Sends Notifications" --> SMS
-    System -- "Sends Traces" --> Jaeger
 
     style System fill:#1168bd,stroke:#0b4884,color:#ffffff
     style SMS fill:#999999,stroke:#666666,color:#ffffff
-    style Jaeger fill:#999999,stroke:#666666,color:#ffffff
 ```
 
 ### Level 2: containers
@@ -199,7 +196,7 @@ graph TD
 
 - **Rich Entities:** сущность `Book` управляет статусом и авторами, соблюдая бизнес-правила. Конструктор приватный - создание через `Book::create()`, восстановление из БД через `Book::reconstitute()`.
 - **Контроль изменяемости:** доменные сущности используют `private(set)` и меняются через методы.
-- **Value Objects:** `Isbn`, `BookYear`, `StoredFileReference`, `FileContent`, `FileKey` гарантируют валидность данных при создании.
+- **Value Objects:** `Isbn`, `BookYear`, `StoredFileReference`, `Phone`, `AuthorId` гарантируют валидность данных при создании.
 - **Status FSM:** статус книги моделируется через `BookStatus` enum (черновик / опубликована / в архиве) с переходами через `transitionTo(target, policy)`.
 - **Domain Events:** `BookStatusChangedEvent`, `BookUpdatedEvent`, `BookDeletedEvent` накапливаются в сущности при мутации и связывают части системы без прямых зависимостей.
 - **Domain Guards:** `replaceAuthors()` запрещает убирать всех авторов у опубликованных/архивных книг.
@@ -217,7 +214,7 @@ graph TD
 - **Read DTO:** чтение отделено от отображения через `BookReadDto`.
 - **Фильтры:** идемпотентность и rate limit оформлены отдельными фильтрами.
 - **WebOperationRunner:** централизованный запуск Use Cases, работа с pipeline и обработка ошибок.
-- **Command Pipeline:** транзакции, идемпотентность и трассировка вынесены в middleware.
+- **Command Pipeline:** транзакции, идемпотентность и маппинг ошибок вынесены в middleware.
 - **HTMX:** фронт использует HTMX для бесшовной подгрузки и фильтрации.
 
 [↑ К навигации](#-навигация)
@@ -276,14 +273,14 @@ public function createBook(BookForm $form): int
     );
 
     if ($form->cover instanceof UploadedFile && $cover === null) {
-        throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+        throw new OperationFailedException(StorageErrorCode::OperationFailed->value, field: 'cover');
     }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
 
     $result = $this->operationRunner->executeAndPropagate(
         $command,
-        $this->createBookUseCase,
+        $this->useCases->create,
         Yii::t('app', 'book.success.created'),
     );
     assert(is_int($result));
@@ -299,7 +296,6 @@ public function createBook(BookForm $form): int
 - Переключение между MySQL и PostgreSQL управляется `DB_DRIVER` и конфигами `config/db.php`.
 - Очередь реализована через `HandlerAwareQueue`, задания хранятся в базе.
 - Время инкапсулировано через `Psr\Clock\ClockInterface` и `SystemClock`.
-- Трассировка интегрирована с Jaeger OTLP.
 - Интерактивная отладка доступна через `make shell`.
 
 [↑ К навигации](#-навигация)
@@ -330,7 +326,7 @@ public function createBook(BookForm $form): int
 - Rector для авто-рефакторинга и миграций синтаксиса.
 - Код-стайл через `phpcs.xml.dist`.
 - Архитектурные ограничения через Deptrac и Arkitect.
-- Deptrac: все 7 поддиректорий domain покрыты слоями - `DomainShared` (values, events, exceptions, common), `DomainEntities`, `DomainServices`, `DomainSpecifications`, `DomainRepositories`.
+- Deptrac: все 8 поддиректорий domain покрыты слоями - `DomainShared` (values, events, exceptions, common), `DomainEntities`, `DomainServices`, `DomainSpecifications`, `DomainRepositories`.
 - Arkitect: domain isolation - `app\domain` не может зависеть от `yii`, `app\application`, `app\infrastructure`, `app\presentation` (изоляция домена от фреймворка и внешних слоёв).
 - Arkitect: `application/*/queries` - final, readonly, NotDependsOn(infrastructure) (контракт DTO-only).
 
@@ -380,12 +376,11 @@ public function createBook(BookForm $form): int
 
 [↑ К навигации](#-навигация)
 
-### 13. Наблюдаемость и трассировка
+### 13. Наблюдаемость и логирование
 
-- Трассировка команд реализована через `TracingMiddleware`.
-- Инфраструктурные декораторы (`*TracingDecorator`) оборачивают репозитории, Query Services и очередь.
-- Сбор трейсов выполняется поверх OpenTelemetry (OTLP) с экспортом в Jaeger.
-- В панели Jaeger доступны waterfall timeline, структура вызовов RPC, и поиск трейсов по тегам.
+- Структурированное логирование через `YiiPsrLogger` с привязкой `RequestIdProvider` (UUID per request).
+- Каждый HTTP-ответ содержит заголовок `X-Request-Id` для корреляции запросов.
+- Логи разделены по категориям (`sms`, `error`, `warning`) с выделенными файлами.
 
 [↑ К навигации](#-навигация)
 
@@ -407,7 +402,7 @@ public function createBook(BookForm $form): int
 
 ### 16. Маппинг данных (AutoMapper и Hydrator)
 
-- Read-side использует `AutoMapper` и атрибуты `#[MapTo]` в ActiveRecord моделях.
+- Read-side использует `AutoMapper` и MappingListeners (`Yii2ActiveRecordMappingListener` парсит `@property` из PHPDoc ActiveRecord-моделей, `BookToBookReadDtoMappingListener` маппит связанные данные).
 - Write-side использует `ActiveRecordHydrator` в репозиториях (например, `BookRepository`).
 
 [↑ К навигации](#-навигация)
@@ -453,7 +448,6 @@ src/application/        - Слой приложения (Application Logic)
 src/infrastructure/     - Инфраструктурный слой (Framework Logic)
   ├── adapters/         - Адаптеры инфраструктуры
   ├── components/       - Вспомогательные компоненты
-  ├── factories/        - Фабрики инфраструктуры
   ├── listeners/        - Event Listeners
   ├── mapping/          - Настройки маппинга
   ├── persistence/      - ActiveRecord модели (Mapping)
@@ -487,7 +481,6 @@ commands/               - Console контроллеры
 config/                 - Конфигурация приложения
   ├── container/        - Конфигурация контейнера зависимостей
 docker/                 - Docker конфигурация
-  ├── jaeger/          
   ├── nginx/            - Конфигурация nginx
 docs/                   - Документация
   ├── ai/               - Правила и инструкции для AI

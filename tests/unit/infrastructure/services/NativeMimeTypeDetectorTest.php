@@ -6,9 +6,9 @@ namespace tests\unit\infrastructure\services;
 
 use app\infrastructure\services\FinfoFunctions;
 use app\infrastructure\services\NativeMimeTypeDetector;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class NativeMimeTypeDetectorTest extends Unit
+final class NativeMimeTypeDetectorTest extends TestCase
 {
     public function testDetectUsesMimeContentTypeWhenAvailable(): void
     {

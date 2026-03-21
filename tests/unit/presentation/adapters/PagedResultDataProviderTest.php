@@ -7,9 +7,10 @@ namespace tests\unit\presentation\adapters;
 use app\application\common\dto\PaginationDto;
 use app\application\ports\PagedResultInterface;
 use app\presentation\common\adapters\PagedResultDataProvider;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
+use yii\data\Sort;
 
-final class PagedResultDataProviderTest extends Unit
+final class PagedResultDataProviderTest extends TestCase
 {
     public function testPrepareKeysWithObjectModels(): void
     {
@@ -18,7 +19,7 @@ final class PagedResultDataProviderTest extends Unit
             (object)['id' => 2, 'name' => 'Second'],
         ];
 
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn($models);
         $result->method('getTotalCount')->willReturn(2);
         $result->method('getPagination')->willReturn(null);
@@ -36,7 +37,7 @@ final class PagedResultDataProviderTest extends Unit
             ['id' => 20, 'name' => 'Second'],
         ];
 
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn($models);
         $result->method('getTotalCount')->willReturn(2);
         $result->method('getPagination')->willReturn(null);
@@ -55,7 +56,7 @@ final class PagedResultDataProviderTest extends Unit
             'plain string',
         ];
 
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn($models);
         $result->method('getTotalCount')->willReturn(3);
         $result->method('getPagination')->willReturn(null);
@@ -75,7 +76,7 @@ final class PagedResultDataProviderTest extends Unit
             totalPages: 5,
         );
 
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn([]);
         $result->method('getTotalCount')->willReturn(100);
         $result->method('getPagination')->willReturn($paginationDto);
@@ -91,7 +92,7 @@ final class PagedResultDataProviderTest extends Unit
 
     public function testPaginationDisabledWhenNoPaginationDto(): void
     {
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn([]);
         $result->method('getTotalCount')->willReturn(0);
         $result->method('getPagination')->willReturn(null);
@@ -104,16 +105,47 @@ final class PagedResultDataProviderTest extends Unit
     public function testGetTotalCountDelegatesToResult(): void
     {
         $expectedCount = 42;
-        $result = $this->createMock(PagedResultInterface::class);
+        $result = $this->createStub(PagedResultInterface::class);
         $result->method('getModels')->willReturn([]);
         $result->method('getTotalCount')->willReturn($expectedCount);
 
-        $provider = new PagedResultDataProvider($result, [
+        $provider = new PagedResultDataProvider($result, [], [
             'pagination' => [
                 'pageSize' => 10,
             ],
         ]);
 
         $this->assertEquals($expectedCount, $provider->getTotalCount());
+    }
+
+    public function testSortAttributesCreatesSortObject(): void
+    {
+        $result = $this->createStub(PagedResultInterface::class);
+        $result->method('getModels')->willReturn([]);
+        $result->method('getTotalCount')->willReturn(0);
+        $result->method('getPagination')->willReturn(null);
+
+        $provider = new PagedResultDataProvider($result, ['title', 'year']);
+        $sort = $provider->getSort();
+
+        $this->assertInstanceOf(Sort::class, $sort);
+        $this->assertArrayHasKey('title', $sort->attributes);
+        $this->assertArrayHasKey('year', $sort->attributes);
+        $this->assertSame(['title' => SORT_ASC], $sort->attributes['title']['asc']);
+        $this->assertSame(['title' => SORT_DESC], $sort->attributes['title']['desc']);
+    }
+
+    public function testEmptySortAttributesHasNoCustomAttributes(): void
+    {
+        $result = $this->createStub(PagedResultInterface::class);
+        $result->method('getModels')->willReturn([]);
+        $result->method('getTotalCount')->willReturn(0);
+        $result->method('getPagination')->willReturn(null);
+
+        $provider = new PagedResultDataProvider($result);
+        $sort = $provider->getSort();
+
+        $this->assertInstanceOf(Sort::class, $sort);
+        $this->assertSame([], $sort->attributes);
     }
 }

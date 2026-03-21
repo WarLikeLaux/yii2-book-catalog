@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\application\ports;
 
-use app\domain\values\FileContent;
-use app\domain\values\FileKey;
+use app\application\common\values\FileContent;
+use app\application\common\values\FileKey;
 
 interface ContentStorageInterface
 {

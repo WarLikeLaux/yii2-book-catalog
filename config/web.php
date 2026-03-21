@@ -3,14 +3,12 @@
 declare(strict_types=1);
 
 use app\application\common\config\IdempotencyConfig;
-use app\application\common\config\JaegerConfig;
 use app\infrastructure\components\AppMysqlMutex;
 use app\infrastructure\components\AppPgsqlMutex;
 use app\infrastructure\components\AppRedisConnection;
 use app\infrastructure\persistence\User;
 use app\infrastructure\queue\HandlerAwareQueue;
 use app\infrastructure\services\observability\RequestIdProvider;
-use app\infrastructure\services\observability\TracerBootstrap;
 use Env\Env;
 
 $params = require __DIR__ . '/params.php';
@@ -21,7 +19,6 @@ if (!YII_ENV_DEV && (Env::get('COOKIE_VALIDATION_KEY') ?? '') === '') {
 }
 
 $idempotencyConfig = IdempotencyConfig::fromParams($params);
-$jaegerConfig = JaegerConfig::fromParams($params);
 if (!YII_ENV_DEV && YII_ENV !== 'test' && $idempotencyConfig->smsPhoneHashKey === 'changeme') {
     throw new RuntimeException('SMS_IDEMPOTENCY_HASH_KEY must be set and changed in production');
 }
@@ -34,7 +31,7 @@ $config = [
     'viewPath' => '@app/src/presentation/views',
     'language' => 'ru-RU',
     'sourceLanguage' => 'en-US',
-    'bootstrap' => ['log', 'tracer'],
+    'bootstrap' => ['log'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
@@ -139,12 +136,6 @@ $config = [
                 'api/v1/books' => 'api/v1/book/index',
                 'health' => 'health/index',
             ],
-        ],
-        'tracer' => [
-            'class' => TracerBootstrap::class,
-            'enabled' => YII_ENV_DEV,
-            'endpoint' => $jaegerConfig->endpoint,
-            'serviceName' => 'yii2-book-catalog',
         ],
     ],
     'container' => (require __DIR__ . '/container.php')($params),

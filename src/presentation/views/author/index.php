@@ -25,6 +25,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= GridView::widget([
         'dataProvider' => $viewModel->dataProvider,
+        'filterModel' => $viewModel->filterModel,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             'id',
@@ -36,4 +37,3 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
     ]) ?>
 </div>
-

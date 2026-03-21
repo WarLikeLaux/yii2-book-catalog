@@ -11,9 +11,9 @@ use app\application\common\exceptions\EntityNotFoundException;
 use app\application\common\exceptions\OperationFailedException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\ErrorType;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class DomainErrorMappingRegistryTest extends Unit
+final class DomainErrorMappingRegistryTest extends TestCase
 {
     public function testFromEnumRegistersAllCases(): void
     {

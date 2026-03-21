@@ -10,9 +10,8 @@ use app\application\common\dto\QueryResult;
 use app\application\ports\BookQueryServiceInterface;
 use app\presentation\books\dto\BookIndexViewModel;
 use app\presentation\books\forms\BookSearchForm;
-use app\presentation\books\mappers\BookViewModelMapper;
 use app\presentation\books\services\BookDtoUrlResolver;
-use app\presentation\common\adapters\PagedResultDataProviderFactory;
+use app\presentation\common\adapters\PagedResultDataProvider;
 use yii\web\Request;
 
 final readonly class BookSearchViewFactory
@@ -21,9 +20,7 @@ final readonly class BookSearchViewFactory
 
     public function __construct(
         private BookQueryServiceInterface $bookQueryService,
-        private PagedResultDataProviderFactory $dataProviderFactory,
         private BookDtoUrlResolver $urlResolver,
-        private BookViewModelMapper $viewModelMapper,
     ) {
     }
 
@@ -44,7 +41,7 @@ final readonly class BookSearchViewFactory
 
             return new BookIndexViewModel(
                 $form,
-                $this->dataProviderFactory->create($emptyResult),
+                new PagedResultDataProvider($emptyResult),
             );
         }
 
@@ -61,9 +58,7 @@ final readonly class BookSearchViewFactory
                 continue; // @codeCoverageIgnore
             }
 
-            $resolvedItems[] = $this->viewModelMapper->map(
-                $this->urlResolver->resolveUrl($model),
-            );
+            $resolvedItems[] = $this->urlResolver->resolveUrl($model);
         }
 
         $resolvedResult = new QueryResult(
@@ -72,11 +67,9 @@ final readonly class BookSearchViewFactory
             $result->getPagination(),
         );
 
-        $dataProvider = $this->dataProviderFactory->create($resolvedResult);
-
         return new BookIndexViewModel(
             $form,
-            $dataProvider,
+            new PagedResultDataProvider($resolvedResult),
         );
     }
 }

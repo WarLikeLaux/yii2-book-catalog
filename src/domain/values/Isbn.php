@@ -10,6 +10,13 @@ use Stringable;
 
 final readonly class Isbn implements Stringable
 {
+    private const int ISBN10_LENGTH = 10;
+    private const int ISBN13_LENGTH = 13;
+    private const int ISBN10_CHECKSUM_MODULO = 11;
+    private const int ISBN13_CHECKSUM_MODULO = 10;
+    private const int ISBN10_X_VALUE = 10;
+    private const int ISBN13_WEIGHT_EVEN = 1;
+    private const int ISBN13_WEIGHT_ODD = 3;
     private const array ISBN13_PREFIXES = ['978', '979'];
 
     public private(set) string $value;
@@ -31,8 +38,8 @@ final readonly class Isbn implements Stringable
         $length = strlen($isbn);
 
         return match ($length) {
-            10 => self::validateIsbn10($isbn),
-            13 => self::validateIsbn13($isbn),
+            self::ISBN10_LENGTH => self::validateIsbn10($isbn),
+            self::ISBN13_LENGTH => self::validateIsbn13($isbn),
             default => false,
         };
     }
@@ -44,24 +51,27 @@ final readonly class Isbn implements Stringable
 
     private static function validateIsbn10(string $isbn): bool
     {
-        if (!ctype_digit(substr($isbn, 0, 9))) {
+        if (!ctype_digit(substr($isbn, 0, self::ISBN10_LENGTH - 1))) {
             return false;
         }
 
-        $last = $isbn[9];
+        $last = $isbn[self::ISBN10_LENGTH - 1];
 
         if (!ctype_digit($last) && $last !== 'X' && $last !== 'x') {
             return false;
         }
 
+        $toDigitValue = static fn(string $char): int => $char === 'X' || $char === 'x'
+        ? self::ISBN10_X_VALUE
+        : (int)$char;
+
         $weightedDigits = [];
 
         foreach (str_split($isbn) as $index => $digit) {
-            $digitValue = $digit === 'X' || $digit === 'x' ? 10 : ord($digit[0]) - 48;
-            $weightedDigits[] = $digitValue * (10 - $index);
+            $weightedDigits[] = $toDigitValue($digit) * (self::ISBN10_LENGTH - $index);
         }
 
-        return array_sum($weightedDigits) % 11 === 0;
+        return array_sum($weightedDigits) % self::ISBN10_CHECKSUM_MODULO === 0;
     }
 
     private static function validateIsbn13(string $isbn): bool
@@ -76,12 +86,12 @@ final readonly class Isbn implements Stringable
 
         $checksum = 0;
 
-        for ($i = 0; $i < 13; $i++) {
-            $weight = $i % 2 === 0 ? 1 : 3;
+        for ($i = 0; $i < self::ISBN13_LENGTH; $i++) {
+            $weight = $i % 2 === 0 ? self::ISBN13_WEIGHT_EVEN : self::ISBN13_WEIGHT_ODD;
             $checksum += (int)$isbn[$i] * $weight;
         }
 
-        return $checksum % 10 === 0;
+        return $checksum % self::ISBN13_CHECKSUM_MODULO === 0;
     }
 
     private static function hasValidIsbn13Prefix(string $isbn): bool
@@ -91,8 +101,8 @@ final readonly class Isbn implements Stringable
 
     public function getFormatted(): string
     {
-        if (strlen($this->value) === 13) {
-            return substr($this->value, 0, 3) . '-' . $this->value[3] . '-' . substr($this->value, 4, 2) . '-' . substr($this->value, 6, 6) . '-' . $this->value[12];
+        if (strlen($this->value) === self::ISBN13_LENGTH) {
+            return substr($this->value, 0, 3) . '-' . $this->value[3] . '-' . substr($this->value, 4, 2) . '-' . substr($this->value, 6, 6) . '-' . $this->value[self::ISBN13_LENGTH - 1];
         }
 
         return $this->value;

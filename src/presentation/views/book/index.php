@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
+use app\application\books\queries\BookReadDto;
+use app\domain\values\BookStatus;
 use app\presentation\books\dto\BookListViewModel;
-use app\presentation\books\dto\BookViewModel;
 use app\presentation\books\widgets\BookStatusBadge;
 use yii\bootstrap5\LinkPager;
 use yii\grid\GridView;
@@ -15,6 +16,11 @@ use yii\helpers\Html;
 
 $this->title = Yii::t('app', 'ui.books');
 $this->params['breadcrumbs'][] = $this->title;
+
+$statusOptions = [];
+foreach (BookStatus::cases() as $case) {
+    $statusOptions[$case->value] = Yii::t('app', 'ui.status_' . $case->value);
+}
 
 ?>
 
@@ -28,6 +34,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= GridView::widget([
         'dataProvider' => $viewModel->dataProvider,
+        'filterModel' => $viewModel->filterModel,
         'pager' => ['class' => LinkPager::class],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
@@ -44,13 +51,15 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'authorNames',
                 'label' => Yii::t('app', 'ui.authors'),
-                'value' => static fn (BookViewModel $model): string => implode(', ', $model->authorNames),
+                'filterAttribute' => 'author',
+                'value' => static fn (BookReadDto $model): string => implode(', ', $model->authorNames),
             ],
             [
                 'attribute' => 'status',
                 'label' => Yii::t('app', 'ui.status'),
                 'format' => 'raw',
-                'value' => static fn (BookViewModel $model): string => BookStatusBadge::widget(['status' => $model->status]),
+                'filter' => $statusOptions,
+                'value' => static fn (BookReadDto $model): string => BookStatusBadge::widget(['status' => $model->status]),
             ],
             ['class' => 'yii\grid\ActionColumn'],
         ],

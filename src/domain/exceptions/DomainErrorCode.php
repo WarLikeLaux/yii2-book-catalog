@@ -96,21 +96,6 @@ enum DomainErrorCode: string
     #[ErrorMapping(ErrorType::AlreadyExists)]
     case EntityAlreadyExists = 'error.entity_already_exists';
 
-    #[ErrorMapping(ErrorType::OperationFailed, field: 'key')]
-    case FileKeyInvalidFormat = 'file.error.key_invalid_format';
-
-    #[ErrorMapping(ErrorType::OperationFailed, field: 'content')]
-    case FileContentInvalidStream = 'file.error.content_invalid_stream';
-
-    #[ErrorMapping(ErrorType::NotFound)]
-    case FileNotFound = 'file.error.not_found';
-
-    #[ErrorMapping(ErrorType::OperationFailed)]
-    case FileOpenFailed = 'file.error.open_failed';
-
-    #[ErrorMapping(ErrorType::OperationFailed)]
-    case FileStorageOperationFailed = 'file.error.storage_operation_failed';
-
     #[ErrorMapping(ErrorType::OperationFailed, field: 'path')]
     case StoredFilePathEmpty = 'file.error.path_empty';
 

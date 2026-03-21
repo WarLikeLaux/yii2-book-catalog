@@ -23,12 +23,13 @@ final readonly class AuthViewFactory
         );
     }
 
-    public function getApiInfoViewModel(string $host): ApiInfoViewModel
+    public function getApiInfoViewModel(string $host, bool $isSecure): ApiInfoViewModel
     {
+        $scheme = $isSecure ? 'https://' : 'http://';
+
         return new ApiInfoViewModel(
-            $this->apiPageConfig->swaggerPort,
-            $this->apiPageConfig->appPort,
-            $host,
+            "{$scheme}{$host}:{$this->apiPageConfig->swaggerPort}",
+            "{$scheme}{$host}:{$this->apiPageConfig->appPort}/api/v1",
         );
     }
 }

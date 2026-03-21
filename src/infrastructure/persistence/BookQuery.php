@@ -18,11 +18,6 @@ final class BookQuery extends ActiveQuery
         return $this->with('authors');
     }
 
-    public function orderedByCreatedAt(): self
-    {
-        return $this->orderBy(['created_at' => SORT_DESC]);
-    }
-
     public function byId(int $id): self
     {
         return $this->where(['id' => $id]);

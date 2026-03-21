@@ -6,9 +6,9 @@ namespace tests\unit\domain\events;
 
 use app\domain\events\BookUpdatedEvent;
 use app\domain\values\BookStatus;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookUpdatedEventTest extends Unit
+final class BookUpdatedEventTest extends TestCase
 {
     public function testEventTypeAndProperties(): void
     {

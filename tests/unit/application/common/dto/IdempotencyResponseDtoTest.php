@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\application\common\dto;
 
 use app\application\common\dto\IdempotencyResponseDto;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class IdempotencyResponseDtoTest extends Unit
+final class IdempotencyResponseDtoTest extends TestCase
 {
     public function testConstructAssignsValues(): void
     {

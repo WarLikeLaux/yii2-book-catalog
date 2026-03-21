@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\application\common\exceptions;
 
 use app\application\common\exceptions\EntityNotFoundException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class EntityNotFoundExceptionTest extends Unit
+final class EntityNotFoundExceptionTest extends TestCase
 {
     public function testDefaultValues(): void
     {

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace tests\unit\application\common\services;
 
 use app\application\common\services\IsbnFormatValidator;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class IsbnFormatValidatorTest extends Unit
+final class IsbnFormatValidatorTest extends TestCase
 {
     private IsbnFormatValidator $validator;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->validator = new IsbnFormatValidator();
     }

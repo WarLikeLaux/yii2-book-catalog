@@ -12,12 +12,12 @@ use app\domain\specifications\StatusSpecification;
 use app\domain\specifications\YearSpecification;
 use app\domain\values\BookStatus;
 use app\infrastructure\queries\ActiveQueryBookSpecificationVisitor;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use yii\db\ActiveQuery;
 use yii\db\Connection;
 use yii\db\Expression;
 
-final class ActiveQueryBookSpecificationVisitorTest extends Unit
+final class ActiveQueryBookSpecificationVisitorTest extends TestCase
 {
     public function testVisitYearAddsWhereCondition(): void
     {
@@ -193,6 +193,113 @@ final class ActiveQueryBookSpecificationVisitorTest extends Unit
         $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
         $visitor->visitCompositeOr(new CompositeOrSpecification([
             new StatusSpecification(BookStatus::Published),
+            new YearSpecification(2024),
+        ]));
+    }
+
+    public function testVisitCompositeOrWithNestedCompositeAnd(): void
+    {
+        $query = $this->createMock(ActiveQuery::class);
+        $query->expects($this->once())
+            ->method('andWhere')
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && count($conditions) === 3
+                    && is_array($conditions[1])
+                    && $conditions[1][0] === 'and'));
+
+        $composite = new CompositeOrSpecification([
+            new CompositeAndSpecification([
+                new YearSpecification(2024),
+                new StatusSpecification(BookStatus::Published),
+            ]),
+            new IsbnPrefixSpecification('978'),
+        ]);
+
+        $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
+        $visitor->visitCompositeOr($composite);
+    }
+
+    public function testVisitCompositeOrWithNestedCompositeOr(): void
+    {
+        $query = $this->createMock(ActiveQuery::class);
+        $query->expects($this->once())
+            ->method('andWhere')
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && is_array($conditions[1])
+                    && $conditions[1][0] === 'or'));
+
+        $composite = new CompositeOrSpecification([
+            new CompositeOrSpecification([
+                new YearSpecification(2024),
+                new IsbnPrefixSpecification('978'),
+            ]),
+            new StatusSpecification(BookStatus::Draft),
+        ]);
+
+        $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
+        $visitor->visitCompositeOr($composite);
+    }
+
+    public function testNestedCompositeAndSkipsEmptyFullText(): void
+    {
+        $query = $this->createMock(ActiveQuery::class);
+        $query->expects($this->once())
+            ->method('andWhere')
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && count($conditions) === 2
+                    && is_array($conditions[1])
+                    && $conditions[1][0] === 'and'
+                    && count($conditions[1]) === 2));
+
+        $composite = new CompositeOrSpecification([
+            new CompositeAndSpecification([
+                new FullTextSpecification(''),
+                new YearSpecification(2024),
+            ]),
+        ]);
+
+        $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
+        $visitor->visitCompositeOr($composite);
+    }
+
+    public function testNestedCompositeOrSkipsEmptyFullText(): void
+    {
+        $query = $this->createMock(ActiveQuery::class);
+        $query->expects($this->once())
+            ->method('andWhere')
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && count($conditions) === 2
+                    && is_array($conditions[1])
+                    && $conditions[1][0] === 'or'
+                    && count($conditions[1]) === 2));
+
+        $composite = new CompositeOrSpecification([
+            new CompositeOrSpecification([
+                new FullTextSpecification(''),
+                new YearSpecification(2024),
+            ]),
+        ]);
+
+        $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
+        $visitor->visitCompositeOr($composite);
+    }
+
+    public function testVisitCompositeOrSkipsEmptyFullText(): void
+    {
+        $query = $this->createMock(ActiveQuery::class);
+        $query->expects($this->once())
+            ->method('andWhere')
+            ->with($this->callback(static fn ($conditions): bool => is_array($conditions)
+                    && $conditions[0] === 'or'
+                    && count($conditions) === 2));
+
+        $visitor = new ActiveQueryBookSpecificationVisitor($query, $this->createConnection('mysql'));
+        $visitor->visitCompositeOr(new CompositeOrSpecification([
+            new FullTextSpecification(''),
             new YearSpecification(2024),
         ]));
     }

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure;
 
 use app\infrastructure\adapters\SystemClock;
-use Codeception\Test\Unit;
 use DateTimeImmutable;
+use PHPUnit\Framework\TestCase;
 
-final class SystemClockTest extends Unit
+final class SystemClockTest extends TestCase
 {
     public function testNowReturnsDateTimeImmutable(): void
     {

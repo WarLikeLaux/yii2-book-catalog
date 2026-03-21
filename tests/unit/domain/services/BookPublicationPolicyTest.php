@@ -7,16 +7,17 @@ namespace tests\unit\domain\services;
 use app\domain\entities\Book;
 use app\domain\exceptions\DomainException;
 use app\domain\services\BookPublicationPolicy;
+use app\domain\values\AuthorId;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookPublicationPolicyTest extends Unit
+final class BookPublicationPolicyTest extends TestCase
 {
     private BookPublicationPolicy $policy;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->policy = new BookPublicationPolicy();
     }
@@ -55,7 +56,7 @@ final class BookPublicationPolicyTest extends Unit
             $this->validDescription(),
             null,
         );
-        $book->replaceAuthors([1]);
+        $book->replaceAuthors([new AuthorId(1)]);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_without_cover');
@@ -72,7 +73,7 @@ final class BookPublicationPolicyTest extends Unit
             null,
             new StoredFileReference('covers/test.jpg'),
         );
-        $book->replaceAuthors([1]);
+        $book->replaceAuthors([new AuthorId(1)]);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_short_description');
@@ -89,7 +90,7 @@ final class BookPublicationPolicyTest extends Unit
             'Short description less than 50 chars',
             new StoredFileReference('covers/test.jpg'),
         );
-        $book->replaceAuthors([1]);
+        $book->replaceAuthors([new AuthorId(1)]);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_short_description');
@@ -106,7 +107,7 @@ final class BookPublicationPolicyTest extends Unit
             str_repeat(' ', 60),
             new StoredFileReference('covers/test.jpg'),
         );
-        $book->replaceAuthors([1]);
+        $book->replaceAuthors([new AuthorId(1)]);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_short_description');
@@ -143,7 +144,7 @@ final class BookPublicationPolicyTest extends Unit
             $this->validDescription(),
             null,
         );
-        $book->replaceAuthors([1]);
+        $book->replaceAuthors([new AuthorId(1)]);
 
         $this->assertFalse($this->policy->canPublish($book));
     }
@@ -157,7 +158,7 @@ final class BookPublicationPolicyTest extends Unit
             'Too short',
             new StoredFileReference('covers/test.jpg'),
         );
-        $book->replaceAuthors([1]);
+        $book->replaceAuthors([new AuthorId(1)]);
 
         $this->assertFalse($this->policy->canPublish($book));
     }
@@ -171,7 +172,7 @@ final class BookPublicationPolicyTest extends Unit
             str_repeat('a', 50),
             new StoredFileReference('covers/test.jpg'),
         );
-        $book->replaceAuthors([1]);
+        $book->replaceAuthors([new AuthorId(1)]);
 
         $this->assertTrue($this->policy->canPublish($book));
     }
@@ -185,7 +186,7 @@ final class BookPublicationPolicyTest extends Unit
             str_repeat('ф', 49),
             new StoredFileReference('covers/test.jpg'),
         );
-        $book->replaceAuthors([1]);
+        $book->replaceAuthors([new AuthorId(1)]);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_short_description');
@@ -202,7 +203,7 @@ final class BookPublicationPolicyTest extends Unit
             str_repeat('ф', 49),
             new StoredFileReference('covers/test.jpg'),
         );
-        $book->replaceAuthors([1]);
+        $book->replaceAuthors([new AuthorId(1)]);
 
         $this->assertFalse($this->policy->canPublish($book));
     }
@@ -216,7 +217,7 @@ final class BookPublicationPolicyTest extends Unit
             $this->validDescription(),
             new StoredFileReference('covers/test.jpg'),
         );
-        $book->replaceAuthors([1, 2]);
+        $book->replaceAuthors([new AuthorId(1), new AuthorId(2)]);
 
         return $book;
     }

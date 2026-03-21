@@ -19,28 +19,29 @@ use app\domain\repositories\BookRepositoryInterface;
 use app\domain\values\BookStatus;
 use app\domain\values\Isbn;
 use BookTestHelper;
-use Codeception\Test\Unit;
 use DateTimeImmutable;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
 
-final class UpdateBookUseCaseTest extends Unit
+final class UpdateBookUseCaseTest extends TestCase
 {
     private const DESCRIPTION_NEW = 'New description';
     private BookRepositoryInterface&MockObject $bookRepository;
-    private BookIsbnCheckerInterface&MockObject $bookIsbnChecker;
-    private AuthorExistenceCheckerInterface&MockObject $authorExistenceChecker;
-    private ClockInterface&MockObject $clock;
+    private BookIsbnCheckerInterface&Stub $bookIsbnChecker;
+    private AuthorExistenceCheckerInterface&Stub $authorExistenceChecker;
+    private ClockInterface&Stub $clock;
     private UpdateBookUseCase $useCase;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
-        $this->bookIsbnChecker = $this->createMock(BookIsbnCheckerInterface::class);
+        $this->bookIsbnChecker = $this->createStub(BookIsbnCheckerInterface::class);
         $this->bookIsbnChecker->method('existsByIsbn')->willReturn(false);
-        $this->authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $this->authorExistenceChecker = $this->createStub(AuthorExistenceCheckerInterface::class);
         $this->authorExistenceChecker->method('existsAllByIds')->willReturn(true);
-        $this->clock = $this->createMock(ClockInterface::class);
+        $this->clock = $this->createStub(ClockInterface::class);
         $this->clock->method('now')->willReturn(new DateTimeImmutable('2024-06-15'));
 
         $this->useCase = new UpdateBookUseCase(
@@ -76,14 +77,17 @@ final class UpdateBookUseCaseTest extends Unit
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
-                    && $book->authorIds === [1, 2]))
+            ->with(
+                $this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
+                    && $book->getAuthorIdValues() === [1, 2]),
+                1,
+            )
             ->willReturn(42);
 
         $this->useCase->execute($command);
@@ -112,28 +116,36 @@ final class UpdateBookUseCaseTest extends Unit
             version: 1,
         );
 
-        $this->authorExistenceChecker->expects($this->once())
+        $authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $authorExistenceChecker->expects($this->once())
             ->method('existsAllByIds')
             ->with([1, 2])
             ->willReturn(true);
 
+        $this->useCase = new UpdateBookUseCase(
+            $this->bookRepository,
+            $this->bookIsbnChecker,
+            $authorExistenceChecker,
+            $this->clock,
+        );
+
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2]))
+            ->with($this->callback(static fn (Book $book): bool => $book->getAuthorIdValues() === [1, 2]))
             ->willReturn(42);
 
         $this->useCase->execute($command);
     }
 
-    public function testExecuteThrowsStaleDataExceptionWhenVersionMismatchOrNotFound(): void
+    public function testExecuteThrowsStaleDataExceptionWhenVersionMismatch(): void
     {
         $command = new UpdateBookCommand(
-            id: 999,
+            id: 42,
             title: 'Title',
             year: 2024,
             description: 'Description',
@@ -142,9 +154,23 @@ final class UpdateBookUseCaseTest extends Unit
             version: 1,
         );
 
+        $existingBook = BookTestHelper::createBook(
+            id: 42,
+            title: 'Old Title',
+            year: 2020,
+            description: 'Description',
+            authorIds: [1],
+            status: BookStatus::Draft,
+            version: 2,
+        );
+
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(999, 1)
+            ->method('get')
+            ->with(42)
+            ->willReturn($existingBook);
+
+        $this->bookRepository->expects($this->once())
+            ->method('save')
             ->willThrowException(new StaleDataException(DomainErrorCode::BookStaleData));
 
         $this->expectException(StaleDataException::class);
@@ -175,8 +201,8 @@ final class UpdateBookUseCaseTest extends Unit
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -212,8 +238,8 @@ final class UpdateBookUseCaseTest extends Unit
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -248,8 +274,8 @@ final class UpdateBookUseCaseTest extends Unit
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -284,8 +310,8 @@ final class UpdateBookUseCaseTest extends Unit
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -321,8 +347,8 @@ final class UpdateBookUseCaseTest extends Unit
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -357,8 +383,8 @@ final class UpdateBookUseCaseTest extends Unit
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->once())
@@ -392,8 +418,8 @@ final class UpdateBookUseCaseTest extends Unit
         );
 
         $this->bookRepository->expects($this->once())
-            ->method('getByIdAndVersion')
-            ->with(42, 1)
+            ->method('get')
+            ->with(42)
             ->willReturn($existingBook);
 
         $this->bookRepository->expects($this->never())->method('save');
@@ -406,7 +432,7 @@ final class UpdateBookUseCaseTest extends Unit
 
     public function testExecuteThrowsIsbnAlreadyExistsException(): void
     {
-        $bookIsbnChecker = $this->createMock(BookIsbnCheckerInterface::class);
+        $bookIsbnChecker = $this->createStub(BookIsbnCheckerInterface::class);
         $bookIsbnChecker->method('existsByIsbn')
             ->willReturn(true);
 
@@ -427,7 +453,7 @@ final class UpdateBookUseCaseTest extends Unit
             version: 1,
         );
 
-        $this->bookRepository->expects($this->never())->method('getByIdAndVersion');
+        $this->bookRepository->expects($this->never())->method('get');
         $this->bookRepository->expects($this->never())->method('save');
 
         $this->expectException(AlreadyExistsException::class);
@@ -437,7 +463,7 @@ final class UpdateBookUseCaseTest extends Unit
 
     public function testExecuteThrowsAuthorsNotFoundException(): void
     {
-        $authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $authorExistenceChecker = $this->createStub(AuthorExistenceCheckerInterface::class);
         $authorExistenceChecker->method('existsAllByIds')
             ->willReturn(false);
 
@@ -458,7 +484,7 @@ final class UpdateBookUseCaseTest extends Unit
             version: 1,
         );
 
-        $this->bookRepository->expects($this->never())->method('getByIdAndVersion');
+        $this->bookRepository->expects($this->never())->method('get');
         $this->bookRepository->expects($this->never())->method('save');
 
         $this->expectException(EntityNotFoundException::class);

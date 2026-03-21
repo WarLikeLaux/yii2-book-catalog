@@ -10,13 +10,14 @@ use app\domain\events\BookStatusChangedEvent;
 use app\domain\events\BookUpdatedEvent;
 use app\domain\exceptions\DomainException;
 use app\domain\services\BookPublicationPolicy;
+use app\domain\values\AuthorId;
 use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\domain\values\StoredFileReference;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class BookTest extends Unit
+final class BookTest extends TestCase
 {
     private const ISBN_ALTERNATE = '979-10-90636-07-1';
     private function createBook(
@@ -38,7 +39,7 @@ final class BookTest extends Unit
         $book = $this->createBook();
 
         if ($authorIds) {
-            $book->replaceAuthors($authorIds);
+            $book->replaceAuthors(array_map(static fn(int $id): AuthorId => new AuthorId($id), $authorIds));
         }
 
         return $book;
@@ -56,7 +57,7 @@ final class BookTest extends Unit
         );
 
         if ($authorIds) {
-            $book->replaceAuthors($authorIds);
+            $book->replaceAuthors(array_map(static fn(int $id): AuthorId => new AuthorId($id), $authorIds));
         }
 
         return $book;
@@ -70,7 +71,7 @@ final class BookTest extends Unit
         $this->assertSame('Title', $book->title);
         $this->assertSame(BookStatus::Draft, $book->status);
         $this->assertSame(1, $book->version);
-        $this->assertSame([], $book->authorIds);
+        $this->assertSame([], $book->getAuthorIdValues());
     }
 
     public function testUpdate(): void
@@ -109,50 +110,48 @@ final class BookTest extends Unit
     public function testAddAndRemoveAuthors(): void
     {
         $book = $this->createBook();
-        $book->addAuthor(1);
-        $book->addAuthor(2);
+        $book->addAuthor(new AuthorId(1));
+        $book->addAuthor(new AuthorId(2));
 
-        $this->assertSame([1, 2], $book->authorIds);
-        $this->assertTrue($book->hasAuthor(1));
-        $this->assertFalse($book->hasAuthor(2) && $book->hasAuthor(3));
+        $this->assertSame([1, 2], $book->getAuthorIdValues());
+        $this->assertTrue($book->hasAuthor(new AuthorId(1)));
+        $this->assertFalse($book->hasAuthor(new AuthorId(2)) && $book->hasAuthor(new AuthorId(3)));
 
-        $book->removeAuthor(1);
-        $this->assertSame([2], $book->authorIds);
+        $book->removeAuthor(new AuthorId(1));
+        $this->assertSame([2], $book->getAuthorIdValues());
     }
 
     public function testAddAuthorIsIdempotent(): void
     {
         $book = $this->createBook();
-        $book->addAuthor(1);
-        $book->addAuthor(1);
+        $book->addAuthor(new AuthorId(1));
+        $book->addAuthor(new AuthorId(1));
 
-        $this->assertSame([1], $book->authorIds);
+        $this->assertSame([1], $book->getAuthorIdValues());
     }
 
     public function testRemoveAuthorIsIdempotent(): void
     {
         $book = $this->createBookWithAuthors(1, 2);
-        $book->removeAuthor(3);
+        $book->removeAuthor(new AuthorId(3));
 
-        $this->assertSame([1, 2], $book->authorIds);
+        $this->assertSame([1, 2], $book->getAuthorIdValues());
     }
 
     public function testAddAuthorThrowsExceptionOnInvalidId(): void
     {
-        $book = $this->createBook();
-
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.invalid_author_id');
 
-        $book->addAuthor(0);
+        new AuthorId(0);
     }
 
     public function testReplaceAuthors(): void
     {
         $book = $this->createBook();
-        $book->replaceAuthors([1, 2, 3]);
+        $book->replaceAuthors([new AuthorId(1), new AuthorId(2), new AuthorId(3)]);
 
-        $this->assertSame([1, 2, 3], $book->authorIds);
+        $this->assertSame([1, 2, 3], $book->getAuthorIdValues());
     }
 
     public function testReplaceAuthorsWithEmptyArrayOnDraftBookSucceeds(): void
@@ -160,7 +159,7 @@ final class BookTest extends Unit
         $book = $this->createBookWithAuthors(1, 2);
         $book->replaceAuthors([]);
 
-        $this->assertSame([], $book->authorIds);
+        $this->assertSame([], $book->getAuthorIdValues());
     }
 
     public function testReplaceAuthorsWithEmptyArrayOnPublishedBookThrows(): void
@@ -184,25 +183,6 @@ final class BookTest extends Unit
         $this->expectExceptionMessage('book.error.publish_without_authors');
 
         $book->replaceAuthors([]);
-    }
-
-    public function testIncrementVersion(): void
-    {
-        $book = Book::reconstitute(
-            1,
-            'Title',
-            new BookYear(2023),
-            new Isbn('978-3-16-148410-0'),
-            null,
-            null,
-            [],
-            BookStatus::Draft,
-            5,
-        );
-
-        $book->incrementVersion();
-
-        $this->assertSame(6, $book->version);
     }
 
     public function testTransitionDraftToPublishedRequiresAuthors(): void
@@ -321,7 +301,7 @@ final class BookTest extends Unit
             new Isbn('978-3-16-148410-0'),
             'This is a valid description that is long enough to pass the minimum requirement of 50 characters.',
             new StoredFileReference('covers/test.jpg'),
-            [1],
+            [new AuthorId(1)],
             BookStatus::Archived,
             1,
         );
@@ -590,7 +570,7 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_without_authors');
 
-        $book->removeAuthor(1);
+        $book->removeAuthor(new AuthorId(1));
     }
 
     public function testRemoveNonLastAuthorOnPublishedSucceeds(): void
@@ -598,9 +578,9 @@ final class BookTest extends Unit
         $book = $this->createPublishableBook(1, 2);
         $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
 
-        $book->removeAuthor(1);
+        $book->removeAuthor(new AuthorId(1));
 
-        $this->assertSame([2], $book->authorIds);
+        $this->assertSame([2], $book->getAuthorIdValues());
     }
 
     public function testRemoveLastAuthorOnArchivedThrows(): void
@@ -612,15 +592,25 @@ final class BookTest extends Unit
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('book.error.publish_without_authors');
 
-        $book->removeAuthor(1);
+        $book->removeAuthor(new AuthorId(1));
     }
 
     public function testRemoveLastAuthorOnDraftSucceeds(): void
     {
         $book = $this->createBookWithAuthors(1);
 
-        $book->removeAuthor(1);
+        $book->removeAuthor(new AuthorId(1));
 
-        $this->assertSame([], $book->authorIds);
+        $this->assertSame([], $book->getAuthorIdValues());
+    }
+
+    public function testRemoveNonExistentAuthorFromPublishedBookDoesNotThrow(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $book->removeAuthor(new AuthorId(99));
+
+        $this->assertSame([1], $book->getAuthorIdValues());
     }
 }

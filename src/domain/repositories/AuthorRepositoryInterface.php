@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\domain\repositories;
 
 use app\domain\entities\Author;
+use app\domain\values\AuthorId;
 
 interface AuthorRepositoryInterface
 {
@@ -14,5 +15,5 @@ interface AuthorRepositoryInterface
 
     public function delete(Author $author): void;
 
-    public function removeAllBookLinks(int $authorId): void;
+    public function removeAllBookLinks(AuthorId $authorId): void;
 }

@@ -6,10 +6,10 @@ namespace tests\unit\presentation\validators;
 
 use app\application\common\services\IsbnFormatValidator;
 use app\presentation\books\validators\IsbnValidator;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use yii\base\Model;
 
-final class ValidatorEdgeCasesTest extends Unit
+final class ValidatorEdgeCasesTest extends TestCase
 {
     public function testIsbnValidatorAddsErrorForNonStringValue(): void
     {

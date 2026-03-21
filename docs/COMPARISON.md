@@ -294,14 +294,14 @@ public function createBook(BookForm $form): int
     );
 
     if ($form->cover instanceof UploadedFile && $cover === null) {
-        throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+        throw new OperationFailedException(StorageErrorCode::OperationFailed->value, field: 'cover');
     }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
 
     $result = $this->operationRunner->executeAndPropagate(
         $command,
-        $this->createBookUseCase,
+        $this->useCases->create,
         Yii::t('app', 'book.success.created'),
     );
     assert(is_int($result));
@@ -534,13 +534,14 @@ public function actionCreate()
 // application/books/usecases/CreateBookUseCase.php
 public function execute(object $command): int
 {
-    $authorIds = $command->authorIds->toArray();
+    $authorIntIds = $command->authorIds->toIntArray();
+    $isbn = new Isbn($command->isbn);
 
     if ($this->bookIsbnChecker->existsByIsbn($command->isbn)) {
         throw new AlreadyExistsException(DomainErrorCode::BookIsbnExists);
     }
 
-    if ($authorIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIds)) {
+    if ($authorIntIds !== [] && !$this->authorExistenceChecker->existsAllByIds($authorIntIds)) {
         throw new EntityNotFoundException(DomainErrorCode::BookAuthorsNotFound);
     }
 
@@ -550,11 +551,11 @@ public function execute(object $command): int
     $book = Book::create(
         title: $command->title,
         year: new BookYear($command->year, $currentYear),
-        isbn: new Isbn($command->isbn),
+        isbn: $isbn,
         description: $command->description,
         coverImage: $coverImage,
     );
-    $book->replaceAuthors($authorIds);
+    $book->replaceAuthors($command->authorIds->toArray());
 
     return $this->bookRepository->save($book);
 }
@@ -580,21 +581,25 @@ Book::find()->where(['id' => $id])->one();
 // domain/repositories/BookRepositoryInterface.php
 interface BookRepositoryInterface
 {
-    public function save(Book $book): int;
+    public function save(Book $book, ?int $expectedVersion = null): int;
     public function get(int $id): Book;
-    public function getByIdAndVersion(int $id, int $expectedVersion): Book;
     public function delete(Book $book): void;
 }
 ```
 
 ```php
 // infrastructure/repositories/BookRepository.php
-public function save(BookEntity $book): int
+public function save(BookEntity $book, ?int $expectedVersion = null): int
 {
     /** @var int */
-    return $this->db->transaction(function () use ($book): int {
+    return $this->db->transaction(function () use ($book, $expectedVersion): int {
         $isNew = $book->getId() === null;
         $model = $isNew ? new Book() : $this->getArForEntity($book, Book::class, DomainErrorCode::BookNotFound);
+
+        if ($expectedVersion !== null) {
+            $this->ensureVersionMatch($model, $expectedVersion);
+        }
+
         $model->version = $book->version;
 
         $this->hydrator->hydrate($model, $book, [
@@ -828,7 +833,7 @@ final class Book implements RecordableEntityInterface
         public private(set) int $version,
     ) {
         $this->title = $title;
-        $this->authorIds = array_map(intval(...), $authorIds);
+        $this->authorIds = $authorIds;
     }
 
     public static function create(/* ... */): self
@@ -847,7 +852,7 @@ final class Book implements RecordableEntityInterface
             throw new BusinessRuleException(DomainErrorCode::BookInvalidStatusTransition);
         }
 
-        if ($this->status === BookStatus::Draft && $target === BookStatus::Published) {
+        if ($target === BookStatus::Published) {
             if (!$policy instanceof BookPublicationPolicy) {
                 throw new BusinessRuleException(DomainErrorCode::BookPublishWithoutPolicy);
             }
@@ -858,9 +863,11 @@ final class Book implements RecordableEntityInterface
         $oldStatus = $this->status;
         $this->status = $target;
 
-        if ($this->id !== null) {
-            $this->recordEvent(new BookStatusChangedEvent($this->id, $oldStatus, $target, $this->year->value));
+        if ($this->id === null) {
+            return;
         }
+
+        $this->recordEvent(new BookStatusChangedEvent($this->id, $oldStatus, $target, $this->year->value));
     }
 
     public function markAsDeleted(): void
@@ -892,13 +899,9 @@ final class Book implements RecordableEntityInterface
         }
     }
 
-    public function addAuthor(int $authorId): void
+    public function addAuthor(AuthorId $authorId): void
     {
-        if ($authorId <= 0) {
-            throw new ValidationException(DomainErrorCode::BookInvalidAuthorId);
-        }
-
-        if (in_array($authorId, $this->authorIds, true)) {
+        if ($this->hasAuthor($authorId)) {
             return;
         }
 
@@ -1001,8 +1004,7 @@ public function create(Book $model)
 // application/common/pipeline/PipelineFactory.php
 public function createDefault(): PipelineInterface
 {
-    return (new Pipeline())
-        ->pipe(new TracingMiddleware($this->tracer))
+    return new Pipeline()
         ->pipe($this->exceptionTranslationMiddleware)
         ->pipe(new TransactionMiddleware($this->transaction));
 }
@@ -1037,14 +1039,14 @@ public function createBook(BookForm $form): int
     );
 
     if ($form->cover instanceof UploadedFile && $cover === null) {
-        throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed->value, field: 'cover');
+        throw new OperationFailedException(StorageErrorCode::OperationFailed->value, field: 'cover');
     }
 
     $command = $this->commandMapper->toCreateCommand($form, $cover);
 
     $result = $this->operationRunner->executeAndPropagate(
         $command,
-        $this->createBookUseCase,
+        $this->useCases->create,
         Yii::t('app', 'book.success.created'),
     );
     assert(is_int($result));
@@ -1110,7 +1112,7 @@ protected function persist(
                 throw new AlreadyExistsException($duplicateError, 409, $e);
             }
 
-            throw new AlreadyExistsException(previous: $e);
+            throw new AlreadyExistsException(DomainErrorCode::EntityAlreadyExists, 409, $e);
         }
 
         throw $e;
@@ -1159,23 +1161,28 @@ $specification->accept($visitor);
 **Стало:**
 
 ```php
-// infrastructure/adapters/decorators/QueueTracingDecorator.php
-final readonly class QueueTracingDecorator implements QueueInterface
+// infrastructure/queries/decorators/ReportQueryServiceCachingDecorator.php
+final class ReportQueryServiceCachingDecorator implements ReportQueryServiceInterface
 {
     public function __construct(
-        private QueueInterface $queue,
-        private TracerInterface $tracer,
+        private ReportQueryServiceInterface $inner,
+        private CacheInterface $cache,
+        private int $cacheTtl,
     ) {
     }
 
-    #[Override]
-    public function push(object $job): void
+    public function getTopAuthors(ReportCriteria $criteria): array
     {
-        $this->tracer->trace(
-            'Queue::' . __FUNCTION__,
-            fn() => $this->queue->push($job),
-            ['job_class' => $job::class],
-        );
+        $key = 'report_top_authors_' . $criteria->year;
+        $cached = $this->cache->get($key);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        $result = $this->inner->getTopAuthors($criteria);
+        $this->cache->set($key, $result, $this->cacheTtl);
+
+        return $result;
     }
 }
 ```
@@ -1201,9 +1208,8 @@ interface BookRepositoryInterface {
 ```php
 interface BookRepositoryInterface
 {
-    public function save(Book $book): int;
+    public function save(Book $book, ?int $expectedVersion = null): int;
     public function get(int $id): Book;
-    public function getByIdAndVersion(int $id, int $expectedVersion): Book;
     public function delete(Book $book): void;
 }
 
@@ -1215,12 +1221,13 @@ interface BookFinderInterface
 
 interface BookSearcherInterface
 {
-    public function search(string $term, int $page, int $limit): PagedResultInterface;
-    public function searchPublished(string $term, int $page, int $limit): PagedResultInterface;
+    public function search(string $term, int $page, int $limit, ?SortRequest $sort = null): PagedResultInterface;
+    public function searchPublished(string $term, int $page, int $limit, ?SortRequest $sort = null): PagedResultInterface;
     public function searchBySpecification(
         BookSpecificationInterface $specification,
         int $page,
         int $limit,
+        ?SortRequest $sort = null,
     ): PagedResultInterface;
 }
 ```

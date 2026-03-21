@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace app\infrastructure\services\storage;
 
 use app\application\common\config\StorageConfig;
+use app\application\common\exceptions\StorageErrorCode;
+use app\application\common\exceptions\StorageException;
+use app\application\common\values\FileContent;
+use app\application\common\values\FileKey;
 use app\application\ports\ContentStorageInterface;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\OperationFailedException;
-use app\domain\exceptions\ValidationException;
-use app\domain\values\FileContent;
-use app\domain\values\FileKey;
 use Generator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -42,7 +41,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
                 return $key;
             }
 
-            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
+            throw new StorageException(StorageErrorCode::OperationFailed); // @codeCoverageIgnore
         }
 
         $bytesCopied = stream_copy_to_stream($stream, $target);
@@ -51,7 +50,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
             // @codeCoverageIgnoreStart
             fclose($target);
             @unlink($fullPath);
-            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed);
+            throw new StorageException(StorageErrorCode::OperationFailed);
             // @codeCoverageIgnoreEnd
         }
 
@@ -83,7 +82,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
         $mtime = @filemtime($fullPath);
 
         if ($mtime === false) {
-            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
+            throw new StorageException(StorageErrorCode::OperationFailed); // @codeCoverageIgnore
         }
 
         return $mtime;
@@ -114,7 +113,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
         }
 
         if (!@unlink($fullPath)) {
-            throw new OperationFailedException(DomainErrorCode::FileStorageOperationFailed); // @codeCoverageIgnore
+            throw new StorageException(StorageErrorCode::OperationFailed); // @codeCoverageIgnore
         }
 
         $this->cleanupEmptyDirectories(dirname($fullPath));
@@ -152,7 +151,7 @@ final readonly class ContentAddressableStorage implements ContentStorageInterfac
 
                 $seenKeys[$filename] = true;
                 yield new FileKey($filename);
-            } catch (ValidationException) {
+            } catch (StorageException) {
                 continue;
             }
         }

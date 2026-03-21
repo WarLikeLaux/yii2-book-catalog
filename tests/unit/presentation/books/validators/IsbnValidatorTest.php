@@ -6,18 +6,18 @@ namespace tests\unit\presentation\books\validators;
 
 use app\application\common\services\IsbnFormatValidator;
 use app\presentation\books\validators\IsbnValidator;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 use Yii;
 use yii\base\Model;
 
-final class IsbnValidatorTest extends Unit
+final class IsbnValidatorTest extends TestCase
 {
-    private IsbnFormatValidator|MockObject $formatValidator;
+    private IsbnFormatValidator|Stub $formatValidator;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->formatValidator = $this->createMock(IsbnFormatValidator::class);
+        $this->formatValidator = $this->createStub(IsbnFormatValidator::class);
     }
 
     public function testInitSetsDefaultMessage(): void

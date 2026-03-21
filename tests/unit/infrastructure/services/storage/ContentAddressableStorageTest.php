@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\storage;
 
 use app\application\common\config\StorageConfig;
-use app\domain\exceptions\DomainErrorCode;
-use app\domain\exceptions\OperationFailedException;
-use app\domain\exceptions\ValidationException;
-use app\domain\values\FileContent;
-use app\domain\values\FileKey;
+use app\application\common\exceptions\StorageErrorCode;
+use app\application\common\exceptions\StorageException;
+use app\application\common\values\FileContent;
+use app\application\common\values\FileKey;
 use app\infrastructure\services\storage\ContentAddressableStorage;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use tests\_support\RemovesDirectoriesTrait;
 
-final class ContentAddressableStorageTest extends Unit
+final class ContentAddressableStorageTest extends TestCase
 {
     use RemovesDirectoriesTrait;
 
@@ -30,7 +29,7 @@ final class ContentAddressableStorageTest extends Unit
     private string $tempDir;
     private ContentAddressableStorage $storage;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
         $this->tempDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cas-test-' . uniqid('', true);
 
@@ -43,7 +42,7 @@ final class ContentAddressableStorageTest extends Unit
         );
     }
 
-    protected function _after(): void
+    protected function tearDown(): void
     {
         if (!isset($this->tempDir) || !is_dir($this->tempDir)) {
             return;
@@ -138,8 +137,8 @@ final class ContentAddressableStorageTest extends Unit
     {
         $key = new FileKey(str_repeat('f', 64));
 
-        $this->expectException(OperationFailedException::class);
-        $this->expectExceptionMessage(DomainErrorCode::FileStorageOperationFailed->value);
+        $this->expectException(StorageException::class);
+        $this->expectExceptionMessage(StorageErrorCode::OperationFailed->value);
 
         $this->storage->getModificationTime($key, self::EXTENSION);
     }
@@ -221,8 +220,8 @@ final class ContentAddressableStorageTest extends Unit
     {
         $key = new FileKey(self::VALID_HASH);
 
-        $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(DomainErrorCode::FileKeyInvalidFormat->value);
+        $this->expectException(StorageException::class);
+        $this->expectExceptionMessage(StorageErrorCode::InvalidFormat->value);
 
         $this->storage->exists($key, '../invalid');
     }

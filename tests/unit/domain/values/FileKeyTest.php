@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace tests\unit\domain\values;
 
-use app\domain\exceptions\DomainException;
-use app\domain\exceptions\ValidationException;
-use app\domain\values\FileKey;
-use Codeception\Test\Unit;
+use app\application\common\exceptions\StorageException;
+use app\application\common\values\FileKey;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-final class FileKeyTest extends Unit
+final class FileKeyTest extends TestCase
 {
     private const string VALID_HASH = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
 
@@ -91,6 +91,7 @@ final class FileKeyTest extends Unit
     /**
      * @dataProvider validHashProvider
      */
+    #[DataProvider('validHashProvider')]
     public function testCanCreateWithValidHash(string $input, string $expected): void
     {
         $key = new FileKey($input);
@@ -100,11 +101,12 @@ final class FileKeyTest extends Unit
     /**
      * @dataProvider invalidHashProvider
      */
+    #[DataProvider('invalidHashProvider')]
     public function testThrowsOnInvalidHash(string $invalidHash): void
     {
-        $this->expectException(DomainException::class);
+        $this->expectException(StorageException::class);
 
-        new FileKey($invalidHash); // NOSONAR: S1848
+        new FileKey($invalidHash);
     }
 
     public function testFromStreamCreatesValidKey(): void
@@ -147,6 +149,7 @@ final class FileKeyTest extends Unit
     /**
      * @dataProvider extendedPathProvider
      */
+    #[DataProvider('extendedPathProvider')]
     public function testGetExtendedPathReturnsCorrectFormat(
         string $hash,
         string $extension,
@@ -159,11 +162,12 @@ final class FileKeyTest extends Unit
     /**
      * @dataProvider invalidExtensionProvider
      */
+    #[DataProvider('invalidExtensionProvider')]
     public function testGetExtendedPathThrowsOnInvalidExtension(string $extension): void
     {
         $key = new FileKey(self::VALID_HASH);
 
-        $this->expectException(ValidationException::class);
+        $this->expectException(StorageException::class);
 
         $key->getExtendedPath($extension);
     }

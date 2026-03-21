@@ -10,30 +10,19 @@ use app\presentation\authors\dto\AuthorEditViewModel;
 use app\presentation\authors\forms\AuthorForm;
 use app\presentation\authors\handlers\AuthorItemViewFactory;
 use AutoMapper\AutoMapperInterface;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use yii\web\NotFoundHttpException;
 
-final class AuthorItemViewFactoryTest extends Unit
+final class AuthorItemViewFactoryTest extends TestCase
 {
-    private AuthorQueryServiceInterface&MockObject $queryService;
-    private AutoMapperInterface&MockObject $autoMapper;
-    private AuthorItemViewFactory $factory;
-
-    protected function _before(): void
-    {
-        $this->queryService = $this->createMock(AuthorQueryServiceInterface::class);
-        $this->autoMapper = $this->createMock(AutoMapperInterface::class);
-
-        $this->factory = new AuthorItemViewFactory(
-            $this->queryService,
-            $this->autoMapper,
-        );
-    }
-
     public function testGetCreateViewModel(): void
     {
-        $result = $this->factory->getCreateViewModel();
+        $factory = new AuthorItemViewFactory(
+            $this->createStub(AuthorQueryServiceInterface::class),
+            $this->createStub(AutoMapperInterface::class),
+        );
+
+        $result = $factory->getCreateViewModel();
         $this->assertInstanceOf(AuthorEditViewModel::class, $result);
     }
 
@@ -42,17 +31,21 @@ final class AuthorItemViewFactoryTest extends Unit
         $dto = new AuthorReadDto(1, 'Author');
         $form = new AuthorForm();
 
-        $this->queryService->expects($this->exactly(2))
+        $queryService = $this->createMock(AuthorQueryServiceInterface::class);
+        $queryService->expects($this->exactly(2))
             ->method('findById')
             ->with(1)
             ->willReturn($dto);
 
-        $this->autoMapper->expects($this->once())
+        $autoMapper = $this->createMock(AutoMapperInterface::class);
+        $autoMapper->expects($this->once())
             ->method('map')
             ->with($dto, $this->isInstanceOf(AuthorForm::class))
             ->willReturn($form);
 
-        $result = $this->factory->getUpdateViewModel(1);
+        $factory = new AuthorItemViewFactory($queryService, $autoMapper);
+
+        $result = $factory->getUpdateViewModel(1);
 
         $this->assertInstanceOf(AuthorEditViewModel::class, $result);
         $this->assertSame($form, $result->form);
@@ -63,26 +56,36 @@ final class AuthorItemViewFactoryTest extends Unit
     {
         $dto = new AuthorReadDto(1, 'Test Author');
 
-        $this->queryService->expects($this->once())
+        $queryService = $this->createMock(AuthorQueryServiceInterface::class);
+        $queryService->expects($this->once())
             ->method('findById')
             ->with(1)
             ->willReturn($dto);
 
-        $this->autoMapper->expects($this->once())
+        $autoMapper = $this->createMock(AutoMapperInterface::class);
+        $autoMapper->expects($this->once())
             ->method('map')
             ->willReturn(new \stdClass());
 
+        $factory = new AuthorItemViewFactory($queryService, $autoMapper);
+
         $this->expectException(\TypeError::class);
-        $this->factory->getAuthorForUpdate(1);
+        $factory->getAuthorForUpdate(1);
     }
 
     public function testGetAuthorViewThrowsNotFound(): void
     {
-        $this->queryService->expects($this->once())
+        $queryService = $this->createMock(AuthorQueryServiceInterface::class);
+        $queryService->expects($this->once())
             ->method('findById')
             ->willReturn(null);
 
+        $factory = new AuthorItemViewFactory(
+            $queryService,
+            $this->createStub(AutoMapperInterface::class),
+        );
+
         $this->expectException(NotFoundHttpException::class);
-        $this->factory->getAuthorView(999);
+        $factory->getAuthorView(999);
     }
 }

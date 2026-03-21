@@ -32,13 +32,14 @@ final class SystemInfoAdapterTest extends TestCase
 
     public function testGetDbVersionReturnsUnknownOnException(): void
     {
-        $db = $this->getMockBuilder(Connection::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getSlavePdo'])
-            ->getMock();
+        $db = new class extends Connection {
+            public $driverName = 'pgsql';
 
-        $db->method('getSlavePdo')->willThrowException(new \Exception('DB Error'));
-        $db->driverName = 'pgsql';
+            public function getSlavePdo($_fallbackToMaster = true)
+            {
+                throw new \Exception('DB Error');
+            }
+        };
 
         $adapter = new SystemInfoAdapter($db);
         $info = $adapter->getInfo();

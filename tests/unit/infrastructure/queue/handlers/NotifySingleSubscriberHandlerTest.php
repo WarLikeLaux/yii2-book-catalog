@@ -7,12 +7,12 @@ namespace tests\unit\infrastructure\queue\handlers;
 use app\application\ports\AsyncIdempotencyStorageInterface;
 use app\application\ports\SmsSenderInterface;
 use app\infrastructure\queue\handlers\NotifySingleSubscriberHandler;
-use Codeception\Test\Unit;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
-final class NotifySingleSubscriberHandlerTest extends Unit
+final class NotifySingleSubscriberHandlerTest extends TestCase
 {
     private const string TEST_SECRET = 'test-secret';
     private const string PHONE = '+7900';
@@ -95,11 +95,11 @@ final class NotifySingleSubscriberHandlerTest extends Unit
     {
         $idempotencyKey = $this->buildIdempotencyKey(self::BOOK_ID, self::PHONE);
 
-        $sender = $this->createMock(SmsSenderInterface::class);
+        $sender = $this->createStub(SmsSenderInterface::class);
         $sender->method('send')->willThrowException(new RuntimeException('primary fail'));
 
-        $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
-        $storage->method('acquire')->with($idempotencyKey)->willReturn(true);
+        $storage = $this->createStub(AsyncIdempotencyStorageInterface::class);
+        $storage->method('acquire')->willReturn(true);
         $storage->method('release')->willThrowException(new RuntimeException('release fail'));
 
         $logger = $this->createMock(LoggerInterface::class);
@@ -131,8 +131,8 @@ final class NotifySingleSubscriberHandlerTest extends Unit
 
         $sender = $this->expectSend($shortPhone, 'msg');
 
-        $storage = $this->createMock(AsyncIdempotencyStorageInterface::class);
-        $storage->method('acquire')->with($idempotencyKey)->willReturn(true);
+        $storage = $this->createStub(AsyncIdempotencyStorageInterface::class);
+        $storage->method('acquire')->willReturn(true);
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())

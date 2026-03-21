@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\application\common\config;
 
 use app\application\common\config\ConfigFactory;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class ConfigFactoryTest extends Unit
+final class ConfigFactoryTest extends TestCase
 {
     public function testBuildsAllConfigs(): void
     {
@@ -30,16 +30,11 @@ final class ConfigFactoryTest extends Unit
                 'baseUrl' => '/uploads',
                 'placeholderUrl' => 'https://example.com/{seed}',
             ],
-            'jaeger' => [
-                'endpoint' => 'http://jaeger:4318/v1/traces',
-                'serviceName' => 'yii2-book-catalog',
-            ],
         ]);
 
         $this->assertSame(10, $factory->idempotency()->ttl);
         $this->assertSame(30, $factory->rateLimit()->window);
         $this->assertSame(120, $factory->reports()->cacheTtl);
         $this->assertSame('/uploads', $factory->storage()->baseUrl);
-        $this->assertSame('http://jaeger:4318/v1/traces', $factory->jaeger()->endpoint);
     }
 }

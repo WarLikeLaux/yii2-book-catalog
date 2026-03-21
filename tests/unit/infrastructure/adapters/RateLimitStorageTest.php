@@ -7,14 +7,14 @@ namespace tests\unit\infrastructure\adapters;
 use app\application\common\dto\RateLimitResult;
 use app\infrastructure\adapters\RateLimitStorage;
 use app\infrastructure\adapters\SystemClock;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 use yii\redis\Connection;
 
-final class RateLimitStorageTest extends Unit
+final class RateLimitStorageTest extends TestCase
 {
     public function testCheckLimitAllowsRequestWhenBelowLimit(): void
     {
-        $redis = $this->createMock(Connection::class);
+        $redis = $this->createStub(Connection::class);
         $redis->method('executeCommand')->willReturn(30);
         $storage = new RateLimitStorage($redis, new SystemClock());
         $result = $storage->checkLimit('192.168.1.1', 60, 60);
@@ -25,7 +25,7 @@ final class RateLimitStorageTest extends Unit
 
     public function testCheckLimitAllowsRequestWhenAtLimit(): void
     {
-        $redis = $this->createMock(Connection::class);
+        $redis = $this->createStub(Connection::class);
         $redis->method('executeCommand')->willReturn(60);
 
         $storage = new RateLimitStorage($redis, new SystemClock());
@@ -36,7 +36,7 @@ final class RateLimitStorageTest extends Unit
 
     public function testCheckLimitDeniesRequestWhenExceedsLimit(): void
     {
-        $redis = $this->createMock(Connection::class);
+        $redis = $this->createStub(Connection::class);
         $redis->method('executeCommand')->willReturn(61);
 
         $storage = new RateLimitStorage($redis, new SystemClock());
@@ -47,7 +47,7 @@ final class RateLimitStorageTest extends Unit
 
     public function testCheckLimitReturnsCorrectCurrentCount(): void
     {
-        $redis = $this->createMock(Connection::class);
+        $redis = $this->createStub(Connection::class);
         $redis->method('executeCommand')->willReturn(45);
 
         $storage = new RateLimitStorage($redis, new SystemClock());
@@ -59,7 +59,7 @@ final class RateLimitStorageTest extends Unit
     public function testCheckLimitReturnsCorrectResetTimestamp(): void
     {
         $before = time();
-        $redis = $this->createMock(Connection::class);
+        $redis = $this->createStub(Connection::class);
         $redis->method('executeCommand')->willReturn(30);
 
         $storage = new RateLimitStorage($redis, new SystemClock());
@@ -82,7 +82,7 @@ final class RateLimitStorageTest extends Unit
 
     public function testCheckLimitWithDifferentKeys(): void
     {
-        $redis = $this->createMock(Connection::class);
+        $redis = $this->createStub(Connection::class);
         $redis->method('executeCommand')->willReturn(10);
 
         $storage = new RateLimitStorage($redis, new SystemClock());
@@ -95,7 +95,7 @@ final class RateLimitStorageTest extends Unit
 
     public function testCheckLimitReturnsCorrectLimit(): void
     {
-        $redis = $this->createMock(Connection::class);
+        $redis = $this->createStub(Connection::class);
         $redis->method('executeCommand')->willReturn(50);
 
         $storage = new RateLimitStorage($redis, new SystemClock());
@@ -106,7 +106,7 @@ final class RateLimitStorageTest extends Unit
 
     public function testCheckLimitReturnsAllFields(): void
     {
-        $redis = $this->createMock(Connection::class);
+        $redis = $this->createStub(Connection::class);
         $redis->method('executeCommand')->willReturn(30);
 
         $storage = new RateLimitStorage($redis, new SystemClock());

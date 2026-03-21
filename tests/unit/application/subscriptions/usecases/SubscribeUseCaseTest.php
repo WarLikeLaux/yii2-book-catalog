@@ -15,24 +15,24 @@ use app\domain\exceptions\BusinessRuleException;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\repositories\SubscriptionRepositoryInterface;
-use Codeception\Test\Unit;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class SubscribeUseCaseTest extends Unit
+final class SubscribeUseCaseTest extends TestCase
 {
-    private SubscriptionRepositoryInterface&MockObject $repository;
-    private AuthorExistenceCheckerInterface&MockObject $authorExistenceChecker;
-    private SubscriptionExistenceCheckerInterface&MockObject $subscriptionExistenceChecker;
-    private PhoneNormalizerInterface&MockObject $phoneNormalizer;
+    private SubscriptionRepositoryInterface&Stub $repository;
+    private AuthorExistenceCheckerInterface&Stub $authorExistenceChecker;
+    private SubscriptionExistenceCheckerInterface&Stub $subscriptionExistenceChecker;
+    private PhoneNormalizerInterface&Stub $phoneNormalizer;
     private SubscribeUseCase $useCase;
 
-    protected function _before(): void
+    protected function setUp(): void
     {
-        $this->repository = $this->createMock(SubscriptionRepositoryInterface::class);
-        $this->authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
-        $this->subscriptionExistenceChecker = $this->createMock(SubscriptionExistenceCheckerInterface::class);
-        $this->phoneNormalizer = $this->createMock(PhoneNormalizerInterface::class);
+        $this->repository = $this->createStub(SubscriptionRepositoryInterface::class);
+        $this->authorExistenceChecker = $this->createStub(AuthorExistenceCheckerInterface::class);
+        $this->subscriptionExistenceChecker = $this->createStub(SubscriptionExistenceCheckerInterface::class);
+        $this->phoneNormalizer = $this->createStub(PhoneNormalizerInterface::class);
         $this->useCase = new SubscribeUseCase(
             $this->repository,
             $this->authorExistenceChecker,
@@ -45,28 +45,39 @@ final class SubscribeUseCaseTest extends Unit
     {
         $command = new SubscribeCommand('+7 999 111-22-33', 1);
 
-        $this->authorExistenceChecker->expects($this->once())
+        $authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $authorExistenceChecker->expects($this->once())
             ->method('existsById')
             ->with(1)
             ->willReturn(true);
 
-        $this->phoneNormalizer->expects($this->once())
+        $phoneNormalizer = $this->createMock(PhoneNormalizerInterface::class);
+        $phoneNormalizer->expects($this->once())
             ->method('normalize')
             ->with('+7 999 111-22-33')
             ->willReturn('+79991112233');
 
-        $this->subscriptionExistenceChecker->expects($this->once())
+        $subscriptionExistenceChecker = $this->createMock(SubscriptionExistenceCheckerInterface::class);
+        $subscriptionExistenceChecker->expects($this->once())
             ->method('exists')
             ->with('+79991112233', 1)
             ->willReturn(false);
 
-        $this->repository->expects($this->once())
+        $repository = $this->createMock(SubscriptionRepositoryInterface::class);
+        $repository->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn(Subscription $subscription) => (string)$subscription->phone === '+79991112233'
-                    && $subscription->authorId === 1))
+                    && $subscription->authorId->value === 1))
             ->willReturn(1);
 
-        $result = $this->useCase->execute($command);
+        $useCase = new SubscribeUseCase(
+            $repository,
+            $authorExistenceChecker,
+            $subscriptionExistenceChecker,
+            $phoneNormalizer,
+        );
+
+        $result = $useCase->execute($command);
 
         $this->assertTrue($result);
     }
@@ -75,18 +86,29 @@ final class SubscribeUseCaseTest extends Unit
     {
         $command = new SubscribeCommand('+79001112233', 999);
 
-        $this->authorExistenceChecker->expects($this->once())
+        $authorExistenceChecker = $this->createMock(AuthorExistenceCheckerInterface::class);
+        $authorExistenceChecker->expects($this->once())
             ->method('existsById')
             ->with(999)
             ->willReturn(false);
 
-        $this->phoneNormalizer->expects($this->never())->method('normalize');
-        $this->subscriptionExistenceChecker->expects($this->never())->method('exists');
+        $phoneNormalizer = $this->createMock(PhoneNormalizerInterface::class);
+        $phoneNormalizer->expects($this->never())->method('normalize');
+
+        $subscriptionExistenceChecker = $this->createMock(SubscriptionExistenceCheckerInterface::class);
+        $subscriptionExistenceChecker->expects($this->never())->method('exists');
+
+        $useCase = new SubscribeUseCase(
+            $this->repository,
+            $authorExistenceChecker,
+            $subscriptionExistenceChecker,
+            $phoneNormalizer,
+        );
 
         $this->expectException(EntityNotFoundException::class);
         $this->expectExceptionMessage(DomainErrorCode::SubscriptionInvalidAuthorId->value);
 
-        $this->useCase->execute($command);
+        $useCase->execute($command);
     }
 
     public function testExecuteThrowsBusinessRuleExceptionWhenAlreadySubscribed(): void
@@ -138,17 +160,27 @@ final class SubscribeUseCaseTest extends Unit
         $command = new SubscribeCommand('+7 999 111-22-33', 1);
 
         $this->authorExistenceChecker->method('existsById')->willReturn(true);
-        $this->phoneNormalizer->method('normalize')
+
+        $phoneNormalizer = $this->createMock(PhoneNormalizerInterface::class);
+        $phoneNormalizer->expects($this->once())->method('normalize')
             ->with('+7 999 111-22-33')
             ->willReturn('+79991112233');
 
-        $this->subscriptionExistenceChecker->expects($this->once())
+        $subscriptionExistenceChecker = $this->createMock(SubscriptionExistenceCheckerInterface::class);
+        $subscriptionExistenceChecker->expects($this->once())
             ->method('exists')
             ->with('+79991112233', 1)
             ->willReturn(true);
 
+        $useCase = new SubscribeUseCase(
+            $this->repository,
+            $this->authorExistenceChecker,
+            $subscriptionExistenceChecker,
+            $phoneNormalizer,
+        );
+
         $this->expectException(BusinessRuleException::class);
 
-        $this->useCase->execute($command);
+        $useCase->execute($command);
     }
 }

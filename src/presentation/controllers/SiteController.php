@@ -122,6 +122,7 @@ final class SiteController extends BaseController
     {
         $viewModel = $this->authViewFactory->getApiInfoViewModel(
             (string) $this->request->serverName,
+            $this->request->isSecureConnection,
         );
 
         return $this->renderer->render('api', $viewModel);

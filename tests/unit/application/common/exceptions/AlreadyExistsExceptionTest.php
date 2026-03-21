@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace tests\unit\application\common\exceptions;
 
 use app\application\common\exceptions\AlreadyExistsException;
-use Codeception\Test\Unit;
+use PHPUnit\Framework\TestCase;
 
-final class AlreadyExistsExceptionTest extends Unit
+final class AlreadyExistsExceptionTest extends TestCase
 {
     public function testDefaultValues(): void
     {

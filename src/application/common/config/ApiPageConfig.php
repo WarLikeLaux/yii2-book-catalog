@@ -8,6 +8,8 @@ use app\application\common\exceptions\ConfigurationException;
 
 final readonly class ApiPageConfig
 {
+    private const int MAX_PORT_NUMBER = 65535;
+
     public function __construct(
         public int $swaggerPort,
         public int $appPort,
@@ -22,11 +24,11 @@ final readonly class ApiPageConfig
         $swaggerPort = $params['swaggerPort'] ?? null;
         $appPort = $params['appPort'] ?? null;
 
-        if (!is_int($swaggerPort) || $swaggerPort <= 0 || $swaggerPort > 65535) {
+        if (!is_int($swaggerPort) || $swaggerPort <= 0 || $swaggerPort > self::MAX_PORT_NUMBER) {
             throw new ConfigurationException('Invalid config: swaggerPort');
         }
 
-        if (!is_int($appPort) || $appPort <= 0 || $appPort > 65535) {
+        if (!is_int($appPort) || $appPort <= 0 || $appPort > self::MAX_PORT_NUMBER) {
             throw new ConfigurationException('Invalid config: appPort');
         }
 
