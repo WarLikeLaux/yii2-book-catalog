@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace tests\unit\domain\values;
 
+use app\application\common\values\FileContent;
+use app\application\common\values\FileKey;
 use app\domain\exceptions\DomainException;
-use app\domain\values\FileContent;
-use app\domain\values\FileKey;
 use PHPUnit\Framework\TestCase;
 
 final class FileContentTest extends TestCase

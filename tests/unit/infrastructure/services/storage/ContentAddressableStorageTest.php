@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace tests\unit\infrastructure\services\storage;
 
 use app\application\common\config\StorageConfig;
+use app\application\common\values\FileContent;
+use app\application\common\values\FileKey;
 use app\domain\exceptions\DomainErrorCode;
 use app\domain\exceptions\OperationFailedException;
 use app\domain\exceptions\ValidationException;
-use app\domain\values\FileContent;
-use app\domain\values\FileKey;
 use app\infrastructure\services\storage\ContentAddressableStorage;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;

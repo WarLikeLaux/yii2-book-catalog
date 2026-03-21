@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace tests\unit\domain\values;
 
+use app\application\common\values\FileKey;
 use app\domain\exceptions\DomainException;
 use app\domain\exceptions\ValidationException;
-use app\domain\values\FileKey;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
