@@ -97,9 +97,8 @@ $this->pipelineFactory->createDefault()->execute($command, $useCase);
 ```
 
 Pipeline оборачивает вызов:
-1. `TracingMiddleware` — открывает span `CreateBookUseCase`
-2. `DomainExceptionTranslationMiddleware` — ловит `DomainException`, маппит в `ApplicationException`
-3. `TransactionMiddleware` — `BEGIN TRANSACTION` ... `COMMIT`
+1. `DomainExceptionTranslationMiddleware` — ловит `DomainException`, маппит в `ApplicationException`
+2. `TransactionMiddleware` — `BEGIN TRANSACTION` ... `COMMIT`
 
 ## 6. UseCase: бизнес-логика
 

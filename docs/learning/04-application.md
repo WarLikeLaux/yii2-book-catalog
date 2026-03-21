@@ -203,25 +203,23 @@ interface BookSearcherInterface
 
 > **Если ты привык к Yii2:** каждый метод сервиса начинается с `$transaction = Yii::$app->db->beginTransaction(); try { ... } catch { $transaction->rollBack(); }`. Копипаста в каждом методе. Pipeline — аналог `behaviors()` контроллера, но для бизнес-операций: транзакция, трейсинг и маппинг ошибок оборачивают вызов Use Case автоматически. Написал один раз — работает для всех операций.
 
-Сквозные аспекты (транзакции, трейсинг, маппинг ошибок) вынесены в middleware-цепочку:
+Сквозные аспекты (транзакции, маппинг ошибок) вынесены в middleware-цепочку:
 
 ```php
 // src/application/common/pipeline/PipelineFactory.php
 public function createDefault(): PipelineInterface
 {
     return (new Pipeline())
-        ->pipe(new TracingMiddleware($this->tracer))
         ->pipe($this->exceptionTranslationMiddleware)
         ->pipe(new TransactionMiddleware($this->transaction));
 }
 ```
 
 Порядок выполнения:
-1. **TracingMiddleware** — открывает span трейсинга
-2. **DomainExceptionTranslationMiddleware** — ловит `DomainException`, превращает в `ApplicationException`
-3. **TransactionMiddleware** — оборачивает в транзакцию
+1. **DomainExceptionTranslationMiddleware** — ловит `DomainException`, превращает в `ApplicationException`
+2. **TransactionMiddleware** — оборачивает в транзакцию
 
-Use Case не содержит `try/catch`, не открывает транзакции, не вызывает трейсер. Pipeline делает это за него.
+Use Case не содержит `try/catch`, не открывает транзакции. Pipeline делает это за него.
 
 ## Exception Translation
 

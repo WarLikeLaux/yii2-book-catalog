@@ -225,31 +225,11 @@ Use Case работает с `TransactionInterface`, не зная что вну
 
 ## Декораторы
 
-Трейсинг и кэширование добавляются через декораторы — без изменения основного кода:
+Кэширование добавляется через декораторы — без изменения основного кода:
 
 ```php
-// src/infrastructure/adapters/decorators/QueueTracingDecorator.php
-final readonly class QueueTracingDecorator implements QueueInterface
-{
-    public function __construct(
-        private QueueInterface $queue,
-        private TracerInterface $tracer,
-    ) {}
-
-    public function push(object $job): void
-    {
-        $this->tracer->trace(
-            'Queue::' . __FUNCTION__,
-            fn() => $this->queue->push($job),
-            ['job_class' => $job::class],
-        );
-    }
-}
-```
-
-```php
-// src/infrastructure/queries/decorators/CachingReportQueryServiceDecorator.php
-final class CachingReportQueryServiceDecorator implements ReportQueryServiceInterface
+// src/infrastructure/queries/decorators/ReportQueryServiceCachingDecorator.php
+final class ReportQueryServiceCachingDecorator implements ReportQueryServiceInterface
 {
     public function getTopAuthors(ReportCriteria $criteria): array
     {
@@ -268,7 +248,7 @@ final class CachingReportQueryServiceDecorator implements ReportQueryServiceInte
 }
 ```
 
-DI-контейнер собирает цепочку: `TracingDecorator → CachingDecorator → BookQueryService`.
+DI-контейнер собирает цепочку: `CachingDecorator → ReportQueryService`.
 
 ## ActiveRecord модели
 

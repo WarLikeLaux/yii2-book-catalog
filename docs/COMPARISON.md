@@ -1005,7 +1005,6 @@ public function create(Book $model)
 public function createDefault(): PipelineInterface
 {
     return new Pipeline()
-        ->pipe(new TracingMiddleware($this->tracer))
         ->pipe($this->exceptionTranslationMiddleware)
         ->pipe(new TransactionMiddleware($this->transaction));
 }
@@ -1162,23 +1161,28 @@ $specification->accept($visitor);
 **Стало:**
 
 ```php
-// infrastructure/adapters/decorators/QueueTracingDecorator.php
-final readonly class QueueTracingDecorator implements QueueInterface
+// infrastructure/queries/decorators/ReportQueryServiceCachingDecorator.php
+final class ReportQueryServiceCachingDecorator implements ReportQueryServiceInterface
 {
     public function __construct(
-        private QueueInterface $queue,
-        private TracerInterface $tracer,
+        private ReportQueryServiceInterface $inner,
+        private CacheInterface $cache,
+        private int $cacheTtl,
     ) {
     }
 
-    #[Override]
-    public function push(object $job): void
+    public function getTopAuthors(ReportCriteria $criteria): array
     {
-        $this->tracer->trace(
-            'Queue::' . __FUNCTION__,
-            fn() => $this->queue->push($job),
-            ['job_class' => $job::class],
-        );
+        $key = 'report_top_authors_' . $criteria->year;
+        $cached = $this->cache->get($key);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        $result = $this->inner->getTopAuthors($criteria);
+        $this->cache->set($key, $result, $this->cacheTtl);
+
+        return $result;
     }
 }
 ```

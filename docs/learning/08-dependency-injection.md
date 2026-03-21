@@ -45,15 +45,7 @@ config/container/
 
 ```php
 // config/container/repositories.php
-BookRepositoryInterface::class => static fn(Container $c): BookRepositoryInterface =>
-    new TracingBookRepositoryDecorator(
-        new BookRepository(
-            $c->get(AppDbConnection::class),
-            $c->get(ActiveRecordHydrator::class),
-            $c->get(EventPublisherInterface::class),
-        ),
-        $c->get(TracerInterface::class),
-    ),
+BookRepositoryInterface::class => BookRepository::class,
 ```
 
 Yii2 Container видит, что `CreateBookUseCase` требует `BookRepositoryInterface` в конструкторе, и достаёт его из конфигурации.
@@ -122,21 +114,13 @@ TransactionInterface::class => static fn(Container $c): TransactionInterface =>
 
 ## Декораторы в DI
 
-DI-контейнер собирает цепочки декораторов:
+DI-контейнер привязывает интерфейсы к реализациям:
 
 ```php
-BookRepositoryInterface::class => static fn(Container $c): BookRepositoryInterface =>
-    new TracingBookRepositoryDecorator(          // ← внешний слой (трейсинг)
-        new BookRepository(                       // ← реализация
-            $c->get(AppDbConnection::class),
-            $c->get(ActiveRecordHydrator::class),
-            $c->get(EventPublisherInterface::class),
-        ),
-        $c->get(TracerInterface::class),
-    ),
+BookRepositoryInterface::class => BookRepository::class,
 ```
 
-Use Case получает `BookRepositoryInterface` и не знает, что его `save()` обёрнут в трейсинг-span.
+Use Case получает `BookRepositoryInterface` и не знает деталей реализации.
 
 ## DI в фоновых задачах
 

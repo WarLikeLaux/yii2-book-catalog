@@ -85,7 +85,7 @@
 | 🔹 **Паттерн CQS**<br>Разделение команд и запросов                               | 🔍 **Гибридный поиск**<br>FullText + откат к LIKE                   |
 | 🔹 **Value Objects**<br>`Isbn`, `BookYear`, `BookStatus`, `StoredFileReference`  | 🛡 **Idempotency + Mutex**<br>Защита от дублей без гонок            |
 | 🔹 **🚦 Status FSM**<br>Конечный автомат статусов книги                          | ⚡ **HTMX**<br>Infinite Scroll и реактивные формы                   |
-| 🔹 **📦 CAS (File Storage)**<br>Контентно-адресуемое хранилище                   | 📈 **Observability**<br>OpenTelemetry + Inspector APM               |
+| 🔹 **📦 CAS (File Storage)**<br>Контентно-адресуемое хранилище                   | 📈 **Observability**<br>Structured Logging + Inspector APM          |
 | 🔹 **Доменные события**<br>`BookStatusChangedEvent`, `BookUpdatedEvent`, fan-out | 🩺 **Эндпоинт здоровья (Health Check)**<br>Prod-readiness `/health` |
 | **🧪 Качество кода**                                                             | **🐳 DevOps Ready**                                                 |
 | ✅ **1009+ тестов** (2479+ assertions)<br>100% покрытие кода тестами              | 🐳 **Docker Compose**<br>Полный стек одной командой                 |
@@ -186,13 +186,10 @@ make up         # управление контейнерами (up/down) 🐳
 
 ### 🔍 Инфраструктура и отладка
 
-Для локальной разработки используется распределенный трейсинг через [Jaeger OTLP](https://www.jaegertracing.io/).
-
 | Переменная          | Порт    | Сервис                                      |
 | :------------------ | :------ | :------------------------------------------ |
 | `APP_PORT`          | `8000`  | Основной веб-сервер приложения              |
 | `SWAGGER_PORT`      | `8081`  | Swagger UI документация                     |
-| `JAEGER_UI_PORT`    | `16686` | Дашборд отладки (Traces, Waterfall, Search) |
 | `REDIS_PUBLIC_PORT` | `6379`  | Внешний доступ к Redis                      |
 
 > 💡 **Совет:** Если порты заняты, просто измените их в `.env` и перезапустите контейнеры через `make up`.
@@ -327,7 +324,6 @@ commands/               - Console контроллеры
 config/                 - Конфигурация приложения
   ├── container/        - Конфигурация контейнера зависимостей
 docker/                 - Docker конфигурация
-  ├── jaeger/          
   ├── nginx/            - Конфигурация nginx
 docs/                   - Документация
   ├── ai/               - Правила и инструкции для AI

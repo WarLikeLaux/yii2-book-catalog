@@ -21,7 +21,7 @@
   - [10. Асинхронные операции (fan-out)](#10-асинхронные-операции-fan-out)
   - [11. Пагинация и кеширование](#11-пагинация-и-кеширование)
   - [12. Внедрение зависимостей](#12-внедрение-зависимостей)
-  - [13. Наблюдаемость и трассировка](#13-наблюдаемость-и-трассировка)
+  - [13. Наблюдаемость и логирование](#13-наблюдаемость-и-логирование)
   - [14. Хранилище файлов (CAS)](#14-хранилище-файлов-cas)
   - [15. Инфраструктурное ядро](#15-инфраструктурное-ядро)
   - [16. Маппинг данных (AutoMapper и Hydrator)](#16-маппинг-данных-automapper-и-hydrator)
@@ -69,15 +69,12 @@ graph TD
     User((User/Admin))
     System[Book Catalog System]
     SMS["SMS Provider (External)"]
-    Jaeger["Jaeger (Tracing)"]
 
     User -- "Browses & Manages Books" --> System
     System -- "Sends Notifications" --> SMS
-    System -- "Sends Traces" --> Jaeger
 
     style System fill:#1168bd,stroke:#0b4884,color:#ffffff
     style SMS fill:#999999,stroke:#666666,color:#ffffff
-    style Jaeger fill:#999999,stroke:#666666,color:#ffffff
 ```
 
 ### Level 2: containers
@@ -217,7 +214,7 @@ graph TD
 - **Read DTO:** чтение отделено от отображения через `BookReadDto`.
 - **Фильтры:** идемпотентность и rate limit оформлены отдельными фильтрами.
 - **WebOperationRunner:** централизованный запуск Use Cases, работа с pipeline и обработка ошибок.
-- **Command Pipeline:** транзакции, идемпотентность и трассировка вынесены в middleware.
+- **Command Pipeline:** транзакции, идемпотентность и маппинг ошибок вынесены в middleware.
 - **HTMX:** фронт использует HTMX для бесшовной подгрузки и фильтрации.
 
 [↑ К навигации](#-навигация)
@@ -299,7 +296,6 @@ public function createBook(BookForm $form): int
 - Переключение между MySQL и PostgreSQL управляется `DB_DRIVER` и конфигами `config/db.php`.
 - Очередь реализована через `HandlerAwareQueue`, задания хранятся в базе.
 - Время инкапсулировано через `Psr\Clock\ClockInterface` и `SystemClock`.
-- Трассировка интегрирована с Jaeger OTLP.
 - Интерактивная отладка доступна через `make shell`.
 
 [↑ К навигации](#-навигация)
@@ -380,12 +376,11 @@ public function createBook(BookForm $form): int
 
 [↑ К навигации](#-навигация)
 
-### 13. Наблюдаемость и трассировка
+### 13. Наблюдаемость и логирование
 
-- Трассировка команд реализована через `TracingMiddleware`.
-- Инфраструктурные декораторы (`*TracingDecorator`) оборачивают репозитории, Query Services и очередь.
-- Сбор трейсов выполняется поверх OpenTelemetry (OTLP) с экспортом в Jaeger.
-- В панели Jaeger доступны waterfall timeline, структура вызовов RPC, и поиск трейсов по тегам.
+- Структурированное логирование через `YiiPsrLogger` с привязкой `RequestIdProvider` (UUID per request).
+- Каждый HTTP-ответ содержит заголовок `X-Request-Id` для корреляции запросов.
+- Логи разделены по категориям (`sms`, `error`, `warning`) с выделенными файлами.
 
 [↑ К навигации](#-навигация)
 
@@ -487,7 +482,6 @@ commands/               - Console контроллеры
 config/                 - Конфигурация приложения
   ├── container/        - Конфигурация контейнера зависимостей
 docker/                 - Docker конфигурация
-  ├── jaeger/          
   ├── nginx/            - Конфигурация nginx
 docs/                   - Документация
   ├── ai/               - Правила и инструкции для AI

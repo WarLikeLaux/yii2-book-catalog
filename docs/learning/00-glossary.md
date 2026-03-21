@@ -40,7 +40,7 @@
 | **Identity Map** | Кэш сущностей в памяти. Гарантирует, что один и тот же объект из БД — один и тот же объект в коде. | `Yii::$app->get('component')` всегда возвращает один объект (singleton). Identity Map — то же для сущностей: `$repo->get(42)` всегда возвращает один и тот же объект `Book`. | [Глава 5](05-infrastructure.md#baseactiverecordrepository) |
 | **Query Service** | Read-only сервис для выборки данных. Возвращает DTO, не Entity. | `Book::find()->where(...)->all()` — но вынесенный в отдельный класс, возвращающий типизированные DTO вместо массивов AR. | [Глава 5](05-infrastructure.md#query-services) |
 | **Adapter** | Обёртка над компонентом Yii2, реализующая интерфейс (Port). | `Yii::$app->cache->get('key')` — прямой вызов. Adapter: `$this->cache->get('key')` — тот же вызов, но через интерфейс `CacheInterface`. Можно заменить Redis на Memcached без правки бизнес-кода. | [Глава 5](05-infrastructure.md#адаптеры-yii2) |
-| **Decorator** | Обёртка, добавляющая поведение без изменения оригинала. | `behaviors()` в AR. Декоратор — аналог: `TracingBookRepository` оборачивает `BookRepository` и добавляет трейсинг к каждому вызову. Оригинал не знает об обёртке. | [Глава 5](05-infrastructure.md#декораторы) |
+| **Decorator** | Обёртка, добавляющая поведение без изменения оригинала. | `behaviors()` в AR. Декоратор — аналог: `ReportQueryServiceCachingDecorator` оборачивает `ReportQueryService` и добавляет кэширование к каждому вызову. Оригинал не знает об обёртке. | [Глава 5](05-infrastructure.md#декораторы) |
 
 ### Presentation layer
 
