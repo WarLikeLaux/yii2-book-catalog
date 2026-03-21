@@ -42,6 +42,7 @@
 - **#41** - рефакторинг ошибок файлового хранилища из `DomainErrorCode` в `StorageException`, удалены 5 кейсов из доменного enum ([2243aef](https://github.com/WarLikeLaux/yii2-book-catalog/commit/2243aef))
 - **#41** - рефакторинг расположения пунктов меню в основном layout ([0fa458e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/0fa458e))
 - **#41** - убрана избыточная валидация `$id <= 0` в `AuthorIdCollection` (дублировала `AuthorId`), добавлено типизированное замыкание в `Isbn::validateIsbn10` ([fd2d034](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fd2d034))
+- **#41** - возвращён `array_sum` в `Isbn::validateIsbn10` с сохранением типизированного замыкания для устранения мутантов CastInt и PlusEqual ([fa5c7f1](https://github.com/WarLikeLaux/yii2-book-catalog/commit/fa5c7f1))
 - **#40** - рефакторинг `ApiInfoViewModel`: сырые порты заменены на готовые URL, добавлена поддержка HTTPS ([25e652e](https://github.com/WarLikeLaux/yii2-book-catalog/commit/25e652e))
 - **#40** - стандартизировано форматирование views: breadcrumbs и HTMX load-more блок ([11092b0](https://github.com/WarLikeLaux/yii2-book-catalog/commit/11092b0))
 
