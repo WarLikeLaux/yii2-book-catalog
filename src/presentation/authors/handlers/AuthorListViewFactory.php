@@ -7,6 +7,7 @@ namespace app\presentation\authors\handlers;
 use app\application\common\dto\PaginationRequest;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\presentation\authors\dto\AuthorListViewModel;
+use app\presentation\authors\forms\AuthorFilterForm;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use yii\data\DataProviderInterface;
 use yii\web\Request;
@@ -29,14 +30,21 @@ final readonly class AuthorListViewFactory
             self::DEFAULT_LIMIT,
         );
 
+        $filterForm = new AuthorFilterForm();
+        $filterForm->load((array)$request->get());
+        $filterForm->validate();
+
         return new AuthorListViewModel(
-            $this->getIndexDataProvider($pagination),
+            $this->getIndexDataProvider($filterForm, $pagination),
+            $filterForm,
         );
     }
 
-    private function getIndexDataProvider(PaginationRequest $pagination): DataProviderInterface
-    {
-        $queryResult = $this->queryService->search('', $pagination->page, $pagination->limit);
+    private function getIndexDataProvider(
+        AuthorFilterForm $filterForm,
+        PaginationRequest $pagination,
+    ): DataProviderInterface {
+        $queryResult = $this->queryService->search($filterForm->fio, $pagination->page, $pagination->limit);
         return $this->dataProviderFactory->create($queryResult);
     }
 }

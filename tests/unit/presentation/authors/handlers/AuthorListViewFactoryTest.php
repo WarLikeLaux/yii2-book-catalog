@@ -7,6 +7,7 @@ namespace tests\unit\presentation\authors\handlers;
 use app\application\ports\AuthorQueryServiceInterface;
 use app\application\ports\PagedResultInterface;
 use app\presentation\authors\dto\AuthorListViewModel;
+use app\presentation\authors\forms\AuthorFilterForm;
 use app\presentation\authors\handlers\AuthorListViewFactory;
 use app\presentation\common\adapters\PagedResultDataProviderFactory;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -56,5 +57,32 @@ final class AuthorListViewFactoryTest extends TestCase
 
         $this->assertInstanceOf(AuthorListViewModel::class, $result);
         $this->assertSame($dataProvider, $result->dataProvider);
+        $this->assertInstanceOf(AuthorFilterForm::class, $result->filterModel);
+    }
+
+    public function testGetListViewModelWithFioFilterPassesToSearch(): void
+    {
+        $pagedResult = $this->createStub(PagedResultInterface::class);
+        $dataProvider = $this->createStub(DataProviderInterface::class);
+
+        $this->queryService->expects($this->once())
+            ->method('search')
+            ->with('Пушкин', 1, 20)
+            ->willReturn($pagedResult);
+
+        $this->dataProviderFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($dataProvider);
+
+        $request = $this->createStub(Request::class);
+        $request->method('get')->willReturnMap([
+            ['page', null, 1],
+            ['limit', null, 20],
+            [null, null, ['fio' => 'Пушкин']],
+        ]);
+
+        $result = $this->factory->getListViewModel($request);
+
+        $this->assertSame('Пушкин', $result->filterModel->fio);
     }
 }
