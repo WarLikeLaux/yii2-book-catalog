@@ -14,6 +14,7 @@ use app\domain\specifications\IsbnPrefixSpecification;
 use app\domain\specifications\StatusSpecification;
 use app\domain\specifications\YearSpecification;
 use app\infrastructure\persistence\Author;
+use InvalidArgumentException;
 use yii\db\ActiveQuery;
 use yii\db\Connection;
 use yii\db\Expression;
@@ -60,7 +61,7 @@ final readonly class ActiveQueryBookSpecificationVisitor implements BookSpecific
             $condition = $this->buildConditionFor($childSpec);
 
             if ($condition === null) {
-                continue; // @codeCoverageIgnore
+                continue;
             }
 
             $conditions[] = $condition;
@@ -96,8 +97,52 @@ final readonly class ActiveQueryBookSpecificationVisitor implements BookSpecific
             $spec instanceof FullTextSpecification => $this->buildFullTextCondition($spec->getQuery()),
             $spec instanceof AuthorSpecification => $this->buildAuthorCondition($spec->getAuthorName()),
             $spec instanceof StatusSpecification => ['status' => $spec->getStatus()->value],
-            default => null, // @codeCoverageIgnore
+            $spec instanceof CompositeAndSpecification => $this->buildCompositeAndCondition($spec),
+            $spec instanceof CompositeOrSpecification => $this->buildCompositeOrCondition($spec),
+            default => throw new InvalidArgumentException(
+                sprintf('Unsupported specification type: %s', $spec::class),
+            ),
         };
+    }
+
+    /**
+     * @return array<int|string, mixed>|null
+     */
+    private function buildCompositeAndCondition(CompositeAndSpecification $spec): ?array
+    {
+        $conditions = ['and'];
+
+        foreach ($spec->getSpecifications() as $childSpec) {
+            $condition = $this->buildConditionFor($childSpec);
+
+            if ($condition === null) {
+                continue;
+            }
+
+            $conditions[] = $condition;
+        }
+
+        return count($conditions) <= 1 ? null : $conditions;
+    }
+
+    /**
+     * @return array<int|string, mixed>|null
+     */
+    private function buildCompositeOrCondition(CompositeOrSpecification $spec): ?array
+    {
+        $conditions = ['or'];
+
+        foreach ($spec->getSpecifications() as $childSpec) {
+            $condition = $this->buildConditionFor($childSpec);
+
+            if ($condition === null) {
+                continue;
+            }
+
+            $conditions[] = $condition;
+        }
+
+        return count($conditions) <= 1 ? null : $conditions;
     }
 
     /**
