@@ -18,24 +18,15 @@ final readonly class BookRepositoryTracingDecorator implements BookRepositoryInt
     }
 
     #[Override]
-    public function save(Book $book): int
+    public function save(Book $book, ?int $expectedVersion = null): int
     {
-        return $this->tracer->trace('BookRepo::' . __FUNCTION__, fn(): int => $this->repository->save($book));
+        return $this->tracer->trace('BookRepo::' . __FUNCTION__, fn(): int => $this->repository->save($book, $expectedVersion));
     }
 
     #[Override]
     public function get(int $id): Book
     {
         return $this->tracer->trace('BookRepo::' . __FUNCTION__, fn(): Book => $this->repository->get($id));
-    }
-
-    #[Override]
-    public function getByIdAndVersion(int $id, int $expectedVersion): Book
-    {
-        return $this->tracer->trace(
-            'BookRepo::' . __FUNCTION__,
-            fn(): Book => $this->repository->getByIdAndVersion($id, $expectedVersion),
-        );
     }
 
     #[Override]
