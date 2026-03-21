@@ -603,4 +603,14 @@ final class BookTest extends TestCase
 
         $this->assertSame([], $book->getAuthorIdValues());
     }
+
+    public function testRemoveNonExistentAuthorFromPublishedBookDoesNotThrow(): void
+    {
+        $book = $this->createPublishableBook(1);
+        $book->transitionTo(BookStatus::Published, new BookPublicationPolicy());
+
+        $book->removeAuthor(new AuthorId(99));
+
+        $this->assertSame([1], $book->getAuthorIdValues());
+    }
 }
