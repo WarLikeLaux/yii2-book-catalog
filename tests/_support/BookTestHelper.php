@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use app\domain\entities\Book;
+use app\domain\values\AuthorId;
 use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
@@ -28,7 +29,7 @@ final class BookTestHelper
             isbn: new Isbn($isbn),
             description: $description,
             coverImage: $coverImage ? new StoredFileReference($coverImage) : null,
-            authorIds: $authorIds,
+            authorIds: array_map(static fn(int $id): AuthorId => new AuthorId($id), $authorIds),
             status: $status,
             version: $version,
         );

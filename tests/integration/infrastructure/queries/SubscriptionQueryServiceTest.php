@@ -7,6 +7,7 @@ namespace tests\integration\infrastructure\queries;
 use app\application\ports\SubscriptionQueryServiceInterface;
 use app\domain\entities\Subscription;
 use app\domain\repositories\SubscriptionRepositoryInterface;
+use app\domain\values\AuthorId;
 use app\domain\values\Phone;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Book;
@@ -125,7 +126,7 @@ final class SubscriptionQueryServiceTest extends Unit
 
     private function createSubscription(string $phone, int $authorId): void
     {
-        $subscription = Subscription::create(new Phone($phone), $authorId);
+        $subscription = Subscription::create(new Phone($phone), new AuthorId($authorId));
         $this->repository->save($subscription);
     }
 

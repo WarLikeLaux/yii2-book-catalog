@@ -15,6 +15,7 @@ use app\domain\specifications\CompositeOrSpecification;
 use app\domain\specifications\FullTextSpecification;
 use app\domain\specifications\IsbnPrefixSpecification;
 use app\domain\specifications\YearSpecification;
+use app\domain\values\AuthorId;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
 use app\infrastructure\persistence\Author;
@@ -83,7 +84,7 @@ final class BookQueryServiceTest extends Unit
             null,
             null,
         );
-        $book->replaceAuthors([$authorId]);
+        $book->replaceAuthors([new AuthorId($authorId)]);
 
         $this->repository->save($book);
         $bookId = $book->id;
@@ -109,7 +110,7 @@ final class BookQueryServiceTest extends Unit
             null,
             null,
         );
-        $book->replaceAuthors([$authorId]);
+        $book->replaceAuthors([new AuthorId($authorId)]);
         $this->repository->save($book);
 
         Yii::$app->db->getTransaction()->commit();
@@ -178,7 +179,7 @@ final class BookQueryServiceTest extends Unit
             'Some description',
             null,
         );
-        $book->replaceAuthors([$authorId]);
+        $book->replaceAuthors([new AuthorId($authorId)]);
         $this->repository->save($book);
 
         Yii::$app->db->getTransaction()->commit();
@@ -252,7 +253,7 @@ final class BookQueryServiceTest extends Unit
             null,
             null,
         );
-        $book->replaceAuthors([$authorId]);
+        $book->replaceAuthors([new AuthorId($authorId)]);
         $this->repository->save($book);
 
         Yii::$app->db->getTransaction()->commit();
@@ -312,7 +313,7 @@ final class BookQueryServiceTest extends Unit
             null,
             null,
         );
-        $book2->replaceAuthors([$authorId]);
+        $book2->replaceAuthors([new AuthorId($authorId)]);
         $this->repository->save($book2);
 
         Yii::$app->db->getTransaction()->commit();
@@ -387,7 +388,7 @@ final class BookQueryServiceTest extends Unit
         $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'FilterAuthorName']);
 
         $book = BookEntity::create('Author Filter', new BookYear(2024), new Isbn('9783161484100'), null, null);
-        $book->replaceAuthors([$authorId]);
+        $book->replaceAuthors([new AuthorId($authorId)]);
         $this->repository->save($book);
 
         Yii::$app->db->getTransaction()->commit();

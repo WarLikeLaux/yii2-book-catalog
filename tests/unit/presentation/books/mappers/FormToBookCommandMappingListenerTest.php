@@ -68,14 +68,14 @@ final class FormToBookCommandMappingListenerTest extends TestCase
     {
         $collection = FormToBookCommandMappingListener::transformAuthorIds(['1', '2', '3']);
 
-        $this->assertSame([1, 2, 3], $collection->toArray());
+        $this->assertSame([1, 2, 3], $collection->toIntArray());
     }
 
     public function testTransformAuthorIdsWithNonArrayReturnsEmpty(): void
     {
         $collection = FormToBookCommandMappingListener::transformAuthorIds(null);
 
-        $this->assertSame([], $collection->toArray());
+        $this->assertSame([], $collection->toIntArray());
     }
 
     public function testInvokeDoesNotOverrideExistingAuthorIds(): void

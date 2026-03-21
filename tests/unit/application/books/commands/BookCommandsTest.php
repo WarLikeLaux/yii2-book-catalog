@@ -28,7 +28,7 @@ final class BookCommandsTest extends TestCase
         $this->assertSame(2008, $command->year);
         $this->assertSame('A book about clean code', $command->description);
         $this->assertSame('9780132350884', $command->isbn);
-        $this->assertSame([1, 2, 3], $command->authorIds->toArray());
+        $this->assertSame([1, 2, 3], $command->authorIds->toIntArray());
         $this->assertSame($cover, $command->storedCover);
     }
 
@@ -64,7 +64,7 @@ final class BookCommandsTest extends TestCase
         $this->assertSame(2024, $command->year);
         $this->assertSame('New description', $command->description);
         $this->assertSame('9780132350884', $command->isbn);
-        $this->assertSame([1], $command->authorIds->toArray());
+        $this->assertSame([1], $command->authorIds->toIntArray());
         $this->assertSame(5, $command->version);
         $this->assertSame($cover, $command->storedCover);
     }

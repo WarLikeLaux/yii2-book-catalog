@@ -6,6 +6,7 @@ namespace tests\unit\application\common\values;
 
 use app\application\common\values\AuthorIdCollection;
 use app\domain\exceptions\ValidationException;
+use app\domain\values\AuthorId;
 use PHPUnit\Framework\TestCase;
 
 final class AuthorIdCollectionTest extends TestCase
@@ -14,20 +15,23 @@ final class AuthorIdCollectionTest extends TestCase
     {
         $collection = AuthorIdCollection::fromArray([1, 2, 3]);
 
-        $this->assertSame([1, 2, 3], $collection->toArray());
+        $this->assertSame([1, 2, 3], $collection->toIntArray());
+        $this->assertCount(3, $collection->toArray());
+        $this->assertContainsOnlyInstancesOf(AuthorId::class, $collection->toArray());
     }
 
     public function testFromArrayDeduplicatesIds(): void
     {
         $collection = AuthorIdCollection::fromArray([5, 5, 3, 5, 3]);
 
-        $this->assertSame([5, 3], $collection->toArray());
+        $this->assertSame([5, 3], $collection->toIntArray());
     }
 
     public function testFromArrayAcceptsEmptyArray(): void
     {
         $collection = AuthorIdCollection::fromArray([]);
 
+        $this->assertSame([], $collection->toIntArray());
         $this->assertSame([], $collection->toArray());
     }
 

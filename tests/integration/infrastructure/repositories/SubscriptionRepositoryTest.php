@@ -6,6 +6,7 @@ namespace tests\integration\infrastructure\repositories;
 
 use app\domain\entities\Subscription;
 use app\domain\repositories\SubscriptionRepositoryInterface;
+use app\domain\values\AuthorId;
 use app\domain\values\Phone;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Subscription as SubscriptionAR;
@@ -27,7 +28,7 @@ final class SubscriptionRepositoryTest extends Unit
     public function testSaveCreatesSubscription(): void
     {
         $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'Test Author']);
-        $subscription = Subscription::create(new Phone('+77001234567'), $authorId);
+        $subscription = Subscription::create(new Phone('+77001234567'), new AuthorId($authorId));
 
         $this->repository->save($subscription);
 

@@ -8,6 +8,7 @@ use app\domain\entities\Book as BookEntity;
 use app\domain\exceptions\AlreadyExistsException;
 use app\domain\exceptions\EntityNotFoundException;
 use app\domain\repositories\BookRepositoryInterface;
+use app\domain\values\AuthorId;
 use app\domain\values\BookStatus;
 use app\domain\values\BookYear;
 use app\domain\values\Isbn;
@@ -85,13 +86,13 @@ final class BookRepositoryTest extends Unit
             null,
             null,
         );
-        $book->replaceAuthors([$authorId]);
+        $book->replaceAuthors([new AuthorId($authorId)]);
 
         $this->repository->save($book);
         $bookId = $book->id;
 
         $retrieved = $this->repository->get($bookId);
-        $this->assertContains($authorId, $retrieved->authorIds);
+        $this->assertContains($authorId, $retrieved->getAuthorIdValues());
     }
 
     public function testGetReturnsBookEntity(): void
@@ -185,15 +186,15 @@ final class BookRepositoryTest extends Unit
             null,
             null,
         );
-        $book->replaceAuthors([$author1, $author2]);
+        $book->replaceAuthors([new AuthorId($author1), new AuthorId($author2)]);
         $this->repository->save($book);
 
-        $book->replaceAuthors([$author1]);
+        $book->replaceAuthors([new AuthorId($author1)]);
         $this->repository->save($book);
 
         $storedBook = $this->repository->get($book->id);
         $this->assertCount(1, $storedBook->authorIds);
-        $this->assertEquals([$author1], $storedBook->authorIds);
+        $this->assertSame([$author1], $storedBook->getAuthorIdValues());
     }
 
     public function testSaveDuplicateIsbnThrowsAlreadyExistsException(): void

@@ -63,7 +63,7 @@ final class CreateBookUseCaseTest extends TestCase
         $bookRepository->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn (Book $book): bool => $book->title === self::TITLE_CLEAN_CODE
-                    && $book->authorIds === [1, 2]))
+                    && $book->getAuthorIdValues() === [1, 2]))
             ->willReturnCallback(static function (Book $book): int {
                 BookTestHelper::assignBookId($book, 42);
                 return 42;
@@ -233,7 +233,7 @@ final class CreateBookUseCaseTest extends TestCase
         $bookRepository = $this->createMock(BookRepositoryInterface::class);
         $bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2]))
+            ->with($this->callback(static fn (Book $book): bool => $book->getAuthorIdValues() === [1, 2]))
             ->willReturnCallback(static function (Book $book): int {
                 BookTestHelper::assignBookId($book, 42);
                 return 42;

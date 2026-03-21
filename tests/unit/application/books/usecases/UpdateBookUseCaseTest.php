@@ -85,7 +85,7 @@ final class UpdateBookUseCaseTest extends TestCase
             ->method('save')
             ->with(
                 $this->callback(static fn (Book $book): bool => $book->title === 'Updated Title'
-                    && $book->authorIds === [1, 2]),
+                    && $book->getAuthorIdValues() === [1, 2]),
                 1,
             )
             ->willReturn(42);
@@ -136,7 +136,7 @@ final class UpdateBookUseCaseTest extends TestCase
 
         $this->bookRepository->expects($this->once())
             ->method('save')
-            ->with($this->callback(static fn (Book $book): bool => $book->authorIds === [1, 2]))
+            ->with($this->callback(static fn (Book $book): bool => $book->getAuthorIdValues() === [1, 2]))
             ->willReturn(42);
 
         $this->useCase->execute($command);

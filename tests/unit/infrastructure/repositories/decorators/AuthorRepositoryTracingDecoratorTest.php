@@ -7,6 +7,7 @@ namespace tests\unit\infrastructure\repositories\decorators;
 use app\application\ports\TracerInterface;
 use app\domain\entities\Author;
 use app\domain\repositories\AuthorRepositoryInterface;
+use app\domain\values\AuthorId;
 use app\infrastructure\repositories\decorators\AuthorRepositoryTracingDecorator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -34,11 +35,13 @@ final class AuthorRepositoryTracingDecoratorTest extends TestCase
             )
             ->willReturnCallback(static fn(string $_name, callable $callback) => $callback());
 
+        $authorId = new AuthorId(42);
+
         $this->innerRepository->expects($this->once())
             ->method('removeAllBookLinks')
-            ->with(42);
+            ->with($authorId);
 
-        $this->decorator->removeAllBookLinks(42);
+        $this->decorator->removeAllBookLinks($authorId);
     }
 
     public function testSaveDelegatesToInnerWithTracing(): void

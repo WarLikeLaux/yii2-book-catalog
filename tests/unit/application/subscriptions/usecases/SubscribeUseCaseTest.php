@@ -67,7 +67,7 @@ final class SubscribeUseCaseTest extends TestCase
         $repository->expects($this->once())
             ->method('save')
             ->with($this->callback(static fn(Subscription $subscription) => (string)$subscription->phone === '+79991112233'
-                    && $subscription->authorId === 1))
+                    && $subscription->authorId->value === 1))
             ->willReturn(1);
 
         $useCase = new SubscribeUseCase(

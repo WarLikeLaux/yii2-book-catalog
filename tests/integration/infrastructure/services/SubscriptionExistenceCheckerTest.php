@@ -7,6 +7,7 @@ namespace tests\integration\infrastructure\services;
 use app\application\ports\SubscriptionExistenceCheckerInterface;
 use app\domain\entities\Subscription;
 use app\domain\repositories\SubscriptionRepositoryInterface;
+use app\domain\values\AuthorId;
 use app\domain\values\Phone;
 use app\infrastructure\persistence\Author;
 use app\infrastructure\persistence\Subscription as SubscriptionAR;
@@ -30,7 +31,7 @@ final class SubscriptionExistenceCheckerTest extends Unit
     public function testExistsReturnsTrueWhenSubscriptionExists(): void
     {
         $authorId = $this->tester->haveRecord(Author::class, ['fio' => 'Test Author']);
-        $subscription = Subscription::create(new Phone('+77001234567'), $authorId);
+        $subscription = Subscription::create(new Phone('+77001234567'), new AuthorId($authorId));
         $this->repository->save($subscription);
 
         $this->assertTrue($this->checker->exists('+77001234567', $authorId));
@@ -47,7 +48,7 @@ final class SubscriptionExistenceCheckerTest extends Unit
     {
         $authorId1 = $this->tester->haveRecord(Author::class, ['fio' => 'Author One']);
         $authorId2 = $this->tester->haveRecord(Author::class, ['fio' => 'Author Two']);
-        $subscription = Subscription::create(new Phone('+77001234567'), $authorId1);
+        $subscription = Subscription::create(new Phone('+77001234567'), new AuthorId($authorId1));
         $this->repository->save($subscription);
 
         $this->assertFalse($this->checker->exists('+77001234567', $authorId2));
