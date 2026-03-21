@@ -8,6 +8,7 @@ use app\application\common\dto\PaginationDto;
 use app\application\ports\PagedResultInterface;
 use app\presentation\common\adapters\PagedResultDataProvider;
 use PHPUnit\Framework\TestCase;
+use yii\data\Sort;
 
 final class PagedResultDataProviderTest extends TestCase
 {
@@ -115,5 +116,36 @@ final class PagedResultDataProviderTest extends TestCase
         ]);
 
         $this->assertEquals($expectedCount, $provider->getTotalCount());
+    }
+
+    public function testSortAttributesCreatesSortObject(): void
+    {
+        $result = $this->createStub(PagedResultInterface::class);
+        $result->method('getModels')->willReturn([]);
+        $result->method('getTotalCount')->willReturn(0);
+        $result->method('getPagination')->willReturn(null);
+
+        $provider = new PagedResultDataProvider($result, ['title', 'year']);
+        $sort = $provider->getSort();
+
+        $this->assertInstanceOf(Sort::class, $sort);
+        $this->assertArrayHasKey('title', $sort->attributes);
+        $this->assertArrayHasKey('year', $sort->attributes);
+        $this->assertSame(['title' => SORT_ASC], $sort->attributes['title']['asc']);
+        $this->assertSame(['title' => SORT_DESC], $sort->attributes['title']['desc']);
+    }
+
+    public function testEmptySortAttributesHasNoCustomAttributes(): void
+    {
+        $result = $this->createStub(PagedResultInterface::class);
+        $result->method('getModels')->willReturn([]);
+        $result->method('getTotalCount')->willReturn(0);
+        $result->method('getPagination')->willReturn(null);
+
+        $provider = new PagedResultDataProvider($result);
+        $sort = $provider->getSort();
+
+        $this->assertInstanceOf(Sort::class, $sort);
+        $this->assertSame([], $sort->attributes);
     }
 }

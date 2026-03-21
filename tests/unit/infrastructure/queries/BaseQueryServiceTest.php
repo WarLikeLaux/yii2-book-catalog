@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace tests\unit\infrastructure\queries;
 
+use app\application\common\dto\SortDirection;
+use app\application\common\dto\SortRequest;
 use AutoMapper\AutoMapperInterface;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -148,6 +150,57 @@ final class BaseQueryServiceTest extends TestCase
         $this->expectExceptionMessage('must have a primary key');
 
         $service->checkExists($query, 123);
+    }
+
+    public function testApplySortWithValidFieldSetsCustomOrder(): void
+    {
+        $service = $this->createService();
+        $query = $this->createMock(ActiveQuery::class);
+
+        $query->expects($this->once())
+            ->method('orderBy')
+            ->with(['title' => SORT_ASC]);
+
+        $sort = new SortRequest('title', SortDirection::ASC);
+        $service->checkApplySort($query, $sort, ['title', 'year'], 'created_at', SORT_DESC);
+    }
+
+    public function testApplySortWithInvalidFieldUsesDefault(): void
+    {
+        $service = $this->createService();
+        $query = $this->createMock(ActiveQuery::class);
+
+        $query->expects($this->once())
+            ->method('orderBy')
+            ->with(['created_at' => SORT_DESC]);
+
+        $sort = new SortRequest('hacked_field', SortDirection::ASC);
+        $service->checkApplySort($query, $sort, ['title', 'year'], 'created_at', SORT_DESC);
+    }
+
+    public function testApplySortWithNullUsesDefault(): void
+    {
+        $service = $this->createService();
+        $query = $this->createMock(ActiveQuery::class);
+
+        $query->expects($this->once())
+            ->method('orderBy')
+            ->with(['fio' => SORT_ASC]);
+
+        $service->checkApplySort($query, null, ['id', 'fio'], 'fio', SORT_ASC);
+    }
+
+    public function testApplySortDescDirection(): void
+    {
+        $service = $this->createService();
+        $query = $this->createMock(ActiveQuery::class);
+
+        $query->expects($this->once())
+            ->method('orderBy')
+            ->with(['year' => SORT_DESC]);
+
+        $sort = new SortRequest('year', SortDirection::DESC);
+        $service->checkApplySort($query, $sort, ['title', 'year'], 'created_at', SORT_DESC);
     }
 
     private function createService(): object
